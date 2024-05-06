@@ -1,0 +1,48 @@
+// app global css in SCSS form
+.bg-glass {
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12.3px);
+  -webkit-backdrop-filter: blur(12.3px);
+}
+
+.text-glass {
+  /* From https://css.glass */
+  color: rgba(255, 255, 255, 0.38);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12.3px);
+  -webkit-backdrop-filter: blur(12.3px);
+}
+
+.menu-list {
+  .q-item {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    &.label {
+      cursor: default;
+    }
+    &:hover:not(.label) {
+      color: rgba($primary, 0.8);
+    }
+    &.q-hoverable:hover > .q-focus-helper {
+      background: currentColor;
+      opacity: 0;
+    }
+    &.q-router-link--active:after,
+    &--active:after,
+    &.q-hoverable:hover:after {
+      content: '';
+      width: 4px;
+      background: $primary;
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+    &.q-hoverable:hover:after {
+      background: rgba($primary, 0.8);
+    }
+  }
+}
