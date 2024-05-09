@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { useColors } from 'vuestic-ui/web-components';
+import { useColors } from 'vuestic-ui';
 
 defineOptions({
   name: 'App',

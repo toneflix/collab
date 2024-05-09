@@ -1,0 +1,86 @@
+<template>
+  <div>
+    <q-item
+      class="py-0 pl-0"
+      active-class="text-white"
+      :to="{
+        name: 'artist.track',
+        params: { artist_id: track.artist?.username, track_id: track.slug },
+      }"
+    >
+      <q-item-section avatar class="pr-3 min-w-10">
+        <q-avatar rounded>
+          <q-img
+            no-spinner
+            class="bg-gray-400"
+            loading="eager"
+            :src="track.imageUrl"
+            :ratio="1 / 1"
+          />
+        </q-avatar>
+      </q-item-section>
+
+      <q-item-section>
+        <q-item-label lines="1" class="text-sm font-bold">
+          {{ track.title }}
+        </q-item-label>
+        <q-item-label caption lines="1" class="mt-0">
+          {{ track.artist?.name || 'Unknown' }}
+        </q-item-label>
+      </q-item-section>
+
+      <q-item-section side>
+        <div class="flex flex-row items-center gap-2">
+          3:33
+          <VaButton
+            size="medium"
+            preset="plain"
+            color="textPrimary"
+            hover-opacity="0.8"
+            @click.prevent="togglePlay"
+          >
+            <q-icon :name="playing ? ionPauseCircle : ionPlayCircle" />
+          </VaButton>
+        </div>
+      </q-item-section>
+    </q-item>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v7';
+import { EventBus } from 'quasar';
+import { CollabEvents, SeekingData, Track } from 'src/utils/models';
+import { inject } from 'vue';
+import { ref } from 'vue';
+
+const track = defineModel<Track>('track', {
+  required: true,
+});
+
+const playing = ref(false);
+const seeking = ref<SeekingData>({} as unknown & SeekingData);
+
+const bus = inject<EventBus<CollabEvents>>('bus');
+
+const togglePlay = () => {
+  playing.value = !playing.value;
+  bus?.emit('togglePlay', playing.value, track.value, undefined, 'trend');
+};
+
+bus?.on('seeking', (position, trk, url) => {
+  if (trk?.id === track.value.id) {
+    seeking.value = { position, track: trk, url };
+    playing.value = position > 0;
+  } else {
+    seeking.value = {} as unknown & SeekingData;
+    playing.value = false;
+  }
+});
+
+bus?.on('togglePlay', (status, trk, album, origin) => {
+  if (origin !== 'trend' && trk.id === track.value.id) {
+    playing.value = status;
+  }
+});
+</script>

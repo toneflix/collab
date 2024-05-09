@@ -1,0 +1,33 @@
+@font-face {
+  font-family: 'ToneflixText-Black';
+  src:
+    local('ToneflixText-Black'),
+    url('./fonts/ToneflixText-Black.otf') format('opentype'),
+    url('./fonts/ToneflixText-BlackItalic.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText-Bold';
+  src:
+    local('ToneflixText-Bold'),
+    url('./fonts/ToneflixText-Bold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText-Book';
+  src:
+    local('ToneflixText-Book'),
+    url('./fonts/ToneflixText-Book.otf') format('opentype'),
+    url('./fonts/ToneflixText-BookItalic.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText-Light';
+  src:
+    local('ToneflixText-Light'),
+    url('./fonts/ToneflixText-Light.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText-Medium';
+  src:
+    local('ToneflixText-Medium'),
+    url('./fonts/ToneflixText-Medium.otf') format('opentype'),
+    url('./fonts/ToneflixText-MediumItalic.otf') format('opentype');
+}

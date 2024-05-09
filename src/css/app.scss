@@ -1,18 +1,11 @@
 // app global css in SCSS form
-.bg-glass {
-  /* From https://css.glass */
-  background: rgba(255, 255, 255, 0.38);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(12.3px);
-  -webkit-backdrop-filter: blur(12.3px);
-}
+@import './fonts/fonts.scss';
+@import './colors.scss';
 
-.text-glass {
-  /* From https://css.glass */
-  color: rgba(255, 255, 255, 0.38);
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(12.3px);
-  -webkit-backdrop-filter: blur(12.3px);
+.font-circlular-std {
+  font-family: 'ToneflixText-Black', 'ToneflixText-Bold', 'ToneflixText-Book',
+    'ToneflixText-Light', 'ToneflixText-Medium', 'Helvetica Neue', helvetica,
+    arial, 'Hiragino Kaku Gothic ProN', Meiryo, 'MS Gothic', sans-serif;
 }
 
 .menu-list {

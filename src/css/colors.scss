@@ -1,0 +1,52 @@
+.verified-badge {
+  z-index: 1;
+  &:before {
+    content: '';
+    width: calc(100% - 5px);
+    height: calc(100% - 5px);
+    background: #fff;
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+  }
+}
+
+.repeat-icon.single:after {
+  content: '1';
+  position: absolute;
+  font-size: 0.5em;
+  left: 7px;
+  bottom: 5px;
+}
+
+.bg-toneflix {
+  background-color: #03bfff !important;
+}
+
+.text-toneflix {
+  color: #03bfff !important;
+}
+
+.bg-glass {
+  /* From https://css.glass */
+  background: rgba(32, 32, 32, 0.38);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20.3px);
+  -webkit-backdrop-filter: blur(12.3px);
+}
+
+.text-glass {
+  /* From https://css.glass */
+  color: rgba(255, 255, 255, 0.38);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(12.3px);
+  -webkit-backdrop-filter: blur(12.3px);
+}
+
+.bg-dark-opaque {
+  background: rgba(12, 0, 0, 0.38);
+}
+
+.text-dark-opaque {
+  background: rgba(12, 0, 0, 0.38);
+}

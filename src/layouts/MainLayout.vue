@@ -1,11 +1,12 @@
 <template>
-  <q-layout view="lHh LpR lFf">
+  <q-layout view="lHh Lpr lFf">
+    <!-- lHh Lpr lff -->
     <q-header class="text-white bg-dark">
       <q-toolbar>
         <VaButton
           round
           size="medium"
-          color="gray-700"
+          color="backgroundSecondary"
           v-if="!showSearch"
           @click="showSearch = !showSearch"
         >
@@ -15,13 +16,13 @@
         <VaInput
           placeholder="Search Tracks, Albums, Projects and Creators"
           preset="solid"
-          color="white"
+          color="textPrimary"
           class="placeholder-white"
-          background="gray-700"
+          background="backgroundSecondary"
           style="
             --va-input-wrapper-border-radius: 20px;
             --va-input-wrapper-color: #fff;
-            --va-input-wrapper-border-color: #000;
+            --va-input-wrapper-border-color: var(--va-background-secondary);
           "
           v-if="showSearch"
         >
@@ -30,11 +31,12 @@
               name="clear"
               size="sm"
               color="white"
+              v-if="$q.screen.lt.sm"
               @click="showSearch = !showSearch"
             />
           </template>
         </VaInput>
-        <q-toolbar-title class="text-center"> Title </q-toolbar-title>
+        <!-- <q-toolbar-title class="text-center"> Title </q-toolbar-title> -->
 
         <q-space />
 
@@ -65,104 +67,70 @@
       v-model="leftDrawerOpen"
     >
       <!-- drawer content -->
-      <q-toolbar class="mb-10 bg-dark">
-        <img src="~/assets/logo.png" class="h-20 py-4 cursor-pointer" />
+      <q-toolbar class="!items-start py-3 mb-10 h-28 bg-dark absolute-top">
+        <div>
+          <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
+        </div>
       </q-toolbar>
 
-      <q-scroll-area class="h-[70vh]">
+      <q-scroll-area class="h-[calc(100%-112px)] mt-28">
         <q-list padding class="menu-list">
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-home" />
-            </q-item-section>
+          <template v-for="link in mainNavigationLinks">
+            <q-item
+              dense
+              exact
+              clickable
+              v-ripple
+              :to="link.to"
+              :key="link.title"
+              v-if="!link.group && !link.separator"
+            >
+              <q-item-section avatar>
+                <t-icon :name="link.icon" />
+              </q-item-section>
 
-            <q-item-section> Home </q-item-section>
-          </q-item>
+              <q-item-section> {{ link.title }} </q-item-section>
+            </q-item>
 
-          <q-item dense active clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-grid" />
-            </q-item-section>
+            <q-separator
+              class="q-my-lg"
+              :key="link.title"
+              v-if="link.separator"
+            />
 
-            <q-item-section> Genres </q-item-section>
-          </q-item>
+            <template v-if="link.group">
+              <q-item dense class="label" :key="link.group">
+                <q-item-section class="text-gray-400">
+                  {{ link.title }}
+                </q-item-section>
+                <q-item-section side v-if="link.button">
+                  <VaButton
+                    size="small"
+                    preset="secondary"
+                    border-color="primary"
+                  >
+                    <t-icon :name="link.button.icon" />
+                  </VaButton>
+                </q-item-section>
+              </q-item>
 
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-person" />
-            </q-item-section>
+              <q-item
+                dense
+                clickable
+                v-ripple
+                :key="link.group + item.title"
+                v-for="item in dummyProjects.filter(
+                  (e) => e.group === link.group,
+                )"
+              >
+                <q-item-section avatar>
+                  <t-icon name="eva-file" />
+                </q-item-section>
 
-            <q-item-section> Artists </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-layers" />
-            </q-item-section>
-
-            <q-item-section> Albums </q-item-section>
-          </q-item>
-
-          <q-separator class="q-my-lg" />
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-heart" />
-            </q-item-section>
-
-            <q-item-section> Loved </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-people" />
-            </q-item-section>
-
-            <q-item-section> Collabs </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-music" />
-            </q-item-section>
-
-            <q-item-section> Recent </q-item-section>
-          </q-item>
-
-          <q-separator class="q-my-lg" />
-
-          <q-item dense class="label">
-            <q-item-section class="text-gray-400"> Projects </q-item-section>
-            <q-item-section side>
-              <VaButton size="small" preset="secondary" border-color="primary">
-                <t-icon name="eva-music" />
-              </VaButton>
-            </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-file" />
-            </q-item-section>
-
-            <q-item-section> Big Seven </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-file" />
-            </q-item-section>
-
-            <q-item-section> Just Believe </q-item-section>
-          </q-item>
-
-          <q-item dense clickable v-ripple>
-            <q-item-section avatar>
-              <t-icon name="eva-file" />
-            </q-item-section>
-
-            <q-item-section> Twice Tall </q-item-section>
-          </q-item>
+                <q-item-section> {{ item.title }} </q-item-section>
+              </q-item>
+            </template>
+          </template>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -172,16 +140,19 @@
     </q-page-container>
 
     <q-footer class="text-white bg-glass">
-      <q-toolbar> </q-toolbar>
+      <AudioPlayer />
     </q-footer>
   </q-layout>
 </template>
 
 <script setup>
 import { useQuasar } from 'quasar';
+import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import TIcon from 'src/components/icons/TIcon.vue';
 import { ref } from 'vue';
+import { dummyProjects } from 'src/utils/dummy';
+import { mainNavigationLinks } from 'src/utils/navigations';
 
 const $q = useQuasar();
 const showSearch = ref($q.screen.gt.xs);

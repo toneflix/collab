@@ -5,7 +5,7 @@
 
 import { configure } from 'quasar/wrappers';
 
-export default configure((/* ctx */) => {
+export default configure((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     preFetch: true,
@@ -14,6 +14,7 @@ export default configure((/* ctx */) => {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
+      'main',
       'vuestic',
       'axios',
       'i18n',
@@ -38,6 +39,7 @@ export default configure((/* ctx */) => {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
       'roboto-font', // optional, you are not bound to it
+      'material-icons-outlined',
       'material-icons', // optional, you are not bound to it
     ],
 
@@ -48,7 +50,7 @@ export default configure((/* ctx */) => {
         node: 'node20'
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -83,7 +85,7 @@ export default configure((/* ctx */) => {
     devServer: {
       // https: true
       open: true, // opens browser window automatically
-      port: 9002
+      port: ctx.modeName === 'ssr' ? 9100 : 9001
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework

@@ -2,6 +2,9 @@
 .thumbs.db
 node_modules
 
+#test audio
+/public/*.mp3
+
 # Quasar core related directories
 .quasar
 /dist

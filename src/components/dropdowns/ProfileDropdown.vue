@@ -18,7 +18,7 @@
       </template>
       <VaDropdownContent
         class="w-full px-0 py-4 text-white profile-dropdown__content md:w-60 bg-dark"
-        :style="{ '--hover-color': hoverColor }"
+        :style="{ '--hover-color': 'var(--va-zinc-800)' }"
       >
         <VaList v-for="group in options" :key="group.name">
           <header
@@ -44,11 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
-import { useColors } from 'vuestic-ui';
-
-const { colors, setHSLAColor } = useColors();
-const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }));
+import { ref } from 'vue';
 
 type ProfileListItem = {
   name: string;
