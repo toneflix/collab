@@ -92,17 +92,16 @@
     </div>
     <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80">
       <div class="col-span-5">
-        <q-toolbar class="px-0">
-          <h1 class="va-h5">{{ `Other Songs by ${track.artist?.name}` }}</h1>
-        </q-toolbar>
-        <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-          <TrendingItem
-            class="m-1"
-            :key="track.id"
-            :track="track"
-            v-for="track in trackList"
-          />
-        </div>
+        <TrendingList
+          flexible
+          :categories="[
+            {
+              id: 'songs',
+              slug: 'songs',
+              title: `Other Songs by ${track.artist?.name}`,
+            },
+          ]"
+        />
       </div>
       <div class="col-span-5">
         <AlbumList
@@ -134,8 +133,8 @@ import {
 } from '@quasar/extras/ionicons-v7';
 import { intStr } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
-import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
+import TrendingList from 'src/components/Showcase/TrendingList.vue';
 
 const route = useRoute();
 const track = ref<Track>({} as unknown & Track);

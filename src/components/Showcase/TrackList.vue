@@ -12,7 +12,7 @@
         <h1>See All</h1>
       </VaButton>
     </q-toolbar>
-    <q-scroll-area class="h-48 md:h-64 max-w">
+    <q-scroll-area class="h-48 md:h-64 max-w" v-if="!verticalList">
       <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
         <TrackCard
           class="m-1"
@@ -22,6 +22,14 @@
         />
       </div>
     </q-scroll-area>
+    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
+      <TrackCard
+        class="m-1"
+        :key="track.id"
+        :track="track"
+        v-for="track in trackList"
+      />
+    </div>
   </div>
 </template>
 
@@ -32,6 +40,7 @@ import { trackList } from 'src/utils/dummy';
 import { PropType } from 'vue';
 
 defineProps({
+  verticalList: Boolean,
   hideAllLink: Boolean,
   categories: {
     type: Array as PropType<Category[]>,

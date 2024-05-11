@@ -22,9 +22,10 @@ export default configure((ctx) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: [
+      '~vuestic-ui/css',
+      'overwrite.scss',
       'app.scss',
-      'tailwind.css',
-      '~vuestic-ui/css'
+      'tailwind.scss',
       // '~vuestic-ui/dist/vuestic-ui.css'
     ],
 
@@ -106,7 +107,8 @@ export default configure((ctx) => {
 
       // Quasar plugins
       plugins: [
-        'Dark'
+        'Dark',
+        'Meta',
       ]
     },
 

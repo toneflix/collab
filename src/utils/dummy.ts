@@ -1,9 +1,13 @@
-import { Album, Artist, Project, Track } from './models';
+import { Album, Artist, Genre, Project, Track, UserComment } from './models';
 import { ref, toRaw } from 'vue';
 
 const description: string = `Lorem ipsum dolor sit amet consectetur adipisicing elit. Dicta
 similique nisi mollitia iste natus. Ratione illo ex tenetur est
 dolor. Quia at expedita iure eos vel asperiores nulla nihil ipsum.`;
+
+const description2: string = `Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
+nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
+erat, sed diam voluptua.`;
 
 const streamUrl = '/soothing-piano.mp3'
 const streamUrl2 = '/since_04.mp3'
@@ -92,6 +96,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 1,
       name: 'Lecrae',
+      about: description2,
       username: 'lecrae',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00017',
       verified: false,
@@ -116,6 +121,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 2,
       name: 'Eddie',
+      about: description2,
       username: 'eddie',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00025',
       verified: false,
@@ -140,6 +146,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 3,
       name: 'Tailor Swift',
+      about: description2,
       username: 'tailor_swift',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00026',
       verified: true,
@@ -164,6 +171,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 4,
       name: 'Kelly Klarkson',
+      about: description2,
       username: 'kelly_klarkson',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00028',
       verified: false,
@@ -188,6 +196,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 5,
       name: 'The Beatles',
+      about: description2,
       username: 'the_beatles',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00030',
       verified: true,
@@ -212,6 +221,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 6,
       name: 'Joyner Lucas',
+      about: description2,
       username: 'joyner_lucas',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00033',
       verified: false,
@@ -236,6 +246,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 7,
       name: 'Volta Music',
+      about: description2,
       username: 'volta_music',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00044',
       verified: true,
@@ -260,6 +271,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 8,
       name: 'Queen',
+      about: description2,
       username: 'queen',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00039',
       verified: false,
@@ -284,6 +296,7 @@ export const trackList = ref<Track[]>([
     artist: {
       id: 9,
       name: 'Jack',
+      about: description2,
       username: 'jack',
       imageUrl: 'https://lorem.toneflix.com.ng/images/image/00043',
       verified: false,
@@ -379,3 +392,158 @@ export const albumLists: Album[] = [
     tracks_count: 4,
   },
 ]
+
+export const userComments = ref<UserComment[]>([
+  {
+    id: 1,
+    text: description,
+    user: artistList.value[1],
+    replies: [],
+    expanded: false,
+    createdAt: new Date().toUTCString(),
+    replies_count: 0,
+  },
+  {
+    id: 1,
+    text: description2,
+    user: artistList.value[2],
+    replies: [
+      {
+        id: 1,
+        text: description2,
+        user: artistList.value[3],
+        createdAt: new Date().toUTCString(),
+      },
+      {
+        id: 1,
+        text: description,
+        user: artistList.value[4],
+        createdAt: new Date().toUTCString(),
+      },
+    ],
+    expanded: false,
+    createdAt: new Date().toUTCString(),
+    replies_count: 2,
+  },
+  {
+    id: 1,
+    text: description,
+    user: artistList.value[5],
+    replies: [
+      {
+        id: 1,
+        text: description2,
+        user: artistList.value[6],
+        createdAt: new Date().toUTCString(),
+      },
+      {
+        id: 1,
+        text: description,
+        user: artistList.value[7],
+        createdAt: new Date().toUTCString(),
+      },
+    ],
+    expanded: false,
+    createdAt: new Date().toUTCString(),
+    replies_count: 5,
+  },
+])
+
+export const genres: Genre[] = [
+  {
+    id: 1,
+    slug: 'pop',
+    title: 'Pop',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00015'
+  },
+  {
+    id: 2,
+    slug: 'rock',
+    title: 'Rock',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00016'
+  },
+  {
+    id: 3,
+    slug: 'hip-hop',
+    title: 'Hip Hop',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00017'
+  },
+  {
+    id: 4,
+    slug: 'jazz',
+    title: 'Jazz',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00018'
+  },
+  {
+    id: 5,
+    slug: 'country',
+    title: 'Country',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00019'
+  },
+  {
+    id: 6,
+    slug: 'blues',
+    title: 'Blues',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00020'
+  },
+  {
+    id: 7,
+    slug: 'reggae',
+    title: 'Reggae',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00021'
+  },
+  {
+    id: 8,
+    slug: 'electronic',
+    title: 'Electronic',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00022'
+  },
+  {
+    id: 9,
+    slug: 'classical',
+    title: 'Classical',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00023'
+  },
+  {
+    id: 10,
+    slug: 'metal',
+    title: 'Metal',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00024'
+  },
+  {
+    id: 11,
+    slug: 'folk',
+    title: 'Folk',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00025'
+  },
+  {
+    id: 12,
+    slug: 'indie',
+    title: 'Indie',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00026'
+  },
+  {
+    id: 13,
+    slug: 'r&b',
+    title: 'R&B',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00027'
+  },
+  {
+    id: 14,
+    slug: 'punk',
+    title: 'Punk',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00028'
+  },
+  {
+    id: 15,
+    slug: 'soul',
+    title: 'Soul',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00029'
+  },
+  {
+    id: 16,
+    slug: 'dance',
+    title: 'Dance',
+    imageUrl: 'https://lorem.toneflix.com.ng/images/image/00030'
+  }
+];

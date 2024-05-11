@@ -25,9 +25,17 @@ export interface SeekingData {
   url?: string;
 };
 
+export interface Genre {
+  id: number,
+  slug: string;
+  title: string;
+  imageUrl: string;
+};
+
 export interface Artist {
   id: string | number,
   name: string;
+  about: string;
   verified: boolean;
   username: string,
   imageUrl: string;
@@ -88,3 +96,18 @@ export type NavigationLink = {
     action: RouteLocationRaw | ((param: string | number | Record<string, string>) => void)
   }
 };
+
+export type UserComment = {
+  id: string | number,
+  text: string,
+  user: Artist,
+  replies: {
+    id: string | number,
+    text: string,
+    user: Artist,
+    createdAt: Date | string,
+  }[],
+  expanded: boolean,
+  createdAt: Date | string,
+  replies_count: number,
+}

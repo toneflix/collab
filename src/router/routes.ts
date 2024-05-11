@@ -1,5 +1,6 @@
 import { RouteRecordRaw } from 'vue-router';
 import artist from './artist';
+import authentication from './authentication';
 import projects from './projects';
 
 const routes: RouteRecordRaw[] = [
@@ -20,10 +21,16 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'genres',
         name: 'genres',
-        component: () => import('pages/GenrePage.vue')
+        component: () => import('pages/GenresPage.vue')
+      },
+      {
+        path: '/explore',
+        name: 'explore',
+        component: () => import('pages/ExplorePage.vue')
       },
     ],
   },
+  ...authentication,
   ...projects,
   ...artist,
 

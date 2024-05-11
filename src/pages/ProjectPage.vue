@@ -36,7 +36,6 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <q-icon fill color="white" name="eva-award" />
                 {{ intStr(project.props) }} Props
               </span>
               <span class="!flex-none">•</span>
@@ -80,19 +79,23 @@
           ]"
         />
       </div>
+      <div class="col-span-5">
+        <CommentSection />
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import CommentSection from 'src/components/Sections/CommentSection.vue';
+import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
+import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import { ref, watch } from 'vue';
 import { Project } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { dummyProjects } from 'src/utils/dummy';
 import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v7';
 import { intStr } from 'src/utils/helpers';
-import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
-import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import { useMeta } from 'quasar';
 
 const route = useRoute();

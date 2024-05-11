@@ -20,11 +20,6 @@ export default <RouteRecordRaw[]>[
         name: 'project',
         component: () => import('pages/ProjectPage.vue')
       },
-      {
-        path: ':track_id',
-        name: 'project.track',
-        component: () => import('pages/GenrePage.vue')
-      },
     ],
   },
 ];

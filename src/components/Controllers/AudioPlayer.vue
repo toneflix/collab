@@ -219,7 +219,7 @@ const volume = computed({
 });
 const shuffle = ref(false);
 const playing = ref(false);
-const progress = ref(0);
+const progress = ref();
 const position = ref(0);
 const duration = ref(0);
 const currentTrack = ref<Track>(

@@ -1,0 +1,8 @@
+.flex > * {
+  &[class*='flex-grow'],
+  &[class*='flex-shrink'],
+  &[class*='flex-none'],
+  &[class*='block'] {
+    flex: unset;
+  }
+}

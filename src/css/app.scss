@@ -1,6 +1,5 @@
 // app global css in SCSS form
-@import './fonts/fonts.scss';
-@import './colors.scss';
+@import './fonts/fonts', './colors';
 
 .font-circlular-std {
   font-family: 'ToneflixText-Black', 'ToneflixText-Bold', 'ToneflixText-Book',

@@ -61,6 +61,9 @@
                 {{ intStr(artist.reputation) }} Reps.
               </span>
             </div>
+            <p class="mt-4 text-sm max-w-96">
+              {{ artist.about }}
+            </p>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@
     <q-card flat square class="w-full bg-transparent cursor-pointer">
       <q-avatar
         round
-        class="!rounded-2xl md:w-44 md:h-44"
+        class="md:w-44 md:h-44"
         :class="{ 'w-28 h-28': dense, 'w-32 h-32': !dense }"
       >
         <q-img

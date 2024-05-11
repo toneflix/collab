@@ -428,13 +428,13 @@ const helpers = {
   },
   timeAgoStamp (
     time: string | Date,
-    format: 'facebook' | 'twitter' = 'facebook',
+    format: 'facebook' | 'twitter' | 'mini' = 'facebook',
     timeFormat = 'MMM DD, YYYY',
     switchAfter = 72,
   ) {
     const styles: Record<string, FormatStyleName> = {
       twitter: 'twitter',
-      facebook: 'mini',
+      facebook: 'round',
     }
 
     if (date.getDateDiff(new Date(), new Date(time), 'hours') <= switchAfter) {
@@ -604,4 +604,5 @@ export const intStr = helpers.intStr
 export const notify = helpers.notify
 export const currentUrl = helpers.currentUrl
 export const arrayUnique = helpers.arrayUnique
+export const timeAgoStamp = helpers.timeAgoStamp
 export const formatSeconds = helpers.formatSeconds
