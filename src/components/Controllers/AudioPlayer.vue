@@ -7,8 +7,8 @@
             :to="{
               name: 'artist.track',
               params: {
-                artist_id: currentTrack.artist?.username,
-                track_id: currentTrack.slug,
+                artist_id: currentTrack.artist?.username || '-',
+                track_id: currentTrack.slug || '-',
               },
             }"
           >
@@ -30,8 +30,8 @@
               :to="{
                 name: 'artist.track',
                 params: {
-                  artist_id: currentTrack.artist?.username,
-                  track_id: currentTrack.slug,
+                  artist_id: currentTrack.artist?.username || '-',
+                  track_id: currentTrack.slug || '-',
                 },
               }"
             >
@@ -42,7 +42,7 @@
             <RouterLink
               :to="{
                 name: 'artist',
-                params: { artist_id: currentTrack.artist?.username },
+                params: { artist_id: currentTrack.artist?.username || '-' },
               }"
             >
               {{ currentTrack.artist?.name || 'Unknown' }}
@@ -65,75 +65,69 @@
       <div
         class="flex items-center justify-around col-span-2 gap-4 md:justify-center"
       >
-        <div class="!flex-none">
-          <VaButton
-            size="large"
-            preset="plain"
-            color="textPrimary"
-            hover-opacity="0.8"
-            :text-opacity="shuffle ? 1 : 0.5"
-            @click="shuffle = !shuffle"
-          >
-            <TIcon fill :name="ionShuffleOutline" />
-          </VaButton>
-        </div>
-        <div class="!flex-none">
-          <VaButton
-            size="large"
-            preset="plain"
-            color="textPrimary"
-            hover-opacity="0.8"
-            @click="skipper('<')"
-          >
-            <TIcon fill :name="ionPlaySkipBackOutline" />
-          </VaButton>
-        </div>
-        <div class="!flex-none">
-          <q-btn
-            round
-            unelevated
+        <VaButton
+          size="large"
+          class="!flex-none"
+          preset="plain"
+          color="textPrimary"
+          hover-opacity="0.8"
+          :text-opacity="shuffle ? 1 : 0.5"
+          @click="shuffle = !shuffle"
+        >
+          <TIcon fill :name="ionShuffleOutline" />
+        </VaButton>
+        <VaButton
+          size="large"
+          class="!flex-none"
+          preset="plain"
+          color="textPrimary"
+          hover-opacity="0.8"
+          @click="skipper('<')"
+        >
+          <TIcon fill :name="ionPlaySkipBackOutline" />
+        </VaButton>
+        <q-btn
+          round
+          unelevated
+          size="sm"
+          color="glass"
+          class="flex flex-row items-center justify-center white-glass !flex-none"
+          @click="togglePlay(true)"
+        >
+          <TIcon
+            fill
             size="sm"
-            color="glass"
-            class="flex flex-row items-center justify-center"
-            @click="togglePlay(true)"
-          >
-            <TIcon
-              fill
-              size="sm"
-              :name="playing ? ionPauseOutline : ionPlayOutline"
-              color="white"
-            />
-          </q-btn>
-        </div>
-        <div class="!flex-none">
-          <VaButton
-            size="large"
-            preset="plain"
-            color="textPrimary"
-            hover-opacity="0.8"
-            @click="skipper('>')"
-          >
-            <TIcon fill :name="ionPlaySkipForwardOutline" />
-          </VaButton>
-        </div>
-        <div class="!flex-none">
-          <VaButton
-            size="large"
-            preset="plain"
-            color="textPrimary"
-            hover-opacity="0.8"
-            :text-opacity="system.playMode === 'all' ? 0.5 : 1"
-            @click="
-              system.setPlayMode(), sound.loop(system.playMode === 'single')
-            "
-          >
-            <TIcon
-              fill
-              :class="`repeat-icon ${system.playMode}`"
-              :name="ionRepeat"
-            />
-          </VaButton>
-        </div>
+            :name="playing ? ionPauseOutline : ionPlayOutline"
+            color="white"
+          />
+        </q-btn>
+        <VaButton
+          size="large"
+          class="!flex-none"
+          preset="plain"
+          color="textPrimary"
+          hover-opacity="0.8"
+          @click="skipper('>')"
+        >
+          <TIcon fill :name="ionPlaySkipForwardOutline" />
+        </VaButton>
+        <VaButton
+          size="large"
+          class="!flex-none"
+          preset="plain"
+          color="textPrimary"
+          hover-opacity="0.8"
+          :text-opacity="system.playMode === 'all' ? 0.5 : 1"
+          @click="
+            system.setPlayMode(), sound.loop(system.playMode === 'single')
+          "
+        >
+          <TIcon
+            fill
+            :class="`repeat-icon ${system.playMode}`"
+            :name="ionRepeat"
+          />
+        </VaButton>
       </div>
       <!-- ... -->
       <div class="flex items-center justify-center col-span-2 px-5">
@@ -209,6 +203,14 @@ import { ref, computed, onBeforeUnmount, onMounted, inject } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { EventBus, useInterval } from 'quasar';
 
+defineOptions({
+  preFetch({ store }) {
+    const system = useGlobalStore(store);
+    const index = Math.floor(Math.random() * trackList.value.length);
+    system.setCurrentTrack(trackList.value[index]);
+  },
+});
+
 let sound: Howl;
 const bus = inject<EventBus<CollabEvents>>('bus');
 const mute = ref(false);
@@ -222,9 +224,7 @@ const playing = ref(false);
 const progress = ref();
 const position = ref(0);
 const duration = ref(0);
-const currentTrack = ref<Track>(
-  trackList.value[Math.floor(Math.random() * trackList.value.length)],
-);
+const currentTrack = ref<Track>(system.currentTrack || trackList.value[0]);
 
 const onSeek = (pos: number) => {
   sound.seek((pos / 100) * sound.duration());

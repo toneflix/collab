@@ -14,9 +14,10 @@ export default configure((ctx) => {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
+      'prototypes',
       'main',
       'vuestic',
-      'axios',
+      'alova',
       'i18n',
     ],
 
@@ -33,7 +34,7 @@ export default configure((ctx) => {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v7',
-      // 'fontawesome-v6',
+      'fontawesome-v6',
       'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -67,7 +68,9 @@ export default configure((ctx) => {
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        viteConf.envPrefix = 'v_'
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -86,7 +89,7 @@ export default configure((ctx) => {
     devServer: {
       // https: true
       open: true, // opens browser window automatically
-      port: ctx.modeName === 'ssr' ? 9100 : 9001
+      port: ctx.modeName === 'ssr' ? 9101 : 9001
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
@@ -109,6 +112,9 @@ export default configure((ctx) => {
       plugins: [
         'Dark',
         'Meta',
+        'Notify',
+        'Dialog',
+        'Cookies',
       ]
     },
 

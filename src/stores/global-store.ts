@@ -12,6 +12,8 @@ export const useGlobalStore = defineStore('global', {
         id: <string | number>1,
         tracks: <Track[]>[]
       },
+      dawWarning: true,
+      currentTrack: <Track | null>null,
       isSidebarMinimized: false,
     }
   },
@@ -28,6 +30,9 @@ export const useGlobalStore = defineStore('global', {
       ]
       const i = modes.findIndex(e => e === this.playMode) + 1
       this.playMode = modes[i > 2 ? 0 : i]
+    },
+    setCurrentTrack (track: Track) {
+      this.currentTrack = track
     },
     clearPlaylist () {
       this.playlist.id = new Date().getTime()

@@ -37,10 +37,12 @@
                 {{ intStr(album.tracks_count) }} Tracks
               </span>
               <span class="!flex-none">•</span>
-              <span class="!flex-none"> {{ intStr(album.duration) }}:00 </span>
-              <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <q-icon fill color="white" name="eva-shake" />
+                {{ formatSeconds(album.duration) }}
+              </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none flex items-center gap-1">
+                <q-icon fill color="white" name="fas fa-play" />
                 {{ intStr(album.streams) }}
               </span>
               <span class="!flex-none">•</span>
@@ -57,8 +59,10 @@
                     :name="album.loved ? ionHeart : ionHeartOutline"
                     :fill="album.loved"
                   />
-                  <span class="text-sm font-medium">
-                    &nbsp;{{ album.loved ? 'Loved' : 'Love' }}
+                  <span
+                    :class="`text-sm font-${album.loved ? 'bold' : 'medium'}`"
+                  >
+                    &nbsp;{{ intStr(album.loves) }}
                   </span>
                 </VaButton>
               </span>
@@ -119,7 +123,7 @@ import { Album } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { albumLists } from 'src/utils/dummy';
 import { ionHeart, ionHeartOutline, ionPlay } from '@quasar/extras/ionicons-v7';
-import { intStr } from 'src/utils/helpers';
+import { formatSeconds, intStr } from 'src/utils/helpers';
 import { trackList } from 'src/utils/dummy';
 import { useMeta } from 'quasar';
 

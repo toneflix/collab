@@ -44,10 +44,12 @@
             <div
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
-              <span class="!flex-none"> {{ intStr(track.duration) }}:00 </span>
-              <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <q-icon color="white" name="eva-shake" :fill="track.loved" />
+                {{ formatSeconds(track.duration) }}
+              </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none flex items-center gap-1">
+                <q-icon color="white" name="fas fa-play" :fill="track.loved" />
                 {{ intStr(track.streams) }}
               </span>
               <span class="!flex-none">•</span>
@@ -64,8 +66,10 @@
                     :name="track.loved ? ionHeart : ionHeartOutline"
                     :fill="track.loved"
                   />
-                  <span class="text-sm font-medium">
-                    &nbsp;{{ track.loved ? 'Loved' : 'Love' }}
+                  <span
+                    :class="`text-sm font-${track.loved ? 'bold' : 'medium'}`"
+                  >
+                    &nbsp;{{ intStr(track.loves) }}
                   </span>
                 </VaButton>
               </span>
@@ -79,7 +83,8 @@
                   hover-opacity="0.05"
                 >
                   <q-icon color="white" name="eva-message-square" />
-                  {{ intStr(track.streams) }}
+                  &nbsp;{{ intStr(track.streams) }}
+                  <!-- TODO: Replace track.streams with track.comments_count-->
                 </VaButton>
               </span>
             </div>
@@ -131,7 +136,7 @@ import {
   ionPause,
   ionPlay,
 } from '@quasar/extras/ionicons-v7';
-import { intStr } from 'src/utils/helpers';
+import { formatSeconds, intStr } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';

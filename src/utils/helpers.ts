@@ -1,26 +1,56 @@
 // outside of a Vue file
-import { Dialog, Notify, copyToClipboard, date, scroll } from 'quasar';
+import { Dialog, DialogChainObject, Notify, QBtnProps, copyToClipboard, date, scroll } from 'quasar';
 import TimeAgo, { FormatStyleName } from 'javascript-time-ago';
 
+import { ResponseStatus } from './models';
 import en from 'javascript-time-ago/locale/en';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
 TimeAgo.addDefaultLocale(en);
 type NMessage = {
-  ok: boolean | string | Record<string, string>;
-  msg: string;
-  alert: boolean,
-  label: string | boolean | Record<string, string>;
-  status: 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert';
-  cancel: boolean | string | Record<string, string>;
-  danger: string | Record<string, string>;
+  ok?: boolean | string | QBtnProps;
+  msg?: string;
+  title?: string;
+  alert?: boolean,
+  label?: string | boolean | Record<string, string>;
+  status: ResponseStatus;
+  cancel?: boolean | string | QBtnProps;
+  danger?: string | boolean | Record<string, string>;
   message: string;
-  timeout: number;
+  timeout?: number;
+  onDismiss?: (n?: () => void) => void
+} | {
+  ok?: boolean | string | QBtnProps;
+  msg: string;
+  title?: string;
+  alert?: boolean,
+  label?: string | boolean | Record<string, string>;
+  status: ResponseStatus;
+  cancel?: boolean | string | QBtnProps;
+  danger?: string | boolean | Record<string, string>;
+  message?: string;
+  timeout?: number;
   onDismiss?: (n?: () => void) => void
 }
 
 const timeAgo = new TimeAgo('en-US');
 const helpers = {
+  /**
+   * @description Read env variables from .env file and modify based on current environment
+   */
+  env (env: string = 'baseURL', skipDev: boolean = false): string {
+    if (import.meta.env.PROD || import.meta.env.v_ENVIRONMENT === 'production' || skipDev) {
+      // Production
+      return import.meta.env[`v_${env}`];
+    } else {
+      // Development
+      if (import.meta.env[`v_dev.${env}`]) {
+        return import.meta.env[`v_dev.${env}`];
+      } else {
+        return helpers.env(env, true)
+      }
+    }
+  },
   /**
    * Substitutes the placeholders in a string with the values from the object
    * @param {String} string
@@ -134,32 +164,33 @@ const helpers = {
   },
   /**
    *
-   * @param {String|{[key: string]: string | boolean}} data The message to be displayed or an object with message and qdialog options
-   * @param {String} status [success, error, danger, warning, alert, notice, info]
-   * @param {Boolean} alert   Setting value to true will make the notification a dialog
-   * @param {String | Boolean} label  You can set value to "Persistent" to remove label
+   * @param data The message to be displayed or an object with message and qdialog options
+   * @param status [success, error, danger, warning, alert, notice, info]
+   * @param alert   Setting value to true will make the notification a dialog
+   * @param label  You can set value to "Persistent" to remove label
    *                                  and make the dialog persistent or set to
    *                                  Boolean "false" to only remove label
-   * @param {Boolean} cancel  Setting value to true will add a cancel button to the dialog
+   * @param cancel  Setting value to true will add a cancel button to the dialog
+   * @param danger
    * @xreturns {Boolean | Object}  Returns false if no message is provided
    */
   notify (
     data: string | NMessage,
-    status: 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert' = 'info',
+    status: ResponseStatus = 'info',
     alert: boolean = false,
-    label: string | boolean | Record<string, string> = 'OK',
-    cancel: string | boolean | Record<string, string> = false,
+    label: string | boolean | QBtnProps = 'OK',
+    cancel: string | boolean | QBtnProps = false,
     danger: string | boolean | Record<string, string> = false
-  ) {
+  ): DialogChainObject | void {
 
     let options: Record<string, string | number> = {}
     const msg = typeof data === 'object' ? data.message || data.msg || null : data;
 
     if (typeof data === 'object') {
-      label = data.label || data.ok
-      alert = data.alert
-      cancel = data.cancel
-      danger = data.danger
+      label = data.label || data.ok || 'OK'
+      alert = data.alert || false
+      cancel = data.cancel || false
+      danger = data.danger || false
       status = data.status;
 
       // create a new object from data without message and status
@@ -183,7 +214,7 @@ const helpers = {
     }
 
     if (msg === '' || !msg) {
-      return false;
+      return;
     }
 
     const tx = {
@@ -250,18 +281,22 @@ const helpers = {
           ? false
           : {
             label,
-            flat: danger,
-            color: danger ? 'negative' : tx_status.textColor,
-            textColor: danger ? 'negative' : 'white',
+            flat: !!danger,
+            color: !!danger ? 'negative' : tx_status.textColor,
+            textColor: !!danger ? 'negative' : 'white',
             unelevated: true,
             noCaps: true,
           } as unknown as Record<string, string>;
     }
 
-    if (alert === true) {
+    function isDialog (alert: boolean): alert is boolean {
+      return alert === true
+    }
+
+    if (isDialog(alert)) {
       return Dialog.create({
         ...options,
-        class: `rounded-here mode-dialog q-pa-sm important bg-${tx_status.class} text-${tx_status.textColor}`,
+        class: `mode-dialog q-pa-sm important bg-${tx_status.class} text-${tx_status.textColor}`,
         cancel,
         ok: label,
         title: options.title as string || status.toUpperCase(),
@@ -291,7 +326,7 @@ const helpers = {
         }
       }
 
-      return notify;
+      return;
     }
   },
   nlText (str: string, lines: number = 2, breaker: string = '<br />') {
@@ -392,7 +427,7 @@ const helpers = {
   ) {
     const boot = useBootstrapStore();
     const defsettings = { currency: 'USD', currency_symbol: '$' };
-    const settings = boot.settings as unknown as typeof defsettings || defsettings;
+    const settings = boot.configuration as unknown as typeof defsettings || defsettings;
 
     const currency = settings.currency || defsettings.currency,
       symbol = settings.currency_symbol || defsettings.currency_symbol;
@@ -562,6 +597,19 @@ const helpers = {
       si[index].s
     );
   },
+  formatBytes (bytes?: number, decimals: number = 2, bits: boolean = false) {
+    if (!bytes || !+bytes) return bits ? '0 B' : '0 Bytes'
+
+    const k = bits ? 1000 : 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = bits
+      ? ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+      : ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+  },
   openFullscreen (el: string | Element) {
     const elem = typeof el === 'string' ? document.querySelector(el ?? '') : el;
     if (!el) {
@@ -598,11 +646,13 @@ const helpers = {
 };
 
 export default helpers
+export const env = helpers.env
 export const doter = helpers.doter
 export const money = helpers.money
 export const intStr = helpers.intStr
 export const notify = helpers.notify
 export const currentUrl = helpers.currentUrl
+export const formatBytes = helpers.formatBytes
 export const arrayUnique = helpers.arrayUnique
 export const timeAgoStamp = helpers.timeAgoStamp
 export const formatSeconds = helpers.formatSeconds

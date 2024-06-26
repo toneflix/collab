@@ -22,7 +22,10 @@
         />
       </div>
     </q-scroll-area>
-    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
+    <div
+      v-else
+      class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7"
+    >
       <GenreCard
         class="m-1"
         :key="genre.id"

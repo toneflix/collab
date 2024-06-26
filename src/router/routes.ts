@@ -2,6 +2,7 @@ import { RouteRecordRaw } from 'vue-router';
 import artist from './artist';
 import authentication from './authentication';
 import projects from './projects';
+import studio from './studio';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -33,6 +34,7 @@ const routes: RouteRecordRaw[] = [
   ...authentication,
   ...projects,
   ...artist,
+  ...studio,
 
   // Always leave this as last one,
   // but you can also remove it

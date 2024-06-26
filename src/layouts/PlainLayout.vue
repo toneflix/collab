@@ -34,3 +34,16 @@
     </q-page-container>
   </q-layout>
 </template>
+
+<script setup lang="ts">
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { reboot } from 'src/utils/proccessor';
+
+defineOptions({
+  async preFetch() {
+    await reboot().then(({ init }) => {
+      useBootstrapStore().configuration = init.configuration;
+    });
+  },
+});
+</script>

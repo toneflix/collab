@@ -1,54 +1,95 @@
 <template>
   <div class="profile-dropdown-wrapper">
-    <VaDropdown
-      v-model="isShown"
-      :offset="[9, 0]"
-      class="profile-dropdown"
-      stick-to-edges
+    <q-btn-dropdown
+      dense
+      rounded
+      no-caps
+      color="grey-9"
+      class="q-mx-sm header-avatar"
+      content-class="user-dropdown-content"
+      :menu-offset="[3, 2]"
     >
-      <template #anchor>
-        <slot name="anchor" :isShown="isShown">
-          <VaButton preset="secondary" color="textPrimary">
-            <span class="profile-dropdown__anchor min-w-max">
-              <slot />
-              <VaAvatar :size="32" color="warning"> 😍 </VaAvatar>
-            </span>
-          </VaButton>
-        </slot>
+      <template v-slot:label>
+        <q-avatar clickable color="white" size="25px" v-if="user.id">
+          <img :src="user.imageUrl" />
+        </q-avatar>
+        <q-icon class="rounded-full bg-grey" v-else name="person" />
+        <span class="ml-2 mr-6">{{ user.fullname || 'Guest' }}</span>
       </template>
-      <VaDropdownContent
-        class="w-full px-0 py-4 text-white profile-dropdown__content md:w-60 bg-dark"
-        :style="{ '--hover-color': 'var(--va-zinc-800)' }"
-      >
-        <VaList v-for="group in options" :key="group.name">
-          <header
-            v-if="group.name"
-            class="px-4 text-xs font-bold text-gray-400 uppercase opacity-80"
-          >
-            {{ group.name }}
-          </header>
-          <VaListItem
-            v-for="item in group.list"
-            :key="item.name"
-            class="h-8 px-4 text-base cursor-pointer menu-item"
-          >
-            <!-- v-bind="resolveLinkAttribute(item)" -->
-            <q-icon :name="item.icon" class="pr-1" color="white" />
-            {{ item.name }}
-          </VaListItem>
-          <VaListSeparator v-if="group.separator" class="mx-3 my-3" />
-        </VaList>
-      </VaDropdownContent>
-    </VaDropdown>
+      <div class="q-pa-md">
+        <div class="column">
+          <q-list class="user-dropdown">
+            <q-item
+              clickable
+              v-ripple
+              class="user-card"
+              :to="{ name: 'account.profile' }"
+              v-if="user.id"
+            >
+              <q-item-section avatar>
+                <q-avatar>
+                  <img :src="user.imageUrl" />
+                </q-avatar>
+              </q-item-section>
+
+              <q-item-section
+                class="text-weight-bold text-h6"
+                style="font-size: 1rem"
+              >
+                {{ user.fullname }}
+              </q-item-section>
+            </q-item>
+
+            <q-separator class="q-my-xs" v-if="user.id" />
+
+            <template v-for="group in options">
+              <q-item-label
+                class="p-2 capitalize"
+                :key="group.name + 'label'"
+                v-if="group.name"
+              >
+                {{ group.name }}
+              </q-item-label>
+              <q-item
+                dense
+                v-ripple
+                clickable
+                active-class="text-grey-5"
+                :to="link.to"
+                :key="i + group.name"
+                v-for="(link, i) in group.list"
+              >
+                <q-item-section avatar>
+                  <q-avatar size="sm" color="grey-8">
+                    <q-icon :name="link.icon" />
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section class="text-weight-bold">
+                  {{ link.name }}
+                </q-item-section>
+              </q-item>
+
+              <q-separator
+                class="q-my-xs"
+                :key="group.name + 'sep'"
+                v-if="group.separator"
+              />
+            </template>
+          </q-list>
+        </div>
+      </div>
+    </q-btn-dropdown>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { computed } from 'vue';
+import { RouteLocationRaw } from 'vue-router';
 
 type ProfileListItem = {
   name: string;
-  to?: string;
+  to?: RouteLocationRaw;
   href?: string;
   icon: string;
 };
@@ -59,78 +100,74 @@ type ProfileOptions = {
   list: ProfileListItem[];
 };
 
-withDefaults(
-  defineProps<{
-    options?: ProfileOptions[];
-  }>(),
-  {
-    options: () => [
-      {
-        name: 'account',
-        separator: true,
-        list: [
-          {
-            name: 'profile',
-            to: 'preferences',
-            icon: 'account_circle',
-          },
-          {
-            name: 'settings',
-            to: 'settings',
-            icon: 'settings',
-          },
-          {
-            name: 'billing',
-            to: 'billing',
-            icon: 'receipt_long',
-          },
-          {
-            name: 'projects',
-            to: 'projects',
-            icon: 'favorite',
-          },
-        ],
-      },
-      {
-        name: 'explore',
-        separator: true,
-        list: [
-          {
-            name: 'faq',
-            to: 'faq',
-            icon: 'quiz',
-          },
-          {
-            name: 'helpAndSupport',
-            href: 'https://discord.gg/u7fQdqQt8c',
-            icon: 'error',
-          },
-        ],
-      },
-      {
-        name: '',
-        separator: false,
-        list: [
-          {
-            name: 'logout',
-            to: 'login',
-            icon: 'logout',
-          },
-        ],
-      },
-    ],
-  },
+const user = computed(() => useBootstrapStore().user);
+const options = computed<ProfileOptions[]>(() =>
+  [
+    {
+      hide: !user.value.id,
+      name: 'account',
+      separator: true,
+      list: [
+        {
+          name: 'profile',
+          to: 'preferences',
+          icon: 'account_circle',
+        },
+        {
+          name: 'settings',
+          to: 'settings',
+          icon: 'settings',
+        },
+        {
+          name: 'billing',
+          to: 'billing',
+          icon: 'receipt_long',
+        },
+        {
+          name: 'Studio',
+          to: { name: 'studio.home' },
+          icon: 'fas fa-microphone-lines',
+        },
+      ],
+    },
+    {
+      name: 'explore',
+      separator: true,
+      list: [
+        {
+          name: 'FAQ',
+          to: 'faq',
+          icon: 'quiz',
+        },
+        {
+          name: 'Help And Support',
+          href: 'https://discord.gg/u7fQdqQt8c',
+          icon: 'error',
+        },
+      ],
+    },
+    {
+      name: '',
+      separator: false,
+      list: [
+        {
+          hide: !!user.value.id,
+          name: 'Login',
+          to: { name: 'auth.login' },
+          icon: 'login',
+        },
+        {
+          hide: !user.value.id,
+          name: 'Logout',
+          to: { name: 'auth.logout' },
+          icon: 'logout',
+        },
+      ].filter((e) => !e.hide),
+    },
+  ].filter((e) => !e.hide),
 );
 
-const isShown = ref(false);
-
-// const resolveLinkAttribute = (item: ProfileListItem) => {
-//   return item.to
-//     ? { to: { name: item.to } }
-//     : item.href
-//       ? { href: item.href, target: '_blank' }
-//       : {};
-// };
+options;
 </script>
 
 <style lang="scss">

@@ -19,6 +19,20 @@
   bottom: 5px;
 }
 
+.icon-fill {
+  z-index: 1;
+  &::after {
+    content: '';
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+    display: block;
+    background-color: #fff;
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+  }
+}
+
 .bg-toneflix {
   background-color: #03bfff !important;
 }
@@ -33,6 +47,9 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20.3px);
   -webkit-backdrop-filter: blur(12.3px);
+  &.white-glass {
+    background: rgba(95, 95, 95, 0.38);
+  }
 }
 
 .text-glass {

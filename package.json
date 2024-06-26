@@ -14,8 +14,11 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@alova/adapter-axios": "^1.2.6",
+    "@alova/scene-vue": "^1.5.0",
     "@quasar/extras": "^1.16.4",
     "@vuestic/tailwind": "^0.1.5",
+    "alova": "^2.20.5",
     "atropos": "^2.0.2",
     "axios": "^1.2.1",
     "howler": "^2.2.4",
@@ -23,16 +26,21 @@
     "pinia": "^2.0.11",
     "pinia-plugin-persistedstate": "^3.2.1",
     "quasar": "^2.6.0",
+    "tippy.js": "^6.3.7",
     "vue": "^3.4.18",
     "vue-i18n": "^10.0.0-alpha.3",
+    "vue-picture-cropper": "^0.7.0",
     "vue-router": "^4.0.12",
     "vuestic-ui": "^1.9.9",
+    "waveform-playlist": "^4.3.3",
     "wavesurfer.js": "^7.7.13"
   },
   "devDependencies": {
     "@quasar/app-vite": "^2.0.0-beta.5",
+    "@types/event-emitter": "^0.3.5",
     "@types/howler": "^2.2.11",
     "@types/node": "^20.5.9",
+    "@types/virtual-dom": "^2.1.4",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "autoprefixer": "^10.4.19",

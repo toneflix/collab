@@ -29,7 +29,7 @@
           {{ project.title }}
         </h6>
         <div class="text-gray-400 text-subtitle2">
-          {{ project.collaborator_count }} Collabers
+          {{ project.collaboratorsCount }} Collabers
           <span class="!flex-none">•</span>
           {{ project.props }} Props.
         </div>

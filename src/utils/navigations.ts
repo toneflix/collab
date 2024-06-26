@@ -1,4 +1,4 @@
-import { NavigationLink } from './models';
+import { GenericData, NavigationLink } from './models';
 
 export const mainNavigationLinks: NavigationLink[] = [
   {
@@ -68,3 +68,29 @@ export const mainNavigationLinks: NavigationLink[] = [
     }
   },
 ]
+
+export const trackErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks' | 'publish' => {
+  const map: GenericData & { [string: string]: 'basic' | 'meta' | 'tracks' | 'publish' } = {
+    'release.slug': 'basic',
+    'release.title': 'basic',
+    'release.image': 'basic',
+    'release.privacy': 'basic',
+    'release.genre_id': 'basic',
+    'release.artist_id': 'basic',
+    'release.description': 'basic',
+    'release.isrc': 'meta',
+    'release.iswc': 'meta',
+    'release.record_label': 'meta',
+    'release.draft': 'meta',
+    'release.explicit': 'meta',
+    'release.composer': 'meta',
+    'release.publisher': 'meta',
+    'release.contains_music': 'meta',
+    'release.release_date': 'meta',
+    'slug': 'tracks'
+  }
+
+  const key = Object.keys(errors).find((e) => map[e]) as string;
+
+  return map[key] || 'basic';
+}

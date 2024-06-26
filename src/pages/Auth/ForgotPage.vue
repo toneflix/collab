@@ -22,7 +22,7 @@
             Let’s help you recover your account.
           </p>
 
-          <q-form class="grid grid-cols-2 gap-6 mt-8" @submit="send($router)">
+          <q-form class="grid grid-cols-2 gap-6 mt-8" @submit="send">
             <div class="col-span-2">
               <label class="block mb-2 text-xl text-gray-400">
                 Email address
@@ -35,6 +35,9 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="jsnow@example.com"
+                autocomplete="email"
+                :error="!!errors.email"
+                :error-message="errors.email"
                 v-model="form.email"
               />
             </div>
@@ -47,6 +50,7 @@
                 class="w-full text-xl rounded-lg md:w-auto"
                 label="Proceed"
                 icon-right="chevron_right"
+                :loading="loading"
               />
 
               <router-link
@@ -73,13 +77,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useForm } from '@alova/scene-vue';
+import { useMeta } from 'quasar';
+import { alova } from 'src/boot/alova';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { ResponseBody } from 'src/utils/models';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
-const form = ref({
-  email: '',
+const config = computed(() => useBootstrapStore().configuration);
+const router = useRouter();
+const errors = computed(
+  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
+);
+
+const { form, send, error, loading, onSuccess } = useForm(
+  (form) =>
+    alova.Post<ResponseBody<Record<string, string>>>(
+      'auth/forgot-password',
+      form,
+    ),
+  {
+    initialForm: {
+      email: '',
+    },
+  },
+);
+
+onSuccess(({ data }) => {
+  if (data.data) {
+    router.replace({ name: 'reset.password' });
+  }
 });
 
-const send = (r: { replace: (p: { name: string }) => void }) => {
-  r.replace({ name: 'home' });
-};
+useMeta(() => ({
+  title: 'Forgot Password',
+  titleTemplate: (title) => `${title} - ${config.value.app_name}`,
+}));
 </script>

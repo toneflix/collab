@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr fFf">
     <!-- lHh Lpr lff -->
     <q-header class="text-white bg-dark">
       <q-toolbar>
@@ -50,9 +50,16 @@
                 :icon-right="`eva-chevron-${isShown ? 'up' : 'down'}-outline`"
               >
                 <q-avatar size="sm">
-                  <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
+                  <img
+                    :src="
+                      boot.user.imageUrl ||
+                      'https://cdn.quasar.dev/img/boy-avatar.png'
+                    "
+                  />
                 </q-avatar>
-                <div class="ellipsis" v-if="$q.screen.gt.xs">John Stone</div>
+                <div class="ellipsis" v-if="$q.screen.gt.xs">
+                  {{ boot.user.name || 'Guest' }}
+                </div>
               </q-chip>
             </template>
           </ProfileDropdown>
@@ -104,13 +111,16 @@
                   {{ link.title }}
                 </q-item-section>
                 <q-item-section side v-if="link.button">
-                  <VaButton
-                    size="small"
-                    preset="secondary"
-                    border-color="primary"
+                  <q-btn
+                    dense
+                    outline
+                    size="sm"
+                    :to="{
+                      name: 'studio.projects.create',
+                    }"
                   >
                     <t-icon :name="link.button.icon" />
-                  </VaButton>
+                  </q-btn>
                 </q-item-section>
               </q-item>
 
@@ -118,6 +128,10 @@
                 dense
                 clickable
                 v-ripple
+                :to="{
+                  name: 'studio.projects.create',
+                  params: { project_id: item.slug },
+                }"
                 :key="link.group + item.title"
                 v-for="item in dummyProjects.filter(
                   (e) => e.group === link.group,
@@ -140,12 +154,12 @@
     </q-page-container>
 
     <q-footer class="text-white bg-glass">
-      <AudioPlayer />
+      <AudioPlayer v-if="!$route.meta.hidePlayer" />
     </q-footer>
   </q-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
@@ -153,8 +167,21 @@ import TIcon from 'src/components/icons/TIcon.vue';
 import { ref } from 'vue';
 import { dummyProjects } from 'src/utils/dummy';
 import { mainNavigationLinks } from 'src/utils/navigations';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { reboot } from 'src/utils/proccessor';
+
+defineOptions({
+  async preFetch({ store }) {
+    const boot = useBootstrapStore(store);
+
+    await reboot().then(({ init }) => {
+      boot.configuration = init.configuration;
+    });
+  },
+});
 
 const $q = useQuasar();
+const boot = useBootstrapStore();
 const showSearch = ref($q.screen.gt.xs);
 const leftDrawerOpen = ref(false);
 </script>

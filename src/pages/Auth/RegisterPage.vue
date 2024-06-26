@@ -24,10 +24,10 @@
           </p>
 
           <q-form
-            class="grid grid-cols-1 gap-6 mt-8 md:grid-cols-2"
-            @submit="send($router)"
+            class="grid mt-8 gap-y-6 md:grid-cols-2 md:gap-x-6"
+            @submit="send"
           >
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 First Name
                 <span class="text-center text-red-500">*</span>
@@ -39,11 +39,14 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="John"
+                autocomplete="first-name"
                 v-model="form.firstname"
+                :error="!!errors.firstname"
+                :error-message="errors.firstname"
               />
             </div>
 
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 Last name
                 <span class="text-center text-red-500">*</span>
@@ -55,11 +58,14 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="Snow"
+                autocomplete="family-name"
                 v-model="form.lastname"
+                :error="!!errors.lastname"
+                :error-message="errors.lastname"
               />
             </div>
 
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 Email address
                 <span class="text-center text-red-500">*</span>
@@ -71,11 +77,14 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="jsnow@example.com"
+                autocomplete="email"
+                :error="!!errors.email"
+                :error-message="errors.email"
                 v-model="form.email"
               />
             </div>
 
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 Phone number
               </label>
@@ -85,11 +94,14 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="+123 987 654 3210"
+                autocomplete="tel"
+                :error="!!errors.phone"
+                :error-message="errors.phone"
                 v-model="form.phone"
               />
             </div>
 
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 Password
                 <span class="text-center text-red-500">*</span>
@@ -102,11 +114,14 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="Enter your password"
+                autocomplete="new-password"
+                :error="!!errors.password"
+                :error-message="errors.password"
                 v-model="form.password"
               />
             </div>
 
-            <div>
+            <div class="col-span-2 md:col-span-1">
               <label class="block mb-2 text-xl text-gray-400">
                 Confirm password
                 <span class="text-center text-red-500">*</span>
@@ -119,50 +134,59 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="Re-enter your password"
+                autocomplete="new-password"
+                :error="!!errors.password_confirmation"
+                :error-message="errors.password_confirmation"
                 v-model="form.password_confirmation"
               />
             </div>
 
-            <div
-              class="flex items-center justify-start col-span-2 no-wrap q-py-md"
-            >
-              <q-checkbox
-                outline
-                color="primary"
-                class="flex-none"
-                size="sm"
-                v-model="form.accept"
-              />
-              <p class="text-lg text-left cursor-pointer q-py-none">
-                <span @click="form.accept = !form.accept">
-                  By signing up, you accept our
-                </span>
-                <router-link
-                  :to="{
-                    name: 'home',
-                  }"
-                >
-                  <span class="text-info">Terms of Service</span>
-                </router-link>
-                <span @click="form.accept = !form.accept"> and </span>
-                <router-link
-                  :to="{
-                    name: 'home',
-                  }"
-                >
-                  <span class="text-info">Privacy Policy.</span>
-                </router-link>
-              </p>
+            <div class="w-full col-span-2 q-py-md">
+              <div class="flex items-center justify-start gap-4 no-wrap">
+                <q-checkbox
+                  outline
+                  color="primary"
+                  class="flex-none"
+                  size="sm"
+                  v-model="form.accept"
+                />
+                <p class="text-lg text-left cursor-pointer q-py-none">
+                  <span @click="form.accept = !form.accept">
+                    By signing up, you accept our
+                  </span>
+                  <router-link
+                    :to="{
+                      name: 'home',
+                    }"
+                  >
+                    <span class="text-info">Terms of Service</span>
+                  </router-link>
+                  <span @click="form.accept = !form.accept"> and </span>
+                  <router-link
+                    :to="{
+                      name: 'home',
+                    }"
+                  >
+                    <span class="text-info">Privacy Policy.</span>
+                  </router-link>
+                </p>
+              </div>
+              <small class="text-sm text-negative" v-if="errors.accept">
+                {{ errors.accept }}
+              </small>
             </div>
 
-            <div class="justify-between md:flex md:items-center md:col-span-2">
+            <div
+              class="justify-between text-center md:flex md:items-center md:col-span-2"
+            >
               <q-btn
                 no-caps
                 type="submit"
                 color="primary"
-                class="text-xl rounded-lg"
+                class="mb-5 text-xl rounded-lg md:!mb-0"
                 label="Create your account"
                 icon-right="chevron_right"
+                :loading="loading"
               />
 
               <router-link
@@ -180,19 +204,50 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useForm } from '@alova/scene-vue';
+import { useMeta } from 'quasar';
+import { alova } from 'src/boot/alova';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { ResponseBody, User } from 'src/utils/models';
+import { reboot } from 'src/utils/proccessor';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
-const form = ref({
-  firstname: '',
-  lastname: '',
-  password: '',
-  password_confirmation: '',
-  accept: false,
-  email: '',
-  phone: '',
+const router = useRouter();
+const errors = computed(
+  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
+);
+
+const { form, send, error, loading, onSuccess } = useForm(
+  (form) =>
+    alova.Post<ResponseBody<User>>('auth/register', form, {
+      params: { with: 'permissions,roles' },
+    }),
+  {
+    initialForm: {
+      email: '',
+      phone: '',
+      lastname: '',
+      firstname: '',
+      accept: false,
+      password: '',
+      password_confirmation: '',
+    },
+  },
+);
+
+onSuccess(({ data }) => {
+  reboot().then(() => {
+    if (data.data) {
+      useBootstrapStore().saveAuthUser(data.data, data.token);
+      router.replace({ name: 'studio.home' });
+    }
+  });
 });
 
-const send = (r: { replace: (p: { name: string }) => void }) => {
-  r.replace({ name: 'home' });
-};
+useMeta(() => ({
+  title: 'Create your account',
+  titleTemplate: (title) =>
+    `${title} - ${useBootstrapStore().configuration.app_name}`,
+}));
 </script>

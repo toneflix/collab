@@ -11,12 +11,44 @@
           :main-image="project.imageUrl"
         >
           <template #button>
-            <q-btn
-              round
-              color="dark-opaque"
-              size="xl"
-              class="!flex-none opacity-90"
+            <TDropdown
+              flat
+              dense
+              rounded
+              size="2.4em"
               icon="eva-hash"
+              dropdown-icon="none"
+              color="dark-opaque"
+              class="!flex-none opacity-90 rounded-full"
+              :links="[
+                {
+                  label: 'Open',
+                  icon: 'fas fa-expand',
+                  to: {
+                    name: 'studio.project',
+                    params: { project_id: project.slug },
+                  },
+                },
+                {
+                  label: 'Edit Project',
+                  icon: 'fas fa-edit',
+                  to: {
+                    name: 'studio.projects.create',
+                    params: { project_id: project.slug },
+                  },
+                },
+                {
+                  label: 'Request to Join',
+                  icon: 'fas fa-user-plus',
+                  color: 'green',
+                },
+                {
+                  label: 'Leave Project',
+                  icon: 'fas fa-user-minus',
+                  color: 'red',
+                },
+              ]"
+              @click.stop.prevent
             />
           </template>
         </AtroposViewer>
@@ -32,11 +64,7 @@
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
               <span class="!flex-none">
-                {{ intStr(project.collaborator_count) }} Collabers
-              </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
-                {{ intStr(project.props) }} Props
+                {{ intStr(project.collaboratorsCount) }} Collabers
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
@@ -52,8 +80,10 @@
                     :name="project.proped ? ionHandLeft : ionHandLeftOutline"
                     :fill="project.proped"
                   />
-                  <span class="text-sm font-medium">
-                    &nbsp;{{ project.proped ? 'Proped' : 'Prop' }}
+                  <span
+                    :class="`text-sm font-${project.proped ? 'bold' : 'medium'}`"
+                  >
+                    &nbsp;{{ intStr(project.props) }} Props
                   </span>
                 </VaButton>
               </span>
@@ -97,6 +127,7 @@ import { dummyProjects } from 'src/utils/dummy';
 import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v7';
 import { intStr } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
+import TDropdown from 'src/components/Utilities/TDropdown.vue';
 
 const route = useRoute();
 

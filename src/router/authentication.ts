@@ -1,15 +1,18 @@
+import { alova } from 'src/boot/alova';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { RouteRecordRaw } from 'vue-router';
 
 export default <RouteRecordRaw[]>[
   {
-    path: '/register',
+    path: '/',
     component: () => import('layouts/PlainLayout.vue'),
     meta: {
-      hideHeader: true
+      hideHeader: true,
+      requireGuest: true,
     },
     children: [
       {
-        path: '',
+        path: '/register',
         name: 'auth.register',
         component: () => import('pages/Auth/RegisterPage.vue')
       },
@@ -22,6 +25,22 @@ export default <RouteRecordRaw[]>[
         path: '/forgot/password',
         name: 'auth.forgot',
         component: () => import('pages/Auth/ForgotPage.vue')
+      },
+      {
+        path: '/reset/password',
+        name: 'reset.password',
+        component: () => import('pages/Auth/PasswordResetPage.vue')
+      },
+      {
+        meta: { requireGuest: false, requireAuth: true },
+        path: '/account/logout',
+        component: () => import('src/pages/Auth/LoginPage.vue'),
+        name: 'auth.logout',
+        beforeEnter: async () => {
+          alova.Post('account/logout').send();
+          await useBootstrapStore().clearAuth();
+          return { name: 'auth.login' };
+        },
       },
     ],
   },

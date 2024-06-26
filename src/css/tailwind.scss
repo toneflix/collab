@@ -3,3 +3,27 @@
 @tailwind utilities;
 
 @import './inputs';
+
+@layer components {
+  .q-dialog-plugin.q-card.mode-dialog {
+    @apply rounded-[3em] min-h-72 flex flex-col justify-around;
+    .q-dialog__title {
+      text-align: center;
+      @apply font-bold;
+      @apply text-3xl;
+      @apply flex-none #{!important};
+    }
+    .q-dialog__message {
+      text-align: center;
+      @apply text-2xl;
+      @apply flex-none #{!important};
+    }
+    .q-card__actions--horiz {
+      @apply flex justify-center gap-2;
+      @apply flex-none #{!important};
+      .q-btn {
+        @apply rounded-3xl px-8 font-bold;
+      }
+    }
+  }
+}

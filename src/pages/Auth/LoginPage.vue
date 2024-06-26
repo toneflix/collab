@@ -36,6 +36,9 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="jsnow@example.com"
+                autocomplete="username"
+                :error="!!errors.email"
+                :error-message="errors.email"
                 v-model="form.email"
               />
             </div>
@@ -53,6 +56,9 @@
                 class="custom-q-class"
                 input-class="custom-input-class"
                 placeholder="Enter your password"
+                autocomplete="current-password"
+                :error="!!errors.password"
+                :error-message="errors.password"
                 v-model="form.password"
               />
             </div>
@@ -73,6 +79,7 @@
                 class="w-full text-xl rounded-lg md:w-auto"
                 label="Login"
                 icon-right="chevron_right"
+                :loading="loading"
               />
 
               <router-link
@@ -99,15 +106,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed } from 'vue';
+import { useMeta } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { useForm } from '@alova/scene-vue';
+import { alova } from 'src/boot/alova';
+import { reboot } from 'src/utils/proccessor';
+import { ResponseBody, User } from 'src/utils/models';
+import { useRouter } from 'vue-router';
 
-const form = ref({
-  remember: false,
-  password: '',
-  email: '',
+const config = computed(() => useBootstrapStore().configuration);
+const router = useRouter();
+const errors = computed(
+  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
+);
+
+const { form, send, error, loading, onSuccess } = useForm(
+  (form) =>
+    alova.Post<ResponseBody<User>>('auth/login', form, {
+      params: { with: 'permissions,roles' },
+    }),
+  {
+    initialForm: {
+      remember: false,
+      password: '',
+      email: '',
+    },
+  },
+);
+
+onSuccess(({ data }) => {
+  reboot().then(() => {
+    if (data.data) {
+      useBootstrapStore().saveAuthUser(data.data, data.token);
+      router.replace({ name: 'studio.home' });
+    }
+  });
 });
 
-const send = (r: { replace: (p: { name: string }) => void }) => {
-  r.replace({ name: 'home' });
-};
+useMeta(() => ({
+  title: 'Login',
+  titleTemplate: (title) => `${title} - ${config.value.app_name}`,
+}));
 </script>

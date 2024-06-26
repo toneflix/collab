@@ -31,7 +31,7 @@
         <div class="text-gray-400 text-subtitle2">
           {{ album.tracks_count }} Tracks
           <span class="!flex-none">•</span>
-          {{ album.duration }}:00
+          {{ formatSeconds(album.duration) }}
         </div>
       </q-card-section>
     </q-card>
@@ -39,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatSeconds } from 'src/utils/helpers';
 import { Album } from 'src/utils/models';
 
 defineProps({

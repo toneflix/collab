@@ -68,6 +68,10 @@ select {
         border-color: inherit !important;
       }
     }
+    .q-field__messages {
+      font-size: 0.9rem;
+      line-height: 0.8rem;
+    }
   }
   .custom-input-class {
     @apply bg-transparent focus:shadow-none focus:border-0 focus:outline-none focus:ring-0 #{!important};
@@ -79,10 +83,14 @@ select {
         &:before {
           border-width: 1px;
           border-color: rgba(255, 255, 255, 0.523);
-          background-color: rgb(255, 255, 255);
         }
         &:hover:before {
           border-color: #bcbcbc;
+        }
+      }
+      &:not(.no-fill).q-field--outlined .q-field__control {
+        &:before {
+          background-color: rgb(255, 255, 255);
         }
       }
     }
