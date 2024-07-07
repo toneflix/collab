@@ -202,6 +202,7 @@ import { useGlobalStore } from 'src/stores/global-store';
 import { ref, computed, onBeforeUnmount, onMounted, inject } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { EventBus, useInterval } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
 defineOptions({
   preFetch({ store }) {
@@ -214,6 +215,7 @@ defineOptions({
 let sound: Howl;
 const bus = inject<EventBus<CollabEvents>>('bus');
 const mute = ref(false);
+const boot = useBootstrapStore();
 const system = useGlobalStore();
 const volume = computed({
   get: () => system.volume,
@@ -315,6 +317,12 @@ const initialize = (play: boolean = false) => {
 
   sound = new Howl({
     src: [fileUrl],
+    xhr: {
+      headers: {
+        Authorization: 'Bearer ' + boot.token,
+      },
+      withCredentials: true,
+    },
     volume: volume.value / 100,
     onplay: () => {
       playing.value = true;

@@ -18,7 +18,7 @@
           class="m-1"
           :key="creator.id"
           :creator="creator"
-          v-for="creator in creatorList"
+          v-for="creator in category.data?.list"
         />
       </div>
     </q-scroll-area>
@@ -28,7 +28,7 @@
         class="m-1"
         :key="creator.id"
         :creator="creator"
-        v-for="creator in creatorList"
+        v-for="creator in category.data?.list"
       />
     </div>
   </div>
@@ -36,23 +36,24 @@
 
 <script setup lang="ts">
 import CreatorCard from 'src/components/Cards/CreatorCard.vue';
-import { Category } from 'src/utils/models';
-import { artistList as creatorList } from 'src/utils/dummy';
+import { Artist, Category, User } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
   artist: Boolean,
   hideAllLink: Boolean,
   verticalList: Boolean,
-  categories: {
-    type: Array as PropType<Category[]>,
-    default: () => [
-      {
-        title: 'Recently Played',
-        slug: 'recently-played',
-        id: 'recently-played',
-      },
-    ],
-  },
+});
+
+const categories = defineModel('categories', {
+  type: Array as PropType<Category<User | Artist>[]>,
+  default: () => [
+    {
+      title: 'Top Creators',
+      slug: 'top-creators',
+      id: 'top-creators',
+      data: { list: [], lastPage: 1 },
+    },
+  ],
 });
 </script>

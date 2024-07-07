@@ -21,7 +21,7 @@
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1" class="text-sm font-bold">
+        <q-item-label lines="1" class="text-sm font-bold max-w-[7.7rem]">
           {{ track.title }}
         </q-item-label>
         <q-item-label caption lines="1" class="mt-0">

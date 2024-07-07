@@ -1,6 +1,17 @@
 <template>
   <q-page padding>
     <div class="max-w-full mx-auto md:max-w-2xl lg:max-w-3xl">
+      <q-btn
+        dense
+        no-caps
+        icon="arrow_back"
+        label="Return to Project"
+        :to="{
+          name: 'studio.project',
+          params: { project_id: form.project_id },
+        }"
+        v-if="form.project_id"
+      />
       <q-tabs
         dense
         no-caps
@@ -50,8 +61,8 @@
             <ReleaseMetaDataForm v-model:form="form" :errors="errors" />
           </q-tab-panel>
           <q-tab-panel name="tracks">
-            <div class="grid gap-y-6 md:grid-cols-2 md:gap-x-6">
-              <div class="col-span-2">
+            <div class="grid gap-y-4 md:grid-cols-2 md:gap-x-4">
+              <div class="col-span-2" v-if="!form.project_id">
                 <label class="block mb-2 text-xl text-gray-400">
                   Upload Tracks
                 </label>
@@ -119,9 +130,10 @@
                             size="md"
                             icon="clear"
                             color="red"
-                            :base-url="`creator/releases/${$route.params.release_id}/tracks`"
                             :id="track.id"
                             :list="(() => tracks as unknown as GenericData[])()"
+                            :base-url="`creator/releases/${$route.params.release_id}/tracks`"
+                            :disabled="!!track.project_track_id"
                             @click.stop.prevent
                           />
                         </div>
@@ -131,6 +143,7 @@
                       <q-card-section>
                         <ReleaseBasicInfoForm
                           hide-privacy-options
+                          show-player
                           type="track"
                           v-model:form="tracks[i]"
                           :index="i + 1"
@@ -142,7 +155,55 @@
                           }"
                           @error="track.hasError = true"
                           @error-cleared="delete track.hasError"
-                        />
+                        >
+                          <template #avatar-bottom v-if="streamUrls[i]">
+                            <q-btn
+                              flat
+                              dense
+                              round
+                              icon="refresh"
+                              class="m-2 absolute-top-right"
+                              v-if="streamUrls[i]"
+                              @click="resetTrack(i)"
+                            />
+                          </template>
+                          <template
+                            #avatar-center
+                            v-if="
+                              form.draft &&
+                              track.project_track_id &&
+                              (!track.id || track.defaultStream)
+                            "
+                          >
+                            <q-btn
+                              dense
+                              no-caps
+                              rounded
+                              padding="xs none"
+                              unelevated
+                              icon="fas fa-file-audio"
+                              class="w-full mt-2 overflow-hidden text-ellipsis"
+                              color="primary"
+                              :label="
+                                subString(
+                                  tempFiles[i]?.name || 'Change Audio',
+                                  12,
+                                )
+                              "
+                              @click="fileInputRefs[i].click()"
+                            />
+                            <input
+                              type="file"
+                              class="hidden"
+                              :ref="
+                                (e) =>
+                                  (fileInputRefs[i] = e as HTMLInputElement)
+                              "
+                              :accept="allowedAudioExts.join(', ')"
+                              @change="(e) => setFile(e as HTMLInputEvent, i)"
+                            />
+                          </template>
+                        </ReleaseBasicInfoForm>
                       </q-card-section>
                     </q-card>
                   </q-expansion-item>
@@ -234,40 +295,89 @@ import ReleaseBasicInfoForm from 'src/components/Forms/ReleaseBasicInfoForm.vue'
 import ReleaseMetaDataForm from 'src/components/Forms/ReleaseMetaDataForm.vue';
 import {
   GenericData,
+  HTMLInputEvent,
+  Project,
   Release,
   ResponseBody,
   Track,
   UploadData,
 } from 'src/utils/models';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { genres } from 'src/utils/dummy';
 import { useForm } from '@alova/scene-vue';
 import {
   createReleaseRequest,
+  loadProjectRequest,
   loadReleaseRequest,
   saveTrackRequest,
 } from 'src/utils/requests';
 import { trackErrorStep } from 'src/utils/navigations';
 import { useRoute, useRouter } from 'vue-router';
-import { useWatcher } from 'alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { notify } from 'src/utils/helpers';
+import { notify, subString } from 'src/utils/helpers';
 import { allowedAudioExts } from 'src/utils/presets';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
     const boot = useBootstrapStore(store);
-    const id = String(currentRoute.params.release_id);
+    let tracks = [] as Track[];
+    let release = {} as Release;
+    let project = {} as Project;
+
+    // Load Release
     if (currentRoute.params.release_id) {
-      await loadReleaseRequest(id, { with: 'artist,genre,tracks' })
-        .send()
-        .then((data) => {
-          if (data) {
-            data.draft = data?.draft ? 1 : 0;
-          }
-          boot.pageData.current = data as unknown as GenericData;
-        });
+      release = await loadReleaseRequest(
+        currentRoute.params.release_id as string,
+        {
+          with: 'artist,genre,tracks,project',
+        },
+      ).send();
+      tracks = release.tracks ?? [];
+      release.draft = release.draft ? 1 : 0;
+      release.explicit = release.explicit ? 1 : 0;
+      release.contains_music = release.contains_music ? 1 : 0;
     }
+
+    // Load Project
+    if (currentRoute.query.project_id) {
+      project = await loadProjectRequest(
+        currentRoute.query.project_id as string,
+        {
+          with: 'tracks,ready,artists',
+        },
+      ).send();
+      release.title = project.title;
+      release.draft = release.id ? (release.draft ? 1 : 0) : 1;
+      release.imageUrl = project.imageUrl;
+      release.description = project.description;
+      release.project_id = project.id;
+      if (project.tracks) {
+        release.artist = project.tracks[0].artist;
+        release.artist_id = project.tracks[0].artist_id;
+        tracks = project.tracks.map((track) => {
+          return {
+            slug: track.slug,
+            title: track.title,
+            artist: track.artist,
+            duration: track.duration,
+            imageUrl: project.imageUrl,
+            streamUrl: track.preview as string,
+            privacy: track.privacy,
+            genre_id: track.genre_id,
+            artist_id: track.artist_id,
+            description: track.description,
+            project_track_id: track.id,
+          } as unknown as Track;
+        });
+      }
+    }
+
+    // Build Data
+    boot.pageData.current = {
+      tracks,
+      release,
+      project,
+    } as unknown as GenericData;
   },
 });
 
@@ -276,40 +386,21 @@ const file = ref<File | File[]>();
 const route = useRoute();
 const router = useRouter();
 const uploader = ref();
-const current = useBootstrapStore().pageData.current as unknown as Release;
-const tracks = ref<Track[]>((current.tracks || []) as Track[]);
+const fileInputRefs = ref<HTMLInputElement[]>([]);
+
+const curr = useBootstrapStore().pageData.current as unknown as {
+  tracks: (Track & UploadData)[];
+  project: Project;
+  release: Release;
+};
+
+const tracks = ref<(Track & UploadData)[]>(curr.tracks || []);
+
 const errors = computed(
   () =>
     ((tError.value || error.value) as unknown as ResponseBody<string>)
       ?.errors || {},
 );
-
-const { onSuccess: releaseLoaded } = useWatcher(
-  () =>
-    loadReleaseRequest(route.params.release_id as string, {
-      with: 'artist,genre,tracks',
-    }),
-  [() => route.params.release_id],
-  {
-    sendable: () => !!route.params.release_id,
-    immediate: true,
-    initialData: current || {},
-  },
-);
-
-releaseLoaded(({ data }) => {
-  if (!data) {
-    return;
-  }
-  form.value = Object.assign({}, form.value, data, {
-    draft: data.draft ? 1 : 0,
-    explicit: data.explicit ? 1 : 0,
-    contains_music: data.contains_music ? 1 : 0,
-  });
-  if (data.tracks) {
-    tracks.value = data.tracks;
-  }
-});
 
 const {
   form,
@@ -321,14 +412,14 @@ const {
 } = useForm(createReleaseRequest, {
   store: false,
   initialForm: {
-    ...current,
-    slug: '',
-    draft: 1,
-    pline: '',
-    privacy: 'public',
-    explicit: 0,
-    genre_id: genres[0].id,
-    contains_music: 1,
+    ...curr.release,
+    slug: curr.release.slug || '',
+    draft: curr.release.draft ? 1 : 0,
+    pline: curr.release.pline || '',
+    privacy: curr.release.privacy || 'public',
+    explicit: curr.release.explicit ? 1 : 0,
+    genre_id: curr.release.genre_id || genres[0].id,
+    contains_music: curr.release.contains_music,
   } as unknown as Release & UploadData,
 });
 
@@ -346,6 +437,9 @@ onSuccess(({ data }) => {
   form.value.publish = 0;
   tab.value = 'basic';
   notify(data.message, data.status);
+  if (!route.params.release_id) {
+    router.replace({ params: { release_id: data.data.id } });
+  }
 });
 
 const {
@@ -371,6 +465,27 @@ onTrackError(({ error }: { error: ResponseBody<string[]> }) => {
   tab.value = trackErrorStep(error.errors as GenericData);
 });
 
+const tempFiles = ref<(File | undefined)[]>([]);
+const streamUrls = ref<string[]>([]);
+
+const setFile = (event: HTMLInputEvent, i: number) => {
+  tempFiles.value[i] = event.target.files?.[0];
+  tracks.value[i].audio = tempFiles.value[i];
+  if (!streamUrls.value[i]) {
+    streamUrls.value[i] = tracks.value[i].streamUrl;
+  }
+  tracks.value[i].streamUrl = URL.createObjectURL(tempFiles.value[i] as File);
+};
+
+const resetTrack = (i: number) => {
+  delete tempFiles.value[i];
+  tracks.value[i].audio = undefined;
+  if (!!streamUrls.value[i]) {
+    tracks.value[i].streamUrl = streamUrls.value[i];
+    delete streamUrls.value[i];
+  }
+};
+
 const processUpload = (files?: File[]) => {
   if (!files && trackForm.value.audio) {
     files = [trackForm.value.audio];
@@ -390,7 +505,8 @@ const processUpload = (files?: File[]) => {
     saveTrack().then(({ data }) => {
       if (data) {
         reset();
-        uploader.value.removeAtIndex();
+        uploader.value.removeAtIndex(0);
+        tempFiles.value = [];
         data.explicit = data.explicit ? 1 : 0;
         data.contains_music = data.contains_music ? 1 : 0;
         tracks.value.push(data);
@@ -402,4 +518,14 @@ const processUpload = (files?: File[]) => {
     });
   }
 };
+
+watch(
+  tracks,
+  (tracks) => {
+    if (form.value.tracks || form.value.project_id) {
+      form.value.tracks = tracks;
+    }
+  },
+  { deep: true, immediate: true },
+);
 </script>

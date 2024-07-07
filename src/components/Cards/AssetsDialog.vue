@@ -15,7 +15,12 @@
         <q-toolbar-title class="flex gap-2">
           Assets
           <div>
-            <q-btn padding="xs sm" icon="fas fa-cloud-upload" color="primary" />
+            <q-btn
+              padding="xs sm"
+              icon="fas fa-cloud-upload"
+              color="primary"
+              :disable="released"
+            />
             <q-popup-edit title="Upload Asset" v-model="form" v-slot="scope">
               <q-form
                 class="gap-2 column"
@@ -95,9 +100,9 @@
             dense
             no-animation
             color="primary"
+            icon="fas fa-file-waveform"
             :title="String(stem.title || stem.name)"
             :key="i"
-            :icon="icon('audio')"
             :links="[
               {
                 label: formatBytes(stem.size, 2, true),
@@ -115,7 +120,14 @@
           >
             <template #title>
               <div>
-                <q-btn flat dense size="xs" icon="fas fa-edit" color="white" />
+                <q-btn
+                  flat
+                  dense
+                  size="xs"
+                  icon="fas fa-edit"
+                  color="white"
+                  :disable="released"
+                />
                 <q-popup-edit
                   title="Rename"
                   v-model="stem.title"
@@ -229,6 +241,7 @@ const props = defineProps({
     type: String,
     default: 'Assets',
   },
+  released: Boolean,
 });
 
 const toggle = ref(false);

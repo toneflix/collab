@@ -46,7 +46,7 @@ const links = [
   },
   {
     icon: 'fas fa-users-line',
-    title: 'Collabers',
+    title: 'Artists & Collabers',
     to: { name: 'studio.collabers' },
   },
   {

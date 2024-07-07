@@ -3,7 +3,10 @@
     class="block"
     :to="{
       name: 'artist.track',
-      params: { artist_id: track.artist?.username, track_id: track.slug },
+      params: {
+        artist_id: track.artist_id || track.artist?.username,
+        track_id: track.slug,
+      },
     }"
   >
     <q-card flat square class="w-32 bg-transparent cursor-pointer md:w-44">

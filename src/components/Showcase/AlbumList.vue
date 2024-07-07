@@ -18,7 +18,7 @@
           class="m-1"
           :key="album.id"
           :album="album"
-          v-for="album in albumLists"
+          v-for="album in category.data?.list"
         />
       </div>
     </q-scroll-area>
@@ -27,7 +27,7 @@
         class="m-1"
         :key="album.id"
         :album="album"
-        v-for="album in albumLists"
+        v-for="album in category.data?.list"
       />
     </div>
   </div>
@@ -35,22 +35,23 @@
 
 <script setup lang="ts">
 import AlbumCard from 'src/components/Cards/AlbumCard.vue';
-import { Category } from 'src/utils/models';
-import { albumLists } from 'src/utils/dummy';
+import { Category, Release } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
   hideAllLink: Boolean,
   verticalList: Boolean,
-  categories: {
-    type: Array as PropType<Category[]>,
-    default: () => [
-      {
-        title: 'Top Albums',
-        slug: 'top-albums',
-        id: 'top-albums',
-      },
-    ],
-  },
+});
+
+const categories = defineModel('categories', {
+  type: Array as PropType<Category<Release>[]>,
+  default: () => [
+    {
+      title: 'Top Albums',
+      slug: 'top-albums',
+      id: 'top-albums',
+      data: { list: [], lastPage: 1 },
+    },
+  ],
 });
 </script>

@@ -18,7 +18,7 @@
           class="m-1"
           :key="project.id"
           :project="project"
-          v-for="project in dummyProjects"
+          v-for="project in category.data?.list"
         />
       </div>
     </q-scroll-area>
@@ -28,7 +28,7 @@
         class="m-1"
         :key="project.id"
         :project="project"
-        v-for="project in dummyProjects"
+        v-for="project in category.data?.list"
       />
     </div>
   </div>
@@ -36,22 +36,23 @@
 
 <script setup lang="ts">
 import ProjectCard from 'src/components/Cards/ProjectCard.vue';
-import { Category } from 'src/utils/models';
-import { dummyProjects } from 'src/utils/dummy';
+import { Category, Project } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
   hideAllLink: Boolean,
   verticalList: Boolean,
-  categories: {
-    type: Array as PropType<Category[]>,
-    default: () => [
-      {
-        title: 'Active Projects',
-        slug: 'active-projects',
-        id: 'active-projects',
-      },
-    ],
-  },
+});
+
+const categories = defineModel('categories', {
+  type: Array as PropType<Category<Project>[]>,
+  default: () => [
+    {
+      title: 'Active Projects',
+      slug: 'active-projects',
+      id: 'active-projects',
+      data: { list: [], lastPage: 1 },
+    },
+  ],
 });
 </script>

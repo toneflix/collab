@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-y-6 md:grid-cols-2 md:gap-x-6">
+  <div class="grid gap-y-4 md:grid-cols-2 md:gap-x-4">
     <div class="col-span-2 md:col-span-1">
       <label class="block mb-2 text-xl text-gray-400"> Contains Music </label>
       <q-select

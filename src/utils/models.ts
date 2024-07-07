@@ -11,12 +11,21 @@ export type BaseOption = {
   value: string;
   label: string;
 }
+
+export type Partial<X> = {
+  [K in keyof X]?: X[K]
+}
+
 export type GenericData = Record<string, string | number | boolean | Record<string, string>>
 
 export type GenericResponse<X> = {
   data: ResponseBody<X>,
   status: number,
   statusText: string,
+}
+
+export interface HTMLInputEvent extends Event {
+  target: HTMLInputElement & EventTarget
 }
 
 export type ResponseBody<X = undefined> = {
@@ -79,10 +88,11 @@ export interface ContentMeta {
   username?: string;
 };
 
-export interface Category {
+export interface Category<X = Track | Release | User | Project> {
   id: string | number,
   slug: string;
   title: string;
+  data?: ExploreItem<X>
 };
 
 export type CollabEvents = {
@@ -103,9 +113,47 @@ export interface Genre {
   imageUrl: string;
 };
 
+export type ExploreItem<X> = {
+  list: X[],
+  lastPage: number,
+}
+
+export interface ExploreData {
+  trending: ExploreItem<Track>;
+  top_albums: ExploreItem<Release>;
+  top_creators: ExploreItem<User>;
+  new_creators: ExploreItem<User>;
+  top_projects: ExploreItem<Project>;
+  latest_albums: ExploreItem<Release>;
+  recently_played: ExploreItem<Track>;
+  active_projects: ExploreItem<Project>;
+}
+
+export interface Interaction {
+  votes: number;
+  likes: number;
+  dislikes: number;
+  reactions: number;
+  saved: boolean;
+  voted: boolean;
+  liked: boolean;
+  reacted: boolean;
+  ownvotes: number;
+  disliked: boolean;
+  reaction: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+  reaction_color: 'blue' | 'red' | 'yellow' | 'orange'
+  state_icons: {
+    saved: string;
+    voted: string;
+    disliked: string;
+    reaction: string;
+  },
+}
+
 export interface Artist {
   id: string | number,
   name: string;
+  type?: 'artist' | 'user';
   about: string;
   verified: boolean;
   username: string,
@@ -120,6 +168,7 @@ export interface Artist {
 
 export interface User extends Artist {
   id: string | number;
+  type?: 'artist' | 'user';
   email: string,
   phone: string,
   roles?: PriviRole[];
@@ -166,8 +215,11 @@ export interface Track {
   hasError?: boolean,
   artist_id?: string | number;
   streamUrl: string;
+  interaction?: Interaction,
   description: string;
+  defaultStream?: boolean;
   contains_music?: boolean | 0 | 1,
+  project_track_id?: string | number;
   updatedAt: string;
   createdAt: string;
 };
@@ -177,10 +229,12 @@ export interface Release extends Album {
   iswc: string;
   pline: string;
   draft?: boolean | 0 | 1,
+  project?: Project;
   explicit?: boolean | 0 | 1,
   composer: string;
   publisher: string;
   artist_id?: string | number;
+  project_id?: string | number;
   record_label: string;
   releaseDate: string;
   contains_music?: boolean | 0 | 1,
@@ -200,6 +254,7 @@ export type Album = {
   imageUrl: string;
   genre_id?: string | number;
   duration: number;
+  interaction?: Interaction,
   description: string;
   tracks_count: number;
   updatedAt: string;
@@ -213,11 +268,15 @@ export type Project = {
   props: number,
   group: 'open-projects' | 'recent-projects' | 'top-projects' | 'trending-projects',
   ready?: boolean;
+  tracks?: ProjectTrack[];
   proped: boolean;
+  user_id?: string | number,
   privacy: 'private' | 'public' | 'public_preview',
+  released: boolean;
   imageUrl: string,
   createdAt: string,
   updatedAt: string,
+  interaction?: Interaction,
   description: string,
   tracksCount: number,
   collaboratorsCount: number,
@@ -239,7 +298,9 @@ export interface ProjectTrack {
   duration: number;
   artist_id?: string | number;
   project_id?: string | number;
+  stemsCount: number;
   description: string;
+  interaction?: Interaction,
   updatedAt: string;
   createdAt: string;
 };

@@ -1,8 +1,17 @@
-import { Artist, Collaber, FileAsset, GenericData, Project, ProjectTrack, Release, ResponseBody, Track, UploadData } from './models'
+import { Artist, Collaber, ExploreData, FileAsset, GenericData, Project, ProjectTrack, Release, ResponseBody, Track, UploadData } from './models'
 import { alova, axios } from 'src/boot/alova'
 
 import { WavePlaylistTrack } from './playlist'
 import { toRaw } from 'vue'
+
+// Explore
+export const exploreRequest = (params?: GenericData) => {
+  return alova.Get('explore', {
+    transformData: (e: ResponseBody<ExploreData>) => e.data,
+    hitSource: 'play-track',
+    params
+  })
+}
 
 // Releases
 export const createReleaseRequest = (f: Release) => {
@@ -33,7 +42,7 @@ export const createReleaseRequest = (f: Release) => {
     enableUpload: true,
     name: 'create-release' + (f.slug || f.id || ''),
     params: {
-      with: 'artist,genre,release'
+      with: 'artist,genre,release,tracks,project'
     }
   })
 
@@ -44,7 +53,7 @@ export const createReleaseRequest = (f: Release) => {
 
 export const loadReleaseRequest = (id?: string, params?: GenericData) => {
   return alova.Get(`releases${id ? '/' + id : ''}`, {
-    transformData: (e: ResponseBody<Release>) => e.data as Release,
+    transformData: (e: ResponseBody<Release>) => e.data,
     hitSource: 'create-release' + (id || ''),
     params: {
       with: 'artist,genre,release',

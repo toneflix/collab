@@ -16,7 +16,7 @@
         <p class="mb-2 text-sm !flex-none text-gray-900 dark:text-white">
           {{ project.description }}
         </p>
-        <div
+        <q-no-ssr
           class="flex !flex-none flex-row items-center justify-start gap-4 font-semibold text-gray-900 dark:text-white"
         >
           <HoverCard
@@ -58,7 +58,7 @@
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
           </span>
-          <span class="!flex-none">•</span>
+          <span class="!flex-none" v-if="project.ready">•</span>
           <span class="!flex-none flex items-center gap-1">
             <q-btn
               dense
@@ -71,11 +71,14 @@
               text-color="dark"
               :disable="project.tracksCount < 1"
               :to="{ name: 'studio.release.create', query: $route.params }"
+              v-if="project.ready"
             >
-              <span class="ml-2 text-base">Release Project</span>
+              <span class="ml-2 text-base">
+                {{ project.released ? 'Update Release' : 'Release Project' }}
+              </span>
             </q-btn>
           </span>
-        </div>
+        </q-no-ssr>
       </div>
     </div>
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
@@ -107,6 +110,7 @@
               class="!flex-none"
               color="white"
               text-color="dark"
+              :disable="project.released"
               @click="toggle()"
             />
           </template>
@@ -142,9 +146,24 @@
           </q-item-section>
 
           <q-item-section>
-            {{ track.title }}
-            <q-item-label caption v-if="track.artist">
-              {{ track.artist.name }}
+            <q-item-label>
+              {{ track.title }}
+            </q-item-label>
+            <q-item-label
+              caption
+              class="flex !flex-none flex-row items-center justify-start gap-2"
+            >
+              <span
+                class="!flex-none flex items-center gap-1"
+                v-if="track.artist"
+              >
+                <q-icon name="fas fa-user" size=".6rem" />
+                {{ track.artist.name }}
+              </span>
+              <span class="!flex-none flex items-center gap-1">
+                <q-icon name="fas fa-wave-square" size=".6rem" />
+                {{ intStr(track.stemsCount) }}
+              </span>
             </q-item-label>
           </q-item-section>
           <q-item-section side top>
@@ -196,6 +215,7 @@
               class="!flex-none"
               color="white"
               text-color="dark"
+              :disable="project.released"
               @click="toggle"
             />
           </template>

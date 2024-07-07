@@ -51,6 +51,9 @@ const helpers = {
       }
     }
   },
+  subString (str: string, len: number) {
+    return str.length > len ? str.substring(0, len - 3).trim() + '...' : str;
+  },
   /**
    * Substitutes the placeholders in a string with the values from the object
    * @param {String} string
@@ -72,20 +75,14 @@ const helpers = {
    * grouped by the specified size
    * @returns
    */
-  chunk (arr: string[], size = 2): string[][] {
-    const chunkedArray = [];
-
-    for (let i = 0; i < arr.length; i++) {
-      const last = chunkedArray[chunkedArray.length - 1];
-      if (!last || last.length === size) {
-        chunkedArray.push([arr[i]]);
-      } else {
-        last.push(arr[i]);
-      }
+  chunk<Input> (arr: Input[], size: number = 2): Input[][] {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
     }
-    return chunkedArray;
-  },
-
+    return chunks;
+  }
+  ,
   date (d: string, format = 'YYYY/MM/DD') {
     return date.formatDate(new Date(d), format);
   },
@@ -647,10 +644,12 @@ const helpers = {
 
 export default helpers
 export const env = helpers.env
+export const chunk = helpers.chunk
 export const doter = helpers.doter
 export const money = helpers.money
 export const intStr = helpers.intStr
 export const notify = helpers.notify
+export const subString = helpers.subString
 export const currentUrl = helpers.currentUrl
 export const formatBytes = helpers.formatBytes
 export const arrayUnique = helpers.arrayUnique

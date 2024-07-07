@@ -1,7 +1,52 @@
 <template>
   <div class="q-col-gutter-md row">
     <div class="col-12 col-md-4">
+      <AudioMiniPlayer v-model:track="track" v-if="track && type === 'track'">
+        <template #image>
+          <ImageCropper
+            :aspect-ratio="1 / 1"
+            :buttons="{ cancel: 'Cancel', crop: 'Accept' }"
+            @result="uploadArtwork"
+          >
+            <template #default="{ open, dataURL }">
+              <q-avatar
+                square
+                class="w-48 h-48 edit-photo-avatar bg-gradient-to-t from-slate-200 to-gray-300"
+              >
+                <q-img
+                  fit="cover"
+                  class="w-full h-full card-avatar"
+                  :ratio="1 / 1"
+                  :src="dataURL || meta.imageUrl || placeholder"
+                  :alt="meta.title"
+                />
+
+                <div class="absolute p-4 text-center">
+                  <q-btn
+                    dense
+                    no-caps
+                    rounded
+                    padding="xs md"
+                    unelevated
+                    icon="fas fa-camera"
+                    label="Upload Image"
+                    color="primary"
+                    @click="open"
+                  />
+                  <slot name="avatar-center"></slot>
+                </div>
+                <slot name="avatar-bottom"></slot>
+                <q-inner-loading
+                  color="greysoft"
+                  :showing="uploading.total > 0"
+                />
+              </q-avatar>
+            </template>
+          </ImageCropper>
+        </template>
+      </AudioMiniPlayer>
       <ImageCropper
+        v-else
         :aspect-ratio="1 / 1"
         :buttons="{ cancel: 'Cancel', crop: 'Accept' }"
         @result="uploadArtwork"
@@ -31,14 +76,16 @@
                 color="primary"
                 @click="open"
               />
+              <slot name="avatar-center"></slot>
             </div>
+            <slot name="avatar-bottom"></slot>
             <q-inner-loading color="greysoft" :showing="uploading.total > 0" />
           </q-avatar>
         </template>
       </ImageCropper>
     </div>
     <div class="text-white col-12 col-md-8">
-      <div class="grid gap-y-6 md:grid-cols-2 md:gap-x-6">
+      <div class="grid gap-y-2 md:grid-cols-2 md:gap-x-4">
         <div class="col-span-2">
           <label class="block mb-2 text-xl text-gray-400">
             {{ mapOptions[type] }} Title
@@ -219,10 +266,12 @@ import {
 import { computed, ref, PropType, watch } from 'vue';
 import { genres } from 'src/utils/dummy';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import AudioMiniPlayer from '../Controllers/AudioMiniPlayer.vue';
 
 const emit = defineEmits(['error', 'error-cleared']);
 const props = defineProps({
   hidePrivacyOptions: Boolean,
+  showPlayer: Boolean,
   type: {
     type: String as PropType<'release' | 'track'>,
     default: 'release',
@@ -239,6 +288,11 @@ const mapOptions: Record<string, string> = {
   release: 'Release',
   track: 'Track',
 };
+
+const track = computed<Track>({
+  get: () => form.value as unknown as Track,
+  set: (v) => (form.value = v),
+});
 
 const form = defineModel<(Release | Track) & UploadData>('form', {
   required: true,

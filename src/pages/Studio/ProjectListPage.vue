@@ -22,11 +22,11 @@
         <q-item
           clickable
           :to="{
-            name: 'project',
+            name: 'studio.project',
             params: { project_id: project.slug },
           }"
           :key="project.id"
-          v-for="project in projects"
+          v-for="(project, i) in projects"
         >
           <q-item-section avatar>
             <q-avatar rounded color="gray-400" text-color="white">
@@ -53,6 +53,18 @@
                 <q-icon name="fas fa-compact-disc" size=".7rem" />
                 {{ intStr(project.tracksCount) }}
               </span>
+              <span class="!flex-none" v-if="project.released">•</span>
+              <span
+                class="!flex-none flex items-center gap-1"
+                v-if="project.released"
+              >
+                <q-icon
+                  name="fas fa-check-circle"
+                  size=".7rem"
+                  color="success"
+                  class="icon-fill"
+                />
+              </span>
             </q-item-label>
           </q-item-section>
           <q-item-section side top>
@@ -65,14 +77,15 @@
               dense
               rounded
               icon="fas fa-ellipsis"
+              item-name="Project"
               dropdown-icon="none"
               color="white"
               :links="[
                 {
-                  label: 'Resume Project',
-                  icon: 'fas fa-expand',
+                  label: 'Project Home',
+                  icon: 'fas fa-home',
                   to: {
-                    name: 'studio.project',
+                    name: 'project',
                     params: { project_id: project.slug },
                   },
                 },
@@ -83,6 +96,15 @@
                     name: 'studio.projects.create',
                     params: { project_id: project.slug },
                   },
+                },
+                {
+                  show: user.id === project.user_id,
+                  label: 'Delete Project',
+                  icon: 'fas fa-trash',
+                  color: 'negative',
+                  target: `creator/projects/${project.id}`,
+                  action: 'delete',
+                  callback: () => projects.splice(i, 1),
                 },
               ]"
               @click.stop.prevent
@@ -102,6 +124,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, Project } from 'src/utils/models';
 import { loadProjectRequest } from 'src/utils/requests';
+import { computed } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
@@ -114,5 +137,6 @@ defineOptions({
   },
 });
 
+const user = computed(() => useBootstrapStore().user);
 const projects = useBootstrapStore().pageData.current as unknown as Project[];
 </script>

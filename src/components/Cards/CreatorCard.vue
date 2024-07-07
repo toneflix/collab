@@ -22,9 +22,9 @@
         />
       </q-avatar>
 
-      <q-card-section align="left" class="p-1">
+      <q-card-section align="center" class="p-1">
         <h6
-          class="!text-gray-300 text-md md:text-lg w-28 overflow-hidden text-nowrap text-ellipsis"
+          class="!text-gray-300 text-md md:text-lg w-32 overflow-hidden text-nowrap text-ellipsis"
         >
           <q-icon
             name="verified"
@@ -37,7 +37,10 @@
         <div class="text-gray-400 text-subtitle2">
           {{ creator.projects_count }} Projects
           <span class="!flex-none">•</span>
-          {{ creator.reputation }} Reps.
+          {{
+            creator.type === 'artist' ? creator.followers : creator.reputation
+          }}
+          {{ creator.type === 'artist' ? 'Foll' : 'Reps' }}.
         </div>
       </q-card-section>
     </q-card>
@@ -45,13 +48,13 @@
 </template>
 
 <script setup lang="ts">
-import { Artist } from 'src/utils/models';
+import { Artist, User } from 'src/utils/models';
 
 defineProps({
   dense: Boolean,
 });
 
-const creator = defineModel<Artist>('creator', {
+const creator = defineModel<User | Artist>('creator', {
   required: true,
 });
 </script>
