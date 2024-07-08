@@ -1,14 +1,16 @@
 <template>
   <q-page padding>
-    <div class="relative">
+    <div class="relative xs:min-h-16 sm:min-h-full">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
-        :style="{ backgroundImage: `url(${artist?.imageUrl})` }"
+        :style="{
+          backgroundImage: `url(${artist.imageUrl})`,
+        }"
       ></div>
       <div class="absolute flex justify-center md:!justify-start w-full">
         <AtroposViewer
           class="!flex-none w-48 h-48 md:h-72 md:w-72"
-          :main-image="artist.imageUrl"
+          :main-image="'artist.imageUrl'"
         >
           <template #button>
             <q-btn
@@ -33,7 +35,7 @@
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ artist?.name }}
+              {{ subString(artist?.name, 15) }}
             </h1>
 
             <div
@@ -61,7 +63,7 @@
                 {{ intStr(artist.reputation) }} Reps.
               </span>
             </div>
-            <p class="mt-4 text-sm max-w-96">
+            <p class="block mt-4 text-sm max-w-96">
               {{ artist.about }}
             </p>
           </div>
@@ -69,7 +71,7 @@
       </div>
     </div>
     <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80">
-      <div class="col-span-5">
+      <div class="col-span-5" v-if="artist.type === 'user'">
         <ProjectList
           :categories="[
             {
@@ -83,30 +85,15 @@
       <div class="col-span-5">
         <TrackList
           hide-all-link
-          :categories="[
-            {
-              id: 'top-songs',
-              slug: 'top-songs',
-              title: 'Top Songs',
-            },
-            {
-              id: 'features',
-              slug: 'features',
-              title: 'Features',
-            },
-          ]"
+          v-model:categories="categories.tracks"
+          :params="{ limit: 30 }"
         />
       </div>
       <div class="col-span-5">
         <AlbumList
           hide-all-link
-          :categories="[
-            {
-              id: 'albums',
-              slug: 'albums',
-              title: 'Albums',
-            },
-          ]"
+          v-model:categories="categories.albums"
+          :params="{ limit: 30 }"
         />
       </div>
     </div>
@@ -114,31 +101,118 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { Artist } from 'src/utils/models';
-import { useRoute } from 'vue-router';
-import { artistList } from 'src/utils/dummy';
-import { ionAdd, ionPlay } from '@quasar/extras/ionicons-v7';
-import { intStr } from 'src/utils/helpers';
 import TrackList from 'src/components/Showcase/TrackList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
+import {
+  Artist,
+  Category,
+  GenericData,
+  PageMeta,
+  Release,
+  Track,
+} from 'src/utils/models';
+import { useRoute } from 'vue-router';
+import { ionAdd, ionPlay } from '@quasar/extras/ionicons-v7';
+import { intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import {
+  loadArtistRequest,
+  loadReleasesRequest,
+  loadTracksRequest,
+} from 'src/utils/requests';
+import { useWatcher } from 'alova';
+import { ref } from 'vue';
+
+defineOptions({
+  async preFetch({ store, currentRoute }) {
+    const boot = useBootstrapStore(store);
+    const id = String(currentRoute.params.artist_id);
+
+    const artist = await loadArtistRequest(id, { with: 'tracks' }, true).send();
+
+    const { data: tracks, meta: tracksMeta } = await loadTracksRequest({
+      artist_id: artist.id,
+      limit: 30,
+    }).send();
+
+    const { data: features, meta: featuresMeta } = await loadTracksRequest({
+      artist_id: artist.id,
+      filters: 'features',
+      limit: 30,
+    }).send();
+
+    const { data: releases, meta: rMeta } = await loadReleasesRequest({
+      artist_id: artist.id,
+      limit: 30,
+    }).send();
+
+    boot.pageData.current = {
+      artist,
+      tracks,
+      features,
+      releases,
+      tracksMeta,
+      featuresMeta,
+      lastReleaseMeta: rMeta,
+    } as unknown as GenericData[];
+  },
+});
 
 const route = useRoute();
+const current = useBootstrapStore().pageData.current as unknown as {
+  artist: Artist;
+  tracks: Track[];
+  features: Track[];
+  releases: Release[];
+  tracksMeta: Partial<PageMeta>;
+  featuresMeta: Partial<PageMeta>;
+  lastReleaseMeta: Partial<PageMeta>;
+};
 
-const artist = ref<Artist>({} as unknown as Artist);
+const categories = ref({
+  albums: <Category[]>[
+    {
+      id: 'albums',
+      slug: 'albums',
+      title: 'Albums',
+      data: { list: current.releases, meta: current.lastReleaseMeta },
+      params: { artist_id: route.params.artist_id },
+    },
+  ],
+  tracks: <Category[]>[
+    {
+      id: 'top-songs',
+      slug: 'top-songs',
+      title: 'Top Songs',
+      data: { list: current.tracks, meta: current.tracksMeta },
+      params: { artist_id: route.params.artist_id },
+    },
+    {
+      id: 'features',
+      slug: 'features',
+      title: 'Features',
+      data: { list: current.features, meta: current.featuresMeta },
+      params: { artist_id: route.params.artist_id, filters: 'features' },
+    },
+  ],
+});
 
-watch(
-  () => route.params,
-  (params) => {
-    artist.value =
-      artistList.value.find(
-        (e) => e.id === params.artist_id || e.username === params.artist_id,
-      ) || ({} as unknown as Artist);
+const { data: artist } = useWatcher(
+  () =>
+    loadArtistRequest(
+      route.params.artist_id as string,
+      { with: 'tracks' },
+      true,
+    ),
+  [() => route.params.artist_id],
+  {
+    sendable: () => !!route.params.artist_id,
+    immediate: false,
+    initialData: current.artist,
   },
-  { immediate: true },
 );
 
 useMeta(() => {

@@ -15,7 +15,7 @@
         v-if="category.data?.list?.length"
       >
         <div
-          class="flex flex-col min-w-[80vw] md:min-w-64 gap-2 md:w-64"
+          class="flex flex-col xs:min-w-[80vw] sm:min-w-64 gap-2 md:w-64"
           :key="i"
           v-for="(list, i) in chunk(category.data.list, 9)"
         >
@@ -60,7 +60,7 @@ const categories = defineModel('categories', {
       title: 'Recently Played',
       slug: 'recently-played',
       id: 'recently-played',
-      data: { list: [], lastPage: 1 },
+      data: { list: [], meta: {} },
     },
   ],
 });

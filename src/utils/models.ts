@@ -28,8 +28,32 @@ export interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget
 }
 
+type PageLinks = {
+  first: string,
+  last: string,
+  next: string,
+  prev: string,
+}
+
+export type PageMeta = {
+  current_page: number,
+  last_page: number,
+  per_page: number,
+  total: number,
+  links: {
+    active: boolean,
+    label: string,
+    url: string,
+  }[],
+  from: number,
+  path: string,
+  to: number,
+}
+
 export type ResponseBody<X = undefined> = {
   data: X,
+  meta?: PageMeta,
+  links?: PageLinks,
   token?: string,
   status: ResponseStatus,
   try_at?: string,
@@ -88,11 +112,12 @@ export interface ContentMeta {
   username?: string;
 };
 
-export interface Category<X = Track | Release | User | Project> {
+export interface Category<X = Track | Release | User | Project | Artist> {
   id: string | number,
+  data?: ExploreItem<X>
   slug: string;
   title: string;
-  data?: ExploreItem<X>
+  params?: GenericData,
 };
 
 export type CollabEvents = {
@@ -115,7 +140,7 @@ export interface Genre {
 
 export type ExploreItem<X> = {
   list: X[],
-  lastPage: number,
+  meta: Partial<PageMeta>,
 }
 
 export interface ExploreData {
@@ -125,8 +150,11 @@ export interface ExploreData {
   new_creators: ExploreItem<User>;
   top_projects: ExploreItem<Project>;
   latest_albums: ExploreItem<Release>;
+  latest_artists: ExploreItem<Artist>;
   recently_played: ExploreItem<Track>;
   active_projects: ExploreItem<Project>;
+  trending_artists: ExploreItem<Artist>;
+  recommended_artists: ExploreItem<Artist>;
 }
 
 export interface Interaction {
@@ -163,7 +191,7 @@ export interface Artist {
   youFollow: boolean;
   followsYou: boolean;
   reputation: number,
-  projects_count: number,
+  projectsCount: number,
 };
 
 export interface User extends Artist {
@@ -256,7 +284,7 @@ export type Album = {
   duration: number;
   interaction?: Interaction,
   description: string;
-  tracks_count: number;
+  tracksCount: number;
   updatedAt: string;
   createdAt: string;
 };

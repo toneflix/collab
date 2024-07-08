@@ -35,12 +35,20 @@
           {{ creator.name }}
         </h6>
         <div class="text-gray-400 text-subtitle2">
-          {{ creator.projects_count }} Projects
-          <span class="!flex-none">•</span>
           {{
-            creator.type === 'artist' ? creator.followers : creator.reputation
+            creator.type === 'user'
+              ? intStr(creator.projectsCount) + ' Projects'
+              : ''
           }}
-          {{ creator.type === 'artist' ? 'Foll' : 'Reps' }}.
+          <span class="!flex-none" v-if="creator.type === 'user'">•</span>
+          {{
+            intStr(
+              creator.type === 'artist'
+                ? creator.followers
+                : creator.reputation,
+            )
+          }}
+          {{ creator.type === 'artist' ? 'Followers' : 'Reps.' }}
         </div>
       </q-card-section>
     </q-card>
@@ -48,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { intStr } from 'src/utils/helpers';
 import { Artist, User } from 'src/utils/models';
 
 defineProps({

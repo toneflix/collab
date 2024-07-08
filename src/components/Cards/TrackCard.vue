@@ -8,6 +8,7 @@
         track_id: track.slug,
       },
     }"
+    v-intersection="onIntersect"
   >
     <q-card flat square class="w-32 bg-transparent cursor-pointer md:w-44">
       <q-avatar rounded class="!rounded-2xl w-32 h-32 md:w-44 md:h-44">
@@ -22,7 +23,7 @@
 
       <q-card-section align="center" class="p-1">
         <h6
-          class="!text-gray-300 text-md md:text-lg w-28 overflow-hidden text-nowrap text-ellipsis"
+          class="!text-gray-300 text-md md:text-lg w-28 md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ track.title }}
         </h6>
@@ -35,7 +36,23 @@
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
 
+const emit = defineEmits<{
+  scrollEnd: [value: boolean];
+}>();
+
+const props = defineProps({
+  dense: Boolean,
+  isLast: Boolean,
+});
+
 const track = defineModel<Track>('track', {
   required: true,
 });
+
+const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+  if (props.isLast && evt.isIntersecting) {
+    emit('scrollEnd', true);
+  }
+  return true;
+};
 </script>

@@ -51,7 +51,7 @@ const categories = defineModel('categories', {
       title: 'Active Projects',
       slug: 'active-projects',
       id: 'active-projects',
-      data: { list: [], lastPage: 1 },
+      data: { list: [], meta: {} },
     },
   ],
 });

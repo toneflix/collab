@@ -32,13 +32,13 @@
               id: 'top-artists',
               slug: 'top-artists',
               title: 'Top Artists',
-              data: data.top_creators,
+              data: data.trending_artists,
             },
             {
               id: 'new-artists',
               slug: 'new-artists',
               title: 'New Artists',
-              data: data.new_creators,
+              data: data.latest_artists,
             },
           ]"
         />
@@ -127,8 +127,10 @@ defineOptions({
       new_creators: 18,
       top_projects: 18,
       latest_albums: 18,
+      latest_artists: 18,
       active_projects: 18,
       recently_played: 15,
+      trending_artists: 18,
     })
       .send()
       .then((data) => {
@@ -149,8 +151,10 @@ const { data } = useRequest(
       new_creators: 18,
       top_projects: 18,
       latest_albums: 18,
+      latest_artists: 18,
       active_projects: 18,
       recently_played: 15,
+      trending_artists: 18,
     }),
   {
     immediate: false,

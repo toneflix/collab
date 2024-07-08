@@ -49,7 +49,7 @@
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
                 <q-icon name="fas fa-compact-disc" size=".7rem" />
-                {{ intStr(release.tracks_count) }}
+                {{ intStr(release.tracksCount) }}
               </span>
               <span class="!flex-none" v-if="!release.draft">•</span>
               <span
@@ -106,20 +106,20 @@
 </template>
 
 <script setup lang="ts">
-import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
+import { date } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, Release } from 'src/utils/models';
-import { loadReleaseRequest } from 'src/utils/requests';
+import { loadReleasesRequest } from 'src/utils/requests';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
 
-    await loadReleaseRequest(undefined, { user_id: boot.user.id as string })
+    await loadReleasesRequest({ user_id: boot.user.id as string })
       .send()
-      .then((data) => {
+      .then(({ data }) => {
         boot.pageData.current = data as unknown as GenericData[];
       });
   },

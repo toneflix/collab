@@ -34,7 +34,7 @@
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
               <span class="!flex-none">
-                {{ intStr(album.tracks_count) }} Tracks
+                {{ intStr(album.tracksCount) }} Tracks
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">

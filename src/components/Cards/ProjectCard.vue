@@ -24,7 +24,7 @@
 
       <q-card-section align="left" class="p-1">
         <h6
-          class="!text-gray-300 text-md md:text-lg w-28 overflow-hidden text-nowrap text-ellipsis"
+          class="!text-gray-300 text-md md:text-lg w-28 md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ project.title }}
         </h6>

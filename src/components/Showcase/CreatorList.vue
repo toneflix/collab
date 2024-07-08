@@ -52,7 +52,7 @@ const categories = defineModel('categories', {
       title: 'Top Creators',
       slug: 'top-creators',
       id: 'top-creators',
-      data: { list: [], lastPage: 1 },
+      data: { list: [], meta: {} },
     },
   ],
 });

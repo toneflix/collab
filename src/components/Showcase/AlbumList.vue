@@ -1,5 +1,5 @@
 <template>
-  <div :key="category.id" v-for="category in categories">
+  <div :key="category.id" v-for="(category, i) in categories">
     <q-toolbar class="px-0">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
@@ -12,33 +12,24 @@
         <h1>See All</h1>
       </VaButton>
     </q-toolbar>
-    <q-scroll-area class="h-48 md:h-64 max-w" v-if="!verticalList">
-      <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
-        <AlbumCard
-          class="m-1"
-          :key="album.id"
-          :album="album"
-          v-for="album in category.data?.list"
-        />
-      </div>
-    </q-scroll-area>
-    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
-      <AlbumCard
-        class="m-1"
-        :key="album.id"
-        :album="album"
-        v-for="album in category.data?.list"
-      />
-    </div>
+    <AlbumCategory
+      :params="params"
+      :immediate="immediate"
+      :hide-all-link="hideAllLink"
+      :vertical-list="verticalList"
+      v-model:category="categories[i]"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import AlbumCard from 'src/components/Cards/AlbumCard.vue';
-import { Category, Release } from 'src/utils/models';
+import AlbumCategory from 'src/components/Showcase/AlbumCategory.vue';
+import { Category, GenericData, Release } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
+  immediate: Boolean,
   hideAllLink: Boolean,
   verticalList: Boolean,
 });
@@ -50,7 +41,7 @@ const categories = defineModel('categories', {
       title: 'Top Albums',
       slug: 'top-albums',
       id: 'top-albums',
-      data: { list: [], lastPage: 1 },
+      data: { list: [], meta: {} },
     },
   ],
 });

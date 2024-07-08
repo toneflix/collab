@@ -16,35 +16,28 @@
       </VaButton>
     </q-toolbar>
 
-    <q-scroll-area class="h-48 md:h-64 max-w" v-if="!verticalList">
-      <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
-        <TrackCard
-          class="m-1"
-          :key="track.id"
-          :track="track"
-          v-for="track in category.data?.list"
-        />
-      </div>
-    </q-scroll-area>
-    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
-      <TrackCard
-        class="m-1"
-        :key="track.id"
-        :track="track"
-        v-for="track in category.data?.list"
-      />
-    </div>
+    <TrackCategory
+      :params="params"
+      :immediate="immediate"
+      :hide-all-link="hideAllLink"
+      :vertical-list="verticalList"
+      v-model:category="
+        categories[categories.findIndex((e) => e.id === category.id)]
+      "
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import TrackCard from 'src/components/Cards/TrackCard.vue';
-import { Category, Track } from 'src/utils/models';
+import TrackCategory from 'src/components/Showcase/TrackCategory.vue';
+import { Category, GenericData, Track } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
-  verticalList: Boolean,
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
+  immediate: Boolean,
   hideAllLink: Boolean,
+  verticalList: Boolean,
 });
 
 const categories = defineModel('categories', {
@@ -54,7 +47,7 @@ const categories = defineModel('categories', {
       title: 'Recently Played',
       slug: 'recently-played',
       id: 'recently-played',
-      data: { list: [], lastPage: 1 },
+      data: { list: [], meta: {} },
     },
   ],
 });

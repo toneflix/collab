@@ -1,10 +1,27 @@
-import { Artist, Collaber, ExploreData, FileAsset, GenericData, Project, ProjectTrack, Release, ResponseBody, Track, UploadData } from './models'
+import {
+  Artist,
+  Collaber,
+  ExploreData,
+  FileAsset,
+  GenericData,
+  Project,
+  ProjectTrack,
+  Release,
+  ResponseBody,
+  Track,
+  UploadData
+} from './models'
 import { alova, axios } from 'src/boot/alova'
 
 import { WavePlaylistTrack } from './playlist'
 import { toRaw } from 'vue'
 
-// Explore
+/**
+ * Fetch initial data for the app based on the parameters passed
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
 export const exploreRequest = (params?: GenericData) => {
   return alova.Get('explore', {
     transformData: (e: ResponseBody<ExploreData>) => e.data,
@@ -13,7 +30,78 @@ export const exploreRequest = (params?: GenericData) => {
   })
 }
 
-// Releases
+/**
+ * Fetch all tracks
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadTracksRequest = (params?: GenericData) => {
+  const url = params?.release_id ? `releases/${params?.release_id}/tracks` : 'tracks'
+
+  return alova.Get<ResponseBody<Track[]>>(url, {
+    hitSource: 'create-track',
+    params: Object.assign({}, {
+      with: 'artist',
+    }, params)
+  })
+}
+
+/**
+ * Fetch a single track
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadTrackRequest = (id: string | string[], params?: GenericData) => {
+  const url = params?.release_id ? `releases/${params?.release_id}/tracks` : 'tracks'
+
+  return alova.Get<ResponseBody<Track>>(`${url}/${id}`, {
+    hitSource: 'create-track' + id,
+    params
+  })
+}
+
+/**
+ * Fetch all release (None-creator endpoint)
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadReleasesRequest = (params?: GenericData) => {
+  return alova.Get<ResponseBody<Release[]>>('releases', {
+    hitSource: 'create-release',
+    params: {
+      with: 'artist,genre,release',
+      ...params
+    }
+  })
+}
+
+/**
+ * Fetch a single release (None-creator endpoint)
+ *
+ * @param id The ID of the release to fetch
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadReleaseRequest = (id: string | string[], params?: GenericData) => {
+  return alova.Get(`releases/${id}`, {
+    transformData: (e: ResponseBody<Release>) => e.data,
+    hitSource: 'create-release' + (id || ''),
+    params: {
+      with: 'artist,genre,release',
+      ...params
+    }
+  })
+}
+
+/**
+ * Create/Update a release
+ *
+ * @param f The form data object
+ * @returns
+ */
 export const createReleaseRequest = (f: Release) => {
   type Use = GenericData & { tracks: GenericData[] }
   const form: Use = Object.assign({ tracks: [] }, toRaw(f), {
@@ -51,19 +139,12 @@ export const createReleaseRequest = (f: Release) => {
   return request
 }
 
-export const loadReleaseRequest = (id?: string, params?: GenericData) => {
-  return alova.Get(`releases${id ? '/' + id : ''}`, {
-    transformData: (e: ResponseBody<Release>) => e.data,
-    hitSource: 'create-release' + (id || ''),
-    params: {
-      with: 'artist,genre,release',
-      ...params
-    }
-  })
-}
-
-// Release Tracks
-
+/**
+ * Create/Update a track
+ *
+ * @param f The form data object
+ * @returns
+ */
 export const saveTrackRequest = (f: Track) => {
   const form = Object.assign({}, f)
   if (form.release) {
@@ -84,8 +165,12 @@ export const saveTrackRequest = (f: Track) => {
   return request
 }
 
-// Artists
-
+/**
+ * Create/Update an artist
+ *
+ * @param form The form data object
+ * @returns
+ */
 export const createArtistRequest = (form: Artist) => {
   const request = axios.Post<ResponseBody<Artist>>(`creator/artists${form.id ? '/' + form.id : ''}`, {
     ...form,
@@ -100,7 +185,31 @@ export const createArtistRequest = (form: Artist) => {
   return request
 }
 
-// Projects
+/**
+ * Fetch an artist
+ *
+ * @param id The ID of the artist to fetch
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const loadArtistRequest = (id: string, params?: GenericData, guest = false) => {
+  const url = guest ? 'artists' : 'creator/artists'
+  return alova.Get(`${url}/${id}`, {
+    transformData: (e: ResponseBody<Artist>) => e.data,
+    hitSource: 'create-user' + id,
+    params
+  })
+}
+
+/**
+ * Fetch a project
+ *
+ * @param id The ID of the project to fetch
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectRequest = (id?: string, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
   return alova.Get(url + (id ? '/' + id : ''), {
@@ -113,6 +222,12 @@ export const loadProjectRequest = (id?: string, params?: GenericData, guest = fa
   })
 }
 
+/**
+ * Create/Update a project
+ *
+ * @param f The form data object
+ * @returns
+ */
 export const createProjectRequest = (f: Project & UploadData) => {
 
   const form = {
@@ -136,9 +251,15 @@ export const createProjectRequest = (f: Project & UploadData) => {
   return request
 }
 
-// Project Tracks
-
-// Load Single Track
+/**
+ * Fetch a track belonging to a project
+ *
+ * @param p The project object that owns the tracks
+ * @param id ID of the track
+ * @param _params  Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectTrackRequest = (p: Project, id: string, _params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
   return alova.Get(`${url}/${p.id}/tracks/${id}`, {
@@ -148,7 +269,14 @@ export const loadProjectTrackRequest = (p: Project, id: string, _params?: Generi
   })
 }
 
-// Load Track List
+/**
+ * Fetch all tracks belonging to a project
+ *
+ * @param p The project object that owns the tracks
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectTracksRequest = (p: Project, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 
@@ -159,7 +287,15 @@ export const loadProjectTracksRequest = (p: Project, params?: GenericData, guest
   })
 }
 
-// Load Track Stems
+/**
+ * Fetch all track stems belonging to a project track
+ *
+ * @param p The project object
+ * @param t The track object that owns the stems
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectTrackStemsRequest = (p: Project, t: ProjectTrack, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 
@@ -170,7 +306,15 @@ export const loadProjectTrackStemsRequest = (p: Project, t: ProjectTrack, params
   })
 }
 
-// Save Track Stems
+/**
+ * Save a track stem belonging to a project track
+ *
+ * @param f The form data object
+ * @param p The project object
+ * @param t The track object that owns the stems
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
 export const saveProjectTrackStemRequest = (
   f: UploadData,
   p: Project,
@@ -196,7 +340,15 @@ export const saveProjectTrackStemRequest = (
   return request
 }
 
-// Delete Track Stems
+/**
+ * Delete a track stem belonging to a project track
+ *
+ * @param id The ID of the track stem to delete
+ * @param p The project object
+ * @param t The track object that owns the stems
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
 export const deleteProjectTrackStemRequest = (id: string, p: Project, t: ProjectTrack, params?: GenericData) => {
   return alova.Delete<ResponseBody<WavePlaylistTrack>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}`, {}, {
     name: 'delete-project-track-stem',
@@ -204,7 +356,14 @@ export const deleteProjectTrackStemRequest = (id: string, p: Project, t: Project
   })
 }
 
-// Load Track Assets
+/**
+ * Fetch all assets for a project track
+ *
+ * @param t The track object that owns the stems
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectTrackAssetsRequest = (t: ProjectTrack, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 
@@ -215,7 +374,13 @@ export const loadProjectTrackAssetsRequest = (t: ProjectTrack, params?: GenericD
   })
 }
 
-// Save Track Asset
+/**
+ * Create/Update an asset for a project track
+ *
+ * @param f The form data object
+ * @param t The project track object that owns the asset
+ * @returns
+ */
 export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => {
   const request = axios.Post<ResponseBody<FileAsset>>(`creator/projects/${t.project_id}/tracks/${t.id}/assets`, {
     title: f.title,
@@ -236,7 +401,13 @@ export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => 
   return request
 }
 
-// Save Project
+/**
+ * Create/Update a project track
+ *
+ * @param f The form data object
+ * @param p The project object
+ * @returns
+ */
 export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
 
   const request = axios.Post<ResponseBody<ProjectTrack>>(`creator/projects/${p.id}/tracks${f.id ? '/' + f.id : ''}`, {
@@ -261,9 +432,14 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
   return request
 }
 
-// Project Collaborators
-
-// Load Collaborators List
+/**
+ * Fetch all the collaboratores for a project
+ *
+ * @param p The project object
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const loadProjectCollaboratorsRequest = (p: Project, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 
@@ -274,7 +450,15 @@ export const loadProjectCollaboratorsRequest = (p: Project, params?: GenericData
   })
 }
 
-// Save Collaborator
+/**
+ * Create/Update a project collaborator
+ *
+ * @param f The form data object
+ * @param p The project object
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
 export const saveProjectCollaboratorRequest = (f: Collaber, p: Project, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 

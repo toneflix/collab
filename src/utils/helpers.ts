@@ -51,8 +51,8 @@ const helpers = {
       }
     }
   },
-  subString (str: string, len: number) {
-    return str.length > len ? str.substring(0, len - 3).trim() + '...' : str;
+  subString (str: string, len: number, eli: string = '...') {
+    return str.length > len ? str.substring(0, len - eli.length).trim() + eli : str;
   },
   /**
    * Substitutes the placeholders in a string with the values from the object
