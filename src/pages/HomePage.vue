@@ -83,6 +83,7 @@
       <div class="col-span-5">
         <AlbumList
           hide-all-link
+          :params="{ filters: 'album' }"
           :categories="[
             {
               id: 'top-albums',

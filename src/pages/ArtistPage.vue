@@ -93,7 +93,7 @@
         <AlbumList
           hide-all-link
           v-model:categories="categories.albums"
-          :params="{ limit: 30 }"
+          :params="{ limit: 30, filters: 'album' }"
         />
       </div>
     </div>

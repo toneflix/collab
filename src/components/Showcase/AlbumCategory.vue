@@ -31,15 +31,9 @@
 
 <script setup lang="ts">
 import { usePagination } from '@alova/scene-vue';
-import { alova } from 'src/boot/alova';
 import AlbumCard from 'src/components/Cards/AlbumCard.vue';
-import {
-  Category,
-  GenericData,
-  PageMeta,
-  Release,
-  ResponseBody,
-} from 'src/utils/models';
+import { Category, GenericData, PageMeta, Release } from 'src/utils/models';
+import { loadReleasesRequest } from 'src/utils/requests';
 import { PropType } from 'vue';
 
 const props = defineProps({
@@ -67,20 +61,17 @@ const {
   isLastPage,
 } = usePagination(
   (page, limit) =>
-    alova.Get<ResponseBody<Release[]>>('releases', {
-      params: {
-        page,
-        limit,
-        ...props.params,
-        ...category.value.params,
-      },
+    loadReleasesRequest({
+      page,
+      limit,
+      ...props.params,
+      ...category.value.params,
     }),
   {
     total: (data) => data.meta?.total || 0,
     append: true,
     immediate: props.immediate,
     initialData: { data: [] },
-    watchingStates: [() => props.params],
     initialPageSize: 30,
   },
 );

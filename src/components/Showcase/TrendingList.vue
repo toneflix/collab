@@ -6,47 +6,29 @@
     <q-toolbar class="px-0">
       <h1 class="va-h5">{{ category.title }}</h1>
     </q-toolbar>
-    <q-scroll-area
-      class="w-full max-w-full md:max-w-xs lg:max-w-sm h-[580px]"
-      v-if="!flexible"
-    >
-      <div
-        class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap"
-        v-if="category.data?.list?.length"
-      >
-        <div
-          class="flex flex-col xs:min-w-[80vw] sm:min-w-64 gap-2 md:w-64"
-          :key="i"
-          v-for="(list, i) in chunk(category.data.list, 9)"
-        >
-          <TrendingItem
-            class="m-1"
-            :key="track.id"
-            :track="track"
-            v-for="track in list"
-          />
-        </div>
-      </div>
-    </q-scroll-area>
-    <div v-else :class="flexibleClasses">
-      <TrendingItem
-        class="m-1"
-        :key="track.id"
-        :track="track"
-        v-for="track in category.data?.list"
-      />
-    </div>
+    <TrendingCategory
+      :params="params"
+      :flexible="flexible"
+      :immediate="immediate"
+      :flexible-classes="flexibleClasses"
+      :disable-pagination="disablePagination"
+      v-model:category="
+        categories[categories.findIndex((e) => e.id === category.id)]
+      "
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import TrendingItem from 'src/components/Cards/TrendingItem.vue';
-import { chunk } from 'src/utils/helpers';
-import { Category, Track } from 'src/utils/models';
+import TrendingCategory from 'src/components/Showcase/TrendingCategory.vue';
+import { Category, GenericData, Track } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
   flexible: Boolean,
+  immediate: Boolean,
+  disablePagination: Boolean,
   flexibleClasses: {
     type: String,
     default: 'grid grid-cols-1 gap-2 md:grid-cols-2',

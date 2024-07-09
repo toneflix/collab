@@ -1,6 +1,6 @@
 <template>
   <q-scroll-area
-    class="h-48 md:h-64 max-w"
+    class="h-52 md:h-64 max-w"
     v-if="!verticalList && category.data?.list"
   >
     <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
@@ -30,8 +30,8 @@
 </template>
 
 <script setup lang="ts">
-import { usePagination } from '@alova/scene-vue';
 import TrackCard from 'src/components/Cards/TrackCard.vue';
+import { usePagination } from '@alova/scene-vue';
 import { Category, GenericData, PageMeta, Track } from 'src/utils/models';
 import { loadTracksRequest } from 'src/utils/requests';
 import { PropType } from 'vue';
@@ -72,7 +72,6 @@ const {
     append: true,
     immediate: props.immediate,
     initialData: { data: [] },
-    watchingStates: [() => props.params],
     initialPageSize: 30,
   },
 );

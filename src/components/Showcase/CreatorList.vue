@@ -1,5 +1,5 @@
 <template>
-  <div :key="category.id" v-for="category in categories">
+  <div :key="category.id" v-for="(category, i) in categories">
     <q-toolbar class="px-0">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
@@ -12,35 +12,27 @@
         <h1>See All</h1>
       </VaButton>
     </q-toolbar>
-    <q-scroll-area class="h-52 md:h-64 max-w" v-if="!verticalList">
-      <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
-        <CreatorCard
-          class="m-1"
-          :key="creator.id"
-          :creator="creator"
-          v-for="creator in category.data?.list"
-        />
-      </div>
-    </q-scroll-area>
-    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
-      <CreatorCard
-        dense
-        class="m-1"
-        :key="creator.id"
-        :creator="creator"
-        v-for="creator in category.data?.list"
-      />
-    </div>
+    <CreatorCategory
+      :params="params"
+      :immediate="immediate"
+      :special-icon="specialIcon"
+      :hide-all-link="hideAllLink"
+      :vertical-list="verticalList"
+      v-model:category="categories[i]"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import CreatorCard from 'src/components/Cards/CreatorCard.vue';
-import { Artist, Category, User } from 'src/utils/models';
+import { Artist, Category, GenericData, User } from 'src/utils/models';
 import { PropType } from 'vue';
+import CreatorCategory from './CreatorCategory.vue';
 
 defineProps({
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
   artist: Boolean,
+  immediate: Boolean,
+  specialIcon: Object as PropType<[string, (p: string | number) => boolean]>,
   hideAllLink: Boolean,
   verticalList: Boolean,
 });

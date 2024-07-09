@@ -94,20 +94,15 @@
             class="m-1"
             :key="track.id"
             :track="track"
-            v-for="track in trackList"
+            v-for="track in album.tracks"
           />
         </div>
       </div>
       <div class="col-span-5">
         <AlbumList
           hide-all-link
-          :categories="[
-            {
-              id: 'albums',
-              slug: 'albums',
-              title: `Other Albums by ${album.artist?.name}`,
-            },
-          ]"
+          v-model:categories="categories.albums"
+          :params="{ limit: 30, filters: 'album' }"
         />
       </div>
     </div>
@@ -118,29 +113,99 @@
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
-import { ref, watch } from 'vue';
-import { Album } from 'src/utils/models';
+import {
+  Category,
+  GenericData,
+  PageMeta,
+  Release,
+  Track,
+} from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { albumLists } from 'src/utils/dummy';
 import { ionHeart, ionHeartOutline, ionPlay } from '@quasar/extras/ionicons-v7';
 import { formatSeconds, intStr } from 'src/utils/helpers';
-import { trackList } from 'src/utils/dummy';
 import { useMeta } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import {
+  loadReleaseRequest,
+  loadReleasesRequest,
+  loadTracksRequest,
+} from 'src/utils/requests';
+import { useWatcher } from 'alova';
+import { ref } from 'vue';
+
+defineOptions({
+  async preFetch({ store, currentRoute }) {
+    const boot = useBootstrapStore(store);
+    const id = String(currentRoute.params.album_id);
+    const aid = String(currentRoute.params.artist_id);
+
+    const album = await loadReleaseRequest(id, {
+      artist_id: aid,
+      with: 'tracks,artist',
+    }).send();
+
+    const { data: related, meta: relatedMeta } = await loadTracksRequest({
+      artist_id: aid,
+      limit: 8,
+    }).send();
+
+    const { data: releases, meta: releaseMeta } = await loadReleasesRequest({
+      artist_id: aid,
+      limit: 30,
+      with: 'artist',
+    }).send();
+
+    boot.pageData.current = {
+      album,
+      related,
+      releases,
+      relatedMeta,
+      releaseMeta,
+    } as unknown as GenericData[];
+  },
+});
 
 const route = useRoute();
 
-const album = ref<Album>({} as unknown as Album);
+const current = useBootstrapStore().pageData.current as unknown as {
+  album: Release;
+  related: Track[];
+  releases: Release[];
+  releaseMeta: Partial<PageMeta>;
+  relatedeMeta: Partial<PageMeta>;
+};
 
-watch(
-  () => route.params,
-  (params) => {
-    album.value =
-      albumLists.find(
-        (e) => e.id === params.album_id || e.slug === params.album_id,
-      ) || ({} as unknown as Album);
+/**
+ * Load the album
+ */
+const { data: album } = useWatcher(
+  () =>
+    loadReleaseRequest(route.params.album_id, {
+      with: 'tracks,artist',
+      artist_id: route.params.artist_id as string,
+    }),
+  [() => route.params.album_id],
+  {
+    sendable: () => !!route.params.album_id,
+    immediate: false,
+    initialData: current.album || {},
   },
-  { immediate: true },
 );
+
+/**
+ * Initialize the categories
+ */
+const categories = ref({
+  albums: <Category[]>[
+    {
+      id: 'albums',
+      slug: 'albums',
+      title: `Other Albums by ${album.value.artist?.name}`,
+      data: { list: current.releases, meta: current.releaseMeta },
+      params: { artist_id: route.params.artist_id },
+    },
+  ],
+});
 
 useMeta(() => {
   return {

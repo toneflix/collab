@@ -336,8 +336,9 @@ defineOptions({
   async preFetch({ currentRoute, store }) {
     const boot = useBootstrapStore(store);
     const id = String(currentRoute.params.project_id);
+
     if (currentRoute.params.project_id) {
-      // Load projects
+      // Load project
       const project = await loadProjectRequest(id, { with: 'tracks' }).send();
 
       // Load Tracks

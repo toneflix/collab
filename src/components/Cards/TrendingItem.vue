@@ -1,12 +1,13 @@
 <template>
   <div>
     <q-item
-      class="py-0 pl-0"
+      class="py-0 pl-3"
       active-class="text-white"
       :to="{
         name: 'artist.track',
         params: { artist_id: track.artist?.username, track_id: track.slug },
       }"
+      v-intersection="onIntersect"
     >
       <q-item-section avatar class="pr-3 min-w-10">
         <q-avatar rounded>
@@ -54,6 +55,14 @@ import { CollabEvents, SeekingData, Track } from 'src/utils/models';
 import { inject } from 'vue';
 import { ref } from 'vue';
 
+const emit = defineEmits<{
+  scrollEnd: [value: boolean];
+}>();
+
+const props = defineProps({
+  isLast: Boolean,
+});
+
 const track = defineModel<Track>('track', {
   required: true,
 });
@@ -66,6 +75,14 @@ const bus = inject<EventBus<CollabEvents>>('bus');
 const togglePlay = () => {
   playing.value = !playing.value;
   bus?.emit('togglePlay', playing.value, track.value, undefined, 'trend');
+};
+
+const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+  console.log(evt.isIntersecting, props.isLast);
+  if (props.isLast && evt.isIntersecting) {
+    emit('scrollEnd', true);
+  }
+  return true;
 };
 
 bus?.on('seeking', (position, trk, url) => {

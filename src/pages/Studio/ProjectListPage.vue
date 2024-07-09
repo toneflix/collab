@@ -123,17 +123,15 @@ import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, Project } from 'src/utils/models';
-import { loadProjectRequest } from 'src/utils/requests';
+import { loadProjectsRequest } from 'src/utils/requests';
 import { computed } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
-    await loadProjectRequest(undefined, { with: 'tracks' })
-      .send()
-      .then((data) => {
-        boot.pageData.current = data as unknown as GenericData[];
-      });
+    const { data } = await loadProjectsRequest({ with: 'tracks' }).send();
+
+    boot.pageData.current = data as unknown as GenericData[];
   },
 });
 

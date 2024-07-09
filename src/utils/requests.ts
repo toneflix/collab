@@ -9,7 +9,8 @@ import {
   Release,
   ResponseBody,
   Track,
-  UploadData
+  UploadData,
+  User
 } from './models'
 import { alova, axios } from 'src/boot/alova'
 
@@ -56,9 +57,12 @@ export const loadTracksRequest = (params?: GenericData) => {
 export const loadTrackRequest = (id: string | string[], params?: GenericData) => {
   const url = params?.release_id ? `releases/${params?.release_id}/tracks` : 'tracks'
 
-  return alova.Get<ResponseBody<Track>>(`${url}/${id}`, {
+  return alova.Get(`${url}/${id}`, {
+    transformData: (e: ResponseBody<Track>) => e.data,
     hitSource: 'create-track' + id,
-    params
+    params: Object.assign({}, {
+      with: 'artist',
+    }, params)
   })
 }
 
@@ -166,6 +170,52 @@ export const saveTrackRequest = (f: Track) => {
 }
 
 /**
+ * Fetch all users/creators
+ *
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const loadUsersRequest = (params?: GenericData) => {
+  return alova.Get<ResponseBody<User[]>>('users', {
+    hitSource: 'create-user',
+    params
+  })
+}
+
+/**
+ * Fetch a single user/creator
+ *
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const loadUserRequest = (id: string | string[], params?: GenericData) => {
+  return alova.Get(`users/${id}`, {
+    transformData: (e: ResponseBody<User>) => e.data,
+    hitSource: 'create-user' + id,
+    params
+  })
+}
+
+/**
+ * Fetch an artist
+ *
+ * @param id The ID of the artist to fetch
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const loadArtistRequest = (id: string | string[], params?: GenericData, guest = false) => {
+  const url = guest ? 'artists' : 'creator/artists'
+  return alova.Get(`${url}/${id}`, {
+    transformData: (e: ResponseBody<Artist>) => e.data,
+    hitSource: 'create-user' + id,
+    params
+  })
+}
+
+/**
  * Create/Update an artist
  *
  * @param form The form data object
@@ -186,23 +236,6 @@ export const createArtistRequest = (form: Artist) => {
 }
 
 /**
- * Fetch an artist
- *
- * @param id The ID of the artist to fetch
- * @param params Optional parameters to pass to the request
- * @param guest If it should be loaded for non-creator
- * @returns
- */
-export const loadArtistRequest = (id: string, params?: GenericData, guest = false) => {
-  const url = guest ? 'artists' : 'creator/artists'
-  return alova.Get(`${url}/${id}`, {
-    transformData: (e: ResponseBody<Artist>) => e.data,
-    hitSource: 'create-user' + id,
-    params
-  })
-}
-
-/**
  * Fetch a project
  *
  * @param id The ID of the project to fetch
@@ -210,11 +243,29 @@ export const loadArtistRequest = (id: string, params?: GenericData, guest = fals
  * @param guest If it should be loaded for non-creator
  * @returns
  */
-export const loadProjectRequest = (id?: string, params?: GenericData, guest = false) => {
+export const loadProjectRequest = (id: string | string[], params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
-  return alova.Get(url + (id ? '/' + id : ''), {
+  return alova.Get(`${url}/${id}`, {
     transformData: (e: ResponseBody<Project>) => e.data,
-    hitSource: 'create-project' + (id || ''),
+    hitSource: 'create-project' + id,
+    params: {
+      with: !guest ? 'tracks' : undefined,
+      ...params
+    }
+  })
+}
+
+/**
+ * Fetch all project
+ *
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const loadProjectsRequest = (params?: GenericData, guest = false) => {
+  const url = guest ? 'projects' : 'creator/projects'
+  return alova.Get<ResponseBody<Project[]>>(url, {
+    hitSource: 'create-project',
     params: {
       with: !guest ? 'tracks' : undefined,
       ...params

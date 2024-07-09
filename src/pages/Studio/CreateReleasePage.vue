@@ -323,15 +323,15 @@ defineOptions({
     let tracks = [] as Track[];
     let release = {} as Release;
     let project = {} as Project;
+    const id = currentRoute.params.release_id as string;
+    const pid = currentRoute.params.project_id as string;
 
     // Load Release
-    if (currentRoute.params.release_id) {
-      release = await loadReleaseRequest(
-        currentRoute.params.release_id as string,
-        {
-          with: 'artist,genre,tracks,project',
-        },
-      ).send();
+    if (id) {
+      release = await loadReleaseRequest(id, {
+        with: 'artist,genre,tracks,project',
+      }).send();
+
       tracks = release.tracks ?? [];
       release.draft = release.draft ? 1 : 0;
       release.explicit = release.explicit ? 1 : 0;
@@ -339,21 +339,21 @@ defineOptions({
     }
 
     // Load Project
-    if (currentRoute.query.project_id) {
-      project = await loadProjectRequest(
-        currentRoute.query.project_id as string,
-        {
-          with: 'tracks,ready,artists',
-        },
-      ).send();
+    if (pid) {
+      project = await loadProjectRequest(pid, {
+        with: 'tracks,ready,artists',
+      }).send();
+
       release.title = project.title;
       release.draft = release.id ? (release.draft ? 1 : 0) : 1;
       release.imageUrl = project.imageUrl;
       release.description = project.description;
       release.project_id = project.id;
+
       if (project.tracks) {
         release.artist = project.tracks[0].artist;
         release.artist_id = project.tracks[0].artist_id;
+
         tracks = project.tracks.map((track) => {
           return {
             slug: track.slug,

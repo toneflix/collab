@@ -38,7 +38,7 @@
             </RouterLink>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ track?.title }}
+              {{ subString(track?.title || '', 18) }}
             </h1>
 
             <div
@@ -99,25 +99,16 @@
       <div class="col-span-5">
         <TrendingList
           flexible
-          :categories="[
-            {
-              id: 'songs',
-              slug: 'songs',
-              title: `Other Songs by ${track.artist?.name}`,
-            },
-          ]"
+          disable-pagination
+          v-model:categories="categories.related"
+          :params="{ limit: 8 }"
         />
       </div>
       <div class="col-span-5">
         <AlbumList
           hide-all-link
-          :categories="[
-            {
-              id: 'albums',
-              slug: 'albums',
-              title: `Albums by ${track.artist?.name}`,
-            },
-          ]"
+          v-model:categories="categories.albums"
+          :params="{ limit: 30 }"
         />
       </div>
     </div>
@@ -127,27 +118,133 @@
 <script setup lang="ts">
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { ref, watch, inject } from 'vue';
-import { CollabEvents, SeekingData, Track } from 'src/utils/models';
+import {
+  Artist,
+  Category,
+  CollabEvents,
+  GenericData,
+  PageMeta,
+  Release,
+  SeekingData,
+  Track,
+} from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { trackList } from 'src/utils/dummy';
 import {
   ionHeart,
   ionHeartOutline,
   ionPause,
   ionPlay,
 } from '@quasar/extras/ionicons-v7';
-import { formatSeconds, intStr } from 'src/utils/helpers';
+import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import {
+  loadArtistRequest,
+  loadReleasesRequest,
+  loadTrackRequest,
+  loadTracksRequest,
+} from 'src/utils/requests';
+import { useWatcher } from 'alova';
 
+defineOptions({
+  async preFetch({ store, currentRoute }) {
+    const boot = useBootstrapStore(store);
+    const id = String(currentRoute.params.track_id);
+    const aid = String(currentRoute.params.artist_id);
+
+    const artist = await loadArtistRequest(
+      aid,
+      { with: 'tracks' },
+      true,
+    ).send();
+
+    const track = await loadTrackRequest(id, { artist_id: artist.id }).send();
+
+    const { data: related, meta: relatedMeta } = await loadTracksRequest({
+      artist_id: artist.id,
+      limit: 8,
+    }).send();
+
+    const { data: releases, meta: releaseMeta } = await loadReleasesRequest({
+      artist_id: artist.id,
+      limit: 30,
+      with: 'artist',
+    }).send();
+
+    boot.pageData.current = {
+      track,
+      artist,
+      related,
+      releases,
+      relatedMeta,
+      releaseMeta,
+    } as unknown as GenericData[];
+  },
+});
+
+const current = useBootstrapStore().pageData.current as unknown as {
+  track: Track;
+  artist: Artist;
+  related: Track[];
+  releases: Release[];
+  releaseMeta: Partial<PageMeta>;
+  relatedeMeta: Partial<PageMeta>;
+};
+
+const bus = inject<EventBus<CollabEvents>>('bus');
 const route = useRoute();
-const track = ref<Track>({} as unknown & Track);
 const playing = ref(false);
 const seeking = ref<SeekingData>({} as unknown & SeekingData);
 
-const bus = inject<EventBus<CollabEvents>>('bus');
+/**
+ * Load the tracks
+ */
+const { data: track, onSuccess } = useWatcher(
+  () =>
+    loadTrackRequest(route.params.track_id, {
+      artist_id: route.params.artist_id as string,
+    }),
+  [() => route.params.artist_id],
+  {
+    immediate: false,
+    sendable: () => !!route.params.artist_id,
+    initialData: current.track || {},
+  },
+);
 
+onSuccess(() => {
+  playing.value = false;
+});
+
+/**
+ * Build the categories
+ */
+const categories = ref({
+  albums: <Category[]>[
+    {
+      id: 'albums',
+      slug: 'albums',
+      title: `Albums by ${track.value.artist?.name}`,
+      data: { list: current.releases, meta: current.releaseMeta },
+      params: { artist_id: route.params.artist_id },
+    },
+  ],
+  related: <Category[]>[
+    {
+      id: 'songs',
+      slug: 'songs',
+      title: `Other Songs by ${track.value.artist?.name}`,
+      data: { list: current.related, meta: current.releaseMeta },
+      params: { artist_id: route.params.artist_id },
+    },
+  ],
+});
+
+/**
+ * Toggle play mode
+ */
 const togglePlay = () => {
   playing.value = !playing.value;
   bus?.emit('togglePlay', playing.value, track.value, undefined, 'track');
@@ -171,12 +268,7 @@ bus?.on('togglePlay', (status, trk, album, origin) => {
 
 watch(
   () => route.params,
-  (params) => {
-    track.value =
-      trackList.value.find(
-        (e) => e.id === params.track_id || e.slug === params.track_id,
-      ) || ({} as unknown as Track);
-
+  () => {
     playing.value = false;
   },
   { immediate: true },

@@ -99,18 +99,16 @@
       <div class="col-span-5">
         <CreatorList
           hide-all-link
-          vertical-list
-          :categories="[
-            {
-              id: 'collabers',
-              slug: 'collabers',
-              title: 'Active Collabers',
-            },
+          :special-icon="[
+            'check_circle',
+            (id: string | number) => id === project.user_id,
           ]"
+          :params="{ limit: 30, project_id: project.id }"
+          v-model:categories="categories.creators"
         />
       </div>
       <div class="col-span-5">
-        <CommentSection />
+        <CommentSection :params="{ limit: 30, project_id: project.id }" />
       </div>
     </div>
   </q-page>
@@ -120,28 +118,71 @@
 import CommentSection from 'src/components/Sections/CommentSection.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
-import { ref, watch } from 'vue';
-import { Project } from 'src/utils/models';
+import {
+  Category,
+  GenericData,
+  PageMeta,
+  Project,
+  User,
+} from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { dummyProjects } from 'src/utils/dummy';
 import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v7';
 import { intStr } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { loadProjectRequest, loadUsersRequest } from 'src/utils/requests';
+import { useWatcher } from 'alova';
+import { ref } from 'vue';
+
+defineOptions({
+  async preFetch({ store, currentRoute }) {
+    const boot = useBootstrapStore(store);
+    const id = currentRoute.params.project_id as string;
+
+    const project = await loadProjectRequest(id, {}, true).send();
+
+    const { data: creators, meta: creatorMeta } = await loadUsersRequest({
+      project_id: id,
+      filters: 'creator',
+      limit: 30,
+    }).send();
+
+    boot.pageData.current = {
+      project,
+      creators,
+      creatorMeta,
+    } as unknown as GenericData[];
+  },
+});
 
 const route = useRoute();
+const current = useBootstrapStore().pageData.current as unknown as {
+  project: Project;
+  creators: User[];
+  creatorMeta: Partial<PageMeta>;
+};
 
-const project = ref<Project>({} as unknown as Project);
+const categories = ref({
+  creators: <Category[]>[
+    {
+      id: 'collabers',
+      slug: 'collabers',
+      title: 'Project Collabers',
+      data: { list: current.creators, meta: current.creatorMeta },
+      params: { filters: 'creator', artist_id: route.params.project_id_id },
+    },
+  ],
+});
 
-watch(
-  () => route.params,
-  (params) => {
-    project.value =
-      dummyProjects.find(
-        (e) => e.id === params.project_id || e.slug === params.project_id,
-      ) || ({} as unknown as Project);
+const { data: project } = useWatcher(
+  () => loadProjectRequest(route.params.project_id, { with: 'tracks' }, true),
+  [() => route.params.project_id],
+  {
+    sendable: () => !!route.params.project_id,
+    immediate: false,
+    initialData: current.project,
   },
-  { immediate: true },
 );
 
 useMeta(() => {

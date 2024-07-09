@@ -154,6 +154,9 @@ const errors = computed(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
 );
 
+/**
+ * Load the current project
+ */
 const { onSuccess: projectLoaded } = useWatcher(
   () =>
     loadProjectRequest(route.params.project_id as string, {
@@ -171,6 +174,9 @@ projectLoaded(({ data }) => {
   form.value = data || ({} as Project);
 });
 
+/**
+ * Save the project
+ */
 const {
   form,
   send,
