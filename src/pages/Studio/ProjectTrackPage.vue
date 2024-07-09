@@ -217,19 +217,19 @@
                 }
               "
             />
-            <q-btn
+            <ConversationDialog
               dense
               no-caps
               rounded
-              icon="fas fa-comments"
               size="sm"
+              icon="fas fa-comments"
               color="white"
               padding="xs sm"
               text-color="dark"
-              @click="fileInputRef.click()"
-            >
-              <span class="ml-2 text-base">Conversation</span>
-            </q-btn>
+              type="ProjectTrack"
+              :id="track.id"
+              :params="{ limit: 30, track_id: track.id }"
+            />
             <ProjectTrackInfoDialog
               dense
               no-caps
@@ -334,6 +334,7 @@
 </template>
 
 <script setup lang="ts">
+import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import Playlist from 'waveform-playlist/lib/Playlist';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';

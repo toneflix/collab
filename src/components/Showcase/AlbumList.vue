@@ -1,6 +1,6 @@
 <template>
   <div :key="category.id" v-for="(category, i) in categories">
-    <q-toolbar class="px-0">
+    <q-toolbar class="px-0" v-if="category.data?.list?.length">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
       <VaButton
@@ -18,6 +18,7 @@
       :hide-all-link="hideAllLink"
       :vertical-list="verticalList"
       v-model:category="categories[i]"
+      v-if="category.data?.list?.length"
     />
   </div>
 </template>

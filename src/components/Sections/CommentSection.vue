@@ -1,117 +1,145 @@
 <template>
   <!-- component -->
   <div class="antialiased">
-    <h1 class="max-w-screen-sm px-3 mx-auto va-h5">Discussion</h1>
+    <h1 class="max-w-screen-sm px-3 mx-auto va-h5" v-if="!hideTitle">
+      Discussion
+    </h1>
     <q-scroll-area
       class="w-full h-screen max-w-screen-sm max-h-screen p-4 mx-auto overflow-y-auto"
     >
       <div class="space-y-4">
         <div
+          class="flex-1 px-4 py-2 leading-relaxed text-center border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
+          v-if="!comments.length"
+        >
+          It's silent here, Be the first to {{ label }}!
+        </div>
+        <q-form
+          class="border border-gray-700 border-solid rounded-lg"
+          ref="formRef"
+          @submit="send"
+        >
+          <q-input
+            outlined
+            autogrow
+            required
+            no-error-icon
+            hide-bottom-space
+            lazy-rules="ondemand"
+            type="textarea"
+            class="custom-q-class no-fill"
+            input-class="custom-input-class"
+            :rules="[(e) => !!e || 'Enter a valid ' + label]"
+            :error="!!errors.comment"
+            :placeholder="`Write a ${label}`"
+            :error-message="errors.comment"
+            v-model="form.comment"
+          >
+            <template #append>
+              <q-btn
+                flat
+                dense
+                color="primary"
+                icon="send"
+                :loading="loading"
+                @click="formRef.submit()"
+              />
+            </template>
+          </q-input>
+        </q-form>
+        <CommentCard
           class="flex"
           :key="comment.id"
-          v-for="(comment, i) in userComments"
+          :label="label"
+          :params="params"
+          :comment="comment"
+          :expanded="!!comment.replies?.length && (i === 0 || comment.expanded)"
+          v-intersection="(e) => onIntersect(e, i === comments.length - 1)"
+          v-for="(comment, i) in comments"
         >
-          <div class="flex-shrink-0 mr-3">
-            <q-avatar size="lg">
-              <q-img
-                no-spinner
-                loading="eager"
-                class="bg-grey-400"
-                :src="comment.user.imageUrl"
-                alt=""
-              />
-            </q-avatar>
-          </div>
-          <div
-            class="flex-1 px-4 py-2 leading-relaxed border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
-          >
-            <strong>{{ comment.user.name }}</strong>
-            <span class="ml-3 text-xs text-gray-400">
-              {{ timeAgoStamp(comment.createdAt, 'facebook', 'HH MMM, YYYY') }}
-            </span>
-            <p class="text-sm">
-              {{ comment.text }}
-            </p>
-
-            <h4
-              class="my-5 text-xs font-bold tracking-wide text-gray-400 uppercase"
-              v-if="comment.replies_count && comment.expanded"
-            >
-              {{
-                comment.expanded
-                  ? 'Replies'
-                  : `${comment.replies_count} Replies`
-              }}
-            </h4>
-            <q-btn
-              dense
-              flat
-              no-caps
-              class="text-sm font-semibold text-gray-500"
-              v-else-if="comment.replies_count"
-              @click="comment.expanded = !comment.expanded"
-            >
-              {{ `${comment.replies_count} Replies` }}
-            </q-btn>
-
-            <div
-              class="space-y-4"
-              v-if="comment.replies.length && (i === 0 || comment.expanded)"
-            >
-              <div
-                class="flex"
-                :key="reply.id"
-                v-for="reply in comment.replies"
-              >
-                <div class="flex-shrink-0 mr-3">
-                  <q-avatar size="lg">
-                    <q-img
-                      no-spinner
-                      loading="eager"
-                      class="bg-grey-400"
-                      :src="reply.user.imageUrl"
-                      alt=""
-                    />
-                  </q-avatar>
-                </div>
-                <div
-                  class="flex-1 px-4 py-2 leading-relaxed rounded-lg sm:px-6 sm:py-4"
-                >
-                  <strong>{{ reply.user.name }}</strong>
-                  <span class="ml-3 text-xs text-gray-400">
-                    {{
-                      timeAgoStamp(reply.createdAt, 'facebook', 'HH MMM, YYYY')
-                    }}
-                  </span>
-                  <p class="text-xs sm:text-sm">
-                    {{ reply.text }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center">
-              <q-btn
-                dense
-                flat
-                no-caps
-                class="text-sm font-semibold text-gray-500"
-                v-if="
-                  comment.expanded &&
-                  comment.replies_count > comment.replies.length
-                "
-              >
-                Show More
-              </q-btn>
-            </div>
-          </div>
-        </div>
+        </CommentCard>
       </div>
     </q-scroll-area>
   </div>
 </template>
 
 <script setup lang="ts">
-import { userComments } from 'src/utils/dummy';
-import { timeAgoStamp } from 'src/utils/helpers';
+import { useForm, usePagination } from '@alova/scene-vue';
+import { notify } from 'src/utils/helpers';
+import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
+import {
+  loadProjectCommentsRequest,
+  writeProjectCommentsRequest,
+} from 'src/utils/requests';
+import { computed, PropType, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import CommentCard from '../Cards/CommentCard.vue';
+
+const formRef = ref();
+const route = useRoute();
+
+const props = defineProps({
+  label: { type: String, default: 'comment' },
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
+  immediate: Boolean,
+  hideTitle: Boolean,
+});
+
+const initComments = defineModel<UserComment[]>('initComments', {
+  default: () => [],
+});
+
+const {
+  page,
+  data: comments,
+  update,
+  isLastPage,
+} = usePagination(
+  () =>
+    loadProjectCommentsRequest(route.params.project_id, undefined, {
+      with: 'user',
+      ...props.params,
+    }),
+  {
+    total: (e) => e.meta?.total || 0,
+    append: true,
+    sendable: () => !!route.params.project_id,
+    immediate: props.immediate,
+    initialData: { data: initComments.value },
+    watchingStates: [() => route.params.project_id],
+  },
+);
+
+const errors = computed(
+  () => (error.value as unknown as ResponseBody)?.errors || {},
+);
+
+const { form, send, error, reset, loading, onSuccess } = useForm(
+  (f) =>
+    writeProjectCommentsRequest(f, route.params.project_id, {
+      with: 'user',
+      ...props.params,
+    }),
+  {
+    initialForm: {
+      comment: '',
+    },
+  },
+);
+
+onSuccess(({ data }) => {
+  reset();
+  update({ data: [...comments.value, data.data] });
+  notify(data.message, data.status);
+});
+
+const onIntersect = (
+  evt: IntersectionObserverEntry,
+  isLast: boolean,
+): boolean => {
+  if (isLast && !isLastPage.value && evt.isIntersecting) {
+    page.value++;
+  }
+  return true;
+};
 </script>

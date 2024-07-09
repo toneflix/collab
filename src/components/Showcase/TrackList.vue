@@ -1,9 +1,6 @@
 <template>
-  <div
-    :key="category.id"
-    v-for="category in categories.filter((e) => !!e.data?.list?.length)"
-  >
-    <q-toolbar class="px-0">
+  <div :key="category.id" v-for="category in categories">
+    <q-toolbar class="px-0" v-if="category.data?.list?.length">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
       <VaButton
@@ -24,6 +21,7 @@
       v-model:category="
         categories[categories.findIndex((e) => e.id === category.id)]
       "
+      v-if="category.data?.list?.length"
     />
   </div>
 </template>

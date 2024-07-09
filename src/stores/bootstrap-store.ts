@@ -8,7 +8,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     user: <User>{},
     roles: <PriviRole[]>[],
     permissions: <PriviPerm[]>[],
-    pageData: <PageData>{ current: {} },
+    pageData: <PageData>{ current: {}, meta: {} },
     configuration: <Configuration>{},
     token: <string | null | undefined>null,
     ready: <boolean>false,

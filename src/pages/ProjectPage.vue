@@ -57,7 +57,7 @@
             <h6 class="text-sm">Project</h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ project?.title }}
+              {{ subString(project.title, 25) }}
             </h1>
 
             <div
@@ -107,9 +107,14 @@
           v-model:categories="categories.creators"
         />
       </div>
-      <div class="col-span-5">
-        <CommentSection :params="{ limit: 30, project_id: project.id }" />
-      </div>
+      <q-no-ssr>
+        <div class="col-span-5" v-if="current.comments.length">
+          <CommentSection
+            v-model:init-comments="current.comments"
+            :params="{ limit: 30, project_id: project.id }"
+          />
+        </div>
+      </q-no-ssr>
     </div>
   </q-page>
 </template>
@@ -124,14 +129,19 @@ import {
   PageMeta,
   Project,
   User,
+  UserComment,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v7';
-import { intStr } from 'src/utils/helpers';
+import { intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { loadProjectRequest, loadUsersRequest } from 'src/utils/requests';
+import {
+  loadProjectCommentsRequest,
+  loadProjectRequest,
+  loadUsersRequest,
+} from 'src/utils/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
 
@@ -142,6 +152,11 @@ defineOptions({
 
     const project = await loadProjectRequest(id, {}, true).send();
 
+    const { data: comments, meta: commentsMeta } =
+      await loadProjectCommentsRequest(id, undefined, {
+        with: 'user',
+      }).send();
+
     const { data: creators, meta: creatorMeta } = await loadUsersRequest({
       project_id: id,
       filters: 'creator',
@@ -151,7 +166,9 @@ defineOptions({
     boot.pageData.current = {
       project,
       creators,
+      comments,
       creatorMeta,
+      commentsMeta,
     } as unknown as GenericData[];
   },
 });
@@ -160,6 +177,8 @@ const route = useRoute();
 const current = useBootstrapStore().pageData.current as unknown as {
   project: Project;
   creators: User[];
+  comments: UserComment[];
+  commentsMeta: Partial<PageMeta>;
   creatorMeta: Partial<PageMeta>;
 };
 

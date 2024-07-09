@@ -50,22 +50,23 @@ export type PageMeta = {
   to: number,
 }
 
-export type ResponseBody<X = undefined> = {
+export type ResponseBody<X = undefined, Y = Record<string, string>> = {
   data: X,
   meta?: PageMeta,
   links?: PageLinks,
   token?: string,
   status: ResponseStatus,
   try_at?: string,
-  errors?: Record<string, string>,
+  errors?: Y,
   message: string,
   time_left?: string,
   status_code: number,
 }
 
 export type PageData = {
+  meta: GenericData | GenericData[];
   cache?: GenericData;
-  current?: GenericData | GenericData[];
+  current: GenericData | GenericData[];
   player_track?: Track;
 };
 
@@ -149,9 +150,15 @@ export interface ExploreData {
   top_creators: ExploreItem<User>;
   new_creators: ExploreItem<User>;
   top_projects: ExploreItem<Project>;
+  new_projects: ExploreItem<Project>;
+  latest_tracks: ExploreItem<Track>;
+  random_albums: ExploreItem<Release>;
   latest_albums: ExploreItem<Release>;
   latest_artists: ExploreItem<Artist>;
+  random_artists: ExploreItem<Artist>;
   recently_played: ExploreItem<Track>;
+  random_creators: ExploreItem<User>;
+  random_projects: ExploreItem<Project>;
   active_projects: ExploreItem<Project>;
   trending_artists: ExploreItem<Artist>;
   recommended_artists: ExploreItem<Artist>;
@@ -324,6 +331,7 @@ export interface ProjectTrack {
   genre_id?: string | number;
   imageUrl: string;
   duration: number;
+  user_id?: string | number;
   artist_id?: string | number;
   project_id?: string | number;
   stemsCount: number;
@@ -382,15 +390,11 @@ export type Link = {
 
 export type UserComment = {
   id: string | number,
-  text: string,
   user: Artist,
-  replies: {
-    id: string | number,
-    text: string,
-    user: Artist,
-    createdAt: Date | string,
-  }[],
-  expanded: boolean,
+  comment: string,
+  userId: string | number,
+  replies?: UserComment[],
+  expanded?: boolean,
   createdAt: Date | string,
-  replies_count: number,
+  repliesCount: number,
 }

@@ -58,7 +58,7 @@
         :v-close-popup="
           !link.loading && !(actions.loading && actions.target === link.target)
         "
-        @click="onClick(link)"
+        @click.prevent="onClick(link)"
         v-for="link in links.filter((e) => e.show !== false)"
       >
         <q-item-section v-if="!link.loading">

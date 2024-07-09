@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="relative xs:min-h-16 sm:min-h-full">
+    <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
         :style="{
@@ -10,7 +10,7 @@
       <div class="absolute flex justify-center md:!justify-start w-full">
         <AtroposViewer
           class="!flex-none w-48 h-48 md:h-72 md:w-72"
-          :main-image="'artist.imageUrl'"
+          :main-image="artist.imageUrl"
         >
           <template #button>
             <q-btn
@@ -70,7 +70,7 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80">
+    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80" v-if="artist">
       <div class="col-span-5" v-if="artist.type === 'user'">
         <ProjectList
           :categories="[
@@ -216,21 +216,23 @@ const { data: artist } = useWatcher(
 );
 
 useMeta(() => {
-  return {
-    title: artist.value.name,
-    titleTemplate: (title) => `${title} - Toneflix Collab`,
-    meta: {
-      description: {
-        name: 'description',
-        content: artist.value.name + ' on Toneflix Collab',
-      },
-      ogImage: { property: 'og:image', content: artist.value.imageUrl },
-      ogTitle: { property: 'og:title', content: artist.value.name },
-      ogDescription: {
-        property: 'og:description',
-        content: artist.value.name + ' on Toneflix Collab',
-      },
-    },
-  };
+  return artist.value
+    ? {
+        title: artist.value.name,
+        titleTemplate: (title) => `${title} - Toneflix Collab`,
+        meta: {
+          description: {
+            name: 'description',
+            content: artist.value.name + ' on Toneflix Collab',
+          },
+          ogImage: { property: 'og:image', content: artist.value.imageUrl },
+          ogTitle: { property: 'og:title', content: artist.value.name },
+          ogDescription: {
+            property: 'og:description',
+            content: artist.value.name + ' on Toneflix Collab',
+          },
+        },
+      }
+    : { title: 'Not found' };
 });
 </script>

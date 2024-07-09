@@ -48,8 +48,14 @@
 
 <script setup lang="ts">
 import { usePagination } from '@alova/scene-vue';
-import { Category, GenericData, PageMeta, User } from 'src/utils/models';
-import { loadUsersRequest } from 'src/utils/requests';
+import {
+  Artist,
+  Category,
+  GenericData,
+  PageMeta,
+  User,
+} from 'src/utils/models';
+import { loadArtistsRequest, loadUsersRequest } from 'src/utils/requests';
 import { PropType } from 'vue';
 import CreatorCard from '../Cards/CreatorCard.vue';
 
@@ -63,7 +69,7 @@ const props = defineProps({
 });
 
 const category = defineModel('category', {
-  type: Object as PropType<Category<User>>,
+  type: Object as PropType<Category<User | Artist>>,
   default: () => ({
     title: 'Top Creators',
     slug: 'top-creators',
@@ -71,6 +77,8 @@ const category = defineModel('category', {
     data: { list: [], meta: {} },
   }),
 });
+
+const loader = props.artist ? loadArtistsRequest : loadUsersRequest;
 
 const {
   page,
@@ -80,7 +88,7 @@ const {
   isLastPage,
 } = usePagination(
   (page, limit) =>
-    loadUsersRequest({
+    loader({
       page,
       limit,
       ...props.params,

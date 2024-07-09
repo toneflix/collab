@@ -1,6 +1,6 @@
 <template>
-  <div :key="category.id" v-for="category in categories">
-    <q-toolbar class="px-0">
+  <div :key="category.id" v-for="(category, i) in categories">
+    <q-toolbar class="px-0" v-if="category.data?.list?.length">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
       <VaButton
@@ -12,34 +12,25 @@
         <h1>See All</h1>
       </VaButton>
     </q-toolbar>
-    <q-scroll-area class="h-52 md:h-64 max-w" v-if="!verticalList">
-      <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
-        <ProjectCard
-          class="m-1"
-          :key="project.id"
-          :project="project"
-          v-for="project in category.data?.list"
-        />
-      </div>
-    </q-scroll-area>
-    <div v-else class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5">
-      <ProjectCard
-        dense
-        class="m-1"
-        :key="project.id"
-        :project="project"
-        v-for="project in category.data?.list"
-      />
-    </div>
+    <ProjectCategory
+      :params="params"
+      :immediate="immediate"
+      :hide-all-link="hideAllLink"
+      :vertical-list="verticalList"
+      v-model:category="categories[i]"
+      v-if="category.data?.list?.length"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import ProjectCard from 'src/components/Cards/ProjectCard.vue';
-import { Category, Project } from 'src/utils/models';
+import ProjectCategory from 'src/components/Showcase/ProjectCategory.vue';
+import { Category, GenericData, Project } from 'src/utils/models';
 import { PropType } from 'vue';
 
 defineProps({
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
+  immediate: Boolean,
   hideAllLink: Boolean,
   verticalList: Boolean,
 });

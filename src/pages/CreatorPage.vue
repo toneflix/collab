@@ -1,0 +1,176 @@
+<template>
+  <q-page padding>
+    <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist">
+      <div
+        class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
+        :style="{
+          backgroundImage: `url(${artist.imageUrl})`,
+        }"
+      ></div>
+      <div class="absolute flex justify-center md:!justify-start w-full">
+        <AtroposViewer
+          class="!flex-none w-48 h-48 md:h-72 md:w-72"
+          :main-image="artist.imageUrl"
+        >
+        </AtroposViewer>
+        <div class="flex flex-row items-center justify-start flex-1 p-5">
+          <div>
+            <h6 class="text-sm">
+              <q-icon
+                name="verified"
+                color="toneflix"
+                class="verified-badge"
+                v-if="artist.verified"
+              />
+              {{ artist.verified ? 'Verified Artist' : 'Artist' }}
+            </h6>
+
+            <h1 class="text-5xl font-circlular-std whitespace-nowrap">
+              {{ subString(artist?.name, 15) }}
+            </h1>
+
+            <div
+              class="flex flex-row items-center justify-start gap-2 font-semibold"
+            >
+              <span class="!flex-none">
+                <q-btn
+                  dense
+                  no-caps
+                  rounded
+                  unelevated
+                  size="sm"
+                  padding="0 sm"
+                  :icon="artist.youFollow ? undefined : ionAdd"
+                  :label="artist.youFollow ? 'Unfollow' : 'Follow'"
+                  :color="artist.youFollow ? 'primary' : undefined"
+                  @click="artist.youFollow = !artist.youFollow"
+                />
+              </span>
+              <span class="!flex-none">
+                {{ intStr(artist.followers) }} Followers
+              </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none">
+                {{ intStr(artist.reputation) }} Reps.
+              </span>
+            </div>
+            <p class="block mt-4 text-sm max-w-96">
+              {{ artist.about }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80" v-if="artist">
+      <div class="col-span-5" v-if="artist.type === 'user'">
+        <ProjectList
+          hide-all-link
+          vertical-list
+          v-model:categories="categories.projects"
+        />
+      </div>
+    </div>
+  </q-page>
+</template>
+
+<script setup lang="ts">
+import ProjectList from 'src/components/Showcase/ProjectList.vue';
+import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
+import {
+  Artist,
+  Category,
+  GenericData,
+  PageMeta,
+  Project,
+} from 'src/utils/models';
+import { useRoute } from 'vue-router';
+import { ionAdd } from '@quasar/extras/ionicons-v7';
+import { intStr, subString } from 'src/utils/helpers';
+import { useMeta } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import {
+  loadArtistRequest,
+  loadProjectsRequest,
+  loadUserRequest,
+} from 'src/utils/requests';
+import { useWatcher } from 'alova';
+import { ref } from 'vue';
+
+defineOptions({
+  async preFetch({ store, currentRoute }) {
+    const boot = useBootstrapStore(store);
+    const id = String(currentRoute.params.creator_id);
+
+    const artist = await loadUserRequest(id, { with: 'tracks' }).send();
+
+    const { data: projects, meta: projectsMeta } = await loadProjectsRequest(
+      {
+        creator_id: artist.id,
+        limit: 30,
+      },
+      true,
+    ).send();
+
+    boot.pageData.current = {
+      artist,
+      projects,
+      projectsMeta,
+    } as unknown as GenericData[];
+  },
+});
+
+const route = useRoute();
+const current = useBootstrapStore().pageData.current as unknown as {
+  artist: Artist;
+  projects: Project[];
+  projectsMeta: Partial<PageMeta>;
+};
+
+const categories = ref({
+  projects: <Category[]>[
+    {
+      id: 'projects',
+      slug: 'projects',
+      title: 'All Projects',
+      data: { list: current.projects, meta: current.projectsMeta },
+      params: { creator_id: route.params.creator_id },
+    },
+  ],
+});
+
+const { data: artist } = useWatcher(
+  () =>
+    loadArtistRequest(
+      route.params.creator_id as string,
+      { with: 'tracks' },
+      true,
+    ),
+  [() => route.params.creator_id],
+  {
+    sendable: () => !!route.params.creator_id,
+    immediate: false,
+    initialData: current.artist,
+  },
+);
+
+useMeta(() => {
+  return artist.value
+    ? {
+        title: artist.value.name,
+        titleTemplate: (title) => `${title} - Toneflix Collab`,
+        meta: {
+          description: {
+            name: 'description',
+            content: artist.value.name + ' on Toneflix Collab',
+          },
+          ogImage: { property: 'og:image', content: artist.value.imageUrl },
+          ogTitle: { property: 'og:title', content: artist.value.name },
+          ogDescription: {
+            property: 'og:description',
+            content: artist.value.name + ' on Toneflix Collab',
+          },
+        },
+      }
+    : { title: 'Not found' };
+});
+</script>

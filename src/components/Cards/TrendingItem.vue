@@ -5,7 +5,10 @@
       active-class="text-white"
       :to="{
         name: 'artist.track',
-        params: { artist_id: track.artist?.username, track_id: track.slug },
+        params: {
+          artist_id: track.artist?.username || track.artist_id,
+          track_id: track.slug,
+        },
       }"
       v-intersection="onIntersect"
     >

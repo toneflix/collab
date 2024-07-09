@@ -2,16 +2,24 @@
   <q-page>
     <div class="flex w-full bg-white dark:!bg-gray-500">
       <div
-        class="!flex-none h-28 w-28 md:w-40 m-2 md:h-40 overflow-hidden text-center bg-cover rounded-t lg:rounded-t-none lg:rounded-l"
+        class="!flex-none h-28 w-28 md:w-40 m-2 md:h-40 overflow-hidden bg-gradient-to-tr from-red-100 to-slate-200 text-center bg-cover rounded-t lg:rounded-t-none lg:rounded-l"
         :style="{
           backgroundImage: `url(${project.imageUrl || placeholder})`,
         }"
-      ></div>
+      >
+        <img
+          width="0"
+          height="0"
+          class="hidden w-0 h-0"
+          :src="project.imageUrl"
+          @error="project.imageUrl = placeholder"
+        />
+      </div>
       <div
         class="flex flex-col justify-center flex-1 p-4 leading-normal border-b border-l border-r border-gray-400 rounded-b g:border-l-0 lg:border-t lg:border-gray-400 lg:rounded-b-none lg:rounded-r"
       >
         <h3 class="text-2xl !flex-none font-bold text-gray-900 dark:text-white">
-          {{ project.title }}
+          {{ subString(project.title, 18) }}
         </h3>
         <p class="mb-2 text-sm !flex-none text-gray-900 dark:text-white">
           {{ project.description }}
@@ -180,8 +188,11 @@
               dropdown-icon="none"
               :links="[
                 {
-                  label: 'Delete Track',
+                  show:
+                    (!!track.user_id && track.user_id === user.id) ||
+                    (!!project.user_id && project.user_id === user.id),
                   icon: 'fas fa-trash',
+                  label: 'Delete Track',
                   color: 'red',
                   action: 'delete',
                   target: `creator/projects/${project.id}/tracks/${track.id}`,
@@ -240,6 +251,7 @@
           :key="artist.id"
           :class="{ 'opacity-50': !artist.accepted }"
           :clickable="artist.accepted"
+          :to="{ name: 'creator', params: { creator_id: artist.username } }"
           v-for="(artist, i) in collaborators"
         >
           <q-item-section avatar>
@@ -266,19 +278,21 @@
               dropdown-icon="none"
               :links="[
                 {
-                  label: 'Edit Role',
+                  show: !!project.user_id && project.user_id === user.id,
                   icon: 'fas fa-user-edit',
+                  label: 'Edit Role',
                   color: 'primary',
                   click: () => collaberDialogRef.toggle(artist),
                 },
                 {
-                  label: 'Block',
                   icon: 'fas fa-user-lock',
+                  label: 'Block',
                   color: 'red',
                 },
                 {
-                  label: 'Remove from Project',
+                  show: !!project.user_id && project.user_id === user.id,
                   icon: 'fas fa-user-times',
+                  label: 'Remove from Project',
                   color: 'red',
                   action: 'delete',
                   target: `creator/projects/${project.id}/collaborators/${artist.id}`,
@@ -320,14 +334,14 @@ import { useMeta } from 'quasar';
 import placeholder from 'src/assets/placeholder.svg';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { formatSeconds, intStr } from 'src/utils/helpers';
+import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { GenericData, Project, Collaber, ProjectTrack } from 'src/utils/models';
 import {
   loadProjectCollaboratorsRequest,
   loadProjectRequest,
   loadProjectTracksRequest,
 } from 'src/utils/requests';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
 
@@ -361,6 +375,7 @@ defineOptions({
 
 const collaberDialogRef = ref();
 const route = useRoute();
+const user = computed(() => useBootstrapStore().user);
 const curr = useBootstrapStore().pageData.current as unknown as {
   tracks: ProjectTrack[];
   project: Project;

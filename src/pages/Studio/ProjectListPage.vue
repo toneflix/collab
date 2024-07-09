@@ -1,5 +1,5 @@
 <template>
-  <q-page>
+  <q-page class="flex flex-col justify-center">
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
       <div class="flex justify-start gap-4 mb-2">
         <h4 class="text-xl !flex-none font-semibold md:text-2xl">Projects</h4>
@@ -19,6 +19,17 @@
         </div>
       </div>
       <q-list class="grid grid-cols-1 md:grid-cols-2">
+        <q-banner
+          inline-actions
+          rounded
+          class="col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
+          v-if="!projects.length"
+        >
+          <h3 class="text-3xl font-bold">You do not have any projects yet.</h3>
+          <template #avatar>
+            <q-icon name="info" />
+          </template>
+        </q-banner>
         <q-item
           clickable
           :to="{
@@ -26,6 +37,7 @@
             params: { project_id: project.slug },
           }"
           :key="project.id"
+          v-intersection="(e) => onIntersect(e, i === projects.length - 1)"
           v-for="(project, i) in projects"
         >
           <q-item-section avatar>
@@ -111,30 +123,73 @@
             />
           </q-item-section>
         </q-item>
+        <q-item
+          class="flex justify-center col-span-2"
+          v-if="fetching || loading"
+        >
+          <q-spinner size="xl" />
+        </q-item>
       </q-list>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import { usePagination } from '@alova/scene-vue';
 import { ionHandLeft } from '@quasar/extras/ionicons-v7';
 import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
-import { GenericData, Project } from 'src/utils/models';
+import { GenericData, PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests';
 import { computed } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
-    const { data } = await loadProjectsRequest({ with: 'tracks' }).send();
+    const { data: projects, meta: projectsMeta } = await loadProjectsRequest({
+      with: 'tracks',
+      limit: 30,
+    }).send();
 
-    boot.pageData.current = data as unknown as GenericData[];
+    boot.pageData.current = {
+      projects,
+      projectsMeta,
+    } as unknown as GenericData[];
   },
 });
 
 const user = computed(() => useBootstrapStore().user);
-const projects = useBootstrapStore().pageData.current as unknown as Project[];
+const current = useBootstrapStore().pageData.current as unknown as {
+  projects: Project[];
+  projectsMeta: Partial<PageMeta>;
+};
+
+const {
+  page,
+  data: projects,
+  loading,
+  fetching,
+  isLastPage,
+} = usePagination(
+  (page, limit) => loadProjectsRequest({ page, limit, with: 'tracks' }),
+  {
+    initialData: { data: current.projects, meta: current.projectsMeta },
+    immediate: false,
+    append: true,
+    total: (e) => e.meta?.total,
+    data: (e) => e.data,
+  },
+);
+
+const onIntersect = (
+  evt: IntersectionObserverEntry,
+  isLast: boolean,
+): boolean => {
+  if (isLast && !isLastPage.value && evt.isIntersecting) {
+    page.value++;
+  }
+  return true;
+};
 </script>

@@ -3,8 +3,11 @@
     class="block mx-auto md:w-44"
     :class="{ 'w-28': dense, 'w-32': !dense }"
     :to="{
-      name: 'artist',
-      params: { artist_id: creator.username },
+      name: creator.type === 'user' ? 'creator' : 'artist',
+      params:
+        creator.type === 'user'
+          ? { creator_id: creator.username }
+          : { artist_id: creator.username },
     }"
     v-intersection="onIntersect"
   >

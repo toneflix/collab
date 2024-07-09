@@ -6,6 +6,7 @@
       name: 'project',
       params: { project_id: project.slug },
     }"
+    v-intersection="onIntersect"
   >
     <q-card flat square class="w-full bg-transparent cursor-pointer">
       <q-avatar
@@ -41,11 +42,23 @@
 <script setup lang="ts">
 import { Project } from 'src/utils/models';
 
-defineProps({
+const emit = defineEmits<{
+  scrollEnd: [value: boolean];
+}>();
+
+const props = defineProps({
   dense: Boolean,
+  isLast: Boolean,
 });
 
 const project = defineModel<Project>('project', {
   required: true,
 });
+
+const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+  if (props.isLast && evt.isIntersecting) {
+    emit('scrollEnd', true);
+  }
+  return true;
+};
 </script>
