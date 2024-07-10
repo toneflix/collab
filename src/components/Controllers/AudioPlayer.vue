@@ -317,6 +317,7 @@ const initialize = (play: boolean = false) => {
 
   sound = new Howl({
     src: [fileUrl],
+    format: currentTrack.value.format || 'mp3',
     xhr: {
       headers: {
         Authorization: 'Bearer ' + boot.token,
@@ -343,6 +344,7 @@ const initialize = (play: boolean = false) => {
     if (sound.state() === 'unloaded') {
       sound.load();
     }
+
     Howler.volume(volume.value / 100);
     sound.play();
     sound.loop(system.playMode === 'single');

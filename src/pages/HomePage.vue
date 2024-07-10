@@ -9,6 +9,7 @@
               slug: 'recently-played',
               id: 'recently-played',
               data: data.recently_played,
+              params: { filters: 'recently_played' },
             },
           ]"
         />
@@ -21,6 +22,7 @@
               slug: 'trending',
               title: 'Trending',
               data: data.trending,
+              params: { filters: 'trending' },
             },
           ]"
         />
@@ -33,12 +35,14 @@
               slug: 'top-artists',
               title: 'Top Artists',
               data: data.trending_artists,
+              params: { filters: 'trending' },
             },
             {
               id: 'new-artists',
               slug: 'new-artists',
               title: 'New Artists',
               data: data.latest_artists,
+              params: { filters: 'latest' },
             },
           ]"
         />
@@ -51,12 +55,14 @@
               slug: 'active-projects',
               id: 'active-projects',
               data: data.active_projects,
+              params: { filters: 'active' },
             },
             {
               title: 'Top Projects',
               slug: 'top-projects',
               id: 'top-projects',
               data: data.top_projects,
+              params: { filters: 'active,top' },
             },
           ]"
         />
@@ -69,12 +75,14 @@
               slug: 'top-creators',
               title: 'Top Creators',
               data: data.top_creators,
+              params: { filters: 'creator,top' },
             },
             {
               id: 'new-creators',
               slug: 'new-creators',
               title: 'New Creators',
               data: data.new_creators,
+              params: { filters: 'creator,latest' },
             },
           ]"
         />
@@ -90,12 +98,14 @@
               slug: 'top-albums',
               title: 'Top Albums',
               data: data.top_albums,
+              params: { filters: 'album,top' },
             },
             {
               id: 'latest-albums',
               slug: 'latest-albums',
               title: 'Latest Albums',
               data: data.latest_albums,
+              params: { filters: 'album,latest' },
             },
           ]"
         />

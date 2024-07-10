@@ -1,6 +1,6 @@
 <template>
   <q-scroll-area
-    class="h-52 md:h-64 max-w"
+    class="h-52 md:h-[17rem] max-w"
     v-if="!verticalList && category.data?.list"
   >
     <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">

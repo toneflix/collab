@@ -239,6 +239,7 @@ export interface Track {
   loved: boolean;
   loves: number;
   genre?: Genre;
+  format?: 'wav' | 'flac' | 'aiff' | 'alac' | 'ogg' | 'mp2' | 'mp3' | 'aac' | 'amr' | 'wma',
   privacy: 'public' | 'private',
   artist?: Artist;
   release?: Release;
