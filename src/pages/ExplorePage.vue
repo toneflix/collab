@@ -1,7 +1,10 @@
 <template>
-  <q-page padding>
-    <q-icon name="img:/oops.svg" />
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3">
+  <q-page
+    padding
+    :class="{ 'flex flex-col justify-center': empty && !loading }"
+  >
+    <OopsAlert v-if="empty" />
+    <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else>
       <div class="col-span-5">
         <TrackList v-model:categories="categories.latest_tracks" />
       </div>
@@ -25,11 +28,11 @@
         <ProjectList :categories="categories.projects" />
       </div>
     </div>
-    {{ empty }}
   </q-page>
 </template>
 
 <script setup lang="ts">
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import TrackList from 'src/components/Showcase/TrackList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
@@ -72,7 +75,7 @@ const empty = computed(() =>
     .every((e) => e.length === 0),
 );
 
-const { data } = useRequest(
+const { data, loading } = useRequest(
   () =>
     exploreRequest({
       with: 'artist',

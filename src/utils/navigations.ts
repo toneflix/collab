@@ -1,4 +1,4 @@
-import { GenericData, NavigationLink } from './models';
+import { Categories, GenericData, NavigationLink } from './models';
 
 export const mainNavigationLinks: NavigationLink[] = [
   {
@@ -38,17 +38,17 @@ export const mainNavigationLinks: NavigationLink[] = [
     separator: true,
   },
   {
-    to: '/3',
+    to: { name: 'library.page', params: { type: 'liked' } },
     icon: 'eva-heart',
-    title: 'Loved',
+    title: 'liked',
   },
   {
-    to: '/4',
+    to: { name: 'library.page', params: { type: 'collabs' } },
     icon: 'eva-people',
     title: 'Collabs',
   },
   {
-    to: '/5',
+    to: { name: 'library.page', params: { type: 'recent' } },
     icon: 'eva-music',
     title: 'Recent',
   },
@@ -61,11 +61,15 @@ export const mainNavigationLinks: NavigationLink[] = [
   {
     icon: '',
     title: 'My Projects',
-    group: 'recent-projects',
+    group: 'creator/projects',
+    params: { filters: 'latest', limit: 3 },
     button: {
       icon: 'eva-plus',
-      action: '',
-    }
+      action: {
+        name: 'studio.projects.create',
+      },
+    },
+    requiresAuth: true
   },
 ]
 
@@ -93,4 +97,12 @@ export const trackErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks'
   const key = Object.keys(errors).find((e) => map[e]) as string;
 
   return map[key] || 'basic';
+}
+
+export const categoryChecker = (categories: Categories) => {
+  return Object.entries(categories)
+    .flatMap((e) => e[1])
+    .every((e) => {
+      return !e.data || !e.data.list || e.data.list.length < 1;
+    })
 }

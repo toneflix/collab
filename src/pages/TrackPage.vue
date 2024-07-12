@@ -49,43 +49,72 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon color="white" name="fas fa-play" :fill="track.loved" />
+                <q-icon color="white" name="fas fa-play" :fill="track.liked" />
                 {{ intStr(track.streams) }}
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <VaButton
-                  size="medium"
-                  preset="plain"
-                  color="textPrimary"
-                  hover-opacity="0.05"
-                  @click="track.loved = !track.loved"
+                <TInteraction
+                  v-slot="{ submit, active }"
+                  type="like"
+                  label="Like"
+                  :active="track.liked"
+                  :base-url="`tracks/${track.id}`"
+                  @done="track.likes = $event.likes"
                 >
-                  <q-icon
-                    color="white"
-                    :name="track.loved ? ionHeart : ionHeartOutline"
-                    :fill="track.loved"
-                  />
-                  <span
-                    :class="`text-sm font-${track.loved ? 'bold' : 'medium'}`"
+                  <VaButton
+                    size="medium"
+                    preset="plain"
+                    color="textPrimary"
+                    hover-opacity="0.05"
+                    @click="submit"
                   >
-                    &nbsp;{{ intStr(track.loves) }}
-                  </span>
-                </VaButton>
+                    <q-icon
+                      color="white"
+                      :name="active ? ionHeart : ionHeartOutline"
+                      :fill="active"
+                    />
+                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
+                      &nbsp;{{ intStr(track.likes) }}
+                    </span>
+                  </VaButton>
+                </TInteraction>
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <VaButton
-                  fill
-                  size="medium"
-                  preset="plain"
-                  color="textPrimary"
-                  hover-opacity="0.05"
+                <ConversationDialog
+                  dense
+                  no-caps
+                  rounded
+                  size="sm"
+                  icon="fas fa-comments"
+                  color="white"
+                  padding="xs sm"
+                  text-color="dark"
+                  type="Track"
+                  :id="track.id"
+                  :params="{ limit: 30, baseUrl: 'tracks' }"
+                  @commented="
+                    (e, t) => {
+                      t == 'comment' &&
+                        typeof track.commentsCount !== 'undefined' &&
+                        track.commentsCount++;
+                    }
+                  "
+                  v-slot="{ toggle }"
                 >
-                  <q-icon color="white" name="eva-message-square" />
-                  &nbsp;{{ intStr(track.streams) }}
-                  <!-- TODO: Replace track.streams with track.comments_count-->
-                </VaButton>
+                  <VaButton
+                    fill
+                    size="medium"
+                    preset="plain"
+                    color="textPrimary"
+                    hover-opacity="0.05"
+                    @click="toggle"
+                  >
+                    <q-icon color="white" name="eva-message-square" />
+                    &nbsp;{{ intStr(track.commentsCount) }}
+                  </VaButton>
+                </ConversationDialog>
               </span>
             </div>
             <p class="mt-4 text-sm max-w-96">
@@ -147,6 +176,8 @@ import {
   loadTracksRequest,
 } from 'src/utils/requests';
 import { useWatcher } from 'alova';
+import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
+import TInteraction from 'src/components/Utilities/TInteraction.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -154,13 +185,12 @@ defineOptions({
     const id = String(currentRoute.params.track_id);
     const aid = String(currentRoute.params.artist_id);
 
-    const artist = await loadArtistRequest(
-      aid,
-      { with: 'tracks' },
-      true,
-    ).send();
+    const artist = await loadArtistRequest(aid, {}, true).send();
 
-    const track = await loadTrackRequest(id, { artist_id: artist.id }).send();
+    const track = await loadTrackRequest(id, {
+      artist_id: artist.id,
+      with: 'comments_count,artist',
+    }).send();
 
     const { data: related, meta: relatedMeta } = await loadTracksRequest({
       artist_id: artist.id,
@@ -204,7 +234,8 @@ const seeking = ref<SeekingData>({} as unknown & SeekingData);
 const { data: track, onSuccess } = useWatcher(
   () =>
     loadTrackRequest(route.params.track_id, {
-      artist_id: route.params.artist_id as string,
+      artist_id: String(route.params.artist_id),
+      with: 'comments_count,artist',
     }),
   [() => route.params.artist_id],
   {

@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist">
+    <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist?.id">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
         :style="{
@@ -42,18 +42,30 @@
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
               <span class="!flex-none">
-                <q-btn
-                  dense
-                  no-caps
-                  rounded
-                  unelevated
-                  size="sm"
-                  padding="0 sm"
-                  :icon="artist.youFollow ? undefined : ionAdd"
-                  :label="artist.youFollow ? 'Unfollow' : 'Follow'"
-                  :color="artist.youFollow ? 'primary' : undefined"
-                  @click="artist.youFollow = !artist.youFollow"
-                />
+                <ToggleFollow
+                  :following="artist.youFollow"
+                  :base-url="`artists/${artist.id}`"
+                  @done="
+                    (e) => {
+                      artist.followers = e.followers;
+                      artist.reputation = e.reputation;
+                    }
+                  "
+                  v-slot="{ submit, following }"
+                >
+                  <q-btn
+                    dense
+                    no-caps
+                    rounded
+                    unelevated
+                    size="sm"
+                    padding="0 sm"
+                    :icon="following ? undefined : ionAdd"
+                    :label="following ? 'Unfollow' : 'Follow'"
+                    :color="following ? 'primary' : undefined"
+                    @click="submit"
+                  />
+                </ToggleFollow>
               </span>
               <span class="!flex-none">
                 {{ intStr(artist.followers) }} Followers
@@ -70,7 +82,7 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80" v-if="artist">
+    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80" v-if="artist?.id">
       <div class="col-span-5" v-if="artist.type === 'user'">
         <ProjectList
           :categories="[
@@ -97,6 +109,10 @@
         />
       </div>
     </div>
+    <OopsAlert
+      text="This artist is not home now, you may check back later..."
+      v-else-if="!loading"
+    />
   </q-page>
 </template>
 
@@ -125,6 +141,8 @@ import {
 } from 'src/utils/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -200,7 +218,7 @@ const categories = ref({
   ],
 });
 
-const { data: artist } = useWatcher(
+const { data: artist, loading } = useWatcher(
   () =>
     loadArtistRequest(
       route.params.artist_id as string,

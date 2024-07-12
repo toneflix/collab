@@ -48,6 +48,19 @@
         />
       </div>
       <div class="col-span-5">
+        <TrackList
+          :categories="[
+            {
+              id: 'latest',
+              slug: 'latest',
+              title: 'Latest  Songs',
+              data: data.latest_tracks,
+              params: { filters: 'latest' },
+            },
+          ]"
+        />
+      </div>
+      <div class="col-span-5">
         <ProjectList
           :categories="[
             {
@@ -137,6 +150,7 @@ defineOptions({
       top_creators: 18,
       new_creators: 18,
       top_projects: 18,
+      latest_tracks: 18,
       latest_albums: 18,
       latest_artists: 18,
       active_projects: 18,
@@ -161,6 +175,7 @@ const { data } = useRequest(
       top_creators: 18,
       new_creators: 18,
       top_projects: 18,
+      latest_tracks: 18,
       latest_albums: 18,
       latest_artists: 18,
       active_projects: 18,

@@ -49,11 +49,13 @@
         </q-form>
         <CommentCard
           class="flex"
+          :id="id"
           :key="comment.id"
           :label="label"
           :params="params"
           :comment="comment"
           :expanded="!!comment.replies?.length && (i === 0 || comment.expanded)"
+          @commented="(e) => emit('commented', e, 'reply')"
           v-intersection="(e) => onIntersect(e, i === comments.length - 1)"
           v-for="(comment, i) in comments"
         >
@@ -67,10 +69,7 @@
 import { useForm, usePagination } from '@alova/scene-vue';
 import { notify } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
-import {
-  loadProjectCommentsRequest,
-  writeProjectCommentsRequest,
-} from 'src/utils/requests';
+import { loadCommentsRequest, writeCommentsRequest } from 'src/utils/requests';
 import { computed, PropType, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import CommentCard from '../Cards/CommentCard.vue';
@@ -78,7 +77,15 @@ import CommentCard from '../Cards/CommentCard.vue';
 const formRef = ref();
 const route = useRoute();
 
+const emit = defineEmits<{
+  commented: [value: UserComment, type: 'comment' | 'reply'];
+}>();
+
 const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: false,
+  },
   label: { type: String, default: 'comment' },
   params: { type: Object as PropType<GenericData>, default: () => ({}) },
   immediate: Boolean,
@@ -96,17 +103,21 @@ const {
   isLastPage,
 } = usePagination(
   () =>
-    loadProjectCommentsRequest(route.params.project_id, undefined, {
-      with: 'user',
-      ...props.params,
-    }),
+    loadCommentsRequest(
+      route.params.project_id || String(props.id),
+      undefined,
+      {
+        with: 'user',
+        ...props.params,
+      },
+    ),
   {
     total: (e) => e.meta?.total || 0,
     append: true,
-    sendable: () => !!route.params.project_id,
+    sendable: () => !!route.params.project_id || !!props.id,
     immediate: props.immediate,
     initialData: { data: initComments.value },
-    watchingStates: [() => route.params.project_id],
+    watchingStates: [() => route.params.project_id, () => props.id],
   },
 );
 
@@ -116,7 +127,7 @@ const errors = computed(
 
 const { form, send, error, reset, loading, onSuccess } = useForm(
   (f) =>
-    writeProjectCommentsRequest(f, route.params.project_id, {
+    writeCommentsRequest(f, route.params.project_id || String(props.id), {
       with: 'user',
       ...props.params,
     }),
@@ -129,6 +140,7 @@ const { form, send, error, reset, loading, onSuccess } = useForm(
 
 onSuccess(({ data }) => {
   reset();
+  emit('commented', data.data, 'comment');
   update({ data: [...comments.value, data.data] });
   notify(data.message, data.status);
 });

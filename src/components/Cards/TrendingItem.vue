@@ -81,7 +81,6 @@ const togglePlay = () => {
 };
 
 const onIntersect = (evt: IntersectionObserverEntry): boolean => {
-  console.log(evt.isIntersecting, props.isLast);
   if (props.isLast && evt.isIntersecting) {
     emit('scrollEnd', true);
   }

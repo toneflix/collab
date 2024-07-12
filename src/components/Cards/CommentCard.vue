@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="flex flex-nowrap">
     <div class="flex-shrink-0 mr-3">
       <q-avatar size="lg" color="grey-6">
         <q-img no-spinner loading="eager" :src="comment.user.imageUrl" alt="" />
@@ -13,7 +13,7 @@
         <span class="ml-3 text-xs text-gray-400">
           {{ timeAgoStamp(comment.createdAt, 'facebook', 'HH MMM, YYYY') }}
         </span>
-        <p class="flex items-center w-full gap-2 text-sm">
+        <p class="flex items-center w-full gap-2 text-sm no-wrap">
           <span class="block">
             {{ comment.comment }}
           </span>
@@ -134,22 +134,27 @@
 import { useForm, usePagination } from '@alova/scene-vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
-import {
-  loadProjectCommentsRequest,
-  writeProjectCommentsRequest,
-} from 'src/utils/requests';
+import { loadCommentsRequest, writeCommentsRequest } from 'src/utils/requests';
 import { computed, PropType, watch, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-const showForm = ref(false);
-const formRef = ref();
-const route = useRoute();
+const emit = defineEmits<{
+  commented: [value: UserComment, type: 'comment' | 'reply'];
+}>();
 
 const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: false,
+  },
   label: { type: String, default: 'comment' },
   params: { type: Object as PropType<GenericData>, default: () => ({}) },
   immediate: Boolean,
 });
+
+const route = useRoute();
+const formRef = ref();
+const showForm = ref(false);
 
 const expanded = defineModel<boolean>('expanded', {
   type: Boolean,
@@ -170,9 +175,9 @@ const {
   isLastPage,
 } = usePagination(
   () =>
-    loadProjectCommentsRequest(
-      route.params.project_id,
-      comment.value.id as string,
+    loadCommentsRequest(
+      route.params.project_id || String(props.id),
+      String(comment.value.id),
       {
         with: 'user',
         ...props.params,
@@ -181,10 +186,11 @@ const {
   {
     total: (e) => e.meta?.total || 0,
     append: true,
-    sendable: () => !!route.params.project_id && !!comment.value.id,
+    sendable: () =>
+      (!!route.params.project_id || !!props.id) && !!comment.value.id,
     immediate: props.immediate,
     initialData: { data: [] },
-    watchingStates: [() => route.params.project_id],
+    watchingStates: [() => route.params.project_id, () => props.id],
   },
 );
 
@@ -194,7 +200,7 @@ const errors = computed(
 
 const { form, send, error, reset, loading, onSuccess } = useForm(
   (f) =>
-    writeProjectCommentsRequest(f, route.params.project_id, {
+    writeCommentsRequest(f, route.params.project_id || String(props.id), {
       with: 'user',
       ...props.params,
     }),
@@ -207,9 +213,10 @@ const { form, send, error, reset, loading, onSuccess } = useForm(
 );
 
 onSuccess(({ data }) => {
-  reset();
   expanded.value = true;
   comment.value.repliesCount++;
+  emit('commented', data.data, 'reply');
+  reset();
   update({ data: [...comments.value, data.data] });
   notify(data.message, data.status);
 });

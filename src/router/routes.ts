@@ -1,6 +1,7 @@
 import { RouteRecordRaw } from 'vue-router';
 import artistsCreators from './artists-creators';
 import authentication from './authentication';
+import library from './library';
 import projects from './projects';
 import studio from './studio';
 
@@ -34,6 +35,7 @@ const routes: RouteRecordRaw[] = [
   ...authentication,
   ...projects,
   ...artistsCreators,
+  ...library,
   ...studio,
 
   // Always leave this as last one,

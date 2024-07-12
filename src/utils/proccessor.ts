@@ -126,7 +126,7 @@ export const authValidator = (
 
     // Set variables: User is verified
     const isVerified = !needVerify && !to.meta.requireCode;
-    console.log(to)
+
     const pushVerification = () => {
       if (
         user?.id &&

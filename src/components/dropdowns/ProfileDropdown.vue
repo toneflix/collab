@@ -119,11 +119,6 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'settings',
         },
         {
-          name: 'billing',
-          to: 'billing',
-          icon: 'receipt_long',
-        },
-        {
           name: 'Studio',
           to: { name: 'studio.home' },
           icon: 'fas fa-microphone-lines',

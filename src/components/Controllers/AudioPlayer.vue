@@ -54,9 +54,9 @@
           <VaButton
             size="medium"
             preset="plain"
-            @click="currentTrack.loved = !currentTrack.loved"
+            @click="currentTrack.liked = !currentTrack.liked"
           >
-            <TIcon name="eva-heart" color="white" :fill="currentTrack.loved" />
+            <TIcon name="eva-heart" color="white" :fill="currentTrack.liked" />
           </VaButton>
         </q-item-section>
       </q-item>

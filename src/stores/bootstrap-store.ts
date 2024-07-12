@@ -1,4 +1,4 @@
-import { Configuration, PageData, PriviPerm, PriviRole, User } from 'src/utils/models';
+import { Configuration, GenericData, PageData, PriviPerm, PriviRole, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
 import { RouteLocationNormalized } from 'vue-router';
 
@@ -8,7 +8,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     user: <User>{},
     roles: <PriviRole[]>[],
     permissions: <PriviPerm[]>[],
-    pageData: <PageData>{ current: {}, meta: {} },
+    pageData: <PageData>{ current: {}, meta: {}, cache: {} },
     configuration: <Configuration>{},
     token: <string | null | undefined>null,
     ready: <boolean>false,
@@ -34,7 +34,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     setUser (user: User) {
       this.user = user;
     },
-    setCache (data: Record<string, string>) {
+    setCache (data: GenericData[] | GenericData) {
       this.pageData.cache = data;
     },
     setReady () {

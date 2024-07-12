@@ -90,7 +90,11 @@
               v-ripple
               :to="link.to"
               :key="link.title"
-              v-if="!link.group && !link.separator"
+              v-if="
+                !link.group &&
+                !link.separator &&
+                (!link.requiresAuth || boot.user?.id)
+              "
             >
               <q-item-section avatar>
                 <t-icon :name="link.icon" />
@@ -105,20 +109,15 @@
               v-if="link.separator"
             />
 
-            <template v-if="link.group">
+            <template
+              v-if="link.group && (!link.requiresAuth || boot.user?.id)"
+            >
               <q-item dense class="label" :key="link.group">
                 <q-item-section class="text-gray-400">
                   {{ link.title }}
                 </q-item-section>
                 <q-item-section side v-if="link.button">
-                  <q-btn
-                    dense
-                    outline
-                    size="sm"
-                    :to="{
-                      name: 'studio.projects.create',
-                    }"
-                  >
+                  <q-btn dense outline size="sm" :to="link.button.action">
                     <t-icon :name="link.button.icon" />
                   </q-btn>
                 </q-item-section>
@@ -128,14 +127,9 @@
                 dense
                 clickable
                 v-ripple
-                :to="{
-                  name: 'studio.projects.create',
-                  params: { project_id: item.slug },
-                }"
+                :to="routeBuilder(item, link.group)"
                 :key="link.group + item.title"
-                v-for="item in dummyProjects.filter(
-                  (e) => e.group === link.group,
-                )"
+                v-for="item in cache.mainLayoutGroups[link.group]"
               >
                 <q-item-section avatar>
                   <t-icon name="eva-file" />
@@ -165,10 +159,11 @@ import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import TIcon from 'src/components/icons/TIcon.vue';
 import { ref } from 'vue';
-import { dummyProjects } from 'src/utils/dummy';
 import { mainNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
+import { GenericData, ResponseBody } from 'src/utils/models';
+import { alova } from 'src/boot/alova';
 
 defineOptions({
   async preFetch({ store }) {
@@ -177,6 +172,20 @@ defineOptions({
     await reboot().then(({ init }) => {
       boot.configuration = init.configuration;
     });
+
+    const data = {} as Record<string, GenericData>;
+    for (const group of mainNavigationLinks.filter((e) => !!e.group)) {
+      if (group.group) {
+        data[group.group] = await alova
+          .Get(group.group, {
+            params: group.params,
+            transformData: (e: ResponseBody<GenericData>) => e.data,
+          })
+          .send();
+      }
+    }
+
+    boot.setCache({ mainLayoutGroups: data } as unknown as GenericData);
   },
 });
 
@@ -184,4 +193,17 @@ const $q = useQuasar();
 const boot = useBootstrapStore();
 const showSearch = ref($q.screen.gt.xs);
 const leftDrawerOpen = ref(false);
+const cache = boot.pageData.cache as unknown as {
+  mainLayoutGroups: Record<string, GenericData[]>;
+};
+
+const routeBuilder = (item: GenericData, group: string) => {
+  if (group === 'creator/projects') {
+    return {
+      name: 'studio.project',
+      params: { project_id: item.slug },
+    };
+  }
+  return null;
+};
 </script>

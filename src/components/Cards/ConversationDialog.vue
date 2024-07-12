@@ -14,7 +14,14 @@
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[60vh]">
-        <CommentSection immediate hide-title label="message" :params="params" />
+        <CommentSection
+          immediate
+          hide-title
+          label="message"
+          :id="id"
+          :params="params"
+          @commented="(e, t) => emit('commented', e, t)"
+        />
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -23,7 +30,11 @@
 <script setup lang="ts">
 import { PropType, ref } from 'vue';
 import CommentSection from '../Sections/CommentSection.vue';
-import { GenericData } from 'src/utils/models';
+import { GenericData, UserComment } from 'src/utils/models';
+
+const emit = defineEmits<{
+  commented: [value: UserComment, type: 'comment' | 'reply'];
+}>();
 
 defineOptions({
   name: 'ProjectTrackInfoDialog',

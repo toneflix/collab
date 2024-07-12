@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="relative">
+    <div class="relative" v-if="album?.id">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
         :style="{ backgroundImage: `url(${album?.imageUrl})` }"
@@ -27,7 +27,7 @@
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ album?.title }}
+              {{ subString(album?.title, 30) }}
             </h1>
 
             <div
@@ -47,37 +47,67 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <VaButton
-                  size="medium"
-                  preset="plain"
-                  color="textPrimary"
-                  hover-opacity="0.05"
-                  @click="album.loved = !album.loved"
+                <TInteraction
+                  v-slot="{ submit, active }"
+                  type="like"
+                  label="Likes"
+                  :active="album.liked"
+                  :base-url="`releases/${album.id}`"
+                  @done="album.likes = $event.likes"
                 >
-                  <q-icon
-                    color="white"
-                    :name="album.loved ? ionHeart : ionHeartOutline"
-                    :fill="album.loved"
-                  />
-                  <span
-                    :class="`text-sm font-${album.loved ? 'bold' : 'medium'}`"
+                  <VaButton
+                    size="medium"
+                    preset="plain"
+                    color="textPrimary"
+                    hover-opacity="0.05"
+                    @click="submit"
                   >
-                    &nbsp;{{ intStr(album.loves) }}
-                  </span>
-                </VaButton>
+                    <q-icon
+                      color="white"
+                      :name="active ? ionHeart : ionHeartOutline"
+                      :fill="active"
+                    />
+                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
+                      &nbsp;{{ intStr(album.likes) }}
+                    </span>
+                  </VaButton>
+                </TInteraction>
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <VaButton
-                  size="medium"
-                  preset="plain"
-                  color="textPrimary"
-                  hover-opacity="0.05"
+                <ConversationDialog
+                  dense
+                  no-caps
+                  rounded
+                  size="sm"
+                  icon="fas fa-comments"
+                  color="white"
+                  padding="xs sm"
+                  text-color="dark"
+                  type="Album"
+                  :id="album.id"
+                  :params="{ limit: 30, baseUrl: 'releases' }"
+                  @commented="
+                    (e, t) => {
+                      t == 'comment' &&
+                        typeof album.commentsCount !== 'undefined' &&
+                        album.commentsCount++;
+                    }
+                  "
+                  v-slot="{ toggle }"
                 >
-                  <q-icon fill color="white" name="eva-message-square" />
-                  {{ intStr(album.streams) }}
-                  <!-- TODO: Replace album.streams with album.comments_count-->
-                </VaButton>
+                  <VaButton
+                    fill
+                    size="medium"
+                    preset="plain"
+                    color="textPrimary"
+                    hover-opacity="0.05"
+                    @click="toggle"
+                  >
+                    <q-icon color="white" name="eva-message-square" />
+                    &nbsp;{{ intStr(album.commentsCount) }}
+                  </VaButton>
+                </ConversationDialog>
               </span>
             </div>
             <p class="mt-4 text-sm max-w-96">
@@ -87,7 +117,10 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80">
+    <div
+      class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80"
+      v-if="album?.id"
+    >
       <div class="col-span-5">
         <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
           <TrendingItem
@@ -106,6 +139,7 @@
         />
       </div>
     </div>
+    <OopsAlert text="This album does not exist..." v-else-if="!loading" />
   </q-page>
 </template>
 
@@ -122,7 +156,7 @@ import {
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { ionHeart, ionHeartOutline, ionPlay } from '@quasar/extras/ionicons-v7';
-import { formatSeconds, intStr } from 'src/utils/helpers';
+import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
@@ -132,6 +166,9 @@ import {
 } from 'src/utils/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
+import TInteraction from 'src/components/Utilities/TInteraction.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -141,7 +178,7 @@ defineOptions({
 
     const album = await loadReleaseRequest(id, {
       artist_id: aid,
-      with: 'tracks,artist',
+      with: 'tracks,artist,comments_count',
     }).send();
 
     const { data: related, meta: relatedMeta } = await loadTracksRequest({
@@ -178,10 +215,10 @@ const current = useBootstrapStore().pageData.current as unknown as {
 /**
  * Load the album
  */
-const { data: album } = useWatcher(
+const { data: album, loading } = useWatcher(
   () =>
     loadReleaseRequest(route.params.album_id, {
-      with: 'tracks,artist',
+      with: 'tracks,artist,comments_count',
       artist_id: route.params.artist_id as string,
     }),
   [() => route.params.album_id],

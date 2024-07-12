@@ -94,6 +94,7 @@ import { alova } from 'src/boot/alova';
 import { notify } from 'src/utils/helpers';
 import { ResponseBody, Link } from 'src/utils/models';
 import { PropType, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 defineOptions({ name: 'TDropdown' });
 const props = defineProps({
@@ -136,12 +137,15 @@ const props = defineProps({
 });
 
 const showing = ref(false);
+const router = useRouter();
 
 const onClick = (link: Link) => {
   if (link.click) {
     link.click(link);
   } else if (link.action) {
     actions.value.delete(link);
+  } else if (link.to) {
+    router.push(link.to);
   }
 };
 

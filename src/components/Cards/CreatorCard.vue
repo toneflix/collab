@@ -4,10 +4,7 @@
     :class="{ 'w-28': dense, 'w-32': !dense }"
     :to="{
       name: creator.type === 'user' ? 'creator' : 'artist',
-      params:
-        creator.type === 'user'
-          ? { creator_id: creator.username }
-          : { artist_id: creator.username },
+      params: { artist_id: creator.username },
     }"
     v-intersection="onIntersect"
   >

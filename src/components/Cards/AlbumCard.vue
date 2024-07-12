@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { formatSeconds } from 'src/utils/helpers';
 import { Album } from 'src/utils/models';
+import { PropType } from 'vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
@@ -50,10 +51,10 @@ const emit = defineEmits<{
 const props = defineProps({
   dense: Boolean,
   isLast: Boolean,
-});
-
-const album = defineModel<Album>('album', {
-  required: true,
+  album: {
+    type: Object as PropType<Album>,
+    required: true,
+  },
 });
 
 const onIntersect = (evt: IntersectionObserverEntry): boolean => {

@@ -62,6 +62,10 @@ const responded = async (
         notify(message, json.status || 'error');
       }
 
+      if (response.status === 404) {
+        boot.pageData.current = {}
+      }
+
       if (json.errors) {
         json.errors = Object.assign(
           {},
@@ -127,6 +131,10 @@ const axios = createAlova({
           response.data.message || response.statusText || 'Unknown error';
         if (![422, 401, 403].includes(response.status)) {
           notify(message, response.data.status || 'error');
+        }
+
+        if (response.status === 404) {
+          boot.pageData.current = {}
         }
       }
       if (response.data?.errors) {

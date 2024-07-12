@@ -3,7 +3,7 @@
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
       <div class="flex justify-start gap-4 mb-2">
         <h4 class="text-xl !flex-none font-semibold md:text-2xl">Projects</h4>
-        <div class="!flex-none">
+        <div class="flex justify-between">
           <q-btn
             dense
             no-caps
@@ -12,9 +12,19 @@
             label="Create Project"
             color="white"
             text-color="dark"
+            class="!flex-none"
             :to="{
               name: 'studio.projects.create',
             }"
+          />
+          <q-toggle
+            dense
+            color="secondary"
+            label="Own Projects"
+            class="!flex-none"
+            checked-icon="person"
+            unchecked-icon="group"
+            v-model="own"
           />
         </div>
       </div>
@@ -143,12 +153,13 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
     const { data: projects, meta: projectsMeta } = await loadProjectsRequest({
+      own: true,
       with: 'tracks',
       limit: 30,
     }).send();
@@ -160,6 +171,7 @@ defineOptions({
   },
 });
 
+const own = ref(true);
 const user = computed(() => useBootstrapStore().user);
 const current = useBootstrapStore().pageData.current as unknown as {
   projects: Project[];
@@ -173,8 +185,10 @@ const {
   fetching,
   isLastPage,
 } = usePagination(
-  (page, limit) => loadProjectsRequest({ page, limit, with: 'tracks' }),
+  (page, limit) =>
+    loadProjectsRequest({ page, limit, with: 'tracks', own: own.value }),
   {
+    watchingStates: [own],
     initialData: { data: current.projects, meta: current.projectsMeta },
     immediate: false,
     append: true,

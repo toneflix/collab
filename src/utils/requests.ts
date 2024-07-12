@@ -33,6 +33,55 @@ export const exploreRequest = (params?: GenericData) => {
 }
 
 /**
+ * Fetch all [project] comments
+ *
+ * @param pid The ID of the project
+ * @param id If fetching replies, pass the ID of the comment
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadCommentsRequest = (
+  pid: string | string[],
+  id?: string | string[],
+  params?: GenericData
+) => {
+  const baseUrl = params?.baseUrl ? params.baseUrl : 'projects'
+  return alova.Get<ResponseBody<UserComment[]>>(`${baseUrl}/${pid}/comments${id ? `/${id}` : ''}`, {
+    hitSource: 'add-project-comment',
+    params
+  })
+}
+
+/**
+ * Write a comment
+ *
+ * @param f The form data object
+ * @returns
+ */
+export const writeCommentsRequest = (
+  f: { comment: string, image?: File, id?: number | string },
+  pid: string | string[],
+  params?: GenericData) => {
+  const form = {
+    image: f.image,
+    comment: f.comment,
+    _method: f.id ? 'PUT' : 'POST',
+  }
+
+  const baseUrl = params?.baseUrl ? params.baseUrl : 'projects'
+
+  const request = axios.Post<ResponseBody<UserComment>>(`${baseUrl}/${pid}/comments${f.id ? '/' + f.id : ''}`, form, {
+    enableUpload: true,
+    name: 'add-project-comment',
+    params
+  })
+
+  request.config.headers['Content-Type'] = 'multipart/form-data'
+
+  return request
+}
+
+/**
  * Fetch all tracks
  *
  * @param params Optional parameters to pass to the request
@@ -286,48 +335,6 @@ export const loadProjectsRequest = (params?: GenericData, guest = false) => {
       ...params
     }
   })
-}
-
-/**
- * Fetch all project comments
- *
- * @param pid The ID of the project
- * @param id If fetching replies, pass the ID of the comment
- * @param params Optional parameters to pass to the request
- * @returns
- */
-export const loadProjectCommentsRequest = (pid: string | string[], id?: string | string[], params?: GenericData) => {
-  return alova.Get<ResponseBody<UserComment[]>>(`projects/${pid}/comments${id ? `/${id}` : ''}`, {
-    hitSource: 'add-project-comment',
-    params
-  })
-}
-
-/**
- * Write a comment
- *
- * @param f The form data object
- * @returns
- */
-export const writeProjectCommentsRequest = (
-  f: { comment: string, image?: File, id?: number | string },
-  pid: string | string[],
-  params?: GenericData) => {
-  const form = {
-    image: f.image,
-    comment: f.comment,
-    _method: f.id ? 'PUT' : 'POST',
-  }
-
-  const request = axios.Post<ResponseBody<UserComment>>(`projects/${pid}/comments${f.id ? '/' + f.id : ''}`, form, {
-    enableUpload: true,
-    name: 'add-project-comment',
-    params
-  })
-
-  request.config.headers['Content-Type'] = 'multipart/form-data'
-
-  return request
 }
 
 /**

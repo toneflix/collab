@@ -65,7 +65,7 @@ export type ResponseBody<X = undefined, Y = Record<string, string>> = {
 
 export type PageData = {
   meta: GenericData | GenericData[];
-  cache?: GenericData;
+  cache?: GenericData | GenericData[];
   current: GenericData | GenericData[];
   player_track?: Track;
 };
@@ -121,6 +121,8 @@ export interface Category<X = Track | Release | User | Project | Artist> {
   params?: GenericData,
 };
 
+export type Categories = Record<string, Category[]>
+
 export type CollabEvents = {
   togglePlay: (state: boolean, track: Track, album?: Album, origin?: string | 'player') => void;
   seeking: (position: number, track?: Track, file_url?: string) => void;
@@ -151,6 +153,8 @@ export interface ExploreData {
   new_creators: ExploreItem<User>;
   top_projects: ExploreItem<Project>;
   new_projects: ExploreItem<Project>;
+  liked_tracks: ExploreItem<Track>;
+  liked_albums: ExploreItem<Release>;
   latest_tracks: ExploreItem<Track>;
   random_albums: ExploreItem<Release>;
   latest_albums: ExploreItem<Release>;
@@ -161,25 +165,30 @@ export interface ExploreData {
   random_projects: ExploreItem<Project>;
   active_projects: ExploreItem<Project>;
   trending_artists: ExploreItem<Artist>;
+  own_collab_albums: ExploreItem<Release>;
+  own_collab_tracks: ExploreItem<Track>;
   recommended_artists: ExploreItem<Artist>;
+  recently_played_albums: ExploreItem<Artist>;
+  recently_played_artists: ExploreItem<Artist>;
 }
 
 export interface Interaction {
-  votes: number;
+  list: string | 'default';
+  props: number;
   likes: number;
-  dislikes: number;
-  reactions: number;
   saved: boolean;
-  voted: boolean;
   liked: boolean;
+  proped: boolean;
   reacted: boolean;
-  ownvotes: number;
+  ownprops: number;
   disliked: boolean;
   reaction: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+  dislikes: number;
+  reactions: number;
   reaction_color: 'blue' | 'red' | 'yellow' | 'orange'
   state_icons: {
     saved: string;
-    voted: string;
+    proped: string;
     disliked: string;
     reaction: string;
   },
@@ -236,8 +245,8 @@ export interface Track {
   id: string | number;
   slug: string;
   title: string;
-  loved: boolean;
-  loves: number;
+  liked: boolean;
+  likes: number;
   genre?: Genre;
   format?: 'wav' | 'flac' | 'aiff' | 'alac' | 'ogg' | 'mp2' | 'mp3' | 'aac' | 'amr' | 'wma',
   privacy: 'public' | 'private',
@@ -255,6 +264,7 @@ export interface Track {
   description: string;
   defaultStream?: boolean;
   contains_music?: boolean | 0 | 1,
+  commentsCount?: number; // number of comments
   project_track_id?: string | number;
   updatedAt: string;
   createdAt: string;
@@ -280,8 +290,8 @@ export type Album = {
   id: string | number,
   slug: string,
   title: string;
-  loved: boolean;
-  loves: number;
+  liked: boolean;
+  likes: number;
   genre?: Genre;
   tracks?: Track[];
   privacy: 'public' | 'private',
@@ -290,6 +300,7 @@ export type Album = {
   imageUrl: string;
   genre_id?: string | number;
   duration: number;
+  commentsCount?: number; // number of comments
   interaction?: Interaction,
   description: string;
   tracksCount: number;
@@ -315,6 +326,7 @@ export type Project = {
   interaction?: Interaction,
   description: string,
   tracksCount: number,
+  commentsCount?: number; // number of comments
   collaboratorsCount: number,
 };
 
@@ -364,7 +376,9 @@ export type NavigationLink = {
   icon: string,
   title: string,
   group?: string,
+  params?: GenericData,
   separator?: boolean,
+  requiresAuth?: boolean,
   button?: {
     icon: string,
     action: RouteLocationRaw | ((param: string | number | Record<string, string>) => void)

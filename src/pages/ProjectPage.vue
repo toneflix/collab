@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="relative">
+    <div class="relative" v-if="project?.id">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
         :style="{ backgroundImage: `url(${project?.imageUrl})` }"
@@ -68,24 +68,36 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <VaButton
-                  size="medium"
-                  preset="plain"
-                  color="textPrimary"
-                  hover-opacity="0.05"
-                  @click="project.proped = !project.proped"
+                <TInteraction
+                  v-slot="{ submit, active }"
+                  type="prop"
+                  label="Props"
+                  :active="project.proped"
+                  :base-url="`projects/${project.id}`"
+                  @done="project.props = $event.props"
                 >
-                  <q-icon
-                    color="white"
-                    :name="project.proped ? ionHandLeft : ionHandLeftOutline"
-                    :fill="project.proped"
-                  />
-                  <span
-                    :class="`text-sm font-${project.proped ? 'bold' : 'medium'}`"
+                  <VaButton
+                    size="medium"
+                    preset="plain"
+                    color="textPrimary"
+                    hover-opacity="0.05"
+                    @click="submit"
                   >
-                    &nbsp;{{ intStr(project.props) }} Props
-                  </span>
-                </VaButton>
+                    <q-icon
+                      color="white"
+                      :name="active ? ionHandLeft : ionHandLeftOutline"
+                      :fill="active"
+                    />
+                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
+                      &nbsp;{{ intStr(project.props) }} Props
+                    </span>
+                  </VaButton>
+                </TInteraction>
+              </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none">
+                <q-icon color="white" name="eva-message-square" />
+                &nbsp;{{ intStr(project.commentsCount) }}
               </span>
             </div>
             <p class="mt-4 text-sm max-w-96">
@@ -95,7 +107,10 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80">
+    <div
+      class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80"
+      v-if="project?.id"
+    >
       <div class="col-span-5">
         <CreatorList
           hide-all-link
@@ -108,7 +123,7 @@
         />
       </div>
       <q-no-ssr>
-        <div class="col-span-5" v-if="current.comments.length">
+        <div class="col-span-5">
           <CommentSection
             v-model:init-comments="current.comments"
             :params="{ limit: 30, project_id: project.id }"
@@ -116,6 +131,10 @@
         </div>
       </q-no-ssr>
     </div>
+    <OopsAlert
+      text="This project was probably canceled..."
+      v-else-if="!loading"
+    />
   </q-page>
 </template>
 
@@ -123,6 +142,7 @@
 import CommentSection from 'src/components/Sections/CommentSection.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
+import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import {
   Category,
   GenericData,
@@ -138,24 +158,32 @@ import { useMeta } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
-  loadProjectCommentsRequest,
+  loadCommentsRequest,
   loadProjectRequest,
   loadUsersRequest,
 } from 'src/utils/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
     const boot = useBootstrapStore(store);
     const id = currentRoute.params.project_id as string;
 
-    const project = await loadProjectRequest(id, {}, true).send();
+    const project = await loadProjectRequest(
+      id,
+      { with: 'comments_count' },
+      true,
+    ).send();
 
-    const { data: comments, meta: commentsMeta } =
-      await loadProjectCommentsRequest(id, undefined, {
+    const { data: comments, meta: commentsMeta } = await loadCommentsRequest(
+      id,
+      undefined,
+      {
         with: 'user',
-      }).send();
+      },
+    ).send();
 
     const { data: creators, meta: creatorMeta } = await loadUsersRequest({
       project_id: id,
@@ -194,8 +222,13 @@ const categories = ref({
   ],
 });
 
-const { data: project } = useWatcher(
-  () => loadProjectRequest(route.params.project_id, { with: 'tracks' }, true),
+const { data: project, loading } = useWatcher(
+  () =>
+    loadProjectRequest(
+      route.params.project_id,
+      { with: 'comments_count' },
+      true,
+    ),
   [() => route.params.project_id],
   {
     sendable: () => !!route.params.project_id,
@@ -205,18 +238,23 @@ const { data: project } = useWatcher(
 );
 
 useMeta(() => {
-  return {
-    title: project.value.title,
-    titleTemplate: (title) => `${title} - Toneflix Collab`,
-    meta: {
-      description: { name: 'description', content: project.value.description },
-      ogImage: { property: 'og:image', content: project.value.imageUrl },
-      ogTitle: { property: 'og:title', content: project.value.title },
-      ogDescription: {
-        property: 'og:description',
-        content: project.value.description,
-      },
-    },
-  };
+  return project.value?.id
+    ? {
+        title: project.value.title,
+        titleTemplate: (title) => `${title} - Toneflix Collab`,
+        meta: {
+          description: {
+            name: 'description',
+            content: project.value.description,
+          },
+          ogImage: { property: 'og:image', content: project.value.imageUrl },
+          ogTitle: { property: 'og:title', content: project.value.title },
+          ogDescription: {
+            property: 'og:description',
+            content: project.value.description,
+          },
+        },
+      }
+    : { title: 'Not Found' };
 });
 </script>

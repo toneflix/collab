@@ -1,6 +1,6 @@
 <template>
-  <q-page>
-    <div class="flex w-full bg-white dark:!bg-gray-500">
+  <q-page :class="{ 'flex flex-col justify-center': !project?.id }">
+    <div class="flex w-full bg-white dark:!bg-gray-500" v-if="project?.id">
       <div
         class="!flex-none h-28 w-28 md:w-40 m-2 md:h-40 overflow-hidden bg-gradient-to-tr from-red-100 to-slate-200 text-center bg-cover rounded-t lg:rounded-t-none lg:rounded-l"
         :style="{
@@ -89,7 +89,10 @@
         </q-no-ssr>
       </div>
     </div>
-    <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
+    <div
+      class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl"
+      v-if="project?.id"
+    >
       <div class="flex justify-start gap-4 mb-2">
         <h4 class="text-xl !flex-none font-semibold md:text-2xl">Tracklist</h4>
         <ProjectTrackInfoDialog
@@ -251,7 +254,7 @@
           :key="artist.id"
           :class="{ 'opacity-50': !artist.accepted }"
           :clickable="artist.accepted"
-          :to="{ name: 'creator', params: { creator_id: artist.username } }"
+          :to="{ name: 'creator', params: { artist_id: artist.username } }"
           v-for="(artist, i) in collaborators"
         >
           <q-item-section avatar>
@@ -319,6 +322,10 @@
         />
       </div>
     </div>
+    <OopsAlert
+      text="Let's assume you do not have access to this project..."
+      v-else-if="!loading"
+    />
   </q-page>
 </template>
 
@@ -344,6 +351,7 @@ import {
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 
 const trackInfoDialogRef = ref();
 defineOptions({
@@ -382,7 +390,7 @@ const curr = useBootstrapStore().pageData.current as unknown as {
   collaborators: Collaber[];
 };
 
-const { data: project } = useWatcher(
+const { data: project, loading } = useWatcher(
   () =>
     loadProjectRequest(route.params.project_id as string, {
       with: 'tracks,collabers',
