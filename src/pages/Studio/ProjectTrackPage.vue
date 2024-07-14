@@ -365,7 +365,7 @@ import {
   loadProjectTrackStemsRequest,
   saveProjectTrackRequest,
   saveProjectTrackStemRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useForm } from '@alova/scene-vue';
 import { FadeShape, Track } from 'app/models/wave-playlist.d';
 import { allowedAudioExts } from 'src/utils/presets';

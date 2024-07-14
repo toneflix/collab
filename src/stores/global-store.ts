@@ -1,17 +1,16 @@
 import { defineStore } from 'pinia'
 import { arrayUnique } from 'src/utils/helpers'
 import { Track } from 'src/utils/models'
+import SystemPlaylist from 'src/utils/SystemPlaylist'
 
 export const useGlobalStore = defineStore('global', {
   persist: true,
   state: () => {
     return {
+      mute: false,
       volume: 45,
       playMode: <'single' | 'loop' | 'all'>'loop',
-      playlist: {
-        id: <string | number>1,
-        tracks: <Track[]>[]
-      },
+      playlist: new SystemPlaylist<Track>(),
       dawWarning: true,
       currentTrack: <Track | null>null,
       isSidebarMinimized: false,
@@ -34,21 +33,26 @@ export const useGlobalStore = defineStore('global', {
     setCurrentTrack (track: Track) {
       this.currentTrack = track
     },
+    setPlaylistId (id: string) {
+      this.playlist.id = id
+    },
     clearPlaylist () {
       this.playlist.id = new Date().getTime()
-      this.playlist.tracks = []
+      this.playlist.clear()
     },
     addToPlaylist (track: Track | Track[]) {
-      let tracks = [...this.playlist.tracks]
+      let tracks = []
 
       if (Array.isArray(track)) {
-        this.playlist.id = new Date().getTime()
         tracks = track
       } else {
-        tracks.push(track);
+        tracks = [...this.playlist.items as Track[], track]
       }
 
-      this.playlist.tracks = arrayUnique(tracks as unknown as Record<string, string>[]) as unknown as Track[]
+      this.playlist.insertItems(
+        arrayUnique(tracks as unknown as Record<string, string>[]) as unknown as Track[],
+        true
+      )
     },
     removeFromPlaylist (item: string | number | Track) {
       let id: number;
@@ -61,7 +65,8 @@ export const useGlobalStore = defineStore('global', {
         id = item.id as number
       }
 
-      this.playlist.tracks = this.playlist.tracks.filter(e => e.id !== id)
+      this.playlist.filter(e => e.id !== id)
+      // this.playlist.tracks = this.playlist.tracks.filter(e => e.id !== id)
     },
   },
 })

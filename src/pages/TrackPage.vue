@@ -174,7 +174,7 @@ import {
   loadReleasesRequest,
   loadTrackRequest,
   loadTracksRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useWatcher } from 'alova';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';

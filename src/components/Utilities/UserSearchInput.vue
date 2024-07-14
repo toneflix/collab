@@ -67,7 +67,7 @@
 import { useForm } from '@alova/scene-vue';
 import { alova } from 'src/boot/alova';
 import { Artist, BaseOption, ResponseBody, User } from 'src/utils/models';
-import { createArtistRequest } from 'src/utils/requests';
+import { createArtistRequest } from 'src/utils/requests/requests';
 import { onBeforeUnmount, ref } from 'vue';
 
 type Option = User & BaseOption;

@@ -53,7 +53,7 @@ import {
   PageMeta,
   Track,
 } from 'src/utils/models';
-import { loadTracksRequest } from 'src/utils/requests';
+import { loadTracksRequest } from 'src/utils/requests/requests';
 import { computed, PropType } from 'vue';
 import { useQuasar } from 'quasar';
 
@@ -119,10 +119,11 @@ onSuccess(({ data }) => {
 });
 
 const loadMore = () => {
-  if (loading.value || props.disablePagination) return false;
+  if (loading.value || isLastPage.value || props.disablePagination)
+    return false;
   const cmeta = category.value.data?.meta as PageMeta;
 
-  if (!isLastPage.value || cmeta.last_page > cmeta.current_page) {
+  if (cmeta.last_page > cmeta.current_page) {
     page.value++;
   }
 };

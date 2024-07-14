@@ -111,7 +111,7 @@ import { date } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, Release } from 'src/utils/models';
-import { loadReleasesRequest } from 'src/utils/requests';
+import { loadReleasesRequest } from 'src/utils/requests/requests';
 
 defineOptions({
   async preFetch({ store }) {

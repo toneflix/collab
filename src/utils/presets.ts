@@ -54,6 +54,10 @@ export const collabRoles = [
     value: 'winds',
   },
   {
+    label: 'Lead',
+    value: 'lead',
+  },
+  {
     label: 'Custom',
     value: 'custom',
   }
@@ -65,5 +69,5 @@ export const collabRole = (role: string, custom?: string) => {
     return acc;
   }, {})
 
-  return roles[role] || custom || 'Unknown'
+  return roles[role] || custom || role?.titleCase() || 'Unknown'
 };

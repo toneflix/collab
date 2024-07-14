@@ -193,7 +193,7 @@
                 {
                   show:
                     (!!track.user_id && track.user_id === user.id) ||
-                    (!!project.user_id && project.user_id === user.id),
+                    project.isOwner,
                   icon: 'fas fa-trash',
                   label: 'Delete Track',
                   color: 'red',
@@ -281,7 +281,7 @@
               dropdown-icon="none"
               :links="[
                 {
-                  show: !!project.user_id && project.user_id === user.id,
+                  show: project.isOwner,
                   icon: 'fas fa-user-edit',
                   label: 'Edit Role',
                   color: 'primary',
@@ -291,9 +291,11 @@
                   icon: 'fas fa-user-lock',
                   label: 'Block',
                   color: 'red',
+                  click: () => flag(artist.id, i),
+                  loading: reporting,
                 },
                 {
-                  show: !!project.user_id && project.user_id === user.id,
+                  show: project.isOwner,
                   icon: 'fas fa-user-times',
                   label: 'Remove from Project',
                   color: 'red',
@@ -347,11 +349,12 @@ import {
   loadProjectCollaboratorsRequest,
   loadProjectRequest,
   loadProjectTracksRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import { requestFlagContent } from 'src/utils/requests/content';
 
 const trackInfoDialogRef = ref();
 defineOptions({
@@ -426,6 +429,18 @@ const { data: collaborators } = useWatcher(
     initialData: curr.collaborators,
   },
 );
+
+const reporting = ref(false);
+const flag = (id: string | number, index: number) => {
+  requestFlagContent(
+    { type: 'user', id, label: 'user', action: 'block' },
+    (state) => {
+      reporting.value = state === 'loading';
+    },
+  ).then(() => {
+    collaborators.value.splice(index, 1);
+  });
+};
 
 useMeta(() => {
   return {

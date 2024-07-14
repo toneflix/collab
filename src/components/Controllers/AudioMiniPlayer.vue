@@ -118,6 +118,7 @@ const initialize = () => {
 
   sound = new Howl({
     src: [fileUrl],
+    html5: true,
     format: 'mp3',
     xhr: {
       headers: {

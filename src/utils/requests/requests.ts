@@ -4,6 +4,7 @@ import {
   ExploreData,
   FileAsset,
   GenericData,
+  Genre,
   Project,
   ProjectTrack,
   Release,
@@ -12,10 +13,10 @@ import {
   UploadData,
   User,
   UserComment
-} from './models'
+} from '../models'
 import { alova, axios } from 'src/boot/alova'
 
-import { WavePlaylistTrack } from './playlist'
+import { WavePlaylistTrack } from '../playlist'
 import { toRaw } from 'vue'
 
 /**
@@ -29,6 +30,31 @@ export const exploreRequest = (params?: GenericData) => {
     transformData: (e: ResponseBody<ExploreData>) => e.data,
     hitSource: 'play-track',
     params
+  })
+}
+
+/**
+ * Fetch the playlist
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadPlaylistRequest = (params?: GenericData) => {
+  return alova.Get<ResponseBody<Track[]>>('playlist', {
+    params: params
+  })
+}
+
+/**
+ * Fetch all genres
+ *
+ * @param params Optional parameters to pass to the request
+ * @returns
+ */
+export const loadGenresRequest = (params?: GenericData) => {
+  return alova.Get<ResponseBody<Genre[]>>('genres', {
+    hitSource: 'create-genre',
+    params: params
   })
 }
 
@@ -184,7 +210,7 @@ export const createReleaseRequest = (f: Release) => {
     enableUpload: true,
     name: 'create-release' + (f.slug || f.id || ''),
     params: {
-      with: 'artist,genre,release,tracks,project'
+      with: 'artist,genre,release,tracks,project,streamUrl'
     }
   })
 
@@ -210,7 +236,7 @@ export const saveTrackRequest = (f: Track) => {
     enableUpload: true,
     name: 'create-track',
     params: {
-      with: 'artist,genre,release'
+      with: 'artist,genre,release,streamUrl'
     }
   })
 

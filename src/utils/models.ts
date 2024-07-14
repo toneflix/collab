@@ -113,7 +113,7 @@ export interface ContentMeta {
   username?: string;
 };
 
-export interface Category<X = Track | Release | User | Project | Artist> {
+export interface Category<X = Track | Release | User | Project | Artist | Genre> {
   id: string | number,
   data?: ExploreItem<X>
   slug: string;
@@ -123,9 +123,14 @@ export interface Category<X = Track | Release | User | Project | Artist> {
 
 export type Categories = Record<string, Category[]>
 
+export type StopEventKeywords = 'stop' | 'pause' | 'end'
 export type CollabEvents = {
+  justTogglePlay: (state: boolean, origin?: string) => void;
   togglePlay: (state: boolean, track: Track, album?: Album, origin?: string | 'player') => void;
   seeking: (position: number, track?: Track, file_url?: string) => void;
+  pause: (position: number, track: Track, file_url?: string) => void;
+  stop: (position: number, track: Track, file_url?: string) => void;
+  end: (position: number, track: Track, file_url?: string) => void;
 }
 
 export interface SeekingData {
@@ -317,12 +322,14 @@ export type Project = {
   ready?: boolean;
   tracks?: ProjectTrack[];
   proped: boolean;
+  isOwner: boolean,
   user_id?: string | number,
   privacy: 'private' | 'public' | 'public_preview',
   released: boolean;
   imageUrl: string,
   createdAt: string,
   updatedAt: string,
+  isCollaber: boolean,
   interaction?: Interaction,
   description: string,
   tracksCount: number,
@@ -406,8 +413,9 @@ export type Link = {
 export type UserComment = {
   id: string | number,
   user: Artist,
-  comment: string,
+  type: 'comment' | 'reply',
   userId: string | number,
+  comment: string,
   replies?: UserComment[],
   expanded?: boolean,
   createdAt: Date | string,

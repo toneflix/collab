@@ -34,8 +34,8 @@
 import ProjectCard from '../Cards/ProjectCard.vue';
 import { usePagination } from '@alova/scene-vue';
 import { Category, GenericData, PageMeta, Project } from 'src/utils/models';
-import { loadProjectsRequest } from 'src/utils/requests';
-import { PropType } from 'vue';
+import { loadProjectsRequest } from 'src/utils/requests/requests';
+import { PropType, ref } from 'vue';
 
 const props = defineProps({
   params: { type: Object as PropType<GenericData>, default: () => ({}) },
@@ -80,7 +80,9 @@ const {
   },
 );
 
+const firstLoad = ref(false);
 onSuccess(({ data }) => {
+  firstLoad.value = true;
   if (category.value.data) {
     category.value.data = {
       list: list.value,
@@ -90,10 +92,10 @@ onSuccess(({ data }) => {
 });
 
 const loadMore = () => {
-  if (loading.value) return false;
+  if (loading.value || isLastPage.value) return false;
   const cmeta = category.value.data?.meta as PageMeta;
 
-  if (!isLastPage.value || cmeta.last_page > cmeta.current_page) {
+  if (cmeta.last_page > cmeta.current_page) {
     page.value++;
   }
 };

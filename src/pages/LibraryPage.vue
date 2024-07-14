@@ -39,7 +39,7 @@ import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { exploreRequest } from 'src/utils/requests';
+import { exploreRequest } from 'src/utils/requests/requests';
 import { Categories, GenericData } from 'src/utils/models';
 import { useWatcher } from 'alova';
 import { categoryChecker } from 'src/utils/navigations';

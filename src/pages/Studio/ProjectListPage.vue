@@ -152,7 +152,7 @@ import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, PageMeta, Project } from 'src/utils/models';
-import { loadProjectsRequest } from 'src/utils/requests';
+import { loadProjectsRequest } from 'src/utils/requests/requests';
 import { computed, ref } from 'vue';
 
 defineOptions({

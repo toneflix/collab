@@ -40,7 +40,7 @@ import TrendingList from 'src/components/Showcase/TrendingList.vue';
 import { computed, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { exploreRequest } from 'src/utils/requests';
+import { exploreRequest } from 'src/utils/requests/requests';
 import { GenericData } from 'src/utils/models';
 import { useRequest } from 'alova';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';

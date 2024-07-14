@@ -108,7 +108,7 @@ import {
   loadArtistRequest,
   loadProjectsRequest,
   loadUserRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';

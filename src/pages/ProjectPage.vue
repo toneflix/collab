@@ -22,8 +22,9 @@
               class="!flex-none opacity-90 rounded-full"
               :links="[
                 {
-                  label: 'Open',
+                  label: 'Project Studio',
                   icon: 'fas fa-expand',
+                  show: project.isCollaber || project.isOwner,
                   to: {
                     name: 'studio.project',
                     params: { project_id: project.slug },
@@ -32,6 +33,7 @@
                 {
                   label: 'Edit Project',
                   icon: 'fas fa-edit',
+                  show: project.isOwner,
                   to: {
                     name: 'studio.projects.create',
                     params: { project_id: project.slug },
@@ -41,10 +43,12 @@
                   label: 'Request to Join',
                   icon: 'fas fa-user-plus',
                   color: 'green',
+                  show: !project.isCollaber && !project.isOwner,
                 },
                 {
                   label: 'Leave Project',
                   icon: 'fas fa-user-minus',
+                  show: project.isCollaber,
                   color: 'red',
                 },
               ]"
@@ -161,7 +165,7 @@ import {
   loadCommentsRequest,
   loadProjectRequest,
   loadUsersRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';

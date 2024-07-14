@@ -118,7 +118,7 @@ import { genres } from 'src/utils/dummy';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
 import { useForm } from '@alova/scene-vue';
-import { saveProjectTrackRequest } from 'src/utils/requests';
+import { saveProjectTrackRequest } from 'src/utils/requests/requests';
 import { notify } from 'src/utils/helpers';
 
 defineOptions({

@@ -310,7 +310,7 @@ import {
   loadProjectRequest,
   loadReleaseRequest,
   saveTrackRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { trackErrorStep } from 'src/utils/navigations';
 import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -329,7 +329,7 @@ defineOptions({
     // Load Release
     if (id) {
       release = await loadReleaseRequest(id, {
-        with: 'artist,genre,tracks,project',
+        with: 'artist,genre,tracks,project,streamUrl',
       }).send();
 
       tracks = release.tracks ?? [];
@@ -341,7 +341,7 @@ defineOptions({
     // Load Project
     if (pid) {
       project = await loadProjectRequest(pid, {
-        with: 'tracks,ready,artists',
+        with: 'tracks,ready,artists,streamUrl',
       }).send();
 
       release.title = project.title;

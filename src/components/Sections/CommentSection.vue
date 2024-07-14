@@ -69,7 +69,10 @@
 import { useForm, usePagination } from '@alova/scene-vue';
 import { notify } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
-import { loadCommentsRequest, writeCommentsRequest } from 'src/utils/requests';
+import {
+  loadCommentsRequest,
+  writeCommentsRequest,
+} from 'src/utils/requests/requests';
 import { computed, PropType, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import CommentCard from '../Cards/CommentCard.vue';

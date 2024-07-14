@@ -1,5 +1,5 @@
 // outside of a Vue file
-import { Dialog, DialogChainObject, Notify, QBtnProps, copyToClipboard, date, scroll } from 'quasar';
+import { Dialog, DialogChainObject, Notify, QBtnProps, QDialogSelectionPrompt, copyToClipboard, date, scroll } from 'quasar';
 import TimeAgo, { FormatStyleName } from 'javascript-time-ago';
 
 import { ResponseStatus } from './models';
@@ -18,6 +18,8 @@ type NMessage = {
   danger?: string | boolean | Record<string, string>;
   message: string;
   timeout?: number;
+  options?: QDialogSelectionPrompt
+  persistent?: true,
   onDismiss?: (n?: () => void) => void
 } | {
   ok?: boolean | string | QBtnProps;
@@ -180,7 +182,7 @@ const helpers = {
     danger: string | boolean | Record<string, string> = false
   ): DialogChainObject | void {
 
-    let options: Record<string, string | number> = {}
+    let options: Record<string, string | number | boolean> = {}
     const msg = typeof data === 'object' ? data.message || data.msg || null : data;
 
     if (typeof data === 'object') {
@@ -216,38 +218,45 @@ const helpers = {
 
     const tx = {
       success: {
-        class: 'green-1',
-        textColor: 'green-8',
+        class: 'green-10',
+        btnColor: 'bg-green-6 text-white',
+        textColor: 'green-1',
         type: 'positive',
       },
       error: {
         class: 'red-1',
+        btnColor: 'bg-yellow-6 text-white',
         textColor: 'red-8',
         type: 'negative',
       },
       danger: {
         class: 'red-1',
+        btnColor: 'bg-red-6 text-white',
         textColor: 'red-8',
         type: 'negative',
       },
       warning: {
         class: 'yellow-1',
+        btnColor: 'bg-yellow-6 text-white',
         textColor: 'yellow-10',
         type: 'warning',
       },
       alert: {
         class: 'yellow-1',
+        btnColor: 'bg-yellow-6 text-white',
         textColor: 'yellow-10',
         type: 'warning',
       },
       notice: {
         class: 'grey-1',
+        btnColor: 'bg-grey-6 text-white',
         textColor: 'grey-8',
         type: 'ongoing',
       },
       info: {
-        class: 'blue-1',
-        textColor: 'blue-8',
+        class: 'blue-10',
+        btnColor: 'bg-blue-6 text-white',
+        textColor: 'blue-1',
         type: 'info',
       },
     };
@@ -280,6 +289,7 @@ const helpers = {
             label,
             flat: !!danger,
             color: !!danger ? 'negative' : tx_status.textColor,
+            class: !danger ? tx_status.btnColor : undefined,
             textColor: !!danger ? 'negative' : 'white',
             unelevated: true,
             noCaps: true,
@@ -637,8 +647,8 @@ const helpers = {
     return location.href;
   },
   arrayUnique (array: Record<string, string>[], prop = 'id') {
-    const set = new Set;
-    return array.filter(o => !set.has(o[prop]) && set.add(o[prop]));
+    const set = new Set();
+    return array.filter(i => !set.has(i[prop]) && set.add(i[prop]));
   },
 };
 

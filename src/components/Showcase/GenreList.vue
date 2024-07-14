@@ -1,6 +1,6 @@
 <template>
-  <div :key="category.id" v-for="category in categories">
-    <q-toolbar class="px-0">
+  <div :key="category.id" v-for="(category, i) in categories">
+    <q-toolbar class="px-0" v-if="category.data?.list?.length">
       <h1 class="va-h5">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
       <VaButton
@@ -12,48 +12,38 @@
         <h1>See All</h1>
       </VaButton>
     </q-toolbar>
-    <q-scroll-area class="h-48 md:h-64 max-w" v-if="!verticalList">
-      <div class="flex flex-row max-w-full gap-2 overflow-auto flex-nowrap">
-        <GenreCard
-          class="m-1"
-          :key="genre.id"
-          :genre="genre"
-          v-for="genre in genres"
-        />
-      </div>
-    </q-scroll-area>
-    <div
-      v-else
-      class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7"
-    >
-      <GenreCard
-        class="m-1"
-        :key="genre.id"
-        :genre="genre"
-        v-for="genre in genres"
-      />
-    </div>
+    <GenreCategory
+      :params="params"
+      :immediate="immediate"
+      :vertical-list="verticalList"
+      v-model:category="categories[i]"
+      v-if="category.data?.list?.length"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import GenreCard from 'src/components/Cards/GenreCard.vue';
-import { Category } from 'src/utils/models';
-import { genres } from 'src/utils/dummy';
+import { Category, GenericData, Genre } from 'src/utils/models';
 import { PropType } from 'vue';
+import GenreCategory from './GenreCategory.vue';
 
 defineProps({
-  verticalList: Boolean,
+  params: { type: Object as PropType<GenericData>, default: () => ({}) },
+  immediate: Boolean,
+  specialIcon: Object as PropType<[string, (p: string | number) => boolean]>,
   hideAllLink: Boolean,
-  categories: {
-    type: Array as PropType<Category[]>,
-    default: () => [
-      {
-        title: 'Genres',
-        slug: 'genres',
-        id: 'genres',
-      },
-    ],
-  },
+  verticalList: Boolean,
+});
+
+const categories = defineModel('categories', {
+  type: Array as PropType<Category<Genre>[]>,
+  default: () => [
+    {
+      title: 'Genres',
+      slug: 'genres',
+      id: 'genres',
+      data: { list: [], meta: {} },
+    },
+  ],
 });
 </script>

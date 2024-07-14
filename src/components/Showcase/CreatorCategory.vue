@@ -55,7 +55,10 @@ import {
   PageMeta,
   User,
 } from 'src/utils/models';
-import { loadArtistsRequest, loadUsersRequest } from 'src/utils/requests';
+import {
+  loadArtistsRequest,
+  loadUsersRequest,
+} from 'src/utils/requests/requests';
 import { PropType } from 'vue';
 import CreatorCard from '../Cards/CreatorCard.vue';
 
@@ -113,10 +116,10 @@ onSuccess(({ data }) => {
 });
 
 const loadMore = () => {
-  if (loading.value) return false;
+  if (loading.value || isLastPage.value) return false;
   const cmeta = category.value.data?.meta as PageMeta;
 
-  if (!isLastPage.value || cmeta.last_page > cmeta.current_page) {
+  if (cmeta.last_page > cmeta.current_page) {
     page.value++;
   }
 };

@@ -5,13 +5,7 @@
         <GenreList
           vertical-list
           hide-all-link
-          :categories="[
-            {
-              id: 'genres',
-              slug: 'genres',
-              title: 'Genres',
-            },
-          ]"
+          v-model:categories="categories.main"
         />
       </div>
     </div>
@@ -21,6 +15,41 @@
 <script setup lang="ts">
 import GenreList from 'src/components/Showcase/GenreList.vue';
 import { useMeta } from 'quasar';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { loadGenresRequest } from 'src/utils/requests/requests';
+import { Category, GenericData, Genre, PageMeta } from 'src/utils/models';
+import { reactive } from 'vue';
+
+defineOptions({
+  async preFetch({ store }) {
+    const boot = useBootstrapStore(store);
+    const { data: genres, meta: genresMeta } = await loadGenresRequest({
+      limit: 30,
+    }).send();
+
+    boot.pageData.current = {
+      genres,
+      genresMeta,
+    } as unknown as GenericData[];
+  },
+});
+
+const current = useBootstrapStore().pageData.current as unknown as {
+  genres: Genre[];
+  genresMeta: PageMeta;
+};
+
+const categories = reactive({
+  main: <Category[]>[
+    {
+      id: 'genres',
+      slug: 'genres',
+      title: 'Genres',
+      data: { list: current.genres, meta: current.genresMeta },
+      params: { limit: 30 },
+    },
+  ],
+});
 
 useMeta(() => {
   return {

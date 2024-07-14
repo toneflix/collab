@@ -22,7 +22,7 @@ import { useMeta } from 'quasar';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { GenericData } from 'src/utils/models';
-import { exploreRequest } from 'src/utils/requests';
+import { exploreRequest } from 'src/utils/requests/requests';
 import { computed, reactive } from 'vue';
 
 defineOptions({

@@ -123,7 +123,7 @@ import {
 } from 'src/utils/models';
 import { PropType, computed, ref } from 'vue';
 import { useForm } from '@alova/scene-vue';
-import { saveProjectCollaboratorRequest } from 'src/utils/requests';
+import { saveProjectCollaboratorRequest } from 'src/utils/requests/requests';
 import { notify } from 'src/utils/helpers';
 import { collabRoles } from 'src/utils/presets';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

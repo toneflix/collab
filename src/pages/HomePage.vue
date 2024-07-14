@@ -5,11 +5,11 @@
         <TrackList
           :categories="[
             {
-              title: 'Recently Played',
-              slug: 'recently-played',
-              id: 'recently-played',
-              data: data.recently_played,
-              params: { filters: 'recently_played' },
+              id: 'latest',
+              slug: 'latest',
+              title: 'Latest Songs',
+              data: data.latest_tracks,
+              params: { filters: 'latest' },
             },
           ]"
         />
@@ -51,11 +51,11 @@
         <TrackList
           :categories="[
             {
-              id: 'latest',
-              slug: 'latest',
-              title: 'Latest  Songs',
-              data: data.latest_tracks,
-              params: { filters: 'latest' },
+              title: 'Recently Played',
+              slug: 'recently-played',
+              id: 'recently-played',
+              data: data.recently_played,
+              params: { filters: 'recently_played' },
             },
           ]"
         />
@@ -135,7 +135,7 @@ import TrendingList from 'src/components/Showcase/TrendingList.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { exploreRequest } from 'src/utils/requests';
+import { exploreRequest } from 'src/utils/requests/requests';
 import { GenericData } from 'src/utils/models';
 import { computed } from 'vue';
 import { useRequest } from 'alova';

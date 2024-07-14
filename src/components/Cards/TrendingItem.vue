@@ -54,12 +54,18 @@
 <script setup lang="ts">
 import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v7';
 import { EventBus } from 'quasar';
-import { CollabEvents, SeekingData, Track } from 'src/utils/models';
+import {
+  CollabEvents,
+  SeekingData,
+  StopEventKeywords,
+  Track,
+} from 'src/utils/models';
 import { inject } from 'vue';
 import { ref } from 'vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
+  togglePlay: [value: boolean];
 }>();
 
 const props = defineProps({
@@ -78,6 +84,7 @@ const bus = inject<EventBus<CollabEvents>>('bus');
 const togglePlay = () => {
   playing.value = !playing.value;
   bus?.emit('togglePlay', playing.value, track.value, undefined, 'trend');
+  emit('togglePlay', playing.value);
 };
 
 const onIntersect = (evt: IntersectionObserverEntry): boolean => {
@@ -100,6 +107,14 @@ bus?.on('seeking', (position, trk, url) => {
 bus?.on('togglePlay', (status, trk, album, origin) => {
   if (origin !== 'trend' && trk.id === track.value.id) {
     playing.value = status;
+    emit('togglePlay', playing.value);
   }
+});
+
+const evts: StopEventKeywords[] = ['stop', 'pause', 'end'];
+evts.forEach((evt) => {
+  bus?.on(evt, (pos, trk) => {
+    if (trk.id === track.value.id) playing.value = false;
+  });
 });
 </script>

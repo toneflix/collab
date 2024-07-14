@@ -16,7 +16,8 @@
               color="dark-opaque"
               size="xl"
               class="!flex-none opacity-90"
-              :icon="ionPlay"
+              :icon="playing ? ionPause : ionPlay"
+              @click="togglePlay"
             />
           </template>
         </AtroposViewer>
@@ -127,6 +128,7 @@
             class="m-1"
             :key="track.id"
             :track="track"
+            @toggle-play="playing = $event"
             v-for="track in album.tracks"
           />
         </div>
@@ -149,26 +151,33 @@ import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import {
   Category,
+  CollabEvents,
   GenericData,
   PageMeta,
   Release,
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionHeart, ionHeartOutline, ionPlay } from '@quasar/extras/ionicons-v7';
+import {
+  ionHeart,
+  ionHeartOutline,
+  ionPause,
+  ionPlay,
+} from '@quasar/extras/ionicons-v7';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
-import { useMeta } from 'quasar';
+import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
   loadReleaseRequest,
   loadReleasesRequest,
   loadTracksRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useWatcher } from 'alova';
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
+import { useGlobalStore } from 'src/stores/global-store';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -203,6 +212,8 @@ defineOptions({
 });
 
 const route = useRoute();
+const system = useGlobalStore();
+const playing = ref(false);
 
 const current = useBootstrapStore().pageData.current as unknown as {
   album: Release;
@@ -215,7 +226,11 @@ const current = useBootstrapStore().pageData.current as unknown as {
 /**
  * Load the album
  */
-const { data: album, loading } = useWatcher(
+const {
+  data: album,
+  loading,
+  onSuccess,
+} = useWatcher(
   () =>
     loadReleaseRequest(route.params.album_id, {
       with: 'tracks,artist,comments_count',
@@ -228,6 +243,10 @@ const { data: album, loading } = useWatcher(
     initialData: current.album || {},
   },
 );
+
+onSuccess(() => {
+  playing.value = false;
+});
 
 /**
  * Initialize the categories
@@ -243,6 +262,28 @@ const categories = ref({
     },
   ],
 });
+
+const bus = inject<EventBus<CollabEvents>>('bus');
+
+const togglePlay = () => {
+  if (album.value.tracks?.length) {
+    playing.value = !playing.value;
+    if (system.playlist.id !== route.fullPath) {
+      system.setPlaylistId(route.fullPath);
+      system.addToPlaylist(album.value.tracks);
+      system.setCurrentTrack(album.value.tracks[0]);
+      bus?.emit(
+        'togglePlay',
+        playing.value,
+        album.value.tracks[0],
+        album.value,
+        'album',
+      );
+    } else {
+      bus?.emit('justTogglePlay', playing.value, 'album');
+    }
+  }
+};
 
 useMeta(() => {
   return {

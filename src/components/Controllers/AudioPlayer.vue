@@ -187,7 +187,7 @@
 
 <script setup lang="ts">
 import TIcon from '../icons/TIcon.vue';
-import { CollabEvents, Track } from 'src/utils/models';
+import { CollabEvents, StopEventKeywords, Track } from 'src/utils/models';
 import {
   ionRepeat,
   ionPlaySkipBackOutline,
@@ -196,27 +196,26 @@ import {
   ionShuffleOutline,
   ionPauseOutline,
 } from '@quasar/extras/ionicons-v7';
-import { trackList } from 'src/utils/dummy';
 import { Howl, Howler } from 'howler';
 import { useGlobalStore } from 'src/stores/global-store';
 import { ref, computed, onBeforeUnmount, onMounted, inject } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { EventBus, useInterval } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-
-defineOptions({
-  preFetch({ store }) {
-    const system = useGlobalStore(store);
-    const index = Math.floor(Math.random() * trackList.value.length);
-    system.setCurrentTrack(trackList.value[index]);
-  },
-});
+import {
+  loadPlaylistRequest,
+  loadTrackRequest,
+} from 'src/utils/requests/requests';
 
 let sound: Howl;
 const bus = inject<EventBus<CollabEvents>>('bus');
-const mute = ref(false);
 const boot = useBootstrapStore();
 const system = useGlobalStore();
+
+const mute = computed({
+  get: () => system.mute,
+  set: (v) => (system.mute = v),
+});
 const volume = computed({
   get: () => system.volume,
   set: (v) => (system.volume = v),
@@ -226,7 +225,9 @@ const playing = ref(false);
 const progress = ref();
 const position = ref(0);
 const duration = ref(0);
-const currentTrack = ref<Track>(system.currentTrack || trackList.value[0]);
+const currentTrack = ref<Track>(
+  system.currentTrack || ({} as unknown as Track),
+);
 
 const onSeek = (pos: number) => {
   sound.seek((pos / 100) * sound.duration());
@@ -237,35 +238,45 @@ const buildPlaylist = (
   track?: Track | Track[] | null | undefined,
   play: boolean = false,
 ) => {
-  system.addToPlaylist(track || trackList.value);
   if (track) {
+    system.addToPlaylist(track);
     currentTrack.value = Array.isArray(track) ? track[0] : track;
-  } else {
-    currentTrack.value = trackList.value[0];
+    if (Array.isArray(track)) {
+      system.playlist.id = 0;
+    }
   }
 
   initialize(play);
 };
 
-const skipper = (dir: '<' | '>', skip: boolean = false) => {
-  const tracks = system.playlist.tracks;
+const skipper = async (
+  dir: '<' | '>',
+  skip: boolean = false,
+): Promise<void> => {
+  const playlist = system.playlist;
   if (shuffle.value) {
-    tracks.sort(() => Math.random() - 0.5);
+    playlist.shuffle();
   }
 
-  const i = tracks.findIndex((e) => e.id === currentTrack.value.id);
+  const curr = playlist.find((e) => e.value.id === currentTrack.value.id);
 
   if (skip) {
     if (system.playMode === 'loop') {
-      skipper(dir);
-    } else if (system.playMode === 'all' && i + 1 < tracks.length) {
-      currentTrack.value = tracks[i + 1];
+      return skipper(dir);
+    } else if (system.playMode === 'all' && curr?.next) {
+      currentTrack.value = curr.next.value as Track;
     } else {
-      // TODO:  Refresh the track list
+      const { data } = await loadPlaylistRequest({
+        randomize: true,
+        with: 'artist',
+      }).send();
+      return buildPlaylist(data, true);
     }
   } else {
-    currentTrack.value = tracks[dir === '>' ? i + 1 : i - 1] || tracks[0];
+    const trk = dir === '>' ? curr?.next?.value : curr?.prev?.value;
+    currentTrack.value = trk || (playlist.head?.value as Track);
   }
+
   initialize(true);
 };
 
@@ -302,21 +313,44 @@ bus?.on('togglePlay', (state, track, album, origin) => {
   }
 });
 
+bus?.on('justTogglePlay', (state, origin) => {
+  if (origin !== 'player') {
+    state ? sound.play() : sound.pause();
+  }
+});
+
 const { registerInterval, removeInterval } = useInterval();
 
-const initialize = (play: boolean = false) => {
-  if (!system.playlist.tracks.length) {
+const loading = ref(false);
+const initialize = async (play: boolean = false): Promise<Howl | void> => {
+  if (!system.playlist.size) {
     return;
   }
 
   if (sound) {
     sound.unload();
+    Howler.unload();
   }
+
+  loading.value = true;
+
+  if (!currentTrack.value.streamUrl) {
+    currentTrack.value = await loadTrackRequest(String(currentTrack.value.id), {
+      with: 'streamUrl,artist',
+      mode: 'play',
+    }).send();
+  }
+
+  loading.value = false;
 
   const fileUrl = currentTrack.value.streamUrl;
 
   sound = new Howl({
     src: [fileUrl],
+    mute: system.mute,
+    pool: 1,
+    loop: system.playMode === 'single',
+    html5: true,
     format: currentTrack.value.format || 'mp3',
     xhr: {
       headers: {
@@ -335,31 +369,34 @@ const initialize = (play: boolean = false) => {
         bus?.emit('seeking', position.value, currentTrack.value, fileUrl);
       }, 200);
     },
-    onload: () => {
-      duration.value = sound.duration();
-    },
   });
 
-  if (play) {
-    if (sound.state() === 'unloaded') {
-      sound.load();
-    }
+  // Reload the sound
+  if (sound.state() === 'unloaded') sound.load();
 
-    Howler.volume(volume.value / 100);
-    sound.play();
-    sound.loop(system.playMode === 'single');
-  }
+  sound.once('load', () => {
+    if (play) {
+      Howler.volume(volume.value / 100);
+      sound.play();
+    }
+    duration.value = sound.duration();
+  });
 
   // Stop the interval watcher
-  ['stop', 'pause', 'end'].forEach((event) => {
+  const evts: StopEventKeywords[] = ['stop', 'pause', 'end'];
+  evts.forEach((event) => {
     sound.on(event, () => {
       removeInterval();
       playing.value = false;
       position.value = sound.seek();
       progress.value = (sound.seek() / sound.duration()) * 100;
-
       event === 'end' && skipper('>', true);
+      bus?.emit(event, position.value, currentTrack.value, fileUrl);
     });
+  });
+
+  return new Promise((resolve) => {
+    resolve(sound);
   });
 };
 

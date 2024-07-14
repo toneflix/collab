@@ -18,7 +18,8 @@
               color="dark-opaque"
               size="xl"
               class="!flex-none opacity-90"
-              :icon="ionPlay"
+              :icon="playing ? ionPause : ionPlay"
+              @click="togglePlay"
             />
           </template>
         </AtroposViewer>
@@ -124,32 +125,34 @@ import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import {
   Artist,
   Category,
+  CollabEvents,
   GenericData,
   PageMeta,
   Release,
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionAdd, ionPlay } from '@quasar/extras/ionicons-v7';
+import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v7';
 import { intStr, subString } from 'src/utils/helpers';
-import { useMeta } from 'quasar';
+import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
   loadArtistRequest,
   loadReleasesRequest,
   loadTracksRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useWatcher } from 'alova';
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
+import { useGlobalStore } from 'src/stores/global-store';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
     const boot = useBootstrapStore(store);
     const id = String(currentRoute.params.artist_id);
 
-    const artist = await loadArtistRequest(id, { with: 'tracks' }, true).send();
+    const artist = await loadArtistRequest(id, {}, true).send();
 
     const { data: tracks, meta: tracksMeta } = await loadTracksRequest({
       artist_id: artist.id,
@@ -180,6 +183,9 @@ defineOptions({
 });
 
 const route = useRoute();
+const system = useGlobalStore();
+const playing = ref(false);
+
 const current = useBootstrapStore().pageData.current as unknown as {
   artist: Artist;
   tracks: Track[];
@@ -219,12 +225,7 @@ const categories = ref({
 });
 
 const { data: artist, loading } = useWatcher(
-  () =>
-    loadArtistRequest(
-      route.params.artist_id as string,
-      { with: 'tracks' },
-      true,
-    ),
+  () => loadArtistRequest(route.params.artist_id as string, {}, true),
   [() => route.params.artist_id],
   {
     sendable: () => !!route.params.artist_id,
@@ -232,6 +233,28 @@ const { data: artist, loading } = useWatcher(
     initialData: current.artist,
   },
 );
+
+const bus = inject<EventBus<CollabEvents>>('bus');
+
+const togglePlay = () => {
+  if (current.tracks.length) {
+    playing.value = !playing.value;
+    if (system.playlist.id !== route.fullPath) {
+      system.setPlaylistId(route.fullPath);
+      system.addToPlaylist(current.tracks);
+      system.setCurrentTrack(current.tracks[0]);
+      bus?.emit(
+        'togglePlay',
+        playing.value,
+        current.tracks[0],
+        undefined,
+        'artist',
+      );
+    } else {
+      bus?.emit('justTogglePlay', playing.value, 'artist');
+    }
+  }
+};
 
 useMeta(() => {
   return artist.value

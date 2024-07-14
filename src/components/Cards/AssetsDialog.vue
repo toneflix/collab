@@ -219,7 +219,7 @@ import { formatBytes, notify } from 'src/utils/helpers';
 import {
   loadProjectTrackAssetsRequest,
   saveProjectTrackAssetRequest,
-} from 'src/utils/requests';
+} from 'src/utils/requests/requests';
 import { useForm } from '@alova/scene-vue';
 import { allowedAssetsExts } from 'src/utils/presets';
 

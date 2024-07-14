@@ -128,7 +128,10 @@ import {
 } from 'src/utils/models';
 import { computed } from 'vue';
 import { useForm } from '@alova/scene-vue';
-import { createProjectRequest, loadProjectRequest } from 'src/utils/requests';
+import {
+  createProjectRequest,
+  loadProjectRequest,
+} from 'src/utils/requests/requests';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { useRoute, useRouter } from 'vue-router';
 import { useWatcher } from 'alova';

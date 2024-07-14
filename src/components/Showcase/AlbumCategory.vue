@@ -33,7 +33,7 @@
 import { usePagination } from '@alova/scene-vue';
 import AlbumCard from 'src/components/Cards/AlbumCard.vue';
 import { Category, GenericData, PageMeta, Release } from 'src/utils/models';
-import { loadReleasesRequest } from 'src/utils/requests';
+import { loadReleasesRequest } from 'src/utils/requests/requests';
 import { PropType } from 'vue';
 
 const props = defineProps({
@@ -86,10 +86,10 @@ onSuccess(({ data }) => {
 });
 
 const loadMore = () => {
-  if (loading.value) return false;
+  if (loading.value || isLastPage.value) return false;
   const cmeta = category.value.data?.meta as PageMeta;
 
-  if (!isLastPage.value || cmeta.last_page > cmeta.current_page) {
+  if (cmeta.last_page > cmeta.current_page) {
     page.value++;
   }
 };

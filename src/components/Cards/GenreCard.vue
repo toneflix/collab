@@ -8,6 +8,7 @@
         origin: encodeURIComponent($router.resolve({ name: 'genres' }).href),
       },
     }"
+    v-intersection="onIntersect"
   >
     <q-card
       flat
@@ -42,7 +43,22 @@
 <script setup lang="ts">
 import { Genre } from 'src/utils/models';
 
+const emit = defineEmits<{
+  scrollEnd: [value: boolean];
+}>();
+
+const props = defineProps({
+  isLast: Boolean,
+});
+
 const genre = defineModel<Genre>('genre', {
   required: true,
 });
+
+const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+  if (props.isLast && evt.isIntersecting) {
+    emit('scrollEnd', true);
+  }
+  return true;
+};
 </script>

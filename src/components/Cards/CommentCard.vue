@@ -9,10 +9,42 @@
       <div
         class="flex-1 px-4 py-2 leading-relaxed border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
       >
-        <strong>{{ comment.user.name }}</strong>
-        <span class="ml-3 text-xs text-gray-400">
-          {{ timeAgoStamp(comment.createdAt, 'facebook', 'HH MMM, YYYY') }}
-        </span>
+        <div class="flex justify-around">
+          <div>
+            <strong>{{ comment.user.name }}</strong>
+            <span class="ml-3 text-xs text-gray-400">
+              {{ timeAgoStamp(comment.createdAt, 'facebook', 'HH MMM, YYYY') }}
+            </span>
+          </div>
+          <div class="flex-none">
+            <TDropdown
+              flat
+              dense
+              rounded
+              icon="fas fa-ellipsis"
+              color="white"
+              item-name="collaber"
+              dropdown-icon="none"
+              :links="[
+                {
+                  icon: 'fas fa-user-lock',
+                  label: 'Block User',
+                  color: 'red',
+                  loading: blocking,
+                  click: () => flag(comment, 'user'),
+                },
+                {
+                  icon: 'fas fa-flag',
+                  label: 'Report Comment',
+                  color: 'white',
+                  loading: reporting,
+                  click: () => flag(comment, 'comment'),
+                },
+              ]"
+              @click.stop.prevent
+            />
+          </div>
+        </div>
         <p class="flex items-center w-full gap-2 text-sm no-wrap">
           <span class="block">
             {{ comment.comment }}
@@ -66,10 +98,44 @@
             <div
               class="flex-1 px-4 py-2 leading-relaxed rounded-lg sm:px-6 sm:py-4"
             >
-              <strong>{{ reply.user.name }}</strong>
-              <span class="ml-3 text-xs text-gray-400">
-                {{ timeAgoStamp(reply.createdAt, 'facebook', 'HH MMM, YYYY') }}
-              </span>
+              <div class="flex justify-around">
+                <div>
+                  <strong>{{ reply.user.name }}</strong>
+                  <span class="ml-3 text-xs text-gray-400">
+                    {{
+                      timeAgoStamp(reply.createdAt, 'facebook', 'HH MMM, YYYY')
+                    }}
+                  </span>
+                </div>
+                <div class="flex-none">
+                  <TDropdown
+                    flat
+                    dense
+                    rounded
+                    icon="fas fa-ellipsis"
+                    color="white"
+                    item-name="collaber"
+                    dropdown-icon="none"
+                    :links="[
+                      {
+                        icon: 'fas fa-user-lock',
+                        label: 'Block User',
+                        color: 'red',
+                        loading: blocking,
+                        click: () => flag(reply, 'user'),
+                      },
+                      {
+                        icon: 'fas fa-flag',
+                        label: 'Report Comment',
+                        color: 'white',
+                        loading: reporting,
+                        click: () => flag(reply, 'comment'),
+                      },
+                    ]"
+                    @click.stop.prevent
+                  />
+                </div>
+              </div>
               <p class="text-xs sm:text-sm">
                 {{ reply.comment }}
               </p>
@@ -134,12 +200,18 @@
 import { useForm, usePagination } from '@alova/scene-vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
-import { loadCommentsRequest, writeCommentsRequest } from 'src/utils/requests';
+import {
+  loadCommentsRequest,
+  writeCommentsRequest,
+} from 'src/utils/requests/requests';
 import { computed, PropType, watch, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import TDropdown from '../Utilities/TDropdown.vue';
+import { requestFlagContent } from 'src/utils/requests/content';
 
 const emit = defineEmits<{
   commented: [value: UserComment, type: 'comment' | 'reply'];
+  flagged: [value: UserComment, type: 'comment' | 'reply'];
 }>();
 
 const props = defineProps({
@@ -155,6 +227,19 @@ const props = defineProps({
 const route = useRoute();
 const formRef = ref();
 const showForm = ref(false);
+const blocking = ref(false);
+const reporting = ref(false);
+
+const flag = (comment: UserComment, type: 'user' | 'comment') => {
+  const id = type === 'user' ? comment.userId : comment.id;
+  const action = type === 'user' ? 'block' : 'report';
+  requestFlagContent({ type, id, label: type, action }, (state) => {
+    blocking.value = state === 'loading' && type === 'user';
+    reporting.value = state === 'loading' && type === 'comment';
+  }).then(() => {
+    emit('flagged', comment, comment.type);
+  });
+};
 
 const expanded = defineModel<boolean>('expanded', {
   type: Boolean,

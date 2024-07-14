@@ -22,6 +22,8 @@ export const dummyProjects: Project[] = [
     group: 'recent-projects',
     proped: false,
     privacy: 'public',
+    isOwner: false,
+    isCollaber: false,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00015',
     updatedAt: new Date().toUTCString(),
@@ -38,6 +40,8 @@ export const dummyProjects: Project[] = [
     group: 'recent-projects',
     proped: true,
     privacy: 'public',
+    isOwner: false,
+    isCollaber: true,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00019',
     updatedAt: new Date().toUTCString(),
@@ -54,6 +58,8 @@ export const dummyProjects: Project[] = [
     group: 'recent-projects',
     proped: false,
     privacy: 'public',
+    isOwner: true,
+    isCollaber: false,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00020',
     updatedAt: new Date().toUTCString(),
@@ -70,6 +76,8 @@ export const dummyProjects: Project[] = [
     group: 'open-projects',
     proped: true,
     privacy: 'public',
+    isOwner: true,
+    isCollaber: false,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00021',
     updatedAt: new Date().toUTCString(),
@@ -86,6 +94,8 @@ export const dummyProjects: Project[] = [
     group: 'open-projects',
     proped: false,
     privacy: 'public',
+    isOwner: false,
+    isCollaber: true,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00022',
     updatedAt: new Date().toUTCString(),
@@ -102,6 +112,8 @@ export const dummyProjects: Project[] = [
     group: 'open-projects',
     proped: true,
     privacy: 'public',
+    isOwner: false,
+    isCollaber: true,
     released: true,
     imageUrl: 'https://lorem.toneflix.com.ng/images/image/00024',
     updatedAt: new Date().toUTCString(),
@@ -486,6 +498,7 @@ export const albumLists: Album[] = [
 export const userComments = ref<UserComment[]>([
   {
     id: 1,
+    type: 'comment',
     comment: description,
     user: artistList.value[1],
     userId: 2,
@@ -496,12 +509,14 @@ export const userComments = ref<UserComment[]>([
   },
   {
     id: 1,
+    type: 'comment',
     comment: description2,
     user: artistList.value[2],
     userId: 2,
     replies: [
       {
         id: 1,
+        type: 'reply',
         userId: 2,
         comment: description2,
         user: artistList.value[3],
@@ -510,6 +525,7 @@ export const userComments = ref<UserComment[]>([
       },
       {
         id: 1,
+        type: 'reply',
         userId: 2,
         comment: description,
         user: artistList.value[4],
@@ -523,12 +539,14 @@ export const userComments = ref<UserComment[]>([
   },
   {
     id: 1,
+    type: 'comment',
     comment: description,
     user: artistList.value[5],
     userId: 2,
     replies: [
       {
         id: 1,
+        type: 'reply',
         userId: 2,
         comment: description2,
         user: artistList.value[6],
@@ -537,6 +555,7 @@ export const userComments = ref<UserComment[]>([
       },
       {
         id: 1,
+        type: 'reply',
         userId: 2,
         comment: description,
         user: artistList.value[7],
