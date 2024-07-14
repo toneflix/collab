@@ -330,6 +330,7 @@ export type Project = {
   createdAt: string,
   updatedAt: string,
   isCollaber: boolean,
+  joinPending?: boolean,
   interaction?: Interaction,
   description: string,
   tracksCount: number,

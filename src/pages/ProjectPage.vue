@@ -44,6 +44,7 @@
                   icon: 'fas fa-user-plus',
                   color: 'green',
                   show: !project.isCollaber && !project.isOwner,
+                  click: () => collaberDialogRef.toggle(),
                 },
                 {
                   label: 'Leave Project',
@@ -139,6 +140,8 @@
       text="This project was probably canceled..."
       v-else-if="!loading"
     />
+    <AddCollaberDialog guestRequest ref="collaberDialogRef" :project="project">
+    </AddCollaberDialog>
   </q-page>
 </template>
 
@@ -169,6 +172,7 @@ import {
 import { useWatcher } from 'alova';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -206,6 +210,8 @@ defineOptions({
 });
 
 const route = useRoute();
+const collaberDialogRef = ref();
+
 const current = useBootstrapStore().pageData.current as unknown as {
   project: Project;
   creators: User[];

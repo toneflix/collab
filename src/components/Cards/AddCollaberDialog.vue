@@ -17,7 +17,11 @@
         <q-toolbar-title>
           <span class="text-bold">{{ project.title }} Project:</span>
           {{
-            user.id ? `Update Collaber (${user.fullname})` : 'Create Collaber'
+            guestRequest
+              ? 'Request Collab'
+              : user.id
+                ? `Update Collaber (${user.fullname})`
+                : 'Invite Collaber'
           }}
         </q-toolbar-title>
         <q-btn flat round dense icon="close" v-close-popup />
@@ -29,7 +33,7 @@
           @submit="send"
           class="grid md:gap-y-3 md:grid-cols-2 md:gap-x-6"
         >
-          <div class="col-span-2">
+          <div class="col-span-2" v-if="!guestRequest">
             <label class="block mb-2 text-xl text-gray-400"> User </label>
             <UserSearchInput
               outlined
@@ -54,7 +58,7 @@
           </div>
           <div class="col-span-2">
             <label class="block mb-2 text-xl text-gray-400">
-              Collaber Role
+              {{ guestRequest ? 'Preferred' : 'Collaber' }} Role
               <span class="text-center text-red-500">*</span>
             </label>
             <q-select
@@ -65,10 +69,10 @@
               hide-bottom-space
               color="primary"
               class="custom-q-class no-fill"
-              label="Assign Role"
               input-class="custom-input-class"
               option-value="value"
               option-label="label"
+              :label="`${guestRequest ? 'Choose' : 'Assign'} Role`"
               :error="!!errors.role"
               :error-message="errors.role"
               :options="collabRoles"
@@ -103,7 +107,13 @@
           no-caps
           color="primary"
           class="text-xl rounded-lg"
-          :label="user.id ? 'Update' : 'Send Invitation'"
+          :label="
+            guestRequest
+              ? 'Send Request'
+              : user.id
+                ? 'Update'
+                : 'Send Invitation'
+          "
           :loading="saving"
           @click="userForm.submit()"
         />
@@ -147,6 +157,7 @@ const props = defineProps({
     type: String,
     default: 'Add Collaber',
   },
+  guestRequest: Boolean,
 });
 
 const me = computed(() => useBootstrapStore().user);
@@ -170,12 +181,16 @@ const {
   loading: saving,
   // onError,
   onSuccess,
-} = useForm((f) => saveProjectCollaboratorRequest(f, props.project), {
-  store: false,
-  initialForm: {
-    ...user.value,
-  } as unknown as Collaber,
-});
+} = useForm(
+  (f) =>
+    saveProjectCollaboratorRequest(f, props.project, {}, props.guestRequest),
+  {
+    store: false,
+    initialForm: {
+      ...user.value,
+    } as unknown as Collaber,
+  },
+);
 
 onSuccess(({ data }) => {
   if (user.value.id) {
