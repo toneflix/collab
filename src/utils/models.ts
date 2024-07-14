@@ -330,7 +330,7 @@ export type Project = {
   createdAt: string,
   updatedAt: string,
   isCollaber: boolean,
-  joinPending?: boolean,
+  pendingData?: Collaber,
   interaction?: Interaction,
   description: string,
   tracksCount: number,
@@ -394,6 +394,8 @@ export type NavigationLink = {
 };
 
 export type Link = {
+  actionTitle?: string;
+  actionMsg?: string;
   disabled?: boolean;
   disable?: boolean;
   loading?: boolean;

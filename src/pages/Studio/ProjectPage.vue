@@ -309,8 +309,8 @@
           </q-item-section>
         </q-item>
       </q-list>
-      <q-separator class="my-5" />
-      <div class="text-center">
+      <q-separator class="my-5" v-if="project.isOwner" />
+      <div class="text-center" v-if="project.isOwner">
         <ContentRemover
           dense
           no-caps

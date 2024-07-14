@@ -586,7 +586,7 @@ export const loadProjectCollaboratorsRequest = (p: Project, params?: GenericData
 
   return alova.Get(`${url}/${p.id}/collaborators`, {
     transformData: (e: ResponseBody<Collaber[]>) => e.data as Collaber[],
-    hitSource: 'create-project-collaborator',
+    hitSource: /\*-project-collaborator/,
     params
   })
 }
@@ -612,6 +612,24 @@ export const saveProjectCollaboratorRequest = (f: Collaber, p: Project, params?:
 
   return alova.Post<ResponseBody<Collaber>>(`${url}/${p.id}/collaborators${f.id ? '/' + f.id : ''}`, form, {
     name: 'create-project-collaborator',
+    params
+  })
+}
+
+/**
+ * Fetch all the collaboratores for a project
+ *
+ * @param id The ID of the track stem to delete
+ * @param p The project object
+ * @param params Optional parameters to pass to the request
+ * @param guest If it should be loaded for non-creator
+ * @returns
+ */
+export const removeProjectCollaboratorsRequest = (id: string, p: Project, params?: GenericData, guest = false) => {
+  const url = guest ? 'projects' : 'creator/projects'
+
+  return alova.Delete<ResponseBody<Collaber>>(`${url}/${p.id}/collaborators/${id}`, {}, {
+    name: 'remove-project-collaborator',
     params
   })
 }

@@ -15,11 +15,15 @@
               flat
               dense
               rounded
+              with-notifications
               size="2.4em"
               icon="eva-hash"
               dropdown-icon="none"
               color="dark-opaque"
               class="!flex-none opacity-90 rounded-full"
+              :class="{
+                'border-2 border-solid border-orange-400': project.pendingData,
+              }"
               :links="[
                 {
                   label: 'Project Studio',
@@ -43,14 +47,31 @@
                   label: 'Request to Join',
                   icon: 'fas fa-user-plus',
                   color: 'green',
-                  show: !project.isCollaber && !project.isOwner,
+                  show:
+                    !project.isCollaber &&
+                    !project.isOwner &&
+                    !project.pendingData,
                   click: () => collaberDialogRef.toggle(),
                 },
                 {
-                  label: 'Leave Project',
-                  icon: 'fas fa-user-minus',
-                  show: project.isCollaber,
+                  label: project.pendingData
+                    ? 'Cancel Request'
+                    : 'Leave Project',
+                  icon: `fas fa-user-${project.pendingData ? 'times' : 'minus'}`,
+                  show:
+                    (project.isCollaber || !!project.pendingData) &&
+                    !project.isOwner,
                   color: 'red',
+                  action: 'delete',
+                  target: `projects/${project.id}/collaborators/${project.pendingData?.id || 'self'}`,
+                  actionMsg: `Are you sure you want to ${project.pendingData ? 'cancel your request to join' : 'leave'} this project?`,
+                  actionTitle: project.pendingData
+                    ? 'Cancel Request'
+                    : 'Leave Project',
+                  callback: () => {
+                    project.isCollaber = false;
+                    delete project.pendingData;
+                  },
                 },
               ]"
               @click.stop.prevent
@@ -140,8 +161,13 @@
       text="This project was probably canceled..."
       v-else-if="!loading"
     />
-    <AddCollaberDialog guestRequest ref="collaberDialogRef" :project="project">
-    </AddCollaberDialog>
+    <AddCollaberDialog
+      hide-btn
+      guest-request
+      ref="collaberDialogRef"
+      :project="project"
+      @created="project.pendingData = $event"
+    />
   </q-page>
 </template>
 
@@ -181,7 +207,7 @@ defineOptions({
 
     const project = await loadProjectRequest(
       id,
-      { with: 'comments_count' },
+      { with: 'comments_count,pending_data' },
       true,
     ).send();
 
@@ -221,7 +247,7 @@ const current = useBootstrapStore().pageData.current as unknown as {
 };
 
 const categories = ref({
-  creators: <Category[]>[
+  creators: <Category<User>[]>[
     {
       id: 'collabers',
       slug: 'collabers',
@@ -236,7 +262,7 @@ const { data: project, loading } = useWatcher(
   () =>
     loadProjectRequest(
       route.params.project_id,
-      { with: 'comments_count' },
+      { with: 'comments_count,pending_data' },
       true,
     ),
   [() => route.params.project_id],

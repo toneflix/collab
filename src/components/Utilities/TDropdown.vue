@@ -132,6 +132,7 @@ const props = defineProps({
   tooltip: String,
   loading: Boolean,
   hasAlert: Boolean,
+  actionMsg: String,
   hideAlertIcon: Boolean,
   withNotifications: Boolean,
 });
@@ -154,13 +155,15 @@ const actions = ref({
   loading: false,
   delete: (link: Link) => {
     return notify({
-      msg: `Are you sure you want to delete this ${props.itemName?.toLowerCase()}? This action is not reversible.`,
-      alert: true,
+      msg:
+        link.actionMsg ||
+        `Are you sure you want to delete this ${props.itemName?.toLowerCase()}? This action is not reversible.`,
       danger: true,
-      title: `Delete ${props.itemName}`,
       status: 'warning',
-      ok: 'Yes, Delete',
       cancel: true,
+      title: link.actionTitle || `Delete ${props.itemName}`,
+      alert: true,
+      ok: `Yes, ${link.actionTitle || 'Delete'}`,
     })?.onOk(() => {
       if (!link.target) {
         return;

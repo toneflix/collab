@@ -7,7 +7,12 @@
       }
     "
   >
-    <q-btn icon="fas fa-info-circle" v-bind="$attrs" @click="toggle = !toggle">
+    <q-btn
+      icon="fas fa-info-circle"
+      v-bind="$attrs"
+      @click="toggle = !toggle"
+      v-if="!hideBtn"
+    >
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
@@ -157,6 +162,7 @@ const props = defineProps({
     type: String,
     default: 'Add Collaber',
   },
+  hideBtn: Boolean,
   guestRequest: Boolean,
 });
 
@@ -194,9 +200,9 @@ const {
 
 onSuccess(({ data }) => {
   if (user.value.id) {
-    emit('saved', data.data as Collaber);
+    emit('saved', data.data);
   } else {
-    emit('created', data.data as Collaber);
+    emit('created', data.data);
   }
   toggle.value = false;
   emit('done', true);

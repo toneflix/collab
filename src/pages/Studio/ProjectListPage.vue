@@ -120,7 +120,7 @@
                   },
                 },
                 {
-                  show: user.id === project.user_id,
+                  show: project.isOwner,
                   label: 'Delete Project',
                   icon: 'fas fa-trash',
                   color: 'negative',
@@ -153,7 +153,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { GenericData, PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests/requests';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
@@ -172,7 +172,6 @@ defineOptions({
 });
 
 const own = ref(true);
-const user = computed(() => useBootstrapStore().user);
 const current = useBootstrapStore().pageData.current as unknown as {
   projects: Project[];
   projectsMeta: Partial<PageMeta>;
