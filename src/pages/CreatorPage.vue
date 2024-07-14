@@ -22,7 +22,7 @@
                 class="verified-badge"
                 v-if="artist.verified"
               />
-              {{ artist.verified ? 'Verified Artist' : 'Artist' }}
+              {{ artist.verified ? 'Verified Creator' : 'Artist' }}
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
