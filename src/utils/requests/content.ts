@@ -1,9 +1,7 @@
-import { Project, ResponseBody, User } from '../models';
+import { ResponseBody, User } from '../models';
 
-import { Ref } from 'vue';
 import { alova } from 'src/boot/alova';
 import { notify } from 'src/utils/helpers';
-import { removeProjectCollaboratorsRequest } from './requests';
 
 type CSParams = {
   id?: string | string[] | number,
@@ -117,22 +115,19 @@ export const contentSafety = (
     });
 };
 
-export const cancelProjectMembership = async (project: Ref<Project>, leaving: Ref<boolean>, guest = false) => {
-  if (!project.value.pendingData) return;
+export const getAudioInfo = async (file: File): Promise<AudioBuffer> => {
+  return new Promise((resolve, abort) => {
 
-  leaving.value = true;
-  const id = String(project.value.pendingData.id);
-  try {
-    const data = await removeProjectCollaboratorsRequest(
-      id,
-      project.value,
-      {},
-      guest,
-    ).send();
-
-    notify(data.message, data.status);
-    delete project.value.pendingData;
-  } finally {
-    leaving.value = false;
-  }
+    if (file && file instanceof File) {
+      const audioContext = new AudioContext();
+      file.arrayBuffer().then(arrayBuffer => {
+        audioContext.decodeAudioData(arrayBuffer, (audioBuffer) => {
+          console.log(audioBuffer.duration, audioBuffer)
+          resolve(audioBuffer)
+        })
+      });
+    } else {
+      abort('Invalid File')
+    }
+  })
 };

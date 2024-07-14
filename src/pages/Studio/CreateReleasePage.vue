@@ -172,7 +172,7 @@
                             v-if="
                               form.draft &&
                               track.project_track_id &&
-                              (!track.id || track.defaultStream)
+                              (!track.id || track.audioMissing)
                             "
                           >
                             <q-btn
@@ -316,6 +316,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
 import { allowedAudioExts } from 'src/utils/presets';
+import { getAudioInfo } from 'src/utils/requests/content';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -468,13 +469,16 @@ onTrackError(({ error }: { error: ResponseBody<string[]> }) => {
 const tempFiles = ref<(File | undefined)[]>([]);
 const streamUrls = ref<string[]>([]);
 
-const setFile = (event: HTMLInputEvent, i: number) => {
+const setFile = async (event: HTMLInputEvent, i: number) => {
   tempFiles.value[i] = event.target.files?.[0];
   tracks.value[i].audio = tempFiles.value[i];
   if (!streamUrls.value[i]) {
     streamUrls.value[i] = tracks.value[i].streamUrl;
   }
   tracks.value[i].streamUrl = URL.createObjectURL(tempFiles.value[i] as File);
+  tracks.value[i].duration = (
+    await getAudioInfo(tempFiles.value[i] as File)
+  ).duration;
 };
 
 const resetTrack = (i: number) => {
@@ -486,7 +490,7 @@ const resetTrack = (i: number) => {
   }
 };
 
-const processUpload = (files?: File[]) => {
+const processUpload = async (files?: File[]) => {
   if (!files && trackForm.value.audio) {
     files = [trackForm.value.audio];
   }
@@ -502,6 +506,7 @@ const processUpload = (files?: File[]) => {
     trackForm.value.artist_id = form.value.artist_id;
     trackForm.value.release = form.value;
     trackForm.value.release_id = form.value.id;
+    trackForm.value.duration = (await getAudioInfo(files[0])).duration;
     saveTrack().then(({ data }) => {
       if (data) {
         reset();

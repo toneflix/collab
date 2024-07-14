@@ -193,9 +193,7 @@ export const createReleaseRequest = (f: Release) => {
   if (form.tracks) {
     form.tracks = toRaw(form.tracks).map(e => {
 
-      if (e.audio) {
-        // TODO: Extract duration from audio file and send with the request
-      }
+      // TODO: Extract duration from audio file and send with the request
 
       return Object.assign({}, e, {
         genre: undefined,
@@ -236,10 +234,6 @@ export const saveTrackRequest = (f: Track & UploadData) => {
     delete form.release.genre
     delete form.release.tracks
     delete form.release.artist
-  }
-
-  if (form.audio) {
-    // TODO: Extract duration from audio file and send with the request
   }
 
   const request = axios.Post<ResponseBody<Track>>('creator/releases/generic/tracks/save', form, {

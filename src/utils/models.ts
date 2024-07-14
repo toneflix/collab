@@ -267,7 +267,7 @@ export interface Track {
   streamUrl: string;
   interaction?: Interaction,
   description: string;
-  defaultStream?: boolean;
+  audioMissing?: boolean;
   contains_music?: boolean | 0 | 1,
   commentsCount?: number; // number of comments
   project_track_id?: string | number;
