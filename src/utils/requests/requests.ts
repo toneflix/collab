@@ -183,7 +183,7 @@ export const loadReleaseRequest = (id: string | string[], params?: GenericData) 
  * @returns
  */
 export const createReleaseRequest = (f: Release) => {
-  type Use = GenericData & { tracks: GenericData[] }
+  type Use = GenericData & { tracks: (Track & UploadData)[] }
   const form: Use = Object.assign({ tracks: [] }, toRaw(f), {
     genre: undefined,
     artist: undefined,
@@ -192,6 +192,11 @@ export const createReleaseRequest = (f: Release) => {
   // delete form.tracks
   if (form.tracks) {
     form.tracks = toRaw(form.tracks).map(e => {
+
+      if (e.audio) {
+        // TODO: Extract duration from audio file and send with the request
+      }
+
       return Object.assign({}, e, {
         genre: undefined,
         artist: undefined,
@@ -225,13 +230,18 @@ export const createReleaseRequest = (f: Release) => {
  * @param f The form data object
  * @returns
  */
-export const saveTrackRequest = (f: Track) => {
+export const saveTrackRequest = (f: Track & UploadData) => {
   const form = Object.assign({}, f)
   if (form.release) {
     delete form.release.genre
     delete form.release.tracks
     delete form.release.artist
   }
+
+  if (form.audio) {
+    // TODO: Extract duration from audio file and send with the request
+  }
+
   const request = axios.Post<ResponseBody<Track>>('creator/releases/generic/tracks/save', form, {
     enableUpload: true,
     name: 'create-track',

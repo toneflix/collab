@@ -1,6 +1,6 @@
 <template>
   <q-scroll-area
-    class="w-full max-w-full md:max-w-xs lg:max-w-sm"
+    class="max-w-full w-[inherit]"
     :class="{
       'h-[540px]': $q.screen.lt.sm,
       'h-[590px]': $q.screen.gt.xs,
@@ -12,7 +12,7 @@
       v-if="category.data?.list?.length"
     >
       <div
-        class="flex flex-col xs:min-w-[80vw] sm:min-w-64 gap-2 md:w-64 self-start"
+        class="flex flex-col xs:min-w-[80vw] sm:min-w-[17rem] gap-2 self-start"
         :key="i"
         v-for="(list, i) in chunkedList"
       >
