@@ -28,7 +28,7 @@
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ subString(album?.title, 30) }}
+              {{ subString(album?.title, 18) }}
             </h1>
 
             <div
@@ -123,8 +123,9 @@
       v-if="album?.id"
     >
       <div class="col-span-5">
-        <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
           <TrendingItem
+            dense
             class="m-1"
             :key="track.id"
             :track="track"

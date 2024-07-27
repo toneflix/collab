@@ -112,18 +112,16 @@
           >
             <span class="block">
               {{
-                (
-                  env('frontURL') +
-                  $router.resolve({
-                    name: editingSlug ? 'artist' : 'artist.track',
-                    params: {
-                      track_id: !editingSlug ? form.slug.slug('-') : undefined,
-                      artist_id:
-                        meta.username || form.artist?.username || 'unknown',
-                    },
-                  }).href
-                ).replace(/\/\//g, '/')
-              }}
+                env('frontURL').slice(0, -1) +
+                $router.resolve({
+                  name: editingSlug ? 'artist' : 'artist.track',
+                  params: {
+                    track_id: !editingSlug ? form.slug.slug('-') : 'undefined',
+                    artist_id:
+                      meta.username || form.artist?.username || 'unknown',
+                  },
+                }).href
+              }}{{ editingSlug ? '/' : '' }}
             </span>
             <span class="block ml-2" :class="{ '!flex-1': editingSlug }">
               <q-btn

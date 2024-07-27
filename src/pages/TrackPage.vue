@@ -1,9 +1,9 @@
 <template>
   <q-page padding>
-    <div class="relative">
+    <div class="relative" v-if="track?.id">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
-        :style="{ backgroundImage: `url(${track?.imageUrl})` }"
+        :style="{ backgroundImage: `url(${track.imageUrl})` }"
       ></div>
       <div class="absolute flex justify-center md:!justify-start w-full">
         <AtroposViewer
@@ -60,6 +60,7 @@
                   label="Like"
                   :active="track.liked"
                   :base-url="`tracks/${track.id}`"
+                  :signature="`track:${track.id}`"
                   @done="track.likes = $event.likes"
                 >
                   <VaButton
@@ -124,7 +125,10 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80">
+    <div
+      class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80"
+      v-if="track?.id"
+    >
       <div class="col-span-5">
         <TrendingList
           flexible
@@ -141,6 +145,10 @@
         />
       </div>
     </div>
+    <OopsAlert
+      text="We're sorry, we lost track of this track..."
+      v-else-if="!loading"
+    />
   </q-page>
 </template>
 
@@ -178,6 +186,7 @@ import {
 import { useWatcher } from 'alova';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
+import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -231,7 +240,11 @@ const seeking = ref<SeekingData>({} as unknown & SeekingData);
 /**
  * Load the tracks
  */
-const { data: track, onSuccess } = useWatcher(
+const {
+  data: track,
+  loading,
+  onSuccess,
+} = useWatcher(
   () =>
     loadTrackRequest(route.params.track_id, {
       artist_id: String(route.params.artist_id),

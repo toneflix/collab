@@ -51,13 +51,29 @@
         </q-item-section>
 
         <q-item-section side v-if="$q.screen.gt.xs">
-          <VaButton
-            size="medium"
-            preset="plain"
-            @click="currentTrack.liked = !currentTrack.liked"
+          <TInteraction
+            v-slot="{ submit, active }"
+            type="like"
+            label="Like"
+            :active="currentTrack.liked"
+            :base-url="`tracks/${currentTrack.id}`"
+            :signature="`track:${currentTrack.id}`"
+            @done="currentTrack.likes = $event.likes"
           >
-            <TIcon name="eva-heart" color="white" :fill="currentTrack.liked" />
-          </VaButton>
+            <VaButton
+              size="medium"
+              preset="plain"
+              color="textPrimary"
+              hover-opacity="0.05"
+              @click="submit"
+            >
+              <q-icon
+                color="white"
+                :name="active ? ionHeart : ionHeartOutline"
+                :fill="active"
+              />
+            </VaButton>
+          </TInteraction>
         </q-item-section>
       </q-item>
     </div>
@@ -195,6 +211,8 @@ import {
   ionPlayOutline,
   ionShuffleOutline,
   ionPauseOutline,
+  ionHeart,
+  ionHeartOutline,
 } from '@quasar/extras/ionicons-v7';
 import { Howl, Howler } from 'howler';
 import { useGlobalStore } from 'src/stores/global-store';
@@ -206,6 +224,7 @@ import {
   loadPlaylistRequest,
   loadTrackRequest,
 } from 'src/utils/requests/requests';
+import TInteraction from '../Utilities/TInteraction.vue';
 
 let sound: Howl;
 const bus = inject<EventBus<CollabEvents>>('bus');
@@ -225,9 +244,10 @@ const playing = ref(false);
 const progress = ref();
 const position = ref(0);
 const duration = ref(0);
-const currentTrack = ref<Track>(
-  system.currentTrack || ({} as unknown as Track),
-);
+const currentTrack = computed<Track>({
+  get: () => system.currentTrack || ({} as unknown as Track),
+  set: (v) => (system.currentTrack = v),
+});
 
 const onSeek = (pos: number) => {
   sound.seek((pos / 100) * sound.duration());

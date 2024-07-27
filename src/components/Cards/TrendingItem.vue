@@ -25,7 +25,11 @@
       </q-item-section>
 
       <q-item-section>
-        <q-item-label lines="1" class="text-sm font-bold max-w-[13rem]">
+        <q-item-label
+          lines="1"
+          class="text-sm font-bold"
+          :class="{ 'max-w-52': !dense, 'max-w-36': dense }"
+        >
           {{ track.title }}
         </q-item-label>
         <q-item-label caption lines="1" class="mt-0">
@@ -35,7 +39,7 @@
 
       <q-item-section side>
         <div class="flex flex-row items-center gap-2">
-          3:33
+          {{ formatSeconds(track.duration) }}
           <VaButton
             size="medium"
             preset="plain"
@@ -54,6 +58,7 @@
 <script setup lang="ts">
 import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v7';
 import { EventBus } from 'quasar';
+import { formatSeconds } from 'src/utils/helpers';
 import {
   CollabEvents,
   SeekingData,
@@ -69,6 +74,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps({
+  dense: Boolean,
   isLast: Boolean,
 });
 
