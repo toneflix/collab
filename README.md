@@ -1,6 +1,6 @@
 # Toneflix Collab (toneflix-collab)
 
-A platform to bring creatives in the music industry together to make awesome sounds through collaboration
+A streaming platform that brings together creatives in the music industry to make awesome sounds through collaboration.
 
 ## Install the dependencies
 
