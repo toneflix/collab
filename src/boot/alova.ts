@@ -4,6 +4,7 @@ import { Method, createAlova, invalidateCache, useRequest } from 'alova';
 import { Cookies } from 'quasar'
 import { GenericResponse } from 'src/utils/models';
 import GlobalFetch from 'alova/GlobalFetch';
+import { MutationType } from 'pinia';
 import { Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
 import VueHook from 'alova/vue';
@@ -205,14 +206,21 @@ export default boot(async ({ app, router, ssrContext }) => {
   axios.options.beforeRequest = (method) => beforeRequest(method as unknown as ResponseMethod, true)
   app.config.globalProperties.$alova = alova;
 
-  router.beforeResolve(async (to) => {
-    if (
-      boot.redirect &&
-      to.name !== boot.redirect.name
-    ) {
-      router.replace(boot.redirect);
+
+  const redirector = (redirect: RouteLocationNormalized | null, cur: RouteLocationNormalized) => {
+    if (redirect && cur.name !== redirect.name) {
+      router.replace(redirect);
       boot.redirect = null;
     }
+  }
+
+  router.beforeResolve(async (to) => {
+    boot.$subscribe((e, i) => {
+      if (e.type === MutationType.patchFunction && i.redirect) {
+        redirector(i.redirect, to)
+      }
+    })
+    redirector(boot.redirect, to)
   });
 });
 
