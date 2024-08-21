@@ -92,13 +92,7 @@
 <script setup lang="ts">
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
-import {
-  Artist,
-  Category,
-  GenericData,
-  PageMeta,
-  Project,
-} from 'src/utils/models';
+import { Artist, Category, PageMeta, Project } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { ionAdd } from '@quasar/extras/ionicons-v7';
 import { intStr, subString } from 'src/utils/helpers';
@@ -133,12 +127,12 @@ defineOptions({
       artist,
       projects,
       projectsMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
 const route = useRoute();
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   artist: Artist;
   projects: Project[];
   projectsMeta: Partial<PageMeta>;

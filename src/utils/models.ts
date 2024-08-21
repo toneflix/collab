@@ -66,7 +66,7 @@ export type ResponseBody<X = undefined, Y = Record<string, string>> = {
 export type PageData = {
   meta: GenericData | GenericData[];
   cache?: GenericData | GenericData[];
-  current: GenericData | GenericData[];
+  current: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   player_track?: Track;
 };
 

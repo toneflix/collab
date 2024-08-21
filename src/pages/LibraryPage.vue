@@ -40,7 +40,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
-import { Categories, GenericData } from 'src/utils/models';
+import { Categories } from 'src/utils/models';
 import { useWatcher } from 'alova';
 import { categoryChecker } from 'src/utils/navigations';
 
@@ -70,7 +70,7 @@ defineOptions({
     };
 
     const data = await exploreRequest(types[type] || types.recent).send();
-    boot.pageData.current = data as unknown as GenericData[];
+    boot.pageData.current = data;
   },
 });
 

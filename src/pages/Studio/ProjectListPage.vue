@@ -151,7 +151,7 @@ import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
-import { GenericData, PageMeta, Project } from 'src/utils/models';
+import { PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests/requests';
 import { ref } from 'vue';
 
@@ -167,12 +167,12 @@ defineOptions({
     boot.pageData.current = {
       projects,
       projectsMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
 const own = ref(true);
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   projects: Project[];
   projectsMeta: Partial<PageMeta>;
 };

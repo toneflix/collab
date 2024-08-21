@@ -110,7 +110,7 @@ import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { date } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
-import { GenericData, Release } from 'src/utils/models';
+import { Release } from 'src/utils/models';
 import { loadReleasesRequest } from 'src/utils/requests/requests';
 
 defineOptions({
@@ -120,10 +120,10 @@ defineOptions({
     await loadReleasesRequest({ user_id: boot.user.id as string })
       .send()
       .then(({ data }) => {
-        boot.pageData.current = data as unknown as GenericData[];
+        boot.pageData.current = data;
       });
   },
 });
 
-const releases = useBootstrapStore().pageData.current as unknown as Release[];
+const releases = useBootstrapStore().pageData.current as Release[];
 </script>

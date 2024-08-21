@@ -178,7 +178,6 @@ import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import {
   Category,
-  GenericData,
   PageMeta,
   Project,
   User,
@@ -231,14 +230,14 @@ defineOptions({
       comments,
       creatorMeta,
       commentsMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
 const route = useRoute();
 const collaberDialogRef = ref();
 
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   project: Project;
   creators: User[];
   comments: UserComment[];

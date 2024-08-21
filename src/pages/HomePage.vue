@@ -136,7 +136,6 @@ import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
-import { GenericData } from 'src/utils/models';
 import { computed } from 'vue';
 import { useRequest } from 'alova';
 
@@ -159,7 +158,7 @@ defineOptions({
     })
       .send()
       .then((data) => {
-        boot.pageData.current = data as unknown as GenericData[];
+        boot.pageData.current = data;
       });
   },
 });

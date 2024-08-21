@@ -344,7 +344,7 @@ import placeholder from 'src/assets/placeholder.svg';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
-import { GenericData, Project, Collaber, ProjectTrack } from 'src/utils/models';
+import { Project, Collaber, ProjectTrack } from 'src/utils/models';
 import {
   loadProjectCollaboratorsRequest,
   loadProjectRequest,
@@ -379,7 +379,7 @@ defineOptions({
         tracks,
         project,
         collaborators,
-      } as unknown as GenericData;
+      };
     }
   },
 });
@@ -387,7 +387,7 @@ defineOptions({
 const collaberDialogRef = ref();
 const route = useRoute();
 const user = computed(() => useBootstrapStore().user);
-const curr = useBootstrapStore().pageData.current as unknown as {
+const curr = useBootstrapStore().pageData.current as {
   tracks: ProjectTrack[];
   project: Project;
   collaborators: Collaber[];

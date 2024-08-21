@@ -159,7 +159,6 @@ import {
   Artist,
   Category,
   CollabEvents,
-  GenericData,
   PageMeta,
   Release,
   SeekingData,
@@ -219,11 +218,11 @@ defineOptions({
       releases,
       relatedMeta,
       releaseMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   track: Track;
   artist: Artist;
   related: Track[];

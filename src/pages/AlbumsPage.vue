@@ -41,7 +41,6 @@ import { useMeta } from 'quasar';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { GenericData } from 'src/utils/models';
 import { exploreRequest } from 'src/utils/requests/requests';
 import { computed, reactive } from 'vue';
 
@@ -57,7 +56,7 @@ defineOptions({
     })
       .send()
       .then((data) => {
-        boot.pageData.current = data as unknown as GenericData[];
+        boot.pageData.current = data;
       });
   },
 });

@@ -67,7 +67,7 @@
 import { usePagination } from '@alova/scene-vue';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { GenericData, PageMeta, User } from 'src/utils/models';
+import { PageMeta, User } from 'src/utils/models';
 import { requestFlagContent } from 'src/utils/requests/content';
 import { loadUsersRequest } from 'src/utils/requests/requests';
 import { ref } from 'vue';
@@ -78,11 +78,11 @@ defineOptions({
     const { data: users, meta: usersMeta } = await loadUsersRequest({
       filters: 'collabing',
     }).send();
-    boot.pageData.current = { users, usersMeta } as unknown as GenericData;
+    boot.pageData.current = { users, usersMeta };
   },
 });
 
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   users: User[];
   usersMeta: PageMeta;
 };

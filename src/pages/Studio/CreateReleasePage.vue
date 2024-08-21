@@ -378,7 +378,7 @@ defineOptions({
       tracks,
       release,
       project,
-    } as unknown as GenericData;
+    };
   },
 });
 
@@ -389,7 +389,7 @@ const router = useRouter();
 const uploader = ref();
 const fileInputRefs = ref<HTMLInputElement[]>([]);
 
-const curr = useBootstrapStore().pageData.current as unknown as {
+const curr = useBootstrapStore().pageData.current as {
   tracks: (Track & UploadData)[];
   project: Project;
   release: Release;

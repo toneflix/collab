@@ -120,12 +120,7 @@
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import placeholder from 'src/assets/placeholder.svg';
 import { privacyOptionsExtended } from 'src/utils/presets';
-import {
-  GenericData,
-  Project,
-  ResponseBody,
-  UploadData,
-} from 'src/utils/models';
+import { Project, ResponseBody, UploadData } from 'src/utils/models';
 import { computed } from 'vue';
 import { useForm } from '@alova/scene-vue';
 import {
@@ -144,7 +139,7 @@ defineOptions({
       await loadProjectRequest(id, { with: 'tracks,collabers' })
         .send()
         .then((data) => {
-          boot.pageData.current = data as unknown as GenericData;
+          boot.pageData.current = data;
         });
     }
   },
@@ -152,7 +147,7 @@ defineOptions({
 
 const route = useRoute();
 const router = useRouter();
-const current = useBootstrapStore().pageData.current as unknown as Project;
+const current = useBootstrapStore().pageData.current as Project;
 const errors = computed(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
 );

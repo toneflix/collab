@@ -17,7 +17,7 @@ import GenreList from 'src/components/Showcase/GenreList.vue';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { loadGenresRequest } from 'src/utils/requests/requests';
-import { Category, GenericData, Genre, PageMeta } from 'src/utils/models';
+import { Category, Genre, PageMeta } from 'src/utils/models';
 import { reactive } from 'vue';
 
 defineOptions({
@@ -30,11 +30,11 @@ defineOptions({
     boot.pageData.current = {
       genres,
       genresMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
-const current = useBootstrapStore().pageData.current as unknown as {
+const current = useBootstrapStore().pageData.current as {
   genres: Genre[];
   genresMeta: PageMeta;
 };

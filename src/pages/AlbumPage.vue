@@ -153,7 +153,6 @@ import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import {
   Category,
   CollabEvents,
-  GenericData,
   PageMeta,
   Release,
   Track,
@@ -208,7 +207,7 @@ defineOptions({
       releases,
       relatedMeta,
       releaseMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 

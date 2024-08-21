@@ -345,7 +345,6 @@ import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import 'src/css/playlist.scss';
 import { useQuasar } from 'quasar';
 import {
-  GenericData,
   PlaylistState,
   Project,
   ProjectTrack,
@@ -386,10 +385,7 @@ defineOptions({
       }).send();
 
       // Build Data
-      boot.pageData.current = {
-        track,
-        project,
-      } as unknown as GenericData;
+      boot.pageData.current = { track, project };
     }
   },
 });
@@ -412,7 +408,7 @@ const playlistRef = ref();
 const fileInputRef = ref();
 
 const conf = computed(() => useBootstrapStore().configuration);
-const curr = useBootstrapStore().pageData.current as unknown as {
+const curr = useBootstrapStore().pageData.current as {
   stems: WavePlaylistTrack[];
   track: ProjectTrack;
   project: Project;

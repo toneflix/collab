@@ -126,7 +126,6 @@ import {
   Artist,
   Category,
   CollabEvents,
-  GenericData,
   PageMeta,
   Release,
   Track,
@@ -178,7 +177,7 @@ defineOptions({
       tracksMeta,
       featuresMeta,
       lastReleaseMeta: rMeta,
-    } as unknown as GenericData[];
+    };
   },
 });
 
