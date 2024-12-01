@@ -252,7 +252,7 @@ onSuccess(() => {
  * Initialize the categories
  */
 const categories = ref({
-  albums: <Category[]>[
+  albums: <Category<Release>[]>[
     {
       id: 'albums',
       slug: 'albums',
