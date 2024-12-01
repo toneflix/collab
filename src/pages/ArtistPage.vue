@@ -196,7 +196,7 @@ const current = useBootstrapStore().pageData.current as unknown as {
 };
 
 const categories = ref({
-  albums: <Category[]>[
+  albums: <Category<Release>[]>[
     {
       id: 'albums',
       slug: 'albums',
@@ -205,7 +205,7 @@ const categories = ref({
       params: { artist_id: route.params.artist_id },
     },
   ],
-  tracks: <Category[]>[
+  tracks: <Category<Track>[]>[
     {
       id: 'top-songs',
       slug: 'top-songs',
