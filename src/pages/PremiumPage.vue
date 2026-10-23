@@ -48,7 +48,7 @@
           flat
           bordered
           :key="plan.id"
-          class="bg-dark"
+          class="flex flex-col bg-dark"
           :class="{ 'border-amber-7!': plan.id === current?.id }"
           v-for="{ plan, option } in shownPlans"
         >
@@ -86,7 +86,7 @@
               {{ plan.description }}
             </div>
           </q-card-section>
-          <q-card-actions>
+          <q-card-actions class="mt-auto !flex-none">
             <PayButton
               unelevated
               rounded
