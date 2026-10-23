@@ -19,7 +19,7 @@
           class="bg-gray-400"
           loading="eager"
           :ratio="1 / 1"
-          :src="creator.imageUrl"
+          :src="creator.imageUrl" :error-src="avatarFallback"
         />
       </q-avatar>
 
@@ -63,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import { avatarFallback } from 'src/utils/imageFallback';
 import { intStr } from 'src/utils/helpers';
 import { Artist, User } from 'src/utils/models';
 import { PropType } from 'vue';

@@ -13,7 +13,7 @@
   >
     <template v-slot:selected-item="{ opt }">
       <q-avatar rounded v-if="opt.imageUrl" class="mr-2">
-        <q-img fit="cover" :ratio="1 / 1" :src="opt.imageUrl" />
+        <q-img fit="cover" :ratio="1 / 1" :src="opt.imageUrl" :error-src="avatarFallback" />
       </q-avatar>
     </template>
     <template v-slot:option="{ opt, itemProps }">
@@ -26,7 +26,7 @@
       >
         <q-item-section avatar>
           <q-avatar rounded>
-            <img :src="opt.imageUrl" />
+            <img :src="opt.imageUrl" :error-src="avatarFallback" />
           </q-avatar>
         </q-item-section>
 
@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { avatarFallback } from 'src/utils/imageFallback';
 import { useForm } from 'alova/client';
 import { alova } from 'src/boot/alova';
 import { Artist, BaseOption, ResponseBody, User } from 'src/utils/models';

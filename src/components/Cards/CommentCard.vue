@@ -2,7 +2,7 @@
   <div class="flex flex-nowrap">
     <div class="flex-shrink-0 mr-3">
       <q-avatar size="lg" color="grey-6">
-        <q-img no-spinner loading="eager" :src="comment.user.imageUrl" alt="" />
+        <q-img no-spinner loading="eager" :src="comment.user.imageUrl" :error-src="avatarFallback" alt="" />
       </q-avatar>
     </div>
     <div class="flex flex-col">
@@ -90,7 +90,7 @@
                 <q-img
                   no-spinner
                   loading="eager"
-                  :src="reply.user.imageUrl"
+                  :src="reply.user.imageUrl" :error-src="avatarFallback"
                   alt=""
                 />
               </q-avatar>
@@ -197,6 +197,7 @@
 </template>
 
 <script setup lang="ts">
+import { avatarFallback } from 'src/utils/imageFallback';
 import { useForm, usePagination } from 'alova/client';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
