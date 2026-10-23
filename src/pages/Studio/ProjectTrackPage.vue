@@ -49,7 +49,7 @@
     </div>
 
     <!-- Stems, assets and conversation -->
-    <div class="flex flex-wrap items-center gap-2 mb-3">
+    <div class="flex flex-wrap items-center gap-1 mb-3">
       <input
         multiple
         type="file"
@@ -58,61 +58,51 @@
         :accept="allowedAudioExts.join(', ')"
         @change="onFilesPicked"
       />
-      <q-btn
-        dense
-        no-caps
-        rounded
-        unelevated
-        color="white"
-        text-color="dark"
-        padding="xs md"
-        class="!flex-none"
-        :icon="ionAddCircle"
+      <ActionButton
         label="Add stems"
+        :icon="ionAddCircle"
+        :expanded="expanded"
         :loading="uploading > 0"
         :disable="project.released"
         @click="fileInput?.click()"
       />
       <AssetsDialog
-        dense
-        no-caps
-        rounded
-        size="sm"
-        color="white"
-        padding="xs sm"
-        text-color="dark"
-        class="!flex-none"
         :track="track"
         :stems="stems"
         :released="project.released"
         @stem-updated="renameStem"
-      />
+      >
+        <template #default="{ toggle }">
+          <ActionButton label="Assets" :icon="ionFolderOpen" :expanded="expanded" @click="toggle" />
+        </template>
+      </AssetsDialog>
       <ConversationDialog
-        dense
-        no-caps
-        rounded
-        size="sm"
-        icon="fas fa-comments"
-        color="white"
-        padding="xs sm"
-        text-color="dark"
-        class="!flex-none"
         type="ProjectTrack"
         :id="track.id"
         :params="{ limit: 30, track_id: track.id }"
-      />
-      <ProjectTrackInfoDialog
+      >
+        <template #default="{ toggle }">
+          <ActionButton label="Conversation" :icon="ionChatbubbles" :expanded="expanded" @click="toggle" />
+        </template>
+      </ConversationDialog>
+      <ProjectTrackInfoDialog :track="track" :project="project">
+        <template #default="{ toggle }">
+          <ActionButton label="Track info" :icon="ionInformationCircle" :expanded="expanded" @click="toggle" />
+        </template>
+      </ProjectTrackInfoDialog>
+      <q-btn
+        flat
+        round
         dense
-        no-caps
-        rounded
-        size="sm"
-        color="white"
-        padding="xs sm"
-        text-color="dark"
-        class="!flex-none"
-        :track="track"
-        :project="project"
-      />
+        class="!flex-none expand-toggle"
+        :class="{ 'expand-toggle--open': expanded }"
+        :icon="ionChevronForward"
+        :aria-label="expanded ? 'Hide labels' : 'Show labels'"
+        :aria-expanded="expanded"
+        @click="toggleExpanded"
+      >
+        <q-tooltip>{{ expanded ? 'Hide labels' : 'Show labels' }}</q-tooltip>
+      </q-btn>
     </div>
 
     <q-no-ssr>
@@ -154,10 +144,20 @@
 </template>
 
 <script setup lang="ts">
-import { ionAddCircle, ionArrowBack, ionCloudUpload, ionSave } from '@quasar/extras/ionicons-v8';
-import { useQuasar } from 'quasar';
+import {
+  ionAddCircle,
+  ionArrowBack,
+  ionChatbubbles,
+  ionChevronForward,
+  ionCloudUpload,
+  ionFolderOpen,
+  ionInformationCircle,
+  ionSave,
+} from '@quasar/extras/ionicons-v8';
+import { LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
+import ActionButton from 'src/components/Studio/ActionButton.vue';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
@@ -205,6 +205,17 @@ const rendering = ref(false);
 const uploading = ref(0);
 const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
+
+/** Whether the action buttons show their labels; remembered on this device */
+const expanded = ref(false);
+const toggleExpanded = () => {
+  expanded.value = !expanded.value;
+  try {
+    LocalStorage.set('studio.actions.expanded', expanded.value);
+  } catch {
+    // Storage can be unavailable, e.g. in private browsing.
+  }
+};
 
 const errorMessage = (e: unknown, fallback: string) =>
   (e as ResponseBody)?.message || (e as Error)?.message || fallback;
@@ -346,9 +357,24 @@ onBeforeRouteLeave(() => {
 });
 
 onMounted(() => {
+  try {
+    expanded.value = LocalStorage.getItem<boolean>('studio.actions.expanded') === true;
+  } catch {
+    expanded.value = false;
+  }
   window.addEventListener('beforeunload', warnBeforeUnload);
   void loadStems();
 });
 
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload));
 </script>
+
+<style lang="scss" scoped>
+.expand-toggle :deep(.q-icon) {
+  transition: transform 0.3s ease;
+}
+
+.expand-toggle--open :deep(.q-icon) {
+  transform: rotate(180deg);
+}
+</style>
