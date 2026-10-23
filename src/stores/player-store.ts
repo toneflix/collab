@@ -34,6 +34,11 @@ const slim = (track: Track): Track =>
       ? { id: track.artist.id, name: track.artist.name, username: track.artist.username }
       : undefined,
     artist_id: track.artist_id,
+    release: track.release
+      ? { id: track.release.id, slug: track.release.slug, title: track.release.title, createdAt: track.release.createdAt }
+      : undefined,
+    explicit: track.explicit,
+    createdAt: track.createdAt,
     liked: track.liked,
     likes: track.likes,
     locked: track.locked,
@@ -91,6 +96,10 @@ export const usePlayerStore = defineStore('player', {
     },
     hasNext (state): boolean {
       return state.index < state.order.length - 1 || state.repeat === 'all';
+    },
+    /** The queue in play order, e.g. for an "Up next" list */
+    ordered (state): Track[] {
+      return state.order.map((i) => state.queue[i]).filter((t): t is Track => !!t);
     },
     progress (): number {
       return clock.duration ? (clock.position / clock.duration) * 100 : 0;
@@ -235,7 +244,7 @@ export const usePlayerStore = defineStore('player', {
 
       let full: Track;
       try {
-        full = await loadTrackRequest(String(track.id), { with: 'streamUrl,artist', mode: 'play' }).send();
+        full = await loadTrackRequest(String(track.id), { with: 'streamUrl,artist,release', mode: 'play' }).send();
       } catch {
         if (id === this.loadId) this.failed('This track couldn\'t be loaded.');
         return;
@@ -328,6 +337,16 @@ export const usePlayerStore = defineStore('player', {
         this.playing = false;
         clock.position = 0;
       }
+    },
+
+    /**
+     * Play the track at a position in the play order, e.g. from the queue list.
+     */
+    jumpTo (position: number) {
+      if (position < 0 || position >= this.order.length) return;
+      if (position === this.index) return this.toggle();
+      this.index = position;
+      return this.load(true);
     },
 
     previous () {
