@@ -2,7 +2,7 @@ import { RouteLocationRaw } from 'vue-router';
 import { WavePlaylistTrack } from './playlist';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc'
-export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration'
+export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans'
 export type PriviRole = 'super-admin' | 'admin' | 'manager' | 'support' | 'user'
 export type PlaylistState = 'select' | 'cursor' | 'shift' | 'fadein' | 'fadeout'
 export type ResponseStatus = 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert'
@@ -135,26 +135,58 @@ export type Transaction = {
   amount: number;
   earned?: number;
   message?: string | null;
-  plan?: 'monthly' | 'yearly' | null;
+  plan?: string | null;
+  planName?: string | null;
   payer?: { id: string | number; fullname: string; username: string } | null;
   item?: { type: 'release' | 'track' | 'user'; id: string | number; title: string; slug?: string; artist?: string; username?: string; imageUrl?: string } | null;
   paidAt?: string;
   createdAt: string;
 }
 
-export type AccountLimits = {
-  projects: number;
-  collaborators: number;
-  stemSize: number;
+/**
+ * One entry of the feature catalogue: something a plan can grant (toggle)
+ * or limit (a number, where 0 means no limit).
+ */
+export type PlanFeature = {
+  key: string;
+  title: string;
+  description: string;
+  type: 'toggle' | 'limit';
+  unit?: string | null;
+  default: boolean | number;
+}
+
+export type PlanInterval = 'day' | 'week' | 'month' | 'year'
+
+export type Plan = {
+  id: number;
+  slug: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  interval: PlanInterval;
+  intervalCount: number;
+  features: Record<string, boolean | number>;
+  isDefault: boolean;
+  active: boolean;
+  sort: number;
+  subscribers?: number;
+}
+
+export type PlansResponse = {
+  plans: Plan[];
+  features: PlanFeature[];
+  current: Plan | null;
+  currency: string;
 }
 
 export type PremiumStatus = {
   premium: boolean;
   endsAt?: string | null;
-  current?: { id: number; plan: 'monthly' | 'yearly'; amount: number; startsAt: string; endsAt: string } | null;
-  plans: { monthly: number; yearly: number };
+  current?: { id: number; plan: string; planName?: string; amount: number; startsAt: string; endsAt: string } | null;
+  plan: Plan;
+  features: Record<string, boolean | number>;
   currency: string;
-  limits: { free: AccountLimits; premium: AccountLimits };
 }
 
 export type Earnings = {
@@ -270,6 +302,8 @@ export interface Artist {
   reputation: number,
   projectsCount: number,
   isPremium?: boolean,
+  badge?: boolean,
+  acceptsTips?: boolean,
 };
 
 export interface User extends Artist {

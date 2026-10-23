@@ -23,7 +23,7 @@
                 v-if="artist.verified"
               />
               {{ artist.verified ? 'Verified Creator' : 'Artist' }}
-              <PremiumBadge class="ml-1" v-if="artist.isPremium" />
+              <PremiumBadge class="ml-1" v-if="artist.badge" />
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
@@ -60,7 +60,7 @@
                 </ToggleFollow>
               </span>
               <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
-                <TipDialog :creator="artist" />
+                <TipDialog :creator="artist" v-if="artist.acceptsTips !== false" />
               </span>
               <span class="!flex-none">
                 {{ intStr(artist.followers) }} Followers

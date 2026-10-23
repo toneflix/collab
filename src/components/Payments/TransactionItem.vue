@@ -62,7 +62,7 @@ const icon = computed(() => icons[props.transaction.purpose] || 'fas fa-receipt'
 
 const title = computed(() => {
   const t = props.transaction;
-  if (t.purpose === 'premium') return `Premium (${t.plan || 'monthly'})`;
+  if (t.purpose === 'premium') return t.planName || `Premium (${t.plan || 'monthly'})`;
   if (t.purpose === 'tip' && t.item) return `Tip to ${t.item.title}`;
   return t.item?.title || label.value;
 });
