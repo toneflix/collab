@@ -40,7 +40,7 @@ const current = useBootstrapStore().pageData.current as {
 };
 
 const categories = reactive({
-  main: <Category[]>[
+  main: <Category<Genre>[]>[
     {
       id: 'genres',
       slug: 'genres',

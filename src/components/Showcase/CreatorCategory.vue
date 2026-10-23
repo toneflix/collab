@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import {
   Artist,
   Category,
@@ -81,7 +81,10 @@ const category = defineModel('category', {
   }),
 });
 
-const loader = props.artist ? loadArtistsRequest : loadUsersRequest;
+const loader = (params: GenericData) =>
+  props.artist
+    ? loadArtistsRequest(params)
+    : (loadUsersRequest(params) as unknown as ReturnType<typeof loadArtistsRequest>);
 
 const {
   page,

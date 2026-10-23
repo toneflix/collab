@@ -122,14 +122,14 @@ import placeholder from 'src/assets/placeholder.svg';
 import { privacyOptionsExtended } from 'src/utils/presets';
 import { Project, ResponseBody, UploadData } from 'src/utils/models';
 import { computed } from 'vue';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import {
   createProjectRequest,
   loadProjectRequest,
 } from 'src/utils/requests/requests';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { useRoute, useRouter } from 'vue-router';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -162,7 +162,7 @@ const { onSuccess: projectLoaded } = useWatcher(
     }),
   [() => route.params.project_id],
   {
-    sendable: () => !!route.params.project_id,
+    middleware: (_, next) => (route.params.project_id ? next() : undefined),
     immediate: true,
     initialData: current || {},
   },

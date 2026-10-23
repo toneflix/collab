@@ -173,7 +173,7 @@ export interface ExploreData {
   own_collab_albums: ExploreItem<Release>;
   own_collab_tracks: ExploreItem<Track>;
   recommended_artists: ExploreItem<Artist>;
-  recently_played_albums: ExploreItem<Artist>;
+  recently_played_albums: ExploreItem<Release>;
   recently_played_artists: ExploreItem<Artist>;
 }
 

@@ -1,5 +1,5 @@
-import { boot } from 'quasar/wrappers'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { defineBoot } from '#q-app';
+ 
 
 String.prototype.slug = function (separator: string = '_') {
   const splitCaps = (string: string) => string
@@ -44,6 +44,6 @@ String.prototype.toHertz = function () {
   return Number(this).toHertz();
 };
 
-export default boot(async (/* { app, router, ... } */) => {
+export default defineBoot(async (/* { app, router, ... } */) => {
   // something to do
 })

@@ -145,8 +145,8 @@
 </template>
 
 <script setup lang="ts">
-import { usePagination } from '@alova/scene-vue';
-import { ionHandLeft } from '@quasar/extras/ionicons-v7';
+import { usePagination } from 'alova/client';
+import { ionHandLeft } from '@quasar/extras/ionicons-v8';
 import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -199,10 +199,9 @@ const {
 const onIntersect = (
   evt: IntersectionObserverEntry,
   isLast: boolean,
-): boolean => {
+): void => {
   if (isLast && !isLastPage.value && evt.isIntersecting) {
     page.value++;
   }
-  return true;
 };
 </script>

@@ -304,7 +304,7 @@ import {
 } from 'src/utils/models';
 import { computed, ref, watch } from 'vue';
 import { genres } from 'src/utils/dummy';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import {
   createReleaseRequest,
   loadProjectRequest,
@@ -484,7 +484,7 @@ const setFile = async (event: HTMLInputEvent, i: number) => {
 const resetTrack = (i: number) => {
   delete tempFiles.value[i];
   tracks.value[i].audio = undefined;
-  if (!!streamUrls.value[i]) {
+  if (streamUrls.value[i]) {
     tracks.value[i].streamUrl = streamUrls.value[i];
     delete streamUrls.value[i];
   }

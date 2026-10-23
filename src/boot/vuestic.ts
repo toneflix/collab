@@ -1,11 +1,11 @@
 import { createIconsConfig, createVuestic } from 'vuestic-ui'
 
-import { boot } from 'quasar/wrappers'
+import { defineBoot } from '#q-app';
 import config from 'app/vuestic.config.js'
 
 // "async" is optional;
 // more info on params: https://v2.quasar.dev/quasar-cli/boot-files
-export default boot(async ({ app }) => {
+export default defineBoot(async ({ app }) => {
   app.use(createVuestic({
     config: {
       colors: {

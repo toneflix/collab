@@ -43,11 +43,11 @@ const helpers = {
   env (env: string = 'baseURL', skipDev: boolean = false): string {
     if (import.meta.env.PROD || import.meta.env.v_ENVIRONMENT === 'production' || skipDev) {
       // Production
-      return import.meta.env[`v_${env}`];
+      return import.meta.env[`v_${env}`] ?? '';
     } else {
       // Development
-      if (import.meta.env[`v_dev.${env}`]) {
-        return import.meta.env[`v_dev.${env}`];
+      if (import.meta.env[`v_dev_${env}`]) {
+        return import.meta.env[`v_dev_${env}`] ?? '';
       } else {
         return helpers.env(env, true)
       }
@@ -288,9 +288,9 @@ const helpers = {
           : {
             label,
             flat: !!danger,
-            color: !!danger ? 'negative' : tx_status.textColor,
+            color: danger ? 'negative' : tx_status.textColor,
             class: !danger ? tx_status.btnColor : undefined,
-            textColor: !!danger ? 'negative' : 'white',
+            textColor: danger ? 'negative' : 'white',
             unelevated: true,
             noCaps: true,
           } as unknown as Record<string, string>;
@@ -346,15 +346,15 @@ const helpers = {
     return text;
   },
   goto (link: Location | (string & Location)) {
-    window.location = link;
+    window.location.assign(String(link));
   },
   asset (url: string) {
-    if (process.env.PREFER_ASSET === 'true' && url.indexOf('http') !== -1) {
+    if (import.meta.env.v_PREFER_ASSET === 'true' && url.indexOf('http') !== -1) {
       const base_url = document.createElement('a');
       base_url.href = url;
       url = base_url.pathname.replace(/^\/|\/$/g, '');
     }
-    return process.env.ASSET_URL + url;
+    return import.meta.env.v_ASSET_URL + url;
   },
   nameFromPath (path: string) {
     const base_url = document.createElement('a');

@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { alova } from 'src/boot/alova';
 import { Artist, BaseOption, ResponseBody, User } from 'src/utils/models';
 import { createArtistRequest } from 'src/utils/requests/requests';
@@ -72,7 +72,7 @@ import { onBeforeUnmount, ref } from 'vue';
 
 type Option = User & BaseOption;
 
-const emit = defineEmits(['selected']);
+const emit = defineEmits<{ selected: [value: Option] }>();
 
 const props = withDefaults(
   defineProps<{
@@ -87,7 +87,7 @@ const props = withDefaults(
   },
 );
 
-const model = defineModel<Option | string | number>('modelValue', {
+const model = defineModel<Option | string | number | null>('modelValue', {
   default: null,
 });
 
@@ -124,7 +124,7 @@ const search = (
 ) => {
   update(async () => {
     if (val === '') {
-      options.value = options.value;
+      // Keep the current options
     } else {
       loading.value = true;
       const { data } = await alova

@@ -340,7 +340,7 @@ import Playlist from 'waveform-playlist/lib/Playlist';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
 import WaveformPlaylist from 'waveform-playlist';
-import { ionPause, ionPlay } from '@quasar/extras/ionicons-v7';
+import { ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import 'src/css/playlist.scss';
 import { useQuasar } from 'quasar';
@@ -365,10 +365,10 @@ import {
   saveProjectTrackRequest,
   saveProjectTrackStemRequest,
 } from 'src/utils/requests/requests';
-import { useForm } from '@alova/scene-vue';
-import { FadeShape, Track } from 'app/models/wave-playlist.d';
+import { useForm } from 'alova/client';
+import type { FadeShape, Track } from 'app/models/wave-playlist';
 import { allowedAudioExts } from 'src/utils/presets';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -428,7 +428,7 @@ const {
   () => loadProjectTrackStemsRequest(project.value, track.value),
   [track, project],
   {
-    sendable: () => !!track.value?.id,
+    middleware: (_, next) => (track.value?.id ? next() : undefined),
     initialData: [],
     immediate: true,
   },
@@ -677,7 +677,7 @@ body.desktop
 
 .fade-selector {
   &.q-field--outlined .q-field__control {
-    @apply rounded-xl #{!important};
+    border-radius: 0.75rem !important;
     font-size: 0.6rem !important;
     min-width: 6.5em;
     min-height: 10px;

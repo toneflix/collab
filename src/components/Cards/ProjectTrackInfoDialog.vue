@@ -117,7 +117,7 @@ import { PropType, computed, ref } from 'vue';
 import { genres } from 'src/utils/dummy';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { saveProjectTrackRequest } from 'src/utils/requests/requests';
 import { notify } from 'src/utils/helpers';
 

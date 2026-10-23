@@ -1,6 +1,6 @@
 import { ShallowRef } from 'vue'
 import { PlaylistState } from './models'
-import { TrackFade, TrackStates } from 'app/models/wave-playlist.d'
+import type { TrackFade, TrackStates } from 'app/models/wave-playlist'
 import Playlist from 'waveform-playlist/lib/Playlist'
 
 export type WavePlaylistTrack = {

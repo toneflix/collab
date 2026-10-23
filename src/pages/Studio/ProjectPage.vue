@@ -337,8 +337,8 @@ import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
 import ContentRemover from 'src/components/Utilities/ContentRemover.vue';
 import HoverCard from 'src/components/Cards/HoverCard.vue';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
-import { ionHandLeft } from '@quasar/extras/ionicons-v7';
-import { useWatcher } from 'alova';
+import { ionHandLeft } from '@quasar/extras/ionicons-v8';
+import { useWatcher } from 'alova/client';
 import { useMeta } from 'quasar';
 import placeholder from 'src/assets/placeholder.svg';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
@@ -400,7 +400,7 @@ const { data: project, loading } = useWatcher(
     }),
   [() => route.params.project_id],
   {
-    sendable: () => !!route.params.project_id,
+    middleware: (_, next) => (route.params.project_id ? next() : undefined),
     immediate: true,
     initialData: {
       ...curr.project,
@@ -414,7 +414,7 @@ const { data: trackList } = useWatcher(
   () => loadProjectTracksRequest(project.value, { with: 'genre,artist' }),
   [project],
   {
-    sendable: () => !!project.value.id,
+    middleware: (_, next) => (project.value.id ? next() : undefined),
     immediate: true,
     initialData: curr.tracks,
   },
@@ -424,7 +424,7 @@ const { data: collaborators } = useWatcher(
   () => loadProjectCollaboratorsRequest(project.value),
   [project],
   {
-    sendable: () => !!project.value.id,
+    middleware: (_, next) => (project.value.id ? next() : undefined),
     immediate: true,
     initialData: curr.collaborators,
   },

@@ -1,15 +1,15 @@
 import { AxiosError, AxiosResponse } from 'axios';
-import { Method, createAlova, invalidateCache, useRequest } from 'alova';
+import { type Method, createAlova, invalidateCache } from 'alova';
+import { useRequest } from 'alova/client';
 
 import { Cookies } from 'quasar'
 import { GenericResponse } from 'src/utils/models';
-import GlobalFetch from 'alova/GlobalFetch';
+import adapterFetch from 'alova/fetch';
 import { MutationType } from 'pinia';
-import { Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
 import VueHook from 'alova/vue';
 import { axiosRequestAdapter } from '@alova/adapter-axios';
-import { boot } from 'quasar/wrappers';
+import { defineBoot } from '#q-app';
 import { notify } from 'src/utils/helpers';
 import { readEnv } from 'src/utils/proccessor';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -24,7 +24,8 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 const baseURL = readEnv('baseURL');
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type ResponseMethod = Method<Ref<unknown>, Ref<unknown>, any, any, RequestInit, Response, Headers>
+type ResponseMethod = Method<any>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isAxios (useAxios: boolean, response: AxiosResponse | Response): response is AxiosResponse {
   return useAxios === true;
 }
@@ -97,7 +98,7 @@ const alova = createAlova({
   baseURL,
   responded,
   statesHook: VueHook,
-  requestAdapter: GlobalFetch(),
+  requestAdapter: adapterFetch(),
 });
 
 // 2. Create an alova instance for axios
@@ -158,7 +159,7 @@ const axios = createAlova({
   },
 });
 
-export default boot(async ({ app, router, ssrContext }) => {
+export default defineBoot(async ({ app, router, ssrContext }) => {
   const boot = useBootstrapStore();
   const cookies = import.meta.env.SSR
     ? Cookies.parseSSR(ssrContext)

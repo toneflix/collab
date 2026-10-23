@@ -131,7 +131,7 @@ import {
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v7';
+import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { intStr, subString } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -140,7 +140,7 @@ import {
   loadReleasesRequest,
   loadTracksRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 import { inject, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
@@ -227,7 +227,7 @@ const { data: artist, loading } = useWatcher(
   () => loadArtistRequest(route.params.artist_id as string, {}, true),
   [() => route.params.artist_id],
   {
-    sendable: () => !!route.params.artist_id,
+    middleware: (_, next) => (route.params.artist_id ? next() : undefined),
     immediate: false,
     initialData: current.artist,
   },

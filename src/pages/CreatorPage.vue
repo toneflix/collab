@@ -94,7 +94,7 @@ import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { Artist, Category, PageMeta, Project } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionAdd } from '@quasar/extras/ionicons-v7';
+import { ionAdd } from '@quasar/extras/ionicons-v8';
 import { intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -103,7 +103,7 @@ import {
   loadProjectsRequest,
   loadUserRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
@@ -139,7 +139,7 @@ const current = useBootstrapStore().pageData.current as {
 };
 
 const categories = ref({
-  projects: <Category[]>[
+  projects: <Category<Project>[]>[
     {
       id: 'projects',
       slug: 'projects',
@@ -159,7 +159,7 @@ const { data: artist, loading } = useWatcher(
     ),
   [() => route.params.artist_id],
   {
-    sendable: () => !!route.params.artist_id,
+    middleware: (_, next) => (route.params.artist_id ? next() : undefined),
     immediate: false,
     initialData: current.artist || {},
   },

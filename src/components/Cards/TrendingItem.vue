@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v7';
+import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v8';
 import { EventBus } from 'quasar';
 import { formatSeconds } from 'src/utils/helpers';
 import {
@@ -93,11 +93,10 @@ const togglePlay = () => {
   emit('togglePlay', playing.value);
 };
 
-const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+const onIntersect = (evt: IntersectionObserverEntry): void => {
   if (props.isLast && evt.isIntersecting) {
     emit('scrollEnd', true);
   }
-  return true;
 };
 
 bus?.on('seeking', (position, trk, url) => {

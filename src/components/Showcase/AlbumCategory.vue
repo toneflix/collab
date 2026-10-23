@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import AlbumCard from 'src/components/Cards/AlbumCard.vue';
 import { Category, GenericData, PageMeta, Release } from 'src/utils/models';
 import { loadReleasesRequest } from 'src/utils/requests/requests';

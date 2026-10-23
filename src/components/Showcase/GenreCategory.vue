@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import GenreCard from 'src/components/Cards/GenreCard.vue';
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import { Category, GenericData, Genre, PageMeta } from 'src/utils/models';
 import { loadGenresRequest } from 'src/utils/requests/requests';
 import { PropType } from 'vue';

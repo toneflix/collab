@@ -137,7 +137,7 @@ import {
   User,
 } from 'src/utils/models';
 import { PropType, computed, ref } from 'vue';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { saveProjectCollaboratorRequest } from 'src/utils/requests/requests';
 import { notify } from 'src/utils/helpers';
 import { collabRoles } from 'src/utils/presets';

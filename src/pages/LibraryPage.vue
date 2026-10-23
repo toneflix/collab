@@ -40,11 +40,17 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
-import { Categories } from 'src/utils/models';
-import { useWatcher } from 'alova';
+import type { Artist, Category, Release, Track, User } from 'src/utils/models';
+import { useWatcher } from 'alova/client';
 import { categoryChecker } from 'src/utils/navigations';
 
 type RouteType = 'recent' | 'liked' | 'collabs';
+
+type LibraryCategories = {
+  trend: Category<Track>[];
+  artists: Category<User | Artist>[];
+  albums: Category<Release>[];
+};
 
 defineOptions({
   async preFetch({ store, currentRoute: route }) {
@@ -106,8 +112,8 @@ const { data, loading } = useWatcher(
   },
 );
 
-const categories = computed(() => ({
-  recent: <Categories>{
+const categories = computed<Record<RouteType, LibraryCategories>>(() => ({
+  recent: {
     trend: [
       {
         id: 'recently-played',

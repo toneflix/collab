@@ -163,7 +163,7 @@ import {
   ionHeartOutline,
   ionPause,
   ionPlay,
-} from '@quasar/extras/ionicons-v7';
+} from '@quasar/extras/ionicons-v8';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -172,7 +172,7 @@ import {
   loadReleasesRequest,
   loadTracksRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 import { inject, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
@@ -238,7 +238,7 @@ const {
     }),
   [() => route.params.album_id],
   {
-    sendable: () => !!route.params.album_id,
+    middleware: (_, next) => (route.params.album_id ? next() : undefined),
     immediate: false,
     initialData: current.album || {},
   },

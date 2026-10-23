@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRequest } from 'alova';
+import { useRequest } from 'alova/client';
 import { useMeta } from 'quasar';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';

@@ -213,7 +213,7 @@ import {
   ionPauseOutline,
   ionHeart,
   ionHeartOutline,
-} from '@quasar/extras/ionicons-v7';
+} from '@quasar/extras/ionicons-v8';
 import { Howl, Howler } from 'howler';
 import { useGlobalStore } from 'src/stores/global-store';
 import { ref, computed, onBeforeUnmount, onMounted, inject } from 'vue';

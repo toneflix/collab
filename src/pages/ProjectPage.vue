@@ -184,7 +184,7 @@ import {
   UserComment,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v7';
+import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v8';
 import { intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
@@ -194,7 +194,7 @@ import {
   loadProjectRequest,
   loadUsersRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
@@ -266,7 +266,7 @@ const { data: project, loading } = useWatcher(
     ),
   [() => route.params.project_id],
   {
-    sendable: () => !!route.params.project_id,
+    middleware: (_, next) => (route.params.project_id ? next() : undefined),
     immediate: false,
     initialData: current.project,
   },

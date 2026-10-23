@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { EventBus } from 'quasar';
 import { alova } from 'src/boot/alova';
 import { Interaction, ResponseBody } from 'src/utils/models';

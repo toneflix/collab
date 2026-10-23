@@ -302,7 +302,7 @@ const meta = defineModel<ContentMeta>('meta', {
 
 const errors = defineModel<Record<string, string>>('errors', {
   required: false,
-  default: {},
+  default: () => ({}),
 });
 
 const artist = ref<User & BaseOption>(form.value.artist as User & BaseOption);

@@ -32,6 +32,7 @@
 
         <q-card-section class="q-pa-none">
           <VuePictureCropper
+            ref="pictureCropper"
             :boxStyle="{
               width: '100%',
               height: '100%',
@@ -74,7 +75,9 @@
 
 <script setup>
 import { reactive, ref } from 'vue';
-import VuePictureCropper, { cropper } from 'vue-picture-cropper';
+import VuePictureCropper from 'vue-picture-cropper';
+import 'cropperjs/dist/cropper.css';
+import 'vue-picture-cropper/style.css';
 
 const emit = defineEmits(['result']);
 const props = defineProps({
@@ -125,6 +128,7 @@ const buttonList = Array.isArray(props.buttons)
 
 const isShowModal = ref(false);
 const uploadInput = ref(null);
+const pictureCropper = ref(null);
 const pic = ref('');
 const result = reactive({
   dataURL: '',
@@ -165,6 +169,7 @@ const selectFile = (e) => {
  * Get cropping results
  */
 const getResult = async () => {
+  const cropper = pictureCropper.value?.cropper;
   if (!cropper) return;
   const base64 = cropper.getDataURL();
   const blob = await cropper.getBlob();
@@ -184,6 +189,7 @@ const getResult = async () => {
  * Clear the crop box
  */
 const clear = () => {
+  const cropper = pictureCropper.value?.cropper;
   if (!cropper) return;
   cropper.clear();
 };
@@ -192,6 +198,7 @@ const clear = () => {
  * Reset the default cropping area
  */
 const reset = () => {
+  const cropper = pictureCropper.value?.cropper;
   if (!cropper) return;
   cropper.reset();
 };

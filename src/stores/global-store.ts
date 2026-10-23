@@ -41,7 +41,7 @@ export const useGlobalStore = defineStore('global', {
       this.playlist.clear()
     },
     addToPlaylist (track: Track | Track[]) {
-      let tracks = []
+      let tracks: Track[]
 
       if (Array.isArray(track)) {
         tracks = track

@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
-import { useRequest } from 'alova';
+import { useRequest } from 'alova/client';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';

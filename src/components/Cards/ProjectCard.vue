@@ -55,10 +55,9 @@ const project = defineModel<Project>('project', {
   required: true,
 });
 
-const onIntersect = (evt: IntersectionObserverEntry): boolean => {
+const onIntersect = (evt: IntersectionObserverEntry): void => {
   if (props.isLast && evt.isIntersecting) {
     emit('scrollEnd', true);
   }
-  return true;
 };
 </script>

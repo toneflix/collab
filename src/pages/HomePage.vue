@@ -137,7 +137,7 @@ import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
 import { computed } from 'vue';
-import { useRequest } from 'alova';
+import { useRequest } from 'alova/client';
 
 defineOptions({
   async preFetch({ store }) {
