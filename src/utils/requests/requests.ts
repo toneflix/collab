@@ -192,7 +192,7 @@ export const createReleaseRequest = (f: Release) => {
   if (form.tracks) {
     form.tracks = toRaw(form.tracks).map(e => {
 
-      // TODO: Extract duration from audio file and send with the request
+      // Duration is read from the audio file when it is picked (see getAudioDuration)
 
       return Object.assign({}, e, {
         genre: undefined,

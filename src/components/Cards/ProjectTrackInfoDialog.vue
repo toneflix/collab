@@ -114,7 +114,7 @@ import {
   User,
 } from 'src/utils/models';
 import { PropType, computed, ref } from 'vue';
-import { genres } from 'src/utils/dummy';
+import { useGenres } from 'src/composables/useGenres';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
 import { useForm } from 'alova/client';
@@ -125,6 +125,7 @@ defineOptions({
   name: 'ProjectTrackInfoDialog',
 });
 
+const { genres } = useGenres();
 const emit = defineEmits<{
   saved: [value: ProjectTrack];
   created: [value: ProjectTrack];

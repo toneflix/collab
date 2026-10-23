@@ -110,6 +110,9 @@ export const authValidator = (
   if (ssrContext) {
     const cookies = Cookies.parseSSR(ssrContext)
     boot.token = cookies.get('token')
+  } else if (!boot.token && Cookies.has('token')) {
+    // The first navigation can run before any request has copied the cookie into the store
+    boot.token = Cookies.get('token')
   }
 
   // Check if user is logged in when requesting a page that requires authentication
