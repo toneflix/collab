@@ -77,10 +77,9 @@
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
 import { ionPlayOutline, ionPauseOutline } from '@quasar/extras/ionicons-v8';
-import { Howl, Howler } from 'howler';
-import { useGlobalStore } from 'src/stores/global-store';
-import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue';
-import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { onBeforeUnmount, ref, watch } from 'vue';
+import { usePlayerStore } from 'src/stores/player-store';
+import { notify } from 'src/utils/helpers';
 
 defineProps({
   miniMode: Boolean,
@@ -90,71 +89,71 @@ const track = defineModel<Track>('track', {
   required: true,
 });
 
-let sound: Howl;
-const boot = useBootstrapStore();
-const system = useGlobalStore();
-const volume = computed(() => system.volume);
+/**
+ * A preview of one track, e.g. while editing a release. It uses its own
+ * <audio> element and takes turns with the main player, so only one plays.
+ */
+const player = usePlayerStore();
 const playing = ref(false);
-const progress = ref();
-const position = ref(0);
+let audio: HTMLAudioElement | null = null;
 
-const togglePlay = () => {
-  if (sound.playing()) {
-    sound.pause();
-  } else {
-    Howler.volume(volume.value / 100);
-    sound.play();
-  }
-
-  playing.value = sound.playing();
-};
-
-const initialize = () => {
-  if (sound) {
-    sound.unload();
-  }
-
-  const fileUrl = track.value.streamUrl;
-
-  sound = new Howl({
-    src: [fileUrl],
-    html5: true,
-    format: 'mp3',
-    xhr: {
-      headers: {
-        Authorization: 'Bearer ' + boot.token,
-      },
-      withCredentials: true,
-    },
-    loop: true,
-    volume: volume.value / 100,
-    onplay: () => {
-      playing.value = true;
-    },
-  });
-
-  // Stop the interval watcher
-  ['stop', 'pause', 'end'].forEach((event) => {
-    sound.on(event, () => {
+const element = () => {
+  if (!audio) {
+    audio = new Audio();
+    audio.loop = true;
+    audio.addEventListener('playing', () => (playing.value = true));
+    audio.addEventListener('pause', () => (playing.value = false));
+    audio.addEventListener('error', () => {
       playing.value = false;
-      position.value = sound.seek();
-      progress.value = (sound.seek() / sound.duration()) * 100;
+      if (audio?.getAttribute('src')) notify('This track couldn\'t be played.', 'error');
     });
-  });
+  }
+  return audio;
 };
 
-onMounted(() => {
-  initialize();
-});
+const togglePlay = async () => {
+  if (!track.value.streamUrl) {
+    notify('This track has no audio yet.', 'info');
+    return;
+  }
 
-onBeforeUnmount(() => {
-  sound?.unload();
-});
+  const el = element();
+  if (playing.value) {
+    el.pause();
+    return;
+  }
 
+  if (el.getAttribute('src') !== track.value.streamUrl) {
+    el.src = track.value.streamUrl;
+  }
+  el.volume = player.muted ? 0 : player.volume / 100;
+  player.pause();
+
+  try {
+    await el.play();
+  } catch {
+    playing.value = false;
+  }
+};
+
+// The main player starting stops the preview.
+watch(
+  () => player.playing,
+  (on) => on && audio?.pause(),
+);
+
+// A new file replaces the preview.
 watch(
   () => track.value?.streamUrl,
   () => {
-    initialize();
+    audio?.pause();
+    audio?.removeAttribute('src');
   },
 );
+
+onBeforeUnmount(() => {
+  audio?.pause();
+  audio?.removeAttribute('src');
+  audio = null;
+});
 </script>

@@ -156,7 +156,8 @@
             class="m-1"
             :key="track.id"
             :track="track"
-            @toggle-play="playing = $event"
+            :queue="album.tracks"
+            :source="route.fullPath"
             v-for="track in album.tracks"
           />
         </div>
@@ -179,7 +180,6 @@ import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import {
   Category,
-  CollabEvents,
   PageMeta,
   Release,
   Track,
@@ -194,7 +194,7 @@ import {
 import { formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
 import PayButton from 'src/components/Payments/PayButton.vue';
 import { usePayments } from 'src/composables/usePayments';
-import { EventBus, useMeta } from 'quasar';
+import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
   loadReleaseRequest,
@@ -202,11 +202,11 @@ import {
   loadTracksRequest,
 } from 'src/utils/requests/requests';
 import { useWatcher } from 'alova/client';
-import { inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
-import { useGlobalStore } from 'src/stores/global-store';
+import { usePlayerStore } from 'src/stores/player-store';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -242,8 +242,8 @@ defineOptions({
 
 const route = useRoute();
 const { price } = usePayments();
-const system = useGlobalStore();
-const playing = ref(false);
+const player = usePlayerStore();
+const playing = computed(() => player.isPlayingSource(route.fullPath));
 
 const current = useBootstrapStore().pageData.current as unknown as {
   album: Release;
@@ -259,7 +259,6 @@ const current = useBootstrapStore().pageData.current as unknown as {
 const {
   data: album,
   loading,
-  onSuccess,
   send: reload,
 } = useWatcher(
   () =>
@@ -274,10 +273,6 @@ const {
     initialData: current.album || {},
   },
 );
-
-onSuccess(() => {
-  playing.value = false;
-});
 
 /**
  * Initialize the categories
@@ -294,8 +289,6 @@ const categories = ref({
   ],
 });
 
-const bus = inject<EventBus<CollabEvents>>('bus');
-
 const togglePlay = () => {
   if (album.value.locked) {
     notify('Buy this release to listen to it.', 'info');
@@ -303,21 +296,7 @@ const togglePlay = () => {
   }
 
   if (album.value.tracks?.length) {
-    playing.value = !playing.value;
-    if (system.playlist.id !== route.fullPath) {
-      system.setPlaylistId(route.fullPath);
-      system.addToPlaylist(album.value.tracks);
-      system.setCurrentTrack(album.value.tracks[0]);
-      bus?.emit(
-        'togglePlay',
-        playing.value,
-        album.value.tracks[0],
-        album.value,
-        'album',
-      );
-    } else {
-      bus?.emit('justTogglePlay', playing.value, 'album');
-    }
+    player.toggleQueue(album.value.tracks, route.fullPath);
   }
 };
 

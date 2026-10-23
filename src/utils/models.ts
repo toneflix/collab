@@ -234,21 +234,12 @@ export interface Category<X = Track | Release | User | Project | Artist | Genre>
 
 export type Categories = Record<string, Category[]>
 
-export type StopEventKeywords = 'stop' | 'pause' | 'end'
+/**
+ * Events shared over the app's event bus. Playback state lives in the player store instead.
+ */
 export type CollabEvents = {
-  justTogglePlay: (state: boolean, origin?: string) => void;
-  togglePlay: (state: boolean, track: Track, album?: Album, origin?: string | 'player') => void;
-  seeking: (position: number, track?: Track, file_url?: string) => void;
-  pause: (position: number, track: Track, file_url?: string) => void;
-  stop: (position: number, track: Track, file_url?: string) => void;
-  end: (position: number, track: Track, file_url?: string) => void;
+  liked: (state: boolean, data: Interaction, signature?: string) => void;
 }
-
-export interface SeekingData {
-  position: number,
-  track?: Track;
-  url?: string;
-};
 
 export interface Genre {
   id: string | number,

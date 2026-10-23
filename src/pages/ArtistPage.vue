@@ -125,7 +125,6 @@ import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import {
   Artist,
   Category,
-  CollabEvents,
   PageMeta,
   Release,
   Track,
@@ -133,7 +132,7 @@ import {
 import { useRoute } from 'vue-router';
 import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { intStr } from 'src/utils/helpers';
-import { EventBus, useMeta } from 'quasar';
+import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
   loadArtistRequest,
@@ -141,10 +140,10 @@ import {
   loadTracksRequest,
 } from 'src/utils/requests/requests';
 import { useWatcher } from 'alova/client';
-import { inject, ref } from 'vue';
+import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
-import { useGlobalStore } from 'src/stores/global-store';
+import { usePlayerStore } from 'src/stores/player-store';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -182,8 +181,8 @@ defineOptions({
 });
 
 const route = useRoute();
-const system = useGlobalStore();
-const playing = ref(false);
+const player = usePlayerStore();
+const playing = computed(() => player.isPlayingSource(route.fullPath));
 
 const current = useBootstrapStore().pageData.current as unknown as {
   artist: Artist;
@@ -233,25 +232,9 @@ const { data: artist, loading } = useWatcher(
   },
 );
 
-const bus = inject<EventBus<CollabEvents>>('bus');
-
 const togglePlay = () => {
   if (current.tracks.length) {
-    playing.value = !playing.value;
-    if (system.playlist.id !== route.fullPath) {
-      system.setPlaylistId(route.fullPath);
-      system.addToPlaylist(current.tracks);
-      system.setCurrentTrack(current.tracks[0]);
-      bus?.emit(
-        'togglePlay',
-        playing.value,
-        current.tracks[0],
-        undefined,
-        'artist',
-      );
-    } else {
-      bus?.emit('justTogglePlay', playing.value, 'artist');
-    }
+    player.toggleQueue(current.tracks, route.fullPath);
   }
 };
 

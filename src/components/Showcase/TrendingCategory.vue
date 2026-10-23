@@ -21,6 +21,8 @@
           :key="track.id"
           :ii="ii"
           :track="track"
+          :queue="category.data.list"
+          :source="`category:${category.id}`"
           :is-last="
             ii === ($q.screen.lt.sm ? 4 : 5) && i === chunkedList.length - 1
           "
@@ -35,6 +37,8 @@
       class="m-1"
       :key="track.id"
       :track="track"
+      :queue="category.data.list"
+      :source="`category:${category.id}`"
       :is-last="i === category.data.list.length - 1"
       @scroll-end="loadMore"
       v-for="(track, i) in category.data.list"

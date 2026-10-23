@@ -51,7 +51,7 @@
               :name="
                 track.locked
                   ? 'fas fa-lock'
-                  : playing
+                  : player.isPlaying(track)
                     ? ionPauseCircle
                     : ionPlayCircle
               "
@@ -68,40 +68,38 @@
 
 <script setup lang="ts">
 import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v8';
-import { EventBus } from 'quasar';
 import { formatSeconds } from 'src/utils/helpers';
-import {
-  CollabEvents,
-  SeekingData,
-  StopEventKeywords,
-  Track,
-} from 'src/utils/models';
-import { inject } from 'vue';
-import { ref } from 'vue';
+import { Track } from 'src/utils/models';
+import { usePlayerStore } from 'src/stores/player-store';
+import { PropType } from 'vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
-  togglePlay: [value: boolean];
 }>();
 
 const props = defineProps({
   dense: Boolean,
   isLast: Boolean,
+  /** The list this track is shown in; playing it queues the whole list */
+  queue: {
+    type: Array as PropType<Track[]>,
+    default: undefined,
+  },
+  /** Names the list, so its play button can show when it's playing */
+  source: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const track = defineModel<Track>('track', {
   required: true,
 });
 
-const playing = ref(false);
-const seeking = ref<SeekingData>({} as unknown & SeekingData);
-
-const bus = inject<EventBus<CollabEvents>>('bus');
+const player = usePlayerStore();
 
 const togglePlay = () => {
-  playing.value = !playing.value;
-  bus?.emit('togglePlay', playing.value, track.value, undefined, 'trend');
-  emit('togglePlay', playing.value);
+  player.toggleTrack(track.value, props.queue, props.source);
 };
 
 const onIntersect = (evt: IntersectionObserverEntry): void => {
@@ -109,28 +107,4 @@ const onIntersect = (evt: IntersectionObserverEntry): void => {
     emit('scrollEnd', true);
   }
 };
-
-bus?.on('seeking', (position, trk, url) => {
-  if (trk?.id === track.value.id) {
-    seeking.value = { position, track: trk, url };
-    playing.value = position > 0;
-  } else {
-    seeking.value = {} as unknown & SeekingData;
-    playing.value = false;
-  }
-});
-
-bus?.on('togglePlay', (status, trk, album, origin) => {
-  if (origin !== 'trend' && trk.id === track.value.id) {
-    playing.value = status;
-    emit('togglePlay', playing.value);
-  }
-});
-
-const evts: StopEventKeywords[] = ['stop', 'pause', 'end'];
-evts.forEach((evt) => {
-  bus?.on(evt, (pos, trk) => {
-    if (trk.id === track.value.id) playing.value = false;
-  });
-});
 </script>

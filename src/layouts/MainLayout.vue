@@ -164,28 +164,14 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
 import { alova } from 'src/boot/alova';
-import { loadPlaylistRequest } from 'src/utils/requests/requests';
-import { useGlobalStore } from 'src/stores/global-store';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
-    const system = useGlobalStore(store);
 
     await reboot().then(({ init }) => {
       boot.configuration = init.configuration;
     });
-
-    if (system.playlist.size < 1) {
-      const { data: trackList } = await loadPlaylistRequest({
-        randomize: true,
-        with: 'artist',
-      }).send();
-
-      system.playlist.id = 0;
-      system.addToPlaylist(trackList);
-      system.setCurrentTrack(trackList[0]);
-    }
 
     const data = {} as Record<string, GenericData>;
     for (const group of mainNavigationLinks.filter((e) => !!e.group)) {
