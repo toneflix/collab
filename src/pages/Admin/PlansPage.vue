@@ -56,6 +56,16 @@
                 / {{ period(plan) }}
               </span>
             </div>
+            <div class="flex gap-1 mt-1" v-if="plan.price > 0 && plan.billingOptions.length > 1">
+              <q-badge
+                outline
+                color="green-5"
+                class="!flex-none"
+                :key="option.cycles"
+                :label="`${billingLabel(plan, option.cycles)} -${option.discount}%`"
+                v-for="option in plan.billingOptions.slice(1)"
+              />
+            </div>
             <div class="mt-1 text-xs text-grey-5">
               {{ plan.subscribers || 0 }} active subscriber{{ plan.subscribers === 1 ? '' : 's' }}
             </div>
@@ -169,6 +179,70 @@
               :error-message="errors.interval"
             />
           </div>
+          <div class="md:col-span-2">
+            <div class="flex items-center justify-between">
+              <div class="font-bold">Bulk billing</div>
+              <q-btn
+                flat
+                dense
+                no-caps
+                size="sm"
+                icon="add"
+                label="Add option"
+                class="!flex-none"
+                @click="form.billing_options.push({ cycles: nextCycles(), discount: 0 })"
+              />
+            </div>
+            <div class="text-xs text-grey-6">
+              Let people pay for several {{ form.interval }}s at once, with a discount.
+            </div>
+            <div
+              class="flex items-start gap-2 mt-2 no-wrap"
+              :key="i"
+              v-for="(option, i) in form.billing_options"
+            >
+              <q-input
+                dark
+                filled
+                dense
+                hide-bottom-space
+                type="number"
+                class="w-36 !flex-none"
+                :label="`Number of ${form.interval}s`"
+                v-model.number="option.cycles"
+                :min="2"
+                :error="!!errors[`billing_options.${i}.cycles`]"
+                :error-message="errors[`billing_options.${i}.cycles`]"
+              />
+              <q-input
+                dark
+                filled
+                dense
+                hide-bottom-space
+                type="number"
+                class="w-36 !flex-none"
+                label="Discount"
+                suffix="%"
+                v-model.number="option.discount"
+                :min="0"
+                :max="100"
+                :error="!!errors[`billing_options.${i}.discount`]"
+                :error-message="errors[`billing_options.${i}.discount`]"
+              />
+              <div class="pt-2 text-sm text-grey-5">
+                {{ price(optionPrice(option)) }} for {{ period({ interval: form.interval, intervalCount: form.interval_count }, option.cycles) }}
+              </div>
+              <q-btn
+                flat
+                round
+                dense
+                size="sm"
+                icon="close"
+                class="mt-1 !flex-none"
+                @click="form.billing_options.splice(i, 1)"
+              />
+            </div>
+          </div>
           <q-input
             dark
             filled
@@ -261,7 +335,21 @@ import {
 } from 'src/utils/requests/plans';
 
 const $q = useQuasar();
-const { price, limit, period, symbol } = usePayments();
+const { price, limit, period, symbol, billingLabel } = usePayments();
+
+/**
+ * What a bulk option costs: the price for every cycle, less its discount.
+ */
+const optionPrice = (option: { cycles: number; discount: number }) =>
+  Math.round((form.value.price || 0) * (option.cycles || 0) * (1 - (option.discount || 0) / 100) * 100) / 100;
+
+/**
+ * A sensible next option: 6 periods, then 12, then a year more each time.
+ */
+const nextCycles = () => {
+  const taken = form.value.billing_options.map((o) => o.cycles);
+  return [6, 12, 24, 36].find((c) => !taken.includes(c)) || Math.max(1, ...taken) + 12;
+};
 
 const { data: plansData, loading, send: reload } = useRequest(loadAdminPlansRequest);
 const { data: featuresData } = useRequest(loadPlanFeaturesRequest);
@@ -288,6 +376,7 @@ function blank (): PlanForm & { id?: number } {
     price: 0,
     interval: 'month',
     interval_count: 1,
+    billing_options: [],
     features: Object.fromEntries(features.value?.map((f) => [f.key, f.default]) || []),
     is_default: false,
     active: true,
@@ -306,6 +395,9 @@ const edit = (plan?: Plan) => {
         price: plan.price,
         interval: plan.interval,
         interval_count: plan.intervalCount,
+        billing_options: plan.billingOptions
+          .filter((o) => o.cycles > 1)
+          .map((o) => ({ cycles: o.cycles, discount: o.discount })),
         features: { ...plan.features },
         is_default: plan.isDefault,
         active: plan.active,
