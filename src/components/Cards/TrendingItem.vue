@@ -32,7 +32,7 @@
         >
           {{ track.title }}
         </q-item-label>
-        <q-item-label caption lines="1" class="mt-0">
+        <q-item-label caption class="mt-0">
           {{ track.artist?.name || 'Unknown' }}
         </q-item-label>
       </q-item-section>

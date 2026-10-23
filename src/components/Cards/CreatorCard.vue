@@ -25,7 +25,7 @@
 
       <q-card-section align="center" class="p-1">
         <h6
-          class="!text-gray-300 text-md md:text-lg w-32 md:w-40 overflow-hidden text-nowrap text-ellipsis"
+          class="!text-gray-300 text-md md:text-lg w-32 md:w-40 break-words"
         >
           <q-icon
             name="verified"
