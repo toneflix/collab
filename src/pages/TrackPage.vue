@@ -159,14 +159,12 @@
 
 <script setup lang="ts">
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
-import { ref, watch, inject } from 'vue';
+import { computed, ref } from 'vue';
 import {
   Artist,
   Category,
-  CollabEvents,
   PageMeta,
   Release,
-  SeekingData,
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
@@ -177,7 +175,8 @@ import {
   ionPlay,
 } from '@quasar/extras/ionicons-v8';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
-import { EventBus, useMeta } from 'quasar';
+import { useMeta } from 'quasar';
+import { usePlayerStore } from 'src/stores/player-store';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -237,10 +236,9 @@ const current = useBootstrapStore().pageData.current as {
   relatedeMeta: Partial<PageMeta>;
 };
 
-const bus = inject<EventBus<CollabEvents>>('bus');
 const route = useRoute();
-const playing = ref(false);
-const seeking = ref<SeekingData>({} as unknown & SeekingData);
+const player = usePlayerStore();
+const playing = computed(() => player.isPlaying(track.value));
 
 /**
  * Load the tracks
@@ -248,7 +246,6 @@ const seeking = ref<SeekingData>({} as unknown & SeekingData);
 const {
   data: track,
   loading,
-  onSuccess,
   send: reload,
 } = useWatcher(
   () =>
@@ -263,10 +260,6 @@ const {
     initialData: current.track || {},
   },
 );
-
-onSuccess(() => {
-  playing.value = false;
-});
 
 /**
  * Build the categories
@@ -292,37 +285,9 @@ const categories = ref({
   ],
 });
 
-/**
- * Toggle play mode
- */
 const togglePlay = () => {
-  playing.value = !playing.value;
-  bus?.emit('togglePlay', playing.value, track.value, undefined, 'track');
+  player.toggleTrack(track.value);
 };
-
-bus?.on('seeking', (position, trk, url) => {
-  if (trk?.id === track.value.id) {
-    seeking.value = { position, track: trk, url };
-    playing.value = position > 0;
-  } else {
-    seeking.value = {} as unknown & SeekingData;
-    playing.value = false;
-  }
-});
-
-bus?.on('togglePlay', (status, trk, album, origin) => {
-  if (origin !== 'track' && trk.id === track.value.id) {
-    playing.value = status;
-  }
-});
-
-watch(
-  () => route.params,
-  () => {
-    playing.value = false;
-  },
-  { immediate: true },
-);
 
 useMeta(() => {
   return {
