@@ -1,0 +1,65 @@
+<template>
+  <q-btn
+    no-caps
+    unelevated
+    :round="!expanded"
+    :rounded="expanded"
+    :flat="!expanded"
+    :color="expanded ? 'white' : undefined"
+    :text-color="expanded ? 'dark' : 'white'"
+    :padding="expanded ? '6px 14px 6px 10px' : '8px'"
+    class="action-btn !flex-none"
+    :class="{ 'action-btn--open': expanded }"
+    :aria-label="label"
+    :loading="loading"
+    :disable="disable"
+    @click="emit('click')"
+  >
+    <q-icon :name="icon" size="20px" />
+    <span class="action-btn__label">{{ label }}</span>
+    <q-tooltip v-if="!expanded">{{ label }}</q-tooltip>
+  </q-btn>
+</template>
+
+<script setup lang="ts">
+/**
+ * A toolbar button that shows only its icon, or its icon and label when
+ * `expanded`. The label slides in and out.
+ */
+defineProps<{
+  icon: string;
+  label: string;
+  expanded?: boolean;
+  loading?: boolean;
+  disable?: boolean;
+}>();
+
+const emit = defineEmits<{ click: [] }>();
+</script>
+
+<style lang="scss" scoped>
+.action-btn {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    padding 0.25s ease;
+
+  &__label {
+    display: inline-block;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0;
+    transition:
+      max-width 0.3s ease,
+      margin 0.3s ease,
+      opacity 0.2s ease;
+  }
+
+  &--open &__label {
+    max-width: 10em;
+    margin-left: 8px;
+    opacity: 1;
+  }
+}
+</style>

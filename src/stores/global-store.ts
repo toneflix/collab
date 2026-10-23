@@ -5,11 +5,10 @@ import { defineStore } from 'pinia'
  */
 export const useGlobalStore = defineStore('global', {
   persist: {
-    pick: ['dawWarning', 'isSidebarMinimized'],
+    pick: ['isSidebarMinimized'],
   },
   state: () => {
     return {
-      dawWarning: true,
       isSidebarMinimized: false,
     }
   },

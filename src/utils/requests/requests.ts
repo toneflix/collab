@@ -16,7 +16,7 @@ import {
 } from '../models'
 import { alova, axios } from 'src/boot/alova'
 
-import { WavePlaylistTrack } from '../playlist'
+import type { Stem } from '../daw'
 import { toRaw } from 'vue'
 
 /**
@@ -440,7 +440,7 @@ export const loadProjectTrackStemsRequest = (p: Project, t: ProjectTrack, params
   const url = guest ? 'projects' : 'creator/projects'
 
   return alova.Get(`${url}/${p.id}/tracks/${t.id}/stems`, {
-    transform: (e: ResponseBody<WavePlaylistTrack[]>) => e.data,
+    transform: (e: ResponseBody<Stem[]>) => e.data,
     hitSource: 'create-project-track-stem',
     params
   })
@@ -463,9 +463,9 @@ export const saveProjectTrackStemRequest = (
 ) => {
   const url = `creator/projects/${p.id}/tracks/${t.id}/stems${f.id ? '/' + f.id : ''}`
 
-  const request = axios.Post<ResponseBody<WavePlaylistTrack>>(url, {
+  const request = axios.Post<ResponseBody<Stem>>(url, {
     src: f.src instanceof File ? f.src : undefined,
-    meta: f.meta || f,
+    meta: f.meta,
     title: f.title,
     stem_id: f.stem_id,
     _method: f.id ? 'PUT' : 'POST',
@@ -489,7 +489,7 @@ export const saveProjectTrackStemRequest = (
  * @returns
  */
 export const deleteProjectTrackStemRequest = (id: string, p: Project, t: ProjectTrack, params?: GenericData) => {
-  return alova.Delete<ResponseBody<WavePlaylistTrack>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}`, {}, {
+  return alova.Delete<ResponseBody<Stem>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}`, {}, {
     name: 'delete-project-track-stem',
     params: params
   })
