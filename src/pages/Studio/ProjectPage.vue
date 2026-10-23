@@ -259,7 +259,7 @@
         >
           <q-item-section avatar>
             <q-avatar rounded color="gray-400" text-color="white">
-              <q-img no-spinner :src="artist.imageUrl" />
+              <q-img no-spinner :src="artist.imageUrl" :error-src="avatarFallback" />
             </q-avatar>
           </q-item-section>
 
@@ -332,6 +332,7 @@
 </template>
 
 <script setup lang="ts">
+import { avatarFallback } from 'src/utils/imageFallback';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
 import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
 import ContentRemover from 'src/components/Utilities/ContentRemover.vue';
