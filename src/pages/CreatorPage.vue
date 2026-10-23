@@ -25,8 +25,8 @@
               {{ artist.verified ? 'Verified Creator' : 'Artist' }}
             </h6>
 
-            <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ subString(artist?.name, 15) }}
+            <h1 class="text-4xl md:text-5xl font-circlular-std break-words">
+              {{ artist?.name }}
             </h1>
 
             <div
@@ -95,7 +95,7 @@ import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { Artist, Category, PageMeta, Project } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { ionAdd } from '@quasar/extras/ionicons-v8';
-import { intStr, subString } from 'src/utils/helpers';
+import { intStr } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {

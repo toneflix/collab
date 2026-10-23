@@ -35,8 +35,8 @@
               {{ artist.verified ? 'Verified Artist' : 'Artist' }}
             </h6>
 
-            <h1 class="text-5xl font-circlular-std whitespace-nowrap">
-              {{ subString(artist?.name, 15) }}
+            <h1 class="text-4xl md:text-5xl font-circlular-std break-words">
+              {{ artist?.name }}
             </h1>
 
             <div
@@ -132,7 +132,7 @@ import {
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
 import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
-import { intStr, subString } from 'src/utils/helpers';
+import { intStr } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
