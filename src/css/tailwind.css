@@ -1,0 +1,143 @@
+/*
+ * Tailwind CSS v4 entry.
+ *
+ * The layers are imported without native CSS cascade layers so that utilities
+ * keep overriding Quasar and Vuestic styles the same way they did in Tailwind v3.
+ */
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/preflight.css';
+@import 'tailwindcss/utilities.css';
+
+@config '../../tailwind.config.js';
+
+/* Inputs */
+[type='text'],
+input:where(:not([type])),
+[type='email'],
+[type='url'],
+[type='password'],
+[type='number'],
+[type='date'],
+[type='datetime-local'],
+[type='month'],
+[type='search'],
+[type='tel'],
+[type='time'],
+[type='week'],
+[multiple],
+textarea,
+select {
+  &.q-field__input,
+  &.q-field__native {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+.search-1.q-field--outlined .q-field__control {
+  border-radius: 0 4px 4px 4px;
+  padding: 0 12px;
+}
+
+.force-read {
+  &.q-field--outlined.q-field--readonly .q-field__control {
+    &:before {
+      border-style: solid;
+    }
+    &:hover:before {
+      border-color: currentColor;
+    }
+  }
+}
+
+.custom-q-class {
+  border-radius: 4px;
+  @apply border-0! focus:shadow-none! focus:outline-none! focus:ring-0!;
+  &.capitalize .q-field__messages {
+    @apply normal-case;
+  }
+  &.message-input {
+    .custom-input-class {
+      @apply pt-2 focus:m-1;
+    }
+    .q-field__append {
+      height: inherit;
+    }
+  }
+  &.q-field--outlined .q-field__control {
+    &:before {
+      border-width: 1px;
+      border-color: rgb(0 0 0 / 8%);
+    }
+    &:hover:before {
+      border-color: #000;
+    }
+    &:after {
+      border-width: 1px;
+    }
+  }
+  &.search-input {
+    &.q-field--outlined .q-field__control::after {
+      border-color: inherit !important;
+    }
+  }
+  .q-field__messages {
+    font-size: 0.9rem;
+    line-height: 0.8rem;
+  }
+}
+
+.custom-input-class {
+  @apply bg-transparent! focus:shadow-none! focus:border-0! focus:outline-none! focus:ring-0!;
+}
+
+.body--dark {
+  .custom-q-class {
+    &.q-field--outlined .q-field__control {
+      @apply rounded-lg text-xl;
+      &:before {
+        border-width: 1px;
+        border-color: rgba(255, 255, 255, 0.523);
+      }
+      &:hover:before {
+        border-color: #bcbcbc;
+      }
+    }
+    &:not(.no-fill).q-field--outlined .q-field__control {
+      &:before {
+        background-color: rgb(255, 255, 255);
+      }
+    }
+  }
+
+  .custom-input-class {
+    @apply text-gray-500!;
+  }
+}
+
+.q-field__append.row {
+  flex: unset;
+}
+
+.q-field__messages {
+  @apply text-lg;
+}
+
+/* Dialogs */
+.q-dialog-plugin.q-card.mode-dialog {
+  @apply rounded-[3em] min-h-72 flex flex-col justify-around;
+  .q-dialog__title {
+    text-align: center;
+    @apply font-bold text-3xl flex-none!;
+  }
+  .q-dialog__message {
+    text-align: center;
+    @apply text-2xl flex-none!;
+  }
+  .q-card__actions--horiz {
+    @apply flex justify-center gap-2 flex-none!;
+    .q-btn {
+      @apply rounded-3xl px-8 font-bold;
+    }
+  }
+}

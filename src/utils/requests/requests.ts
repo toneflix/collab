@@ -27,7 +27,7 @@ import { toRaw } from 'vue'
  */
 export const exploreRequest = (params?: GenericData) => {
   return alova.Get('explore', {
-    transformData: (e: ResponseBody<ExploreData>) => e.data,
+    transform: (e: ResponseBody<ExploreData>) => e.data,
     hitSource: 'play-track',
     params
   })
@@ -97,7 +97,6 @@ export const writeCommentsRequest = (
   const baseUrl = params?.baseUrl ? params.baseUrl : 'projects'
 
   const request = axios.Post<ResponseBody<UserComment>>(`${baseUrl}/${pid}/comments${f.id ? '/' + f.id : ''}`, form, {
-    enableUpload: true,
     name: 'add-project-comment',
     params
   })
@@ -134,7 +133,7 @@ export const loadTrackRequest = (id: string | string[], params?: GenericData) =>
   const url = params?.release_id ? `releases/${params?.release_id}/tracks` : 'tracks'
 
   return alova.Get(`${url}/${id}`, {
-    transformData: (e: ResponseBody<Track>) => e.data,
+    transform: (e: ResponseBody<Track>) => e.data,
     hitSource: 'create-track' + id,
     params: Object.assign({}, {
       with: 'artist',
@@ -167,7 +166,7 @@ export const loadReleasesRequest = (params?: GenericData) => {
  */
 export const loadReleaseRequest = (id: string | string[], params?: GenericData) => {
   return alova.Get(`releases/${id}`, {
-    transformData: (e: ResponseBody<Release>) => e.data,
+    transform: (e: ResponseBody<Release>) => e.data,
     hitSource: 'create-release' + (id || ''),
     params: {
       with: 'artist,genre,release',
@@ -193,7 +192,7 @@ export const createReleaseRequest = (f: Release) => {
   if (form.tracks) {
     form.tracks = toRaw(form.tracks).map(e => {
 
-      // TODO: Extract duration from audio file and send with the request
+      // Duration is read from the audio file when it is picked (see getAudioDuration)
 
       return Object.assign({}, e, {
         genre: undefined,
@@ -210,7 +209,6 @@ export const createReleaseRequest = (f: Release) => {
     ...form,
     _method: form.id ? 'PUT' : 'POST'
   }, {
-    enableUpload: true,
     name: 'create-release' + (f.slug || f.id || ''),
     params: {
       with: 'artist,genre,release,tracks,project,streamUrl'
@@ -237,7 +235,6 @@ export const saveTrackRequest = (f: Track & UploadData) => {
   }
 
   const request = axios.Post<ResponseBody<Track>>('creator/releases/generic/tracks/save', form, {
-    enableUpload: true,
     name: 'create-track',
     params: {
       with: 'artist,genre,release,streamUrl'
@@ -272,7 +269,7 @@ export const loadUsersRequest = (params?: GenericData) => {
  */
 export const loadUserRequest = (id: string | string[], params?: GenericData) => {
   return alova.Get(`users/${id}`, {
-    transformData: (e: ResponseBody<User>) => e.data,
+    transform: (e: ResponseBody<User>) => e.data,
     hitSource: 'create-user' + id,
     params
   })
@@ -303,7 +300,7 @@ export const loadArtistsRequest = (params?: GenericData) => {
 export const loadArtistRequest = (id: string | string[], params?: GenericData, guest = false) => {
   const url = guest ? 'artists' : 'creator/artists'
   return alova.Get(`${url}/${id}`, {
-    transformData: (e: ResponseBody<Artist>) => e.data,
+    transform: (e: ResponseBody<Artist>) => e.data,
     hitSource: 'create-user' + id,
     params
   })
@@ -320,7 +317,6 @@ export const createArtistRequest = (form: Artist) => {
     ...form,
     _method: form.id ? 'PUT' : 'POST'
   }, {
-    enableUpload: true,
     name: 'create-user'
   })
 
@@ -340,7 +336,7 @@ export const createArtistRequest = (form: Artist) => {
 export const loadProjectRequest = (id: string | string[], params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
   return alova.Get(`${url}/${id}`, {
-    transformData: (e: ResponseBody<Project>) => e.data,
+    transform: (e: ResponseBody<Project>) => e.data,
     hitSource: 'create-project' + id,
     params: {
       with: !guest ? 'tracks' : undefined,
@@ -384,7 +380,6 @@ export const createProjectRequest = (f: Project & UploadData) => {
   }
 
   const request = axios.Post<ResponseBody<Project>>(`creator/projects${f.id ? '/' + f.id : ''}`, form, {
-    enableUpload: true,
     name: 'create-project' + (f.slug || f.id || ''),
     params: {
       with: 'tracks'
@@ -408,7 +403,7 @@ export const createProjectRequest = (f: Project & UploadData) => {
 export const loadProjectTrackRequest = (p: Project, id: string, _params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
   return alova.Get(`${url}/${p.id}/tracks/${id}`, {
-    transformData: (e: ResponseBody<ProjectTrack>) => e.data,
+    transform: (e: ResponseBody<ProjectTrack>) => e.data,
     hitSource: 'create-project-track' + id,
     params: { with: !guest ? 'genre,artist' : undefined, ..._params }
   })
@@ -426,7 +421,7 @@ export const loadProjectTracksRequest = (p: Project, params?: GenericData, guest
   const url = guest ? 'projects' : 'creator/projects'
 
   return alova.Get(`${url}/${p.id}/tracks`, {
-    transformData: (e: ResponseBody<ProjectTrack[]>) => e.data,
+    transform: (e: ResponseBody<ProjectTrack[]>) => e.data,
     hitSource: 'create-project-track',
     params: { with: !guest ? 'genre,artist' : undefined, ...params }
   })
@@ -445,7 +440,7 @@ export const loadProjectTrackStemsRequest = (p: Project, t: ProjectTrack, params
   const url = guest ? 'projects' : 'creator/projects'
 
   return alova.Get(`${url}/${p.id}/tracks/${t.id}/stems`, {
-    transformData: (e: ResponseBody<WavePlaylistTrack[]>) => e.data,
+    transform: (e: ResponseBody<WavePlaylistTrack[]>) => e.data,
     hitSource: 'create-project-track-stem',
     params
   })
@@ -475,7 +470,6 @@ export const saveProjectTrackStemRequest = (
     stem_id: f.stem_id,
     _method: f.id ? 'PUT' : 'POST',
   }, {
-    enableUpload: true,
     name: 'create-project-track-stem',
     params: params
   })
@@ -513,7 +507,7 @@ export const loadProjectTrackAssetsRequest = (t: ProjectTrack, params?: GenericD
   const url = guest ? 'projects' : 'creator/projects'
 
   return alova.Get(`${url}/${t.project_id}/tracks/${t.id}/assets`, {
-    transformData: (e: ResponseBody<FileAsset[]>) => e.data,
+    transform: (e: ResponseBody<FileAsset[]>) => e.data,
     hitSource: 'create-project-track-asset',
     params
   })
@@ -534,7 +528,6 @@ export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => 
     file: f.file instanceof File ? f.file : undefined,
     _method: f.id ? 'PUT' : 'POST',
   }, {
-    enableUpload: true,
     name: 'create-project-track-asset',
     params: {
       with: 'ext'
@@ -565,7 +558,6 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
     description: f.description,
     _method: f.id ? 'PUT' : 'POST',
   }, {
-    enableUpload: true,
     name: 'create-project-track',
     params: {
       with: 'artist,genre'
@@ -589,7 +581,7 @@ export const loadProjectCollaboratorsRequest = (p: Project, params?: GenericData
   const url = guest ? 'projects' : 'creator/projects'
 
   return alova.Get(`${url}/${p.id}/collaborators`, {
-    transformData: (e: ResponseBody<Collaber[]>) => e.data as Collaber[],
+    transform: (e: ResponseBody<Collaber[]>) => e.data as Collaber[],
     hitSource: /\*-project-collaborator/,
     params
   })

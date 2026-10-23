@@ -109,7 +109,7 @@
 import { computed } from 'vue';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { alova } from 'src/boot/alova';
 import { reboot } from 'src/utils/proccessor';
 import { ResponseBody, User } from 'src/utils/models';

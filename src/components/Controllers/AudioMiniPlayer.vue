@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
-import { ionPlayOutline, ionPauseOutline } from '@quasar/extras/ionicons-v7';
+import { ionPlayOutline, ionPauseOutline } from '@quasar/extras/ionicons-v8';
 import { Howl, Howler } from 'howler';
 import { useGlobalStore } from 'src/stores/global-store';
 import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue';

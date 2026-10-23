@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { alova } from 'src/boot/alova';
 import { Artist, ResponseBody, User } from 'src/utils/models';
 import { PropType } from 'vue';

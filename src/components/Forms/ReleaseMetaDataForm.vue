@@ -214,6 +214,6 @@ const form = defineModel<Release & UploadData>('form', {
 
 const errors = defineModel<Record<string, string>>('errors', {
   required: false,
-  default: {},
+  default: () => ({}),
 });
 </script>

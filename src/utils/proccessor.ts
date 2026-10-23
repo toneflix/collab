@@ -12,11 +12,11 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 export const readEnv = (env: string = 'baseURL', skipDev: boolean = false): string => {
   if (import.meta.env.PROD || import.meta.env.v_ENVIRONMENT === 'production' || skipDev) {
     // Production
-    return import.meta.env[`v_${env}`];
+    return import.meta.env[`v_${env}`] ?? '';
   } else {
     // Development
-    if (import.meta.env[`v_dev.${env}`]) {
-      return import.meta.env[`v_dev.${env}`];
+    if (import.meta.env[`v_dev_${env}`]) {
+      return import.meta.env[`v_dev_${env}`] ?? '';
     } else {
       return readEnv(env, true)
     }
@@ -24,7 +24,7 @@ export const readEnv = (env: string = 'baseURL', skipDev: boolean = false): stri
 };
 
 export const refreshUser = (router?: Router) => {
-  return new Promise<User>(async (resolve) => {
+  return new Promise<User>((resolve) => {
     const boot = useBootstrapStore();
     if (!boot.token) {
       return resolve({} as User);
@@ -56,7 +56,7 @@ export const refreshUser = (router?: Router) => {
 };
 
 export const reboot = (done?: () => void, router?: Router, reloadUser: boolean | number = false) => {
-  invalidateCache();
+  void invalidateCache();
 
   return new Promise<{
     init: { configuration: Configuration },
@@ -110,6 +110,9 @@ export const authValidator = (
   if (ssrContext) {
     const cookies = Cookies.parseSSR(ssrContext)
     boot.token = cookies.get('token')
+  } else if (!boot.token && Cookies.has('token')) {
+    // The first navigation can run before any request has copied the cookie into the store
+    boot.token = Cookies.get('token')
   }
 
   // Check if user is logged in when requesting a page that requires authentication

@@ -193,7 +193,7 @@ defineOptions({
         data[group.group] = await alova
           .Get(group.group, {
             params: group.params,
-            transformData: (e: ResponseBody<GenericData>) => e.data,
+            transform: (e: ResponseBody<GenericData>) => e.data,
           })
           .send();
       }

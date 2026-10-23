@@ -303,8 +303,8 @@ import {
   UploadData,
 } from 'src/utils/models';
 import { computed, ref, watch } from 'vue';
-import { genres } from 'src/utils/dummy';
-import { useForm } from '@alova/scene-vue';
+import { useGenres } from 'src/composables/useGenres';
+import { useForm } from 'alova/client';
 import {
   createReleaseRequest,
   loadProjectRequest,
@@ -316,7 +316,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
 import { allowedAudioExts } from 'src/utils/presets';
-import { getAudioInfo } from 'src/utils/requests/content';
+import { getAudioDuration } from 'src/utils/requests/content';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -382,6 +382,7 @@ defineOptions({
   },
 });
 
+const { genres, ready: genresReady } = useGenres();
 const tab = ref<'basic' | 'meta' | 'tracks' | 'publish'>('basic');
 const file = ref<File | File[]>();
 const route = useRoute();
@@ -419,9 +420,15 @@ const {
     pline: curr.release.pline || '',
     privacy: curr.release.privacy || 'public',
     explicit: curr.release.explicit ? 1 : 0,
-    genre_id: curr.release.genre_id || genres[0].id,
+    genre_id: curr.release.genre_id || genres.value[0]?.id,
     contains_music: curr.release.contains_music,
   } as unknown as Release & UploadData,
+});
+
+// Default to the first genre once the list arrives.
+genresReady.then((list) => {
+  form.value.genre_id ||= list[0]?.id;
+  trackForm.value.genre_id ||= list[0]?.id;
 });
 
 onError(({ error }) => {
@@ -456,7 +463,7 @@ const {
     slug: String(Math.floor(Math.random() * 99999999)),
     privacy: 'public',
     explicit: 0,
-    genre_id: genres[0].id,
+    genre_id: genres.value[0]?.id,
     release: form.value,
     audio: File,
   } as unknown as Track & UploadData,
@@ -476,15 +483,13 @@ const setFile = async (event: HTMLInputEvent, i: number) => {
     streamUrls.value[i] = tracks.value[i].streamUrl;
   }
   tracks.value[i].streamUrl = URL.createObjectURL(tempFiles.value[i] as File);
-  tracks.value[i].duration = (
-    await getAudioInfo(tempFiles.value[i] as File)
-  ).duration;
+  tracks.value[i].duration = await getAudioDuration(tempFiles.value[i]);
 };
 
 const resetTrack = (i: number) => {
   delete tempFiles.value[i];
   tracks.value[i].audio = undefined;
-  if (!!streamUrls.value[i]) {
+  if (streamUrls.value[i]) {
     tracks.value[i].streamUrl = streamUrls.value[i];
     delete streamUrls.value[i];
   }
@@ -506,7 +511,7 @@ const processUpload = async (files?: File[]) => {
     trackForm.value.artist_id = form.value.artist_id;
     trackForm.value.release = form.value;
     trackForm.value.release_id = form.value.id;
-    trackForm.value.duration = (await getAudioInfo(files[0])).duration;
+    trackForm.value.duration = await getAudioDuration(files[0]);
     saveTrack().then(({ data }) => {
       if (data) {
         reset();

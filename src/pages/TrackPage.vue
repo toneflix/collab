@@ -170,7 +170,7 @@ import {
   ionHeartOutline,
   ionPause,
   ionPlay,
-} from '@quasar/extras/ionicons-v7';
+} from '@quasar/extras/ionicons-v8';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { EventBus, useMeta } from 'quasar';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
@@ -182,7 +182,7 @@ import {
   loadTrackRequest,
   loadTracksRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova';
+import { useWatcher } from 'alova/client';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
@@ -252,7 +252,7 @@ const {
   [() => route.params.artist_id],
   {
     immediate: false,
-    sendable: () => !!route.params.artist_id,
+    middleware: (_, next) => (route.params.artist_id ? next() : undefined),
     initialData: current.track || {},
   },
 );
@@ -265,7 +265,7 @@ onSuccess(() => {
  * Build the categories
  */
 const categories = ref({
-  albums: <Category[]>[
+  albums: <Category<Release>[]>[
     {
       id: 'albums',
       slug: 'albums',
@@ -274,7 +274,7 @@ const categories = ref({
       params: { artist_id: route.params.artist_id },
     },
   ],
-  related: <Category[]>[
+  related: <Category<Track>[]>[
     {
       id: 'songs',
       slug: 'songs',

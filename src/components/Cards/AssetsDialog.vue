@@ -220,7 +220,7 @@ import {
   loadProjectTrackAssetsRequest,
   saveProjectTrackAssetRequest,
 } from 'src/utils/requests/requests';
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { allowedAssetsExts } from 'src/utils/presets';
 
 const emit = defineEmits<{

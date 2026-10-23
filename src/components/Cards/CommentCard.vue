@@ -197,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm, usePagination } from '@alova/scene-vue';
+import { useForm, usePagination } from 'alova/client';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
 import {
@@ -247,7 +247,6 @@ const expanded = defineModel<boolean>('expanded', {
 });
 
 const comment = defineModel<UserComment>('comment', {
-  default: () => [],
   required: true,
 });
 
@@ -271,8 +270,7 @@ const {
   {
     total: (e) => e.meta?.total || 0,
     append: true,
-    sendable: () =>
-      (!!route.params.project_id || !!props.id) && !!comment.value.id,
+    middleware: (_, next) => ((!!route.params.project_id || !!props.id) && !!comment.value.id ? next() : undefined),
     immediate: props.immediate,
     initialData: { data: [] },
     watchingStates: [() => route.params.project_id, () => props.id],

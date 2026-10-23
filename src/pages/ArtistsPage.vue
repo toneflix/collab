@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRequest } from 'alova';
+import { useRequest } from 'alova/client';
 import { useMeta } from 'quasar';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

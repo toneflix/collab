@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm, usePagination } from '@alova/scene-vue';
+import { useForm, usePagination } from 'alova/client';
 import { notify } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';
 import {
@@ -117,7 +117,7 @@ const {
   {
     total: (e) => e.meta?.total || 0,
     append: true,
-    sendable: () => !!route.params.project_id || !!props.id,
+    middleware: (_, next) => (!!route.params.project_id || !!props.id ? next() : undefined),
     immediate: props.immediate,
     initialData: { data: initComments.value },
     watchingStates: [() => route.params.project_id, () => props.id],
@@ -151,10 +151,9 @@ onSuccess(({ data }) => {
 const onIntersect = (
   evt: IntersectionObserverEntry,
   isLast: boolean,
-): boolean => {
+): void => {
   if (isLast && !isLastPage.value && evt.isIntersecting) {
     page.value++;
   }
-  return true;
 };
 </script>

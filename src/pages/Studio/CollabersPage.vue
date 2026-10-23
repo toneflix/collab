@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { PageMeta, User } from 'src/utils/models';
@@ -110,11 +110,10 @@ const {
 const onIntersect = (
   evt: IntersectionObserverEntry,
   isLast: boolean,
-): boolean => {
+): void => {
   if (isLast && !isLastPage.value && evt.isIntersecting) {
     page.value++;
   }
-  return true;
 };
 
 const reporting = ref(false);

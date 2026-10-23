@@ -1,6 +1,6 @@
 import { ShallowRef } from 'vue'
 import { PlaylistState } from './models'
-import { TrackFade, TrackStates } from 'app/models/wave-playlist.d'
+import type { TrackFade, TrackStates } from 'app/models/wave-playlist'
 import Playlist from 'waveform-playlist/lib/Playlist'
 
 export type WavePlaylistTrack = {
@@ -73,9 +73,9 @@ export const rebuildPlaylist = (playlist: ShallowRef<Playlist>) => {
           type: 'stem',
           gain: Number(track.gain),
           cuein: Number(track.cueIn),
-          muted: Boolean(track.muted),// TODO: recheck
+          muted: playlist.value.mutedTracks.includes(track),
           cueout: Number(track.cueOut),
-          soloed: Boolean(track.soloed),// TODO: recheck
+          soloed: playlist.value.soloedTracks.includes(track),
           start: Number(track.startTime),
           duration: Number(track.duration),
           fadeIn: data.fadeIn ? {

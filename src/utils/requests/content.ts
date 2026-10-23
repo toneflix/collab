@@ -115,19 +115,29 @@ export const contentSafety = (
     });
 };
 
-export const getAudioInfo = async (file: File): Promise<AudioBuffer> => {
-  return new Promise((resolve, abort) => {
-
-    if (file && file instanceof File) {
-      const audioContext = new AudioContext();
-      file.arrayBuffer().then(arrayBuffer => {
-        audioContext.decodeAudioData(arrayBuffer, (audioBuffer) => {
-          console.log(audioBuffer.duration, audioBuffer)
-          resolve(audioBuffer)
-        })
-      });
-    } else {
-      abort('Invalid File')
+/**
+ * Read the duration (in seconds) of an audio file without uploading it.
+ * Resolves to 0 when the browser can't read the file, so an upload is never blocked.
+ *
+ * @param file The audio file
+ */
+export const getAudioDuration = (file?: File | null): Promise<number> => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !(file instanceof File)) {
+      return resolve(0);
     }
-  })
+
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    const done = (duration: number) => {
+      URL.revokeObjectURL(url);
+      audio.removeAttribute('src');
+      resolve(Number.isFinite(duration) && duration > 0 ? Math.round(duration) : 0);
+    };
+
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = () => done(audio.duration);
+    audio.onerror = () => done(0);
+    audio.src = url;
+  });
 };

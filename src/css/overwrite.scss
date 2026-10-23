@@ -6,3 +6,9 @@
     flex: unset;
   }
 }
+
+// Vuestic sets its font on every element ("*"), and Quasar renders icon
+// ligatures inside a <span>, so let icon children keep the icon font.
+.q-icon * {
+  font-family: inherit;
+}

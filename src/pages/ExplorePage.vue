@@ -41,7 +41,7 @@ import { computed, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
-import { useRequest } from 'alova';
+import { useRequest } from 'alova/client';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
 
 defineOptions({

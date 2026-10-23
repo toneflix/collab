@@ -162,7 +162,6 @@ const options = computed<ProfileOptions[]>(() =>
   ].filter((e) => !e.hide),
 );
 
-options;
 </script>
 
 <style lang="scss">

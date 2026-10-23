@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import TrackCard from 'src/components/Cards/TrackCard.vue';
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import { Category, GenericData, PageMeta, Track } from 'src/utils/models';
 import { loadTracksRequest } from 'src/utils/requests/requests';
 import { PropType } from 'vue';

@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import ProjectCard from '../Cards/ProjectCard.vue';
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import { Category, GenericData, PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests/requests';
 import { PropType, ref } from 'vue';

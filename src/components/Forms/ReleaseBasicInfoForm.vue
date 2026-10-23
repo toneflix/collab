@@ -262,10 +262,11 @@ import {
   User,
 } from 'src/utils/models';
 import { computed, ref, PropType, watch } from 'vue';
-import { genres } from 'src/utils/dummy';
+import { useGenres } from 'src/composables/useGenres';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import AudioMiniPlayer from '../Controllers/AudioMiniPlayer.vue';
 
+const { genres } = useGenres();
 const emit = defineEmits(['error', 'error-cleared']);
 const props = defineProps({
   hidePrivacyOptions: Boolean,
@@ -302,7 +303,7 @@ const meta = defineModel<ContentMeta>('meta', {
 
 const errors = defineModel<Record<string, string>>('errors', {
   required: false,
-  default: {},
+  default: () => ({}),
 });
 
 const artist = ref<User & BaseOption>(form.value.artist as User & BaseOption);

@@ -204,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { useForm } from '@alova/scene-vue';
+import { useForm } from 'alova/client';
 import { useMeta } from 'quasar';
 import { alova } from 'src/boot/alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

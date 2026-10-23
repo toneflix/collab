@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import { chunk } from 'src/utils/helpers';
-import { usePagination } from '@alova/scene-vue';
+import { usePagination } from 'alova/client';
 import {
   Category,
   ExploreItem,
