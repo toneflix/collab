@@ -163,6 +163,8 @@ export type BillingOption = {
   cycles: number;
   /** Percent off the full price */
   discount: number;
+  /** The period this option covers, matching a BillingPeriod key */
+  period: string;
   price: number;
   perCycle: number;
   saved: number;
@@ -184,8 +186,18 @@ export type Plan = {
   subscribers?: number;
 }
 
+export type BillingPeriod = {
+  /** e.g. "1-month", "6-month" or "1-year" */
+  key: string;
+  interval: PlanInterval;
+  count: number;
+  /** e.g. "Monthly", "6 months" or "Annual" */
+  label: string;
+}
+
 export type PlansResponse = {
   plans: Plan[];
+  periods: BillingPeriod[];
   features: PlanFeature[];
   current: Plan | null;
   currency: string;
