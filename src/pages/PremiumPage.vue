@@ -19,6 +19,30 @@
         </q-chip>
       </div>
 
+      <div class="flex justify-center mb-6" v-if="periods.length > 1">
+        <q-btn-toggle
+          rounded
+          unelevated
+          no-caps
+          toggle-color="toneflix"
+          color="grey-10"
+          text-color="grey-4"
+          class="!flex-none border border-gray-700"
+          v-model="selectedPeriod"
+          :options="periods.map((p) => ({ label: p.label, value: p.key, slot: p.key }))"
+        >
+          <template :key="p.key" v-slot:[p.key] v-for="p in periods">
+            <q-badge
+              rounded
+              color="green-8"
+              class="ml-2"
+              :label="`Save up to ${bestDiscount(p.key)}%`"
+              v-if="bestDiscount(p.key) > 0"
+            />
+          </template>
+        </q-btn-toggle>
+      </div>
+
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <q-card
           flat
@@ -26,7 +50,7 @@
           :key="plan.id"
           class="bg-dark"
           :class="{ 'border-amber-7!': plan.id === current?.id }"
-          v-for="plan in paidPlans"
+          v-for="{ plan, option } in shownPlans"
         >
           <q-card-section>
             <div class="flex items-center gap-2">
@@ -38,47 +62,28 @@
                 class="!flex-none"
                 v-if="plan.id === current?.id"
               />
+              <q-badge
+                rounded
+                color="green-8"
+                class="!flex-none"
+                :label="`Save ${option.discount}%`"
+                v-if="option.discount > 0"
+              />
             </div>
-            <div class="mt-1 text-xs text-grey-5" v-if="plan.description">
-              {{ plan.description }}
-            </div>
-
-            <div class="flex flex-col gap-2 mt-3" v-if="plan.billingOptions.length > 1">
-              <div
-                :key="option.cycles"
-                class="flex items-center justify-between px-3 py-2 border rounded-lg cursor-pointer"
-                :class="
-                  option.cycles === chosen(plan).cycles
-                    ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-gray-700 hover:border-gray-500'
-                "
-                v-for="option in plan.billingOptions"
-                @click="choice[plan.id] = option.cycles"
-              >
-                <div>
-                  <div class="font-bold">{{ billingLabel(plan, option.cycles) }}</div>
-                  <div class="text-xs text-grey-5" v-if="option.cycles > 1">
-                    {{ price(option.perCycle) }} / {{ period(plan) }}
-                  </div>
-                </div>
-                <q-badge
-                  rounded
-                  color="green-8"
-                  class="!flex-none"
-                  :label="`Save ${option.discount}%`"
-                  v-if="option.discount > 0"
-                />
-              </div>
-            </div>
-
-            <div class="mt-3 text-3xl font-bold">
-              {{ price(chosen(plan).price) }}
+            <div class="mt-2 text-3xl font-bold">
+              {{ price(option.price) }}
               <span class="text-sm font-normal text-grey-5">
-                / {{ period(plan, chosen(plan).cycles) }}
+                / {{ periodText }}
               </span>
             </div>
-            <div class="mt-1 text-xs text-green-5" v-if="chosen(plan).saved > 0">
-              You save {{ price(chosen(plan).saved) }}
+            <div class="mt-1 text-xs text-grey-5" v-if="option.cycles > 1">
+              {{ price(option.perCycle) }} / {{ period(plan) }}
+              <span class="text-green-5" v-if="option.saved > 0">
+                · you save {{ price(option.saved) }}
+              </span>
+            </div>
+            <div class="mt-2 text-xs text-grey-5" v-if="plan.description">
+              {{ plan.description }}
             </div>
           </q-card-section>
           <q-card-actions>
@@ -89,11 +94,11 @@
               color="toneflix"
               :label="
                 plan.id === current?.id
-                  ? `Add ${period(plan, chosen(plan).cycles)}`
+                  ? `Add ${periodText}`
                   : `Get ${plan.name}`
               "
-              :amount="chosen(plan).price"
-              :body="{ purpose: 'premium', plan: plan.slug, cycles: chosen(plan).cycles }"
+              :amount="option.price"
+              :body="{ purpose: 'premium', plan: plan.slug, cycles: option.cycles }"
               @paid="onPaid"
             />
           </q-card-actions>
@@ -143,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { date as qdate, useMeta } from 'quasar';
 import { useRequest } from 'alova/client';
@@ -152,13 +157,12 @@ import PayButton from 'src/components/Payments/PayButton.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { refreshUser } from 'src/utils/proccessor';
-import { Plan } from 'src/utils/models';
 import { loadPlansRequest } from 'src/utils/requests/plans';
 import { loadSubscriptionRequest } from 'src/utils/requests/payments';
 
 const router = useRouter();
 const boot = useBootstrapStore();
-const { price, limit, period, billingLabel } = usePayments();
+const { price, limit, period } = usePayments();
 
 // The plans are public; which one you're on needs an account.
 const { data, loading, send: reloadPlans } = useRequest(loadPlansRequest);
@@ -169,15 +173,35 @@ const { data: status, send: reloadStatus } = useRequest(loadSubscriptionRequest,
 const current = computed(() => data.value?.current);
 const paidPlans = computed(() => (data.value?.plans || []).filter((p) => p.price > 0));
 
-// The billing option picked on each plan card, by plan id.
-const choice = reactive<Record<number, number>>({});
+const periods = computed(() => data.value?.periods || []);
+
+// The billing period picked in the tabs; plans that can't be paid for that long are hidden.
+const selectedPeriod = ref<string>('');
+watch(periods, (list) => {
+  if (!list.some((p) => p.key === selectedPeriod.value)) selectedPeriod.value = list[0]?.key || '';
+}, { immediate: true });
+
+// The picked period as text, e.g. "month", "6 months" or "year".
+const periodText = computed(() => {
+  const p = periods.value.find((p) => p.key === selectedPeriod.value);
+  return !p ? '' : p.count > 1 ? `${p.count} ${p.interval}s` : p.interval;
+});
 
 /**
- * The billing option picked for a plan, defaulting to paying for one period.
+ * The paid plans offering the picked period, each with its option for it.
  */
-const chosen = (plan: Plan) =>
-  plan.billingOptions.find((o) => o.cycles === choice[plan.id]) ||
-  plan.billingOptions[0] || { cycles: 1, discount: 0, price: plan.price, perCycle: plan.price, saved: 0 };
+const shownPlans = computed(() =>
+  paidPlans.value.flatMap((plan) => {
+    const option = plan.billingOptions.find((o) => o.period === selectedPeriod.value);
+    return option ? [{ plan, option }] : [];
+  }),
+);
+
+/**
+ * The biggest discount any plan gives for a period.
+ */
+const bestDiscount = (key: string) =>
+  Math.max(0, ...paidPlans.value.flatMap((p) => p.billingOptions.filter((o) => o.period === key).map((o) => o.discount)));
 
 const date = (value?: string | null) =>
   value ? qdate.formatDate(value, 'MMM D, YYYY') : '';

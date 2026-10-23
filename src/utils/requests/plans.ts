@@ -1,5 +1,7 @@
 import { Plan, PlanFeature, PlansResponse, ResponseBody } from '../models'
 
+type PlansBody = Omit<PlansResponse, 'plans'> & { data: Plan[] }
+
 import { alova } from 'src/boot/alova'
 
 export type PlanForm = {
@@ -21,7 +23,7 @@ export type PlanForm = {
  */
 export const loadPlansRequest = () => {
   return alova.Get('plans', {
-    transform: (e: ResponseBody<PlansResponse>) => e.data,
+    transform: ({ data, ...rest }: PlansBody): PlansResponse => ({ ...rest, plans: data }),
     cacheFor: 0,
   })
 }
