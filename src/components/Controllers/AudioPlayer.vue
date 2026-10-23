@@ -217,7 +217,7 @@ import {
 import { Howl, Howler } from 'howler';
 import { useGlobalStore } from 'src/stores/global-store';
 import { ref, computed, onBeforeUnmount, onMounted, inject } from 'vue';
-import { formatSeconds } from 'src/utils/helpers';
+import { formatSeconds, notify } from 'src/utils/helpers';
 import { EventBus, useInterval } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
@@ -362,6 +362,20 @@ const initialize = async (play: boolean = false): Promise<Howl | void> => {
   }
 
   loading.value = false;
+
+  // Tracks from a paid release don't stream until the listener buys it.
+  if (!currentTrack.value.streamUrl) {
+    playing.value = false;
+    if (!play) return;
+    notify(
+      currentTrack.value.locked
+        ? `"${currentTrack.value.title}" is part of a paid release. Buy it to listen.`
+        : 'This track can\'t be played right now.',
+      'info',
+    );
+    bus?.emit('stop', 0, currentTrack.value);
+    return;
+  }
 
   const fileUrl = currentTrack.value.streamUrl;
 

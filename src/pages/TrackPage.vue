@@ -121,6 +121,11 @@
             <p class="mt-4 text-sm max-w-96">
               {{ track.description }}
             </p>
+            <TrackPurchases
+              class="mt-4"
+              :track="track"
+              @changed="() => reload()"
+            />
           </div>
         </div>
       </div>
@@ -186,6 +191,7 @@ import { useWatcher } from 'alova/client';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import TrackPurchases from 'src/components/Payments/TrackPurchases.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -197,7 +203,7 @@ defineOptions({
 
     const track = await loadTrackRequest(id, {
       artist_id: artist.id,
-      with: 'comments_count,artist',
+      with: 'comments_count,artist,release,stems',
     }).send();
 
     const { data: related, meta: relatedMeta } = await loadTracksRequest({
@@ -243,11 +249,12 @@ const {
   data: track,
   loading,
   onSuccess,
+  send: reload,
 } = useWatcher(
   () =>
     loadTrackRequest(route.params.track_id, {
       artist_id: String(route.params.artist_id),
-      with: 'comments_count,artist',
+      with: 'comments_count,artist,release,stems',
     }),
   [() => route.params.artist_id],
   {

@@ -333,7 +333,10 @@ defineOptions({
         with: 'artist,genre,tracks,project,streamUrl',
       }).send();
 
-      tracks = release.tracks ?? [];
+      // The API sends stemsPrice and takes stems_price.
+      tracks = (release.tracks ?? []).map((track) =>
+        Object.assign(track, { stems_price: track.stemsPrice ?? 0 }),
+      );
       release.draft = release.draft ? 1 : 0;
       release.explicit = release.explicit ? 1 : 0;
       release.contains_music = release.contains_music ? 1 : 0;

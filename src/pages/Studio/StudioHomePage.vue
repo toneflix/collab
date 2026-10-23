@@ -45,6 +45,11 @@ const links = [
     to: { name: 'studio.releases' },
   },
   {
+    icon: 'fas fa-sack-dollar',
+    title: 'Earnings',
+    to: { name: 'studio.earnings' },
+  },
+  {
     icon: 'fas fa-users-line',
     title: 'Artists & Collabers',
     to: { name: 'studio.collabers' },

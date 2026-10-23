@@ -47,7 +47,18 @@
             hover-opacity="0.8"
             @click.prevent="togglePlay"
           >
-            <q-icon :name="playing ? ionPauseCircle : ionPlayCircle" />
+            <q-icon
+              :name="
+                track.locked
+                  ? 'fas fa-lock'
+                  : playing
+                    ? ionPauseCircle
+                    : ionPlayCircle
+              "
+            />
+            <q-tooltip v-if="track.locked">
+              Part of a paid release
+            </q-tooltip>
           </VaButton>
         </div>
       </q-item-section>
