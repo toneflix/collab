@@ -13,6 +13,8 @@ export type PaymentBody = {
   purpose: PaymentPurpose;
   id?: string | number;
   plan?: string | number;
+  /** How many plan periods to pay for at once */
+  cycles?: number;
   amount?: number;
   message?: string;
 }

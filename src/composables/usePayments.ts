@@ -53,10 +53,26 @@ export const usePayments = () => {
   const isPremium = computed(() => !!boot.user.isPremium);
 
   /**
-   * How long one payment on a plan lasts, e.g. "month" or "3 months".
+   * How long a payment on a plan lasts, e.g. "month", "3 months", or "6 months"
+   * when paying for 6 cycles at once.
    */
-  const period = (plan: Pick<Plan, 'interval' | 'intervalCount'>) =>
-    plan.intervalCount > 1 ? `${plan.intervalCount} ${plan.interval}s` : plan.interval;
+  const period = (plan: Pick<Plan, 'interval' | 'intervalCount'>, cycles = 1) => {
+    const count = Math.max(1, plan.intervalCount || 1) * Math.max(1, cycles);
+    return count > 1 ? `${count} ${plan.interval}s` : plan.interval;
+  };
 
-  return { currency, symbol, price, limit, isPremium, period };
+  /**
+   * A short name for a billing option, e.g. "Monthly", "6 months" or "Annual".
+   */
+  const billingLabel = (plan: Pick<Plan, 'interval' | 'intervalCount'>, cycles = 1) => {
+    const count = Math.max(1, plan.intervalCount || 1) * Math.max(1, cycles);
+    const months = plan.interval === 'month' ? count : plan.interval === 'year' ? count * 12 : 0;
+    if (months === 12) return 'Annual';
+    if (count === 1) {
+      return { day: 'Daily', week: 'Weekly', month: 'Monthly', year: 'Yearly' }[plan.interval];
+    }
+    return `${count} ${plan.interval}s`;
+  };
+
+  return { currency, symbol, price, limit, isPremium, period, billingLabel };
 };

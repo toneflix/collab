@@ -158,6 +158,16 @@ export type PlanFeature = {
 
 export type PlanInterval = 'day' | 'week' | 'month' | 'year'
 
+export type BillingOption = {
+  /** How many periods are paid for at once */
+  cycles: number;
+  /** Percent off the full price */
+  discount: number;
+  price: number;
+  perCycle: number;
+  saved: number;
+}
+
 export type Plan = {
   id: number;
   slug: string;
@@ -166,6 +176,7 @@ export type Plan = {
   price: number;
   interval: PlanInterval;
   intervalCount: number;
+  billingOptions: BillingOption[];
   features: Record<string, boolean | number>;
   isDefault: boolean;
   active: boolean;

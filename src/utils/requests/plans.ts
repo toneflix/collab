@@ -9,6 +9,7 @@ export type PlanForm = {
   price: number;
   interval: Plan['interval'];
   interval_count: number;
+  billing_options: { cycles: number; discount: number }[];
   features: Record<string, boolean | number>;
   is_default: boolean;
   active: boolean;
