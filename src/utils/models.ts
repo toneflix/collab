@@ -1,10 +1,9 @@
 import { RouteLocationRaw } from 'vue-router';
-import { WavePlaylistTrack } from './playlist';
+import type { StemMeta } from './daw';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc'
 export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans'
 export type PriviRole = 'super-admin' | 'admin' | 'manager' | 'support' | 'user'
-export type PlaylistState = 'select' | 'cursor' | 'shift' | 'fadein' | 'fadeout'
 export type ResponseStatus = 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert'
 
 export type BaseOption = {
@@ -458,7 +457,7 @@ export interface ProjectTrack {
   meta: GenericData;
   title: string;
   genre?: Genre;
-  stems?: WavePlaylistTrack[];
+  stems?: StemMeta[];
   preview?: string | File,
   privacy: 'public' | 'private',
   artist?: Artist;

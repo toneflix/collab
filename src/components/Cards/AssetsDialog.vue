@@ -212,7 +212,7 @@ import {
 } from 'src/utils/models';
 import { PropType, computed, ref } from 'vue';
 import IconCard from './IconCard.vue';
-import { WavePlaylistTrack } from 'src/utils/playlist';
+import { Stem } from 'src/utils/daw';
 import { exportFile } from 'quasar';
 import { axios, useRequest } from 'src/boot/alova';
 import { formatBytes, notify } from 'src/utils/helpers';
@@ -233,9 +233,9 @@ const props = defineProps({
     required: true,
   },
   stems: {
-    type: Object as PropType<(WavePlaylistTrack & UploadData)[]>,
+    type: Array as PropType<Stem[]>,
     required: true,
-    default: () => [] as WavePlaylistTrack[],
+    default: () => [] as Stem[],
   },
   btnLabel: {
     type: String,
@@ -259,10 +259,11 @@ const {
   },
 );
 
-const updateStem = (stem: WavePlaylistTrack & UploadData) => {
+const updateStem = (stem: Stem) => {
   const form: UploadData = {
-    id: stem.name,
-    ...stem,
+    id: stem.id,
+    title: stem.title,
+    meta: stem.meta as unknown as UploadData['meta'],
   };
 
   emit('stemUpdated', form);
