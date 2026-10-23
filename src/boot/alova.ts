@@ -11,7 +11,7 @@ import VueHook from 'alova/vue';
 import { axiosRequestAdapter } from '@alova/adapter-axios';
 import { defineBoot } from '#q-app';
 import { notify } from 'src/utils/helpers';
-import { readEnv } from 'src/utils/proccessor';
+import { apiUrl } from 'src/utils/env';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
 // declare module '@vue/runtime-core' {
@@ -21,7 +21,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 //   }
 // }
 
-const baseURL = readEnv('baseURL');
+const baseURL = apiUrl;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type ResponseMethod = Method<any>

@@ -6,23 +6,6 @@ import { Cookies } from 'quasar';
 import { QSsrContext } from '@quasar/app-vite';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
-/**
- * @description Read env variables from .env file and modify based on current environment
- */
-export const readEnv = (env: string = 'baseURL', skipDev: boolean = false): string => {
-  if (import.meta.env.PROD || import.meta.env.v_ENVIRONMENT === 'production' || skipDev) {
-    // Production
-    return import.meta.env[`v_${env}`] ?? '';
-  } else {
-    // Development
-    if (import.meta.env[`v_dev_${env}`]) {
-      return import.meta.env[`v_dev_${env}`] ?? '';
-    } else {
-      return readEnv(env, true)
-    }
-  }
-};
-
 export const refreshUser = (router?: Router) => {
   return new Promise<User>((resolve) => {
     const boot = useBootstrapStore();
