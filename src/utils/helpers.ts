@@ -37,22 +37,6 @@ type NMessage = {
 
 const timeAgo = new TimeAgo('en-US');
 const helpers = {
-  /**
-   * @description Read env variables from .env file and modify based on current environment
-   */
-  env (env: string = 'baseURL', skipDev: boolean = false): string {
-    if (import.meta.env.PROD || import.meta.env.v_ENVIRONMENT === 'production' || skipDev) {
-      // Production
-      return import.meta.env[`v_${env}`] ?? '';
-    } else {
-      // Development
-      if (import.meta.env[`v_dev_${env}`]) {
-        return import.meta.env[`v_dev_${env}`] ?? '';
-      } else {
-        return helpers.env(env, true)
-      }
-    }
-  },
   subString (str: string, len: number, eli: string = '...') {
     return str.length > len ? str.substring(0, len - eli.length).trim() + eli : str;
   },
@@ -349,12 +333,12 @@ const helpers = {
     window.location.assign(String(link));
   },
   asset (url: string) {
-    if (import.meta.env.v_PREFER_ASSET === 'true' && url.indexOf('http') !== -1) {
+    if (import.meta.env.VITE_PREFER_ASSET === 'true' && url.indexOf('http') !== -1) {
       const base_url = document.createElement('a');
       base_url.href = url;
       url = base_url.pathname.replace(/^\/|\/$/g, '');
     }
-    return import.meta.env.v_ASSET_URL + url;
+    return import.meta.env.VITE_ASSET_URL + url;
   },
   nameFromPath (path: string) {
     const base_url = document.createElement('a');
@@ -653,7 +637,6 @@ const helpers = {
 };
 
 export default helpers
-export const env = helpers.env
 export const chunk = helpers.chunk
 export const doter = helpers.doter
 export const money = helpers.money

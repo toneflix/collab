@@ -112,7 +112,7 @@
           >
             <span class="block">
               {{
-                env('frontURL').slice(0, -1) +
+                frontUrl +
                 $router.resolve({
                   name: editingSlug ? 'artist' : 'artist.track',
                   params: {
@@ -270,7 +270,7 @@
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import placeholder from 'src/assets/placeholder.svg';
-import { env } from 'src/utils/helpers';
+import { frontUrl } from 'src/utils/env';
 import { privacyOptions } from 'src/utils/presets';
 import {
   BaseOption,

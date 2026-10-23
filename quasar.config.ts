@@ -56,9 +56,9 @@ export default defineConfig((ctx) => {
         stores: ctx.appPaths.resolve.src('stores'),
       },
 
-      // Variables in .env files that start with "v_" are exposed to the app
+      // Variables in .env files that start with "VITE_" are exposed to the app
       env: {
-        clientPrefix: 'v_',
+        clientPrefix: 'VITE_',
       },
 
       vitePlugins: [
