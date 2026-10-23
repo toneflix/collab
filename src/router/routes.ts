@@ -30,6 +30,11 @@ const routes: RouteRecordRaw[] = [
         name: 'explore',
         component: () => import('pages/ExplorePage.vue')
       },
+      {
+        path: '/premium',
+        name: 'premium',
+        component: () => import('pages/PremiumPage.vue')
+      },
     ],
   },
   ...authentication,

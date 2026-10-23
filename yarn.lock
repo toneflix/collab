@@ -483,6 +483,11 @@
     "@parcel/watcher-win32-arm64" "2.6.0"
     "@parcel/watcher-win32-x64" "2.6.0"
 
+"@paystack/inline-js@^2.25.0":
+  version "2.27.0"
+  resolved "https://registry.yarnpkg.com/@paystack/inline-js/-/inline-js-2.27.0.tgz#9d7bb3a6fd9979404fc374983788377d61e65834"
+  integrity sha512-nj5ywmv069iY3GSvur7je/SQc1ipn8GHkAS2+L+hZVWrhi3/ajwZw9UFiDznRO0X3iwwmMudJ2ZDQVFD9XhucQ==
+
 "@peculiar/asn1-cms@^2.11.0", "@peculiar/asn1-cms@^2.6.0":
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/@peculiar/asn1-cms/-/asn1-cms-2.11.0.tgz#4805485c092cb1c8b2e6bebe98c5764fc517f0e5"
@@ -879,6 +884,13 @@
     "@tailwindcss/oxide" "4.3.3"
     postcss "^8.5.16"
     tailwindcss "4.3.3"
+
+"@toneflix/paystack-inline@^1.11.5":
+  version "1.11.5"
+  resolved "https://registry.yarnpkg.com/@toneflix/paystack-inline/-/paystack-inline-1.11.5.tgz#9019c67bbfd618d97e79e2f6888b4da64611bf03"
+  integrity sha512-kbKjxYj+2pnqXsSy5H0ojGpK13kJvb0hHdKFuXG2NtRWrTMf6SMYo1CzbDtiQ8Yurz+IXT5GujpoZ1VQMpw1rw==
+  dependencies:
+    "@paystack/inline-js" "^2.25.0"
 
 "@tybys/wasm-util@^0.10.2", "@tybys/wasm-util@^0.10.3":
   version "0.10.4"

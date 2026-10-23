@@ -18,6 +18,7 @@
   "dependencies": {
     "@alova/adapter-axios": "^2.0.20",
     "@quasar/extras": "^2.1.0",
+    "@toneflix/paystack-inline": "^1.11.5",
     "@vue/devtools-api": "^8.2.1",
     "alova": "^3.5.5",
     "atropos": "^2.0.2",

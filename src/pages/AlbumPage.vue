@@ -114,6 +114,33 @@
             <p class="mt-4 text-sm max-w-96">
               {{ album.description }}
             </p>
+            <div class="flex items-center gap-3 mt-4" v-if="album.price">
+              <template v-if="album.locked">
+                <PayButton
+                  rounded
+                  unelevated
+                  color="toneflix"
+                  icon="fas fa-lock-open"
+                  :label="`Buy for ${price(album.price)}`"
+                  :amount="album.price"
+                  :body="{ purpose: 'release', id: album.id }"
+                  @paid="() => reload()"
+                />
+                <span class="text-xs !flex-none">
+                  Buy this release to listen in full.
+                </span>
+              </template>
+              <q-chip
+                dense
+                class="!flex-none"
+                icon="fas fa-check"
+                color="green-9"
+                text-color="white"
+                v-else-if="album.purchased"
+              >
+                You own this release
+              </q-chip>
+            </div>
           </div>
         </div>
       </div>
@@ -164,7 +191,9 @@ import {
   ionPause,
   ionPlay,
 } from '@quasar/extras/ionicons-v8';
-import { formatSeconds, intStr, subString } from 'src/utils/helpers';
+import { formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
+import PayButton from 'src/components/Payments/PayButton.vue';
+import { usePayments } from 'src/composables/usePayments';
 import { EventBus, useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import {
@@ -212,6 +241,7 @@ defineOptions({
 });
 
 const route = useRoute();
+const { price } = usePayments();
 const system = useGlobalStore();
 const playing = ref(false);
 
@@ -230,6 +260,7 @@ const {
   data: album,
   loading,
   onSuccess,
+  send: reload,
 } = useWatcher(
   () =>
     loadReleaseRequest(route.params.album_id, {
@@ -266,6 +297,11 @@ const categories = ref({
 const bus = inject<EventBus<CollabEvents>>('bus');
 
 const togglePlay = () => {
+  if (album.value.locked) {
+    notify('Buy this release to listen to it.', 'info');
+    return;
+  }
+
   if (album.value.tracks?.length) {
     playing.value = !playing.value;
     if (system.playlist.id !== route.fullPath) {

@@ -15,6 +15,13 @@
         </q-avatar>
         <q-icon class="rounded-full bg-grey" v-else name="person" />
         <span class="ml-2 mr-6">{{ user.fullname || 'Guest' }}</span>
+        <q-icon
+          name="fas fa-crown"
+          color="amber-7"
+          size="12px"
+          class="-ml-5 mr-4"
+          v-if="user.isPremium"
+        />
       </template>
       <div class="q-pa-md">
         <div class="column">
@@ -122,6 +129,21 @@ const options = computed<ProfileOptions[]>(() =>
           name: 'Studio',
           to: { name: 'studio.home' },
           icon: 'fas fa-microphone-lines',
+        },
+        {
+          name: user.value.isPremium ? 'Premium' : 'Go Premium',
+          to: { name: 'premium' },
+          icon: 'fas fa-crown',
+        },
+        {
+          name: 'Purchases',
+          to: { name: 'library.purchases' },
+          icon: 'fas fa-receipt',
+        },
+        {
+          name: 'Earnings',
+          to: { name: 'studio.earnings' },
+          icon: 'fas fa-sack-dollar',
         },
       ],
     },

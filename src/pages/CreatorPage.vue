@@ -23,6 +23,7 @@
                 v-if="artist.verified"
               />
               {{ artist.verified ? 'Verified Creator' : 'Artist' }}
+              <PremiumBadge class="ml-1" v-if="artist.isPremium" />
             </h6>
 
             <h1 class="text-5xl font-circlular-std whitespace-nowrap">
@@ -57,6 +58,9 @@
                     @click="submit"
                   />
                 </ToggleFollow>
+              </span>
+              <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
+                <TipDialog :creator="artist" />
               </span>
               <span class="!flex-none">
                 {{ intStr(artist.followers) }} Followers
@@ -104,9 +108,11 @@ import {
   loadUserRequest,
 } from 'src/utils/requests/requests';
 import { useWatcher } from 'alova/client';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
+import TipDialog from 'src/components/Payments/TipDialog.vue';
+import PremiumBadge from 'src/components/Payments/PremiumBadge.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
@@ -164,6 +170,9 @@ const { data: artist, loading } = useWatcher(
     initialData: current.artist || {},
   },
 );
+
+const boot = useBootstrapStore();
+const isMe = computed(() => !!boot.user.id && boot.user.id === artist.value.id);
 
 useMeta(() => {
   return artist.value

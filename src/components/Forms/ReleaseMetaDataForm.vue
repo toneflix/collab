@@ -187,6 +187,25 @@
         v-model="form.pline"
       />
     </div>
+    <div class="col-span-2">
+      <q-separator />
+    </div>
+    <div class="col-span-2 md:col-span-1">
+      <label class="block mb-2 text-xl text-gray-400"> Price </label>
+      <q-input
+        outlined
+        type="number"
+        min="0"
+        color="primary"
+        class="custom-q-class no-fill"
+        input-class="custom-input-class"
+        hint="Fans pay this once to stream the whole release. Leave at 0 to make it free."
+        :prefix="symbol"
+        :error="!!errors.price || !!errors['release.price']"
+        :error-message="errors.price || errors['release.price']"
+        v-model.number="form.price"
+      />
+    </div>
     <div class="col-span-2 md:col-span-1">
       <q-checkbox
         label="Contains explicit content"
@@ -207,6 +226,9 @@
 <script setup lang="ts">
 import HoverCard from 'src/components/Cards/HoverCard.vue';
 import { Release, UploadData } from 'src/utils/models';
+import { usePayments } from 'src/composables/usePayments';
+
+const { symbol } = usePayments();
 
 const form = defineModel<Release & UploadData>('form', {
   required: true,

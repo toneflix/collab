@@ -85,6 +85,7 @@ export type UploadData = {
   stem_id?: string | number,
   release_id?: string | number,
   description?: string,
+  stems_price?: number,
 };
 
 export type Initialize = {
@@ -105,6 +106,61 @@ export type Configuration = {
   payment_verify_url: string,
   reference_prefix: string,
   previews_on_save: boolean,
+  premium_monthly_price: number,
+  premium_yearly_price: number,
+  min_tip_amount: number,
+  creator_share: number,
+  free_max_projects: number,
+  premium_max_projects: number,
+  free_max_collaborators: number,
+  premium_max_collaborators: number,
+  free_max_stem_size: number,
+  premium_max_stem_size: number,
+}
+
+export type PaymentPurpose = 'premium' | 'release' | 'stems' | 'tip'
+
+export type PaymentSession = {
+  reference: string;
+  amount: number;
+  access_code?: string;
+  authorization_url?: string;
+}
+
+export type Transaction = {
+  id: string | number;
+  reference: string;
+  purpose: PaymentPurpose;
+  status: 'pending' | 'complete' | 'rejected';
+  amount: number;
+  earned?: number;
+  message?: string | null;
+  plan?: 'monthly' | 'yearly' | null;
+  payer?: { id: string | number; fullname: string; username: string } | null;
+  item?: { type: 'release' | 'track' | 'user'; id: string | number; title: string; slug?: string; artist?: string; username?: string; imageUrl?: string } | null;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export type AccountLimits = {
+  projects: number;
+  collaborators: number;
+  stemSize: number;
+}
+
+export type PremiumStatus = {
+  premium: boolean;
+  endsAt?: string | null;
+  current?: { id: number; plan: 'monthly' | 'yearly'; amount: number; startsAt: string; endsAt: string } | null;
+  plans: { monthly: number; yearly: number };
+  currency: string;
+  limits: { free: AccountLimits; premium: AccountLimits };
+}
+
+export type Earnings = {
+  earned: number;
+  currency: string;
+  byPurpose: Partial<Record<PaymentPurpose, { count: number; gross: number; earned: number }>>;
 }
 
 export interface ContentMeta {
@@ -213,6 +269,7 @@ export interface Artist {
   followsYou: boolean;
   reputation: number,
   projectsCount: number,
+  isPremium?: boolean,
 };
 
 export interface User extends Artist {
@@ -271,6 +328,11 @@ export interface Track {
   contains_music?: boolean | 0 | 1,
   commentsCount?: number; // number of comments
   project_track_id?: string | number;
+  price?: number;
+  locked?: boolean;
+  stemsPrice?: number;
+  stemsForSale?: boolean;
+  stemsUnlocked?: boolean;
   updatedAt: string;
   createdAt: string;
 };
@@ -289,6 +351,9 @@ export interface Release extends Album {
   record_label: string;
   releaseDate: string;
   contains_music?: boolean | 0 | 1,
+  price?: number;
+  locked?: boolean;
+  purchased?: boolean;
 }
 
 export type Album = {

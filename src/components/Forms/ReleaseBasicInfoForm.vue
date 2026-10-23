@@ -212,6 +212,25 @@
             "
           />
         </div>
+        <div
+          class="col-span-2"
+          v-if="type === 'track' && (form as Track).project_track_id"
+        >
+          <label class="block mb-2 text-xl text-gray-400"> Stems Price </label>
+          <q-input
+            outlined
+            type="number"
+            min="0"
+            color="primary"
+            class="custom-q-class no-fill"
+            input-class="custom-input-class"
+            hint="Let fans buy this track's stems from your project. Leave at 0 to keep them private."
+            :prefix="symbol"
+            :error="!!errors[`tracks.${index}.stems_price`] || !!errors.stems_price"
+            :error-message="errors[`tracks.${index}.stems_price`] || errors.stems_price"
+            v-model.number="form.stems_price"
+          />
+        </div>
         <div class="col-span-2">
           <label class="block mb-2 text-xl text-gray-400"> Description </label>
           <q-input
@@ -263,6 +282,7 @@ import {
 } from 'src/utils/models';
 import { computed, ref, PropType, watch } from 'vue';
 import { useGenres } from 'src/composables/useGenres';
+import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import AudioMiniPlayer from '../Controllers/AudioMiniPlayer.vue';
 
@@ -292,6 +312,8 @@ const track = computed<Track>({
   get: () => form.value as unknown as Track,
   set: (v) => (form.value = v),
 });
+
+const { symbol } = usePayments();
 
 const form = defineModel<(Release | Track) & UploadData>('form', {
   required: true,
