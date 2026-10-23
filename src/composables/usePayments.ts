@@ -1,5 +1,6 @@
 import { computed } from 'vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { Plan } from 'src/utils/models';
 
 /**
  * Helpers for showing prices in the app's currency.
@@ -51,5 +52,11 @@ export const usePayments = () => {
 
   const isPremium = computed(() => !!boot.user.isPremium);
 
-  return { currency, symbol, price, limit, isPremium };
+  /**
+   * How long one payment on a plan lasts, e.g. "month" or "3 months".
+   */
+  const period = (plan: Pick<Plan, 'interval' | 'intervalCount'>) =>
+    plan.intervalCount > 1 ? `${plan.intervalCount} ${plan.interval}s` : plan.interval;
+
+  return { currency, symbol, price, limit, isPremium, period };
 };

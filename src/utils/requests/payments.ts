@@ -12,7 +12,7 @@ import { alova } from 'src/boot/alova'
 export type PaymentBody = {
   purpose: PaymentPurpose;
   id?: string | number;
-  plan?: 'monthly' | 'yearly';
+  plan?: string | number;
   amount?: number;
   message?: string;
 }
@@ -34,7 +34,7 @@ export const verifyPaymentRequest = (reference: string) => {
 }
 
 /**
- * The user's Premium status, the plans on offer and the account limits.
+ * The user's plan, what it includes, and when their paid time runs out.
  */
 export const loadSubscriptionRequest = () => {
   return alova.Get('account/subscription', {

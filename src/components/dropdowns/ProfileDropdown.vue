@@ -20,7 +20,7 @@
           color="amber-7"
           size="12px"
           class="-ml-5 mr-4"
-          v-if="user.isPremium"
+          v-if="user.badge"
         />
       </template>
       <div class="q-pa-md">
@@ -95,6 +95,7 @@ import { computed } from 'vue';
 import { RouteLocationRaw } from 'vue-router';
 
 type ProfileListItem = {
+  hide?: boolean;
   name: string;
   to?: RouteLocationRaw;
   href?: string;
@@ -145,7 +146,13 @@ const options = computed<ProfileOptions[]>(() =>
           to: { name: 'studio.earnings' },
           icon: 'fas fa-sack-dollar',
         },
-      ],
+        {
+          hide: !user.value.permissions?.includes('manage-plans'),
+          name: 'Manage plans',
+          to: { name: 'admin.plans' },
+          icon: 'fas fa-layer-group',
+        },
+      ].filter((e) => !e.hide),
     },
     {
       name: 'explore',

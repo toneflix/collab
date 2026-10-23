@@ -1,12 +1,11 @@
 <template>
   <q-page padding>
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-4xl mx-auto">
       <div class="py-6 text-center">
         <q-icon name="fas fa-crown" color="amber-7" size="40px" />
         <h1 class="mt-3 text-4xl font-circlular-std">Toneflix Premium</h1>
         <p class="mt-2 text-grey-5">
-          Download music for offline listening, wear the Premium badge, and get
-          more room to create.
+          Pick the plan that fits how you listen and create.
         </p>
         <q-spinner class="mt-3" v-if="loading" />
         <q-chip
@@ -14,30 +13,43 @@
           color="green-9"
           text-color="white"
           class="mt-3"
-          v-if="status.premium"
+          v-if="status?.premium"
         >
-          You're Premium until {{ date(status.endsAt) }}
+          You're on {{ status.plan.name }} until {{ date(status.endsAt) }}
         </q-chip>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <q-card
           flat
           bordered
-          :key="plan.key"
+          :key="plan.id"
           class="bg-dark"
-          v-for="plan in plans"
+          :class="{ 'border-amber-7!': plan.id === current?.id }"
+          v-for="plan in paidPlans"
         >
           <q-card-section>
-            <div class="text-lg font-bold">{{ plan.title }}</div>
+            <div class="flex items-center gap-2">
+              <div class="text-lg font-bold">{{ plan.name }}</div>
+              <q-badge
+                rounded
+                color="amber-8"
+                label="Your plan"
+                class="!flex-none"
+                v-if="plan.id === current?.id"
+              />
+            </div>
             <div class="mt-1 text-3xl font-bold">
-              {{ price(plan.amount) }}
+              {{ price(plan.price) }}
               <span class="text-sm font-normal text-grey-5">
-                / {{ plan.per }}
+                / {{ period(plan) }}
               </span>
             </div>
-            <div class="mt-1 text-xs text-grey-5" v-if="plan.note">
-              {{ plan.note }}
+            <div class="mt-1 text-xs text-grey-5" v-if="plan.description">
+              {{ plan.description }}
+            </div>
+            <div class="mt-1 text-xs text-green-5" v-if="saving(plan)">
+              Save {{ saving(plan) }}% compared to paying monthly
             </div>
           </q-card-section>
           <q-card-actions>
@@ -46,71 +58,53 @@
               rounded
               class="w-full"
               color="toneflix"
-              :disable="!plan.amount"
-              :label="status.premium ? `Add a ${plan.per}` : `Get ${plan.title}`"
-              :amount="plan.amount"
-              :body="{ purpose: 'premium', plan: plan.key }"
+              :label="plan.id === current?.id ? `Add a ${period(plan)}` : `Get ${plan.name}`"
+              :amount="plan.price"
+              :body="{ purpose: 'premium', plan: plan.slug }"
               @paid="onPaid"
             />
           </q-card-actions>
         </q-card>
       </div>
 
-      <q-markup-table flat dark class="mt-8 bg-transparent">
-        <thead>
-          <tr>
-            <th class="text-left"></th>
-            <th class="text-center">Free</th>
-            <th class="text-center text-amber-7">Premium</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Download tracks for offline listening</td>
-            <td class="text-center">
-              <q-icon name="fas fa-xmark" color="grey-6" />
-            </td>
-            <td class="text-center">
-              <q-icon name="fas fa-check" color="green-5" />
-            </td>
-          </tr>
-          <tr>
-            <td>Premium badge on your profile</td>
-            <td class="text-center">
-              <q-icon name="fas fa-xmark" color="grey-6" />
-            </td>
-            <td class="text-center">
-              <q-icon name="fas fa-check" color="green-5" />
-            </td>
-          </tr>
-          <tr>
-            <td>Projects</td>
-            <td class="text-center">{{ limit(status.limits.free.projects) }}</td>
-            <td class="text-center">
-              {{ limit(status.limits.premium.projects) }}
-            </td>
-          </tr>
-          <tr>
-            <td>Collaborators per project</td>
-            <td class="text-center">
-              {{ limit(status.limits.free.collaborators) }}
-            </td>
-            <td class="text-center">
-              {{ limit(status.limits.premium.collaborators) }}
-            </td>
-          </tr>
-          <tr>
-            <td>Largest stem upload</td>
-            <td class="text-center">
-              {{ limit(status.limits.free.stemSize, ' MB') }}
-            </td>
-            <td class="text-center">
-              {{ limit(status.limits.premium.stemSize, ' MB') }}
-            </td>
-          </tr>
-        </tbody>
-      </q-markup-table>
-
+      <div class="mt-8 overflow-x-auto" v-if="data">
+        <q-markup-table flat dark class="bg-transparent">
+          <thead>
+            <tr>
+              <th class="text-left"></th>
+              <th
+                class="text-center"
+                :key="plan.id"
+                :class="{ 'text-amber-7': !plan.isDefault }"
+                v-for="plan in data.plans"
+              >
+                {{ plan.name }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :key="feature.key" v-for="feature in data.features">
+              <td>
+                <div>{{ feature.title }}</div>
+                <div class="text-xs text-grey-6">{{ feature.description }}</div>
+              </td>
+              <td class="text-center" :key="plan.id" v-for="plan in data.plans">
+                <template v-if="feature.type === 'toggle'">
+                  <q-icon
+                    name="fas fa-check"
+                    color="green-5"
+                    v-if="plan.features[feature.key]"
+                  />
+                  <q-icon name="fas fa-xmark" color="grey-6" v-else />
+                </template>
+                <template v-else>
+                  {{ limit(Number(plan.features[feature.key] || 0), feature.unit ? ` ${feature.unit}` : '') }}
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </q-markup-table>
+      </div>
     </div>
   </q-page>
 </template>
@@ -125,57 +119,33 @@ import PayButton from 'src/components/Payments/PayButton.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { refreshUser } from 'src/utils/proccessor';
-import { AccountLimits, PremiumStatus } from 'src/utils/models';
+import { Plan } from 'src/utils/models';
+import { loadPlansRequest } from 'src/utils/requests/plans';
 import { loadSubscriptionRequest } from 'src/utils/requests/payments';
 
 const router = useRouter();
 const boot = useBootstrapStore();
-const { price, limit } = usePayments();
+const { price, limit, period } = usePayments();
 
-// Prices and limits are public settings; whether you're Premium needs an account.
-const {
-  data: subscription,
-  loading,
-  send: reload,
-} = useRequest(loadSubscriptionRequest, {
+// The plans are public; which one you're on needs an account.
+const { data, loading, send: reloadPlans } = useRequest(loadPlansRequest);
+const { data: status, send: reloadStatus } = useRequest(loadSubscriptionRequest, {
   immediate: !!boot.user.id,
 });
 
-const tierLimits = (tier: 'free' | 'premium'): AccountLimits => ({
-  projects: Number(boot.configuration[`${tier}_max_projects`] || 0),
-  collaborators: Number(boot.configuration[`${tier}_max_collaborators`] || 0),
-  stemSize: Number(boot.configuration[`${tier}_max_stem_size`] || 0),
-});
+const current = computed(() => data.value?.current);
+const paidPlans = computed(() => (data.value?.plans || []).filter((p) => p.price > 0));
 
-const status = computed<PremiumStatus>(
-  () =>
-    subscription.value || {
-      premium: false,
-      plans: {
-        monthly: Number(boot.configuration.premium_monthly_price || 0),
-        yearly: Number(boot.configuration.premium_yearly_price || 0),
-      },
-      currency: boot.configuration.app_currency,
-      limits: { free: tierLimits('free'), premium: tierLimits('premium') },
-    },
-);
-
-const plans = computed(() => {
-  const monthly = status.value.plans.monthly;
-  const yearly = status.value.plans.yearly;
-  const saving = monthly ? Math.round(100 - (yearly / (monthly * 12)) * 100) : 0;
-
-  return [
-    { key: 'monthly' as const, title: 'Monthly', per: 'month', amount: monthly, note: '' },
-    {
-      key: 'yearly' as const,
-      title: 'Yearly',
-      per: 'year',
-      amount: yearly,
-      note: saving > 0 ? `Save ${saving}% compared to paying monthly` : '',
-    },
-  ];
-});
+/**
+ * How much a longer plan saves over the cheapest monthly plan.
+ */
+const saving = (plan: Plan) => {
+  const monthly = paidPlans.value.find((p) => p.interval === 'month' && p.intervalCount === 1);
+  const months = plan.interval === 'year' ? plan.intervalCount * 12 : plan.interval === 'month' ? plan.intervalCount : 0;
+  if (!monthly || monthly.id === plan.id || months <= 1) return 0;
+  const percent = Math.round(100 - (plan.price / (monthly.price * months)) * 100);
+  return percent > 0 ? percent : 0;
+};
 
 const date = (value?: string | null) =>
   value ? qdate.formatDate(value, 'MMM D, YYYY') : '';
@@ -183,7 +153,8 @@ const date = (value?: string | null) =>
 const onPaid = async () => {
   await invalidateCache();
   await refreshUser(router);
-  reload();
+  reloadPlans();
+  reloadStatus();
 };
 
 useMeta(() => ({
