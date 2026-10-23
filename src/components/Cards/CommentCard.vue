@@ -205,7 +205,8 @@ import {
   loadCommentsRequest,
   writeCommentsRequest,
 } from 'src/utils/requests/requests';
-import { computed, PropType, watch, ref } from 'vue';
+import { computed, inject, PropType, watch, ref } from 'vue';
+import { liveRepliesKey } from 'src/utils/comments';
 import { useRoute } from 'vue-router';
 import TDropdown from '../Utilities/TDropdown.vue';
 import { requestFlagContent } from 'src/utils/requests/content';
@@ -304,6 +305,18 @@ onSuccess(({ data }) => {
   update({ data: [...comments.value, data.data] });
   notify(data.message, data.status);
 });
+
+// Replies others post or delete while this thread is open.
+const liveReply = inject(liveRepliesKey, null);
+watch(
+  () => liveReply?.value,
+  (live) => {
+    if (!live || String(live.comment.cid) !== String(comment.value.id) || !expanded.value) return;
+    const exists = comments.value.some((c) => String(c.id) === String(live.comment.id));
+    if (live.action === 'posted' && !exists) update({ data: [...comments.value, live.comment] });
+    if (live.action === 'deleted') update({ data: comments.value.filter((c) => String(c.id) !== String(live.comment.id)) });
+  },
+);
 
 watch(expanded, (e) => {
   e && loadComments();

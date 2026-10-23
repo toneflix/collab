@@ -152,6 +152,12 @@ const options = computed<ProfileOptions[]>(() =>
           to: { name: 'admin.plans' },
           icon: 'fas fa-layer-group',
         },
+        {
+          hide: !user.value.permissions?.includes('manage-configuration'),
+          name: 'Realtime',
+          to: { name: 'admin.realtime' },
+          icon: 'fas fa-tower-broadcast',
+        },
       ].filter((e) => !e.hide),
     },
     {

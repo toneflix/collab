@@ -13,6 +13,7 @@ import { defineBoot } from '#q-app';
 import { notify } from 'src/utils/helpers';
 import { apiUrl } from 'src/utils/env';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { realtimeOrigin } from 'src/utils/realtime';
 
 // declare module '@vue/runtime-core' {
 //   interface ComponentCustomProperties {
@@ -180,6 +181,8 @@ export default defineBoot(async ({ app, router, ssrContext }) => {
       'X-Requested-With': 'XMLHttpRequest',
       Accept: 'application/json',
       'Access-Control-Allow-Credentials': 'true',
+      // Lets this tab recognise, and skip, realtime events it caused.
+      [boot.realtime?.originHeader || 'X-Realtime-Origin']: realtimeOrigin,
     };
 
     if (withCredentials) {

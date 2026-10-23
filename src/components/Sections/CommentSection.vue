@@ -73,7 +73,9 @@ import {
   loadCommentsRequest,
   writeCommentsRequest,
 } from 'src/utils/requests/requests';
-import { computed, PropType, ref } from 'vue';
+import { computed, PropType, provide, ref } from 'vue';
+import { useRealtimeChannel } from 'src/utils/realtime';
+import { liveRepliesKey, type LiveReply } from 'src/utils/comments';
 import { useRoute } from 'vue-router';
 import CommentCard from '../Cards/CommentCard.vue';
 
@@ -140,6 +142,47 @@ const { form, send, error, reset, loading, onSuccess } = useForm(
     },
   },
 );
+
+/**
+ * The conversation's realtime channel, matching what the API broadcasts on.
+ */
+const channel = computed(() => {
+  const base = props.params.baseUrl || 'projects';
+  if (base === 'tracks') return props.id ? `conversation.track.${props.id}` : null;
+  if (base === 'releases') return props.id ? `conversation.release.${props.id}` : null;
+  if (props.params.track_id) return `conversation.project-track.${props.params.track_id}`;
+  const id = props.params.project_id || route.params.project_id || props.id;
+  return id ? `conversation.project.${id}` : null;
+});
+
+// Replies are shown by each comment's card; hand them over from here.
+const liveReply = ref<LiveReply | null>(null);
+provide(liveRepliesKey, liveReply);
+
+useRealtimeChannel(channel, {
+  'comment.posted': ({ comment }: { comment: UserComment }) => {
+    if (comment.type === 'reply') {
+      const parent = comments.value.find((c) => String(c.id) === String(comment.cid));
+      if (parent) parent.repliesCount++;
+      liveReply.value = { action: 'posted', comment };
+      return;
+    }
+
+    if (comments.value.some((c) => String(c.id) === String(comment.id))) return;
+    update({ data: [...comments.value, comment] });
+    emit('commented', comment, 'comment');
+  },
+  'comment.deleted': ({ comment }: { comment: UserComment }) => {
+    if (comment.type === 'reply') {
+      const parent = comments.value.find((c) => String(c.id) === String(comment.cid));
+      if (parent && parent.repliesCount > 0) parent.repliesCount--;
+      liveReply.value = { action: 'deleted', comment };
+      return;
+    }
+
+    update({ data: comments.value.filter((c) => String(c.id) !== String(comment.id)) });
+  },
+});
 
 onSuccess(({ data }) => {
   reset();

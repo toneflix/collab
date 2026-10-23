@@ -11,6 +11,11 @@ export default <RouteRecordRaw[]>[
         name: 'admin.plans',
         component: () => import('pages/Admin/PlansPage.vue')
       },
+      {
+        path: 'realtime',
+        name: 'admin.realtime',
+        component: () => import('pages/Admin/RealtimePage.vue')
+      },
     ],
   },
 ];
