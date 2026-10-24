@@ -39,39 +39,7 @@
         <div class="flex flex-col gap-4" v-else>
           <p class="text-sm text-grey-5" v-if="guide">{{ guide }}</p>
 
-          <template :key="key" v-for="key in fieldKeys">
-            <q-input
-              dark
-              outlined
-              autogrow
-              type="textarea"
-              input-class="font-mono text-xs"
-              :label="fields[key]!.title"
-              :hint="hintFor(key)"
-              :placeholder="fields[key]!.isSet ? 'Saved. Paste a new one to replace it.' : ''"
-              v-model="form[key]"
-              v-if="key === 'firebase_credentials'"
-            />
-            <q-input
-              dark
-              outlined
-              :type="fields[key]!.secret && !shown[key] ? 'password' : 'text'"
-              :label="fields[key]!.title"
-              :hint="hintFor(key)"
-              :placeholder="fields[key]!.secret && fields[key]!.isSet ? 'Saved. Leave empty to keep it.' : ''"
-              autocomplete="off"
-              v-model="form[key]"
-              v-else
-            >
-              <template #append v-if="fields[key]!.secret">
-                <q-icon
-                  class="cursor-pointer"
-                  :name="shown[key] ? 'visibility_off' : 'visibility'"
-                  @click="shown[key] = !shown[key]"
-                />
-              </template>
-            </q-input>
-          </template>
+          <EnvKeys :keys="settings.keys[form.realtime_driver] ?? []" />
 
           <div v-if="form.realtime_driver === 'firebase'">
             <div class="mb-1 text-sm text-grey-5">
@@ -87,7 +55,7 @@
           class="text-white bg-orange-10"
           v-if="settings.missing.length && settings.driver !== 'none'"
         >
-          {{ settings.driver }} still needs: {{ settings.missing.join(', ') }}.
+          {{ settings.driver }} still needs these in the API's .env: {{ settings.missing.join(', ') }}.
         </q-banner>
 
         <div class="flex items-center gap-3">
@@ -126,6 +94,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
+import EnvKeys from 'src/components/Utilities/EnvKeys.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { ResponseBody } from 'src/utils/models';
@@ -159,37 +128,23 @@ const drivers: { value: RealtimeDriver; label: string; icon: string; description
 ];
 
 const guides: Partial<Record<RealtimeDriver, string>> = {
-  reverb: 'Start the server with "php artisan reverb:start". Host and port are where browsers reach it.',
+  reverb: 'Start the server with "php artisan reverb:start". REVERB_HOST and REVERB_PORT are where browsers reach it.',
   pusher: 'Find these under App Keys in your Pusher Channels app.',
   ably: 'Use an API key with publish and subscribe rights, and turn on "Pusher protocol support" in the Ably app\'s settings.',
   firebase:
-    'Paste the service account JSON from Project settings → Service accounts, and the web app\'s config from Project settings → General.',
+    'FIREBASE_CREDENTIALS takes the service account JSON (or a path to it) from Project settings → Service accounts; the rest come from the web app\'s config under Project settings → General.',
 };
 
 const loading = ref(true);
 const saving = ref(false);
 const testing = ref(false);
 const settings = ref<RealtimeAdminSettings>();
-const form = reactive<Record<string, string | null>>({ realtime_driver: 'none' });
-const shown = reactive<Record<string, boolean>>({});
+const form = reactive<{ realtime_driver: RealtimeDriver }>({ realtime_driver: 'none' });
 const result = reactive({ ok: false, text: '' });
 let savedForm = '';
 
-const fields = computed(() => settings.value?.fields ?? {});
-const guide = computed(() => guides[form.realtime_driver as RealtimeDriver]);
+const guide = computed(() => guides[form.realtime_driver]);
 const changed = computed(() => JSON.stringify(form) !== savedForm);
-
-/** The settings that belong to the chosen driver */
-const fieldKeys = computed(() =>
-  Object.keys(fields.value).filter((key) => key.startsWith(`${form.realtime_driver}_`)),
-);
-
-const hintFor = (key: string) => {
-  const field = fields.value[key];
-  if (!field) return '';
-  if (field.secret && field.isSet) return field.hint || 'Saved and hidden.';
-  return field.hint;
-};
 
 const firebaseRules = `{
   "rules": {
@@ -207,11 +162,7 @@ const firebaseRules = `{
 
 const fill = (data: RealtimeAdminSettings) => {
   settings.value = data;
-  Object.keys(form).forEach((key) => delete form[key]);
   form.realtime_driver = data.driver;
-  for (const [key, field] of Object.entries(data.fields)) {
-    if (key !== 'realtime_driver') form[key] = field.secret ? '' : field.value ?? '';
-  }
   savedForm = JSON.stringify(form);
   // Browsers on this page connect with the new settings straight away.
   boot.realtime = data.client;
@@ -280,7 +231,7 @@ const test = async () => {
     result.ok = false;
     result.text =
       (e as Error)?.message === 'timeout'
-        ? 'The test was sent but never arrived. Check the host, port and keys.'
+        ? 'The test was sent but never arrived. Check the host, port and keys in .env.'
         : (e as ResponseBody)?.message || (e as Error)?.message || 'The test failed.';
   } finally {
     clearTimeout(timer);
@@ -325,12 +276,6 @@ onMounted(load);
     font-weight: 700;
     text-align: left;
   }
-}
-
-// Hints read as notes here, smaller than the site-wide field messages.
-:deep(.q-field__messages) {
-  font-size: 12px;
-  line-height: 1.4;
 }
 
 .rules {
