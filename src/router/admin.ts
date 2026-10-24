@@ -16,6 +16,11 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Admin/AdminHomePage.vue'),
           },
           {
+            path: 'configuration',
+            name: 'admin.configuration',
+            component: () => import('pages/Admin/ConfigurationPage.vue'),
+          },
+          {
             path: 'plans',
             name: 'admin.plans',
             component: () => import('pages/Admin/PlansPage.vue'),
