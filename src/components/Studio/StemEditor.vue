@@ -27,6 +27,21 @@
         <q-btn flat round dense :icon="ionStop" aria-label="Stop" :disable="!ready" @click="stop">
           <q-tooltip>Stop</q-tooltip>
         </q-btn>
+        <q-btn
+          flat
+          round
+          dense
+          class="record-btn"
+          :class="{ 'record-btn--on': recording }"
+          :icon="recording ? ionStop : ionRadioButtonOn"
+          :aria-label="recording ? 'Stop recording' : 'Record'"
+          :loading="startingRecording"
+          :disable="!ready || (!recording && !canRecord)"
+          @click="toggleRecording"
+          v-if="!readonly"
+        >
+          <q-tooltip>{{ recording ? 'Stop recording' : canRecord ? 'Record from your microphone onto a new stem' : 'This browser can\'t record' }}</q-tooltip>
+        </q-btn>
         <div class="stem-editor__clock" aria-live="off">
           {{ formatClock(time) }} <span class="text-grey-6">/ {{ formatClock(duration) }}</span>
         </div>
@@ -65,6 +80,94 @@
         </q-btn>
         <q-btn flat round dense :icon="ionArrowRedo" aria-label="Redo" :disable="!canRedo" @click="redo">
           <q-tooltip>Redo (Ctrl+Shift+Z)</q-tooltip>
+        </q-btn>
+      </div>
+
+      <div class="stem-editor__group stem-editor__tempo">
+        <label class="tempo-field">
+          <span class="sr-only">Tempo in beats per minute</span>
+          <input
+            type="number"
+            inputmode="decimal"
+            min="20"
+            max="300"
+            step="1"
+            aria-label="Tempo (BPM)"
+            :value="tempo"
+            :disabled="!ready || readonly || recording"
+            @change="onTempoInput"
+            @keydown.stop
+          />
+          <span class="text-grey-5">BPM</span>
+          <q-tooltip>The track's tempo, for the beat grid, metronome and instruments</q-tooltip>
+        </label>
+        <q-select
+          dense
+          borderless
+          dark
+          options-dense
+          class="meter-select"
+          aria-label="Time signature"
+          :options="TIME_SIGNATURES"
+          :model-value="meter"
+          :disable="!ready || readonly || recording"
+          @update:model-value="setMeter"
+        />
+        <q-btn
+          flat
+          round
+          dense
+          icon="grid_on"
+          :class="{ 'text-toneflix': grid }"
+          :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
+          :aria-pressed="grid"
+          :disable="!ready"
+          @click="setGrid(!grid)"
+        >
+          <q-tooltip>{{ grid ? 'Hide the beat grid' : 'Show bars and beats, and snap clips to them' }}</q-tooltip>
+        </q-btn>
+        <q-select
+          dense
+          borderless
+          dark
+          options-dense
+          emit-value
+          map-options
+          class="snap-select"
+          aria-label="Snap to"
+          :options="SNAP_OPTIONS"
+          :model-value="snap"
+          @update:model-value="setSnap"
+          v-if="grid"
+        >
+          <q-tooltip>What clips snap to when you move them</q-tooltip>
+        </q-select>
+        <q-btn
+          flat
+          round
+          dense
+          icon="av_timer"
+          :class="{ 'text-toneflix': metronome }"
+          :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
+          :aria-pressed="metronome"
+          :disable="!ready"
+          @click="setMetronome(!metronome)"
+        >
+          <q-tooltip>Metronome {{ metronome ? 'on' : 'off' }}</q-tooltip>
+        </q-btn>
+        <q-btn
+          flat
+          round
+          dense
+          icon="hourglass_top"
+          :class="{ 'text-toneflix': countIn }"
+          :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
+          :aria-pressed="countIn"
+          :disable="!ready"
+          @click="setCountIn(!countIn)"
+          v-if="!readonly"
+        >
+          <q-tooltip>Count in one bar before recording: {{ countIn ? 'on' : 'off' }}</q-tooltip>
         </q-btn>
       </div>
 
@@ -125,8 +228,48 @@
           <q-slider dense color="toneflix" :min="0" :max="maxFade" :step="0.1" v-model="fade.out" @change="applyFades" />
           <span class="w-10 text-right">{{ fade.out.toFixed(1) }}s</span>
         </label>
+        <q-btn
+          outline
+          rounded
+          dense
+          no-caps
+          size="sm"
+          color="grey-4"
+          class="!flex-none px-3"
+          icon="tune"
+          :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
+        >
+          <q-menu dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
+            <EffectsPanel
+              :name="selected.name"
+              :model-value="selectedEffects"
+              @update:model-value="setEffects(selected.id, $event)"
+              @param="(i, params) => setEffectParams(selected!.id, i, params)"
+              @commit="checkDirty"
+            />
+          </q-menu>
+        </q-btn>
+        <q-btn
+          outline
+          rounded
+          dense
+          no-caps
+          size="sm"
+          color="grey-4"
+          class="!flex-none px-3"
+          :icon="selectedPattern.kind === 'drums' ? 'grid_view' : 'piano'"
+          label="Edit pattern"
+          @click="emit('edit-instrument', tracks.get(selected.id)!)"
+          v-if="selectedPattern"
+        />
       </template>
-      <div class="text-grey-5" v-else>Click a stem to fade it in or out.</div>
+      <div class="text-grey-5" v-else>Click a stem to fade it, or to add effects like EQ and reverb.</div>
+    </div>
+
+    <div class="stem-editor__recording" role="status" v-if="recording || countingIn">
+      <span class="rec-dot" />
+      <template v-if="countingIn">Count-in {{ countBeat }}…</template>
+      <template v-else>Recording {{ formatClock(recordedFor) }}. Press stop when you're done.</template>
     </div>
 
     <div ref="host" class="stem-editor__host" />
@@ -150,6 +293,7 @@ import {
   ionPause,
   ionPlay,
   ionPlaySkipBack,
+  ionRadioButtonOn,
   ionRemove,
   ionRepeat,
   ionScan,
@@ -161,7 +305,12 @@ import type { DawEditorElement } from '@dawcore/components';
 import type { NativePlayoutAdapter } from '@dawcore/transport';
 import type { ClipTrack } from '@waveform-playlist/core';
 import type { EngineState } from '@waveform-playlist/engine';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { LocalStorage } from 'quasar';
+import type { SnapTo } from '@waveform-playlist/core';
+import EffectsPanel from './EffectsPanel.vue';
+import { parseEffects, registerStudioEffects, serializeEffects, type StemEffect } from 'src/utils/studio/effects';
+import { parsePattern } from 'src/utils/studio/instruments';
 import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';
@@ -179,6 +328,10 @@ const props = defineProps<{
   readonly?: boolean;
   /** Show the button for messaging about a selected part */
   commentable?: boolean;
+  /** The track's tempo */
+  bpm?: number;
+  /** The track's meter, like "4/4" */
+  timeSignature?: string;
 }>();
 
 const emit = defineEmits<{
@@ -192,6 +345,12 @@ const emit = defineEmits<{
   change: [stems: Record<string, StemMeta>];
   /** Someone wants to message about the selected part */
   comment: [region: { start: number; end: number; stemId?: string | number; stemName?: string }];
+  /** The tempo or meter was changed here */
+  tempo: [value: { bpm: number; timeSignature: string }];
+  /** A take was recorded onto a new track; the parent uploads it and calls adoptStem */
+  recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string }];
+  /** Open the instrument editor for a stem made from a pattern */
+  'edit-instrument': [stem: Stem];
   ready: [];
 }>();
 
@@ -202,6 +361,15 @@ let adapter: NativePlayoutAdapter | null = null;
 let context: AudioContext | null = null;
 
 const zoomLevels = [128, 256, 512, 1024, 2048, 4096, 8192];
+
+const TIME_SIGNATURES = ['2/4', '3/4', '4/4', '5/4', '6/8', '7/8', '12/8'];
+const SNAP_OPTIONS: { label: string; value: SnapTo }[] = [
+  { label: 'No snap', value: 'off' },
+  { label: 'Bar', value: 'bar' },
+  { label: 'Beat', value: 'beat' },
+  { label: '1/8', value: '1/8' },
+  { label: '1/16', value: '1/16' },
+];
 
 const ready = ref(false);
 const playing = ref(false);
@@ -216,6 +384,45 @@ const selectedTrackId = ref<string | null>(null);
 const masterVolume = ref(100);
 const dropping = ref(false);
 const fade = reactive({ in: 0, out: 0 });
+
+// Tempo and grid. The tempo belongs to the track; the rest is remembered on this device.
+const tempo = ref(props.bpm && props.bpm >= 20 ? props.bpm : 120);
+const meter = ref(TIME_SIGNATURES.includes(props.timeSignature || '') ? props.timeSignature! : '4/4');
+const pref = <T,>(key: string, fallback: T): T => {
+  try {
+    return ((LocalStorage.getItem(`studio.${key}`) as T | null) ?? fallback) as T;
+  } catch {
+    return fallback;
+  }
+};
+const remember = (key: string, value: unknown) => {
+  try {
+    LocalStorage.set(`studio.${key}`, value as string);
+  } catch {
+    // Storage can be unavailable, e.g. in private browsing.
+  }
+};
+const grid = ref(pref('grid', false));
+const snap = ref<SnapTo>(pref<SnapTo>('snap', 'beat'));
+const metronome = ref(false);
+const countIn = ref(pref('countIn', true));
+
+// Recording
+const canRecord =
+  typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && typeof AudioWorkletNode !== 'undefined';
+const recording = ref(false);
+const startingRecording = ref(false);
+const countingIn = ref(false);
+const countBeat = ref(0);
+const recordedFor = ref(0);
+let recordStream: MediaStream | null = null;
+let recordTrackId: string | null = null;
+let recordStartedAt = 0;
+let recordTimer: ReturnType<typeof setInterval> | undefined;
+let takes = 0;
+
+/** Track id in the editor → its effect chain */
+const effects = reactive(new Map<string, StemEffect[]>());
 
 /** Track id in the editor → stem */
 const tracks = new Map<string, Stem>();
@@ -236,6 +443,15 @@ const selected = computed(() => {
   return id && tracks.has(id) ? { id, name: tracks.get(id)!.title || tracks.get(id)!.name } : null;
 });
 
+const selectedEffects = computed(() => (selected.value ? effects.get(selected.value.id) ?? [] : []));
+const selectedPattern = computed(() => {
+  // Only stems in the editor's own list are reactive, so read through props.
+  const id = selected.value?.id;
+  const stem = id ? tracks.get(id) : undefined;
+  const fresh = stem ? props.stems.find((s) => String(s.id) === String(stem.id)) ?? stem : undefined;
+  return fresh && !props.readonly ? parsePattern(fresh.meta?.instrument) : null;
+});
+
 const maxFade = computed(() => {
   const track = engineTrack(selected.value?.id ?? null);
   const first = track?.clips[0];
@@ -250,10 +466,21 @@ const snapshot = (): Record<string, StemMeta> => {
 
   for (const track of state.tracks) {
     const stem = tracks.get(track.id);
-    if (stem) out[String(stem.id)] = trackToMeta(stem, track);
+    if (stem) out[String(stem.id)] = withExtras(stem, track.id, trackToMeta(stem, track));
   }
   return out;
 };
+
+/** Add what the engine doesn't keep: the effects, and an instrument stem's pattern. */
+function withExtras(stem: Stem, trackId: string, meta: StemMeta): StemMeta {
+  const fx = serializeEffects(effects.get(trackId) ?? []);
+  return {
+    ...meta,
+    ...(fx ? { effects: fx } : {}),
+    ...(stem.meta?.instrument ? { instrument: stem.meta.instrument } : {}),
+    ...(stem.meta?.sound ? { sound: stem.meta.sound } : {}),
+  };
+}
 
 /**
  * Share what changed since the last share. Runs shortly after the last edit,
@@ -365,19 +592,28 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
   if (meta.soloed !== undefined && !!meta.soloed !== track.soloed) mixer.soloed = !!meta.soloed;
   if (Object.keys(mixer).length) editor.value?.updateTrack(trackId, mixer);
 
+  // Effects someone else changed.
+  if (meta.effects !== undefined || stem.meta?.effects) {
+    const incomingFx = parseEffects(meta.effects ?? '');
+    if (serializeEffects(incomingFx) !== serializeEffects(effects.get(trackId) ?? [])) {
+      effects.set(trackId, incomingFx);
+      void applyEffects(trackId);
+    }
+  }
+
   stem.meta = { ...stem.meta, ...meta };
 
   // The track controls hand changes to the engine a moment later, so work
   // out the resulting state rather than reading it back now.
   const after = JSON.stringify(
-    trackToMeta(stem, {
+    withExtras(stem, trackId, trackToMeta(stem, {
       ...track,
       clips: layout(clips) !== layout(track.clips) ? clips : track.clips,
       volume: mixer.volume ?? track.volume,
       pan: mixer.pan ?? track.pan,
       muted: mixer.muted ?? track.muted,
       soloed: mixer.soloed ?? track.soloed,
-    }),
+    })),
   );
   // Already seen by everyone, so not shared again.
   shared[id] = after;
@@ -522,8 +758,10 @@ const highlight = (region: { start: number; end: number; stemId?: string | numbe
   }
 
   const rate = ed.effectiveSampleRate || ed.sampleRate;
-  const left = (start * rate) / ed.samplesPerPixel;
-  const width = Math.max(4, ((end - start) * rate) / ed.samplesPerPixel);
+  // On the beat grid the drawn scale differs from samplesPerPixel.
+  const spp = (ed as unknown as { renderSamplesPerPixel?: number }).renderSamplesPerPixel || ed.samplesPerPixel;
+  const left = (start * rate) / spp;
+  const width = Math.max(4, ((end - start) * rate) / spp);
 
   const trackId = region.stemId ? trackIdOf(region.stemId) : null;
   const row = trackId ? root.querySelector<HTMLElement>(`.track-row[data-track-id="${trackId}"]`) : null;
@@ -576,7 +814,244 @@ const setZoom = (index: number) => {
   const ed = editor.value;
   if (!ed) return;
   zoom.value = Math.max(0, Math.min(zoomLevels.length - 1, index));
-  ed.samplesPerPixel = zoomLevels[zoom.value]!;
+  const spp = zoomLevels[zoom.value]!;
+  ed.samplesPerPixel = spp;
+  // On the beat grid the zoom is in ticks; keep the same width on screen.
+  if (grid.value) ed.ticksPerPixel = Math.max(1, Math.round((spp * (tempo.value / 60) * ed.ppqn) / (ed.sampleRate || 48000)));
+};
+
+/** Send the tempo, meter, grid and metronome settings to the editor and its transport. */
+const applyTempo = () => {
+  const ed = editor.value;
+  if (!ed) return;
+  const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
+  ed.timeSignature = [beats, unit];
+  ed.bpm = tempo.value;
+  ed.scaleMode = grid.value ? 'beats' : 'temporal';
+  ed.snapTo = grid.value ? snap.value : 'off';
+  const transport = adapter?.transport;
+  transport?.setTempo(tempo.value);
+  transport?.setMeter(beats, unit);
+  transport?.setMetronomeEnabled(metronome.value);
+  transport?.setCountIn(countIn.value);
+  transport?.setCountInBars(1);
+  transport?.setCountInMode('recording-only');
+  setZoom(zoom.value);
+};
+
+const emitTempo = () => emit('tempo', { bpm: tempo.value, timeSignature: meter.value });
+
+const setTempo = (value: number) => {
+  const bpm = Math.round(Math.min(300, Math.max(20, value)) * 100) / 100;
+  if (!Number.isFinite(bpm) || bpm === tempo.value) return;
+  tempo.value = bpm;
+  applyTempo();
+  emitTempo();
+};
+
+const onTempoInput = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const value = Number(input.value);
+  if (Number.isFinite(value) && value > 0) setTempo(value);
+  input.value = String(tempo.value);
+};
+
+const setMeter = (value: string) => {
+  if (!TIME_SIGNATURES.includes(value) || value === meter.value) return;
+  meter.value = value;
+  applyTempo();
+  emitTempo();
+};
+
+const setGrid = (on: boolean) => {
+  grid.value = on;
+  remember('grid', on);
+  applyTempo();
+};
+
+const setSnap = (value: SnapTo) => {
+  snap.value = value;
+  remember('snap', value);
+  applyTempo();
+};
+
+const setMetronome = (on: boolean) => {
+  metronome.value = on;
+  adapter?.transport?.setMetronomeEnabled(on);
+};
+
+const setCountIn = (on: boolean) => {
+  countIn.value = on;
+  remember('countIn', on);
+  adapter?.transport?.setCountIn(on);
+};
+
+// Someone else changed the track's tempo, or it was saved.
+watch(
+  () => [props.bpm, props.timeSignature] as const,
+  ([bpm, sig]) => {
+    let changed = false;
+    if (bpm && bpm >= 20 && bpm !== tempo.value) {
+      tempo.value = bpm;
+      changed = true;
+    }
+    if (sig && TIME_SIGNATURES.includes(sig) && sig !== meter.value) {
+      meter.value = sig;
+      changed = true;
+    }
+    if (changed) applyTempo();
+  },
+);
+
+/** Where the playhead is, in seconds. */
+const currentTime = () => editor.value?.currentTime ?? time.value;
+
+/**
+ * Record from the microphone onto a new track, starting at the playhead.
+ * The other stems play along. When it stops, the take is handed to the
+ * parent to upload as a stem.
+ */
+const toggleRecording = async () => {
+  const ed = editor.value;
+  if (!ed) return;
+  if (recording.value) return void stopRecording();
+
+  startingRecording.value = true;
+  try {
+    recordStream = await navigator.mediaDevices.getUserMedia({
+      // Music, not a call: keep the sound as it is.
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } },
+    });
+  } catch (e) {
+    startingRecording.value = false;
+    notify(
+      (e as DOMException)?.name === 'NotAllowedError'
+        ? 'Allow microphone access to record.'
+        : 'No microphone was found.',
+      'error',
+    );
+    return;
+  }
+
+  try {
+    takes++;
+    const name = `Recording ${takes}`;
+    const el = await ed.addTrack({ name, clips: [] });
+    recordTrackId = el.trackId;
+    ed.recordingStream = recordStream;
+    if (playing.value) ed.pause();
+    await ed.startRecording(recordStream, { trackId: el.trackId, overdub: true, clipName: name });
+    recording.value = true;
+    recordStartedAt = performance.now();
+    recordedFor.value = 0;
+    recordTimer = setInterval(() => (recordedFor.value = (performance.now() - recordStartedAt) / 1000), 200);
+  } catch (e) {
+    console.warn('[stem editor] recording failed', e);
+    notify('Recording couldn\'t start.', 'error');
+    cleanupRecording(true);
+  } finally {
+    startingRecording.value = false;
+  }
+};
+
+const stopRecording = async () => {
+  try {
+    await editor.value?.stopRecording();
+  } finally {
+    editor.value?.stop();
+  }
+};
+
+/** Stop the microphone. With `dropTrack`, also remove the track made for the take. */
+const cleanupRecording = (dropTrack = false) => {
+  clearInterval(recordTimer);
+  recordStream?.getTracks().forEach((t) => t.stop());
+  recordStream = null;
+  if (editor.value) editor.value.recordingStream = null;
+  if (dropTrack && recordTrackId && !tracks.has(recordTrackId)) editor.value?.removeTrack(recordTrackId);
+  recordTrackId = null;
+  recording.value = false;
+  countingIn.value = false;
+};
+
+const onRecordingComplete = async (e: Event) => {
+  const { trackId, audioBuffer, startSample } = (e as CustomEvent<{ trackId: string; audioBuffer: AudioBuffer; startSample: number }>).detail;
+  const name = engineTrack(trackId)?.name || `Recording ${takes}`;
+  cleanupRecording();
+  if (!audioBuffer || audioBuffer.duration < 0.2) {
+    editor.value?.removeTrack(trackId);
+    notify('That take was too short to keep.', 'info');
+    return;
+  }
+  let file: File;
+  try {
+    file = new File([await encodeMp3(audioBuffer)], `${name}.mp3`, { type: 'audio/mpeg' });
+  } catch {
+    file = new File([encodeWav(audioBuffer)], `${name}.wav`, { type: 'audio/wav' });
+  }
+  emit('recorded', {
+    trackId,
+    file,
+    start: Math.round((startSample / audioBuffer.sampleRate) * 1000) / 1000,
+    duration: audioBuffer.duration,
+    name,
+  });
+};
+
+const onRecordingError = (e: Event) => {
+  console.warn('[stem editor] recording error', (e as CustomEvent).detail);
+  notify('Recording stopped because of an error.', 'error');
+  cleanupRecording(true);
+};
+
+/**
+ * Link a track already in the editor (a recorded take) to the stem it was
+ * saved as, so it saves and syncs like any other stem.
+ */
+const adoptStem = (trackId: string, stem: Stem) => {
+  tracks.set(trackId, stem);
+  added.add(String(stem.id));
+  renameStem(stem.id, stem.title || stem.name);
+  const meta = snapshot()[String(stem.id)];
+  if (meta) {
+    saved[String(stem.id)] = JSON.stringify(meta);
+    shared[String(stem.id)] = saved[String(stem.id)]!;
+  }
+  checkDirty();
+};
+
+/** Drop a track whose take couldn't be saved. */
+const dropTrack = (trackId: string) => {
+  if (!tracks.has(trackId)) editor.value?.removeTrack(trackId);
+};
+
+/** Rebuild a track's effect chain in the editor from `effects`. */
+const applyEffects = async (trackId: string) => {
+  const ed = editor.value;
+  if (!ed) return;
+  const list = effects.get(trackId) ?? [];
+  try {
+    await ed.setTrackEffectsState(
+      trackId,
+      list.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
+    );
+  } catch (err) {
+    console.warn('[stem editor] effects', err);
+  }
+};
+
+const setEffects = (trackId: string, list: StemEffect[]) => {
+  effects.set(trackId, list.map((e) => ({ ...e, params: { ...e.params } })));
+  void applyEffects(trackId).then(checkDirty);
+};
+
+const setEffectParams = (trackId: string, index: number, params: Record<string, number>) => {
+  const list = effects.get(trackId);
+  const ed = editor.value;
+  if (!list?.[index] || !ed) return;
+  list[index] = { ...list[index], params: { ...params } };
+  const live = ed.trackEffects(trackId)[index];
+  if (live) ed.setTrackEffectParams(trackId, live.id, params);
 };
 
 /** Pick the closest zoom that shows the whole project. */
@@ -605,6 +1080,11 @@ const addStem = async (stem: Stem) => {
   added.add(String(stem.id));
   const el = await ed.addTrack(stemToTrack(stem));
   tracks.set(el.trackId, stem);
+  const fx = parseEffects(stem.meta?.effects);
+  if (fx.length) {
+    effects.set(el.trackId, fx);
+    await applyEffects(el.trackId);
+  }
   // The editor doesn't load fades from clips yet, so they are set on the engine.
   const clips = stemClips(stem.meta || ({} as StemMeta));
   if (clips.some((c) => c.fadeIn || c.fadeOut)) setFades(el.trackId, clips);
@@ -616,6 +1096,7 @@ const removeStem = (stemId: string | number) => {
     if (String(stem.id) === String(stemId)) {
       editor.value?.removeTrack(trackId);
       tracks.delete(trackId);
+      effects.delete(trackId);
       added.delete(String(stemId));
       if (selectedTrackId.value === trackId) selectedTrackId.value = null;
     }
@@ -648,7 +1129,11 @@ const render = async (): Promise<File> => {
   if (!ed) throw new Error('The editor is not ready.');
   const state = ed.engine?.getState();
   if (!state) throw new Error('The editor is not ready.');
-  const mix = await mixdown(state.tracks, masterVolume.value / 100, ed.sampleRate || 44100);
+  const { getEffectDefinitions } = await import('@dawcore/components');
+  const mix = await mixdown(state.tracks, masterVolume.value / 100, ed.sampleRate || 44100, {
+    effects: (trackId) => effects.get(trackId) ?? [],
+    definitions: getEffectDefinitions(),
+  });
   try {
     return new File([await encodeMp3(mix)], 'preview.mp3', { type: 'audio/mpeg' });
   } catch (e) {
@@ -712,14 +1197,17 @@ const listeners: [string, EventListener][] = [
     notify(`"${stem?.title || stem?.name || 'A stem'}" couldn't be loaded.`, 'error');
   }],
   ['daw-error', (e) => console.warn('[stem editor]', (e as CustomEvent).detail)],
+  ['daw-recording-complete', (e) => void onRecordingComplete(e)],
+  ['daw-recording-error', onRecordingError],
 ];
 
 onMounted(async () => {
   // The web components need the browser, so they load here and not during SSR.
-  const [, { NativePlayoutAdapter }] = await Promise.all([
+  const [{ registerEffect }, { NativePlayoutAdapter }] = await Promise.all([
     import('@dawcore/components'),
     import('@dawcore/transport'),
   ]);
+  registerStudioEffects(registerEffect);
 
   const ed = document.createElement('daw-editor');
   ed.setAttribute('eager-resume', 'document');
@@ -743,6 +1231,14 @@ onMounted(async () => {
   context = new AudioContext();
   adapter = new NativePlayoutAdapter(context);
   ed.adapter = adapter;
+  adapter.transport.on('countIn', ({ beat }: { beat: number }) => {
+    countingIn.value = true;
+    countBeat.value = beat;
+  });
+  adapter.transport.on('countInEnd', () => {
+    countingIn.value = false;
+    recordStartedAt = performance.now();
+  });
 
   host.value!.addEventListener('daw-track-remove', onRemoveRequest, true);
   listeners.forEach(([name, fn]) => ed.addEventListener(name, fn));
@@ -752,6 +1248,7 @@ onMounted(async () => {
 
   const engine = await ed.ready();
   engine.on('statechange', onState);
+  applyTempo();
 
   await Promise.allSettled(props.stems.map(addStem));
   // Loading isn't something to undo.
@@ -768,6 +1265,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearTimeout(shareTimer);
+  if (recording.value) void editor.value?.stopRecording();
+  cleanupRecording();
   const ed = editor.value;
   ed?.engine?.off('statechange', onState);
   ed?.stop();
@@ -777,7 +1276,20 @@ onBeforeUnmount(() => {
   void context?.close();
 });
 
-defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved, render, stop, highlight });
+defineExpose({
+  addStem,
+  removeStem,
+  renameStem,
+  applyRemote,
+  snapshot,
+  markSaved,
+  render,
+  stop,
+  highlight,
+  currentTime,
+  adoptStem,
+  dropTrack,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -853,6 +1365,22 @@ defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved
     min-height: 220px;
   }
 
+  &__tempo {
+    gap: 2px;
+  }
+
+  &__recording {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: #ffd7d7;
+    background: rgba(229, 57, 53, 0.16);
+    border-bottom: 1px solid rgba(229, 57, 53, 0.35);
+  }
+
   &__dropzone {
     position: absolute;
     inset: 0;
@@ -866,6 +1394,69 @@ defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved
     background: rgba(3, 191, 255, 0.12);
     pointer-events: none;
   }
+}
+
+.rec-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  animation: rec-pulse 1s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.record-btn {
+  color: #ff6b6b;
+
+  &--on {
+    color: #fff;
+    background: #e53935;
+  }
+}
+
+.tempo-field {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+
+  input {
+    width: 3.2em;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    color: inherit;
+    text-align: right;
+    background: transparent;
+    outline: none;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+  }
+}
+
+.meter-select {
+  width: 64px;
+  padding-left: 6px;
+  font-size: 0.85rem;
+}
+
+.snap-select {
+  width: 84px;
+  font-size: 0.85rem;
 }
 
 :deep(daw-editor) {

@@ -1,4 +1,4 @@
-import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, User } from 'src/utils/models';
+import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
 import { RouteLocationNormalized } from 'vue-router';
 
@@ -11,6 +11,8 @@ export const useBootstrapStore = defineStore('bootstrap', {
     pageData: <PageData>{ current: {}, meta: {}, cache: {} },
     configuration: <Configuration>{},
     realtime: <RealtimeSettings>{ driver: 'none', authPath: 'realtime/auth', originHeader: 'X-Realtime-Origin' },
+    /** Which sound sources the studio shows */
+    sounds: <SoundsConfig>{ library: false, freesound: false },
     token: <string | null | undefined>null,
     ready: <boolean>false,
     initialized: <boolean>false,
@@ -66,13 +68,17 @@ export const useBootstrapStore = defineStore('bootstrap', {
         resolve(true);
       });
     },
-    setConfig ({ configuration, realtime, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, csrf_token?: string }) {
+    setConfig ({ configuration, realtime, sounds, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, sounds?: SoundsConfig, csrf_token?: string }) {
       if (configuration) {
         this.configuration = configuration;
       }
 
       if (realtime) {
         this.realtime = realtime;
+      }
+
+      if (sounds) {
+        this.sounds = sounds;
       }
 
       if (csrf_token) {

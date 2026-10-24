@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
         name: 'premium',
         component: () => import('pages/PremiumPage.vue')
       },
+      {
+        path: '/freesound/callback',
+        name: 'freesound.callback',
+        meta: { requireAuth: true },
+        component: () => import('pages/FreesoundCallbackPage.vue')
+      },
     ],
   },
   ...authentication,

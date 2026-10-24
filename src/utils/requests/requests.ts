@@ -570,6 +570,8 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
   const request = axios.Post<ResponseBody<ProjectTrack>>(`creator/projects/${p.id}/tracks${f.id ? '/' + f.id : ''}`, {
     title: f.title,
     stems: f.stems,
+    bpm: f.bpm,
+    time_signature: f.timeSignature,
     preview: typeof f.preview !== 'string' ? f.preview : undefined,
     privacy: f.privacy,
     genre_id: f.genre_id,

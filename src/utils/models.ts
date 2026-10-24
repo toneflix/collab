@@ -96,6 +96,14 @@ export type Initialize = {
  * How to connect to realtime, from the API's /initialize. The driver is the
  * service an admin picked; `transport` is the client that talks to it.
  */
+/** Which sound sources the studio shows */
+export type SoundsConfig = {
+  /** The shared library: on, and has sounds */
+  library: boolean;
+  /** Freesound search and import */
+  freesound: boolean;
+};
+
 export type RealtimeSettings = {
   driver: 'none' | 'reverb' | 'pusher' | 'ably' | 'firebase';
   authPath: string;
@@ -495,6 +503,10 @@ export interface ProjectTrack {
   project_id?: string | number;
   stemsCount: number;
   description: string;
+  /** The studio's tempo */
+  bpm?: number;
+  /** The studio's meter, like "4/4" */
+  timeSignature?: string;
   interaction?: Interaction,
   updatedAt: string;
   createdAt: string;

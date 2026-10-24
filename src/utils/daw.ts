@@ -1,5 +1,6 @@
-import type { ClipConfig, TrackConfig } from '@dawcore/components';
+import type { ClipConfig, EffectDefinition, TrackConfig } from '@dawcore/components';
 import type { ClipTrack, FadeType } from '@waveform-playlist/core';
+import { connectEffects, type StemEffect } from './studio/effects';
 
 export type { FadeType };
 
@@ -42,6 +43,12 @@ export interface StemMeta {
   fadeIn?: LegacyFade;
   fadeOut?: LegacyFade;
   clips?: StemClip[];
+  /** The stem's effect chain, as JSON text (see utils/studio/effects) */
+  effects?: string;
+  /** The pattern an instrument stem was rendered from, as JSON text */
+  instrument?: string;
+  /** Where a stem added from the sound library came from */
+  sound?: { id?: number; source?: string; author?: string; license?: string; url?: string };
 }
 
 /** A stem as the API returns it. */
@@ -173,7 +180,12 @@ export const trackToMeta = (stem: Stem, track: ClipTrack): StemMeta => {
  * Mix tracks down to one stereo AudioBuffer, the way they sound in the
  * editor: volume, pan, mute, solo, clip gain and fades.
  */
-export const mixdown = async (tracks: ClipTrack[], masterVolume = 1, sampleRate = 44100): Promise<AudioBuffer> => {
+export const mixdown = async (
+  tracks: ClipTrack[],
+  masterVolume = 1,
+  sampleRate = 44100,
+  fx?: { effects: (trackId: string) => StemEffect[]; definitions: Map<string, EffectDefinition> },
+): Promise<AudioBuffer> => {
   const anySolo = tracks.some((t) => t.soloed);
   const audible = tracks.filter((t) => (anySolo ? t.soloed : !t.muted));
 
@@ -194,6 +206,8 @@ export const mixdown = async (tracks: ClipTrack[], masterVolume = 1, sampleRate 
     const pan = ctx.createStereoPanner();
     pan.pan.value = track.pan;
     volume.connect(pan).connect(master);
+    // The stem's effects sit before its volume and pan, as in the editor.
+    const input = fx ? connectEffects(ctx, fx.effects(track.id), volume, fx.definitions) : volume;
 
     for (const clip of track.clips) {
       if (!clip.audioBuffer || clip.durationSamples <= 0) continue;
@@ -225,7 +239,7 @@ export const mixdown = async (tracks: ClipTrack[], masterVolume = 1, sampleRate 
         env.gain.linearRampToValueAtTime(0, start + duration);
       }
 
-      source.connect(env).connect(volume);
+      source.connect(env).connect(input);
       source.start(start, offset, duration);
     }
   }
