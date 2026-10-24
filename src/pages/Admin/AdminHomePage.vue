@@ -93,8 +93,8 @@
             <div class="section">
               <div class="mb-1 font-bold">Content</div>
               <div class="text-sm text-grey-5">
-                {{ stats.content.newReleases.toLocaleString() }} releases and
-                {{ stats.content.newProjects.toLocaleString() }} projects in the last {{ stats.days }} days
+                {{ count(stats.content.newReleases, 'release') }} and
+                {{ count(stats.content.newProjects, 'project') }} in the last {{ stats.days }} days
               </div>
             </div>
           </div>
@@ -126,6 +126,7 @@ const purposes: Record<string, string> = {
   credits: 'AI credits',
 };
 const purposeLabel = (purpose: string) => purposes[purpose] || purpose;
+const count = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
 
 const tiles = computed(() => {
   const s = stats.value;
@@ -137,7 +138,7 @@ const tiles = computed(() => {
     s.revenue
       ? { label: `Revenue, ${s.days} days`, value: price(s.revenue.recent), note: `${price(s.revenue.total)} all time` }
       : null,
-    { label: 'Releases', value: s.content.releases.toLocaleString(), note: `${s.content.projects.toLocaleString()} projects` },
+    { label: 'Releases', value: s.content.releases.toLocaleString(), note: count(s.content.projects, 'project') },
   ].filter((tile) => tile !== null);
 });
 
