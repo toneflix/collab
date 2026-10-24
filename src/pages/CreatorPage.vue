@@ -62,6 +62,9 @@
               <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
                 <TipDialog :creator="artist" v-if="artist.acceptsTips !== false" />
               </span>
+              <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
+                <ReportDialog type="user" label="account" :id="artist.id" />
+              </span>
               <span class="!flex-none">
                 {{ intStr(artist.followers) }} Followers
               </span>
@@ -112,6 +115,7 @@ import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
 import TipDialog from 'src/components/Payments/TipDialog.vue';
+import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import PremiumBadge from 'src/components/Payments/PremiumBadge.vue';
 
 defineOptions({

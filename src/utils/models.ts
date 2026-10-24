@@ -2,7 +2,7 @@ import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc'
-export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans'
+export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans' | 'manage-content'
 export type PriviRole = 'super-admin' | 'admin' | 'manager' | 'support' | 'user'
 export type ResponseStatus = 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert'
 
@@ -414,6 +414,7 @@ export interface Track {
   stemsPrice?: number;
   stemsForSale?: boolean;
   stemsUnlocked?: boolean;
+  takenDown?: boolean;
   updatedAt: string;
   createdAt: string;
 };
@@ -435,6 +436,7 @@ export interface Release extends Album {
   price?: number;
   locked?: boolean;
   purchased?: boolean;
+  takenDown?: boolean;
 }
 
 export type Album = {
