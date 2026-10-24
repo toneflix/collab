@@ -25,7 +25,11 @@ declare module 'pinia' {
 
 export default defineStore((/* { ssrContext } */) => {
   const pinia = createPinia()
-  pinia.use(piniaPluginPersistedstate)
+
+  // Persisted state lives in the browser's storage, so the server renders with the defaults
+  if (import.meta.env.QUASAR_CLIENT) {
+    pinia.use(piniaPluginPersistedstate)
+  }
 
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)

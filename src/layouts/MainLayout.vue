@@ -266,7 +266,9 @@ defineOptions({
     });
 
     const data = {} as Record<string, GenericData>;
-    for (const group of mainNavigationLinks.filter((e) => !!e.group)) {
+    const groups = mainNavigationLinks.filter((e) => !!e.group && (!e.requiresAuth || boot.user?.id));
+
+    for (const group of groups) {
       if (group.group) {
         data[group.group] = await alova
           .Get(group.group, {

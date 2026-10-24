@@ -19,6 +19,9 @@ import {
   defineSsrServeStaticContent
 } from "#q-app";
 
+const isCloudflareWorker =
+  globalThis.navigator?.userAgent === "Cloudflare-Workers";
+
 declare module "#q-app" {
   interface SsrDriver {
     app: Application;
@@ -40,10 +43,14 @@ export const create = defineSsrCreate(async (/* { ... } */) => {
      * (https://helmetjs.github.io/)
      */
     const { default: helmet } = await import("helmet");
-    app.use(helmet());
+    // Helmet's default CSP blocks the API, its images and the inline SSR state script
+    app.use(helmet({ contentSecurityPolicy: false }));
 
-    const { default: compression } = await import("compression");
-    app.use(compression());
+    // Cloudflare compresses Worker responses itself
+    if (!isCloudflareWorker) {
+      const { default: compression } = await import("compression");
+      app.use(compression());
+    }
   }
 
   return app;

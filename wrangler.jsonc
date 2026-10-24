@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "toneflix-collab",
+  "main": "src-ssr/cloudflare/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "import.meta.url": "\"file:///bundle/worker.js\"",
+    "import.meta.dirname": "\"/bundle\"",
+    "__VUE_OPTIONS_API__": "true",
+    "__VUE_PROD_DEVTOOLS__": "false",
+    "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+  },
+  "alias": {
+    "express": "./src-ssr/node_modules/express",
+    "helmet": "./src-ssr/node_modules/helmet",
+    "compression": "./src-ssr/node_modules/compression"
+  },
+  "assets": {
+    "directory": "dist/ssr/client"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

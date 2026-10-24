@@ -2,6 +2,10 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
+
+const isWorkersBuild = process.env.SSR_TARGET === 'cloudflare';
 
 export default defineConfig((ctx) => {
   return {
@@ -59,6 +63,25 @@ export default defineConfig((ctx) => {
       // Variables in .env files that start with "VITE_" are exposed to the app
       env: {
         clientPrefix: 'VITE_',
+      },
+
+      // The Cloudflare Workers build bundles the server's dependencies with their Node builds,
+      // since wrangler would otherwise pick their browser builds. Vue stays shared with the webserver.
+      extendViteConf(viteConf, { isServer }) {
+        if (isServer && isWorkersBuild) {
+          viteConf.ssr = {
+            ...viteConf.ssr,
+            noExternal: true,
+            external: ['vue', 'vue/server-renderer'],
+          };
+        }
+      },
+
+      // The Worker renders every page, so the Workers build drops the SPA fallback in public/_redirects
+      async afterBuild({ quasarConf }) {
+        if (isWorkersBuild && quasarConf.build?.distDir) {
+          await rm(join(quasarConf.build.distDir, 'client', '_redirects'), { force: true });
+        }
       },
 
       vitePlugins: [

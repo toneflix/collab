@@ -37,3 +37,8 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Build for Cloudflare Workers
+        run: |
+          yarn build:worker
+          yarn wrangler deploy --dry-run --outdir dist/worker

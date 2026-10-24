@@ -1,0 +1,51 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment: app
+
+    env:
+      VITE_APP_ENVIRONMENT: production
+      VITE_API_ENVIRONMENT: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: |
+            yarn.lock
+            src-ssr/yarn.lock
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          yarn --cwd src-ssr install --frozen-lockfile
+
+      # Repository variables named VITE_* override the values in .env
+      - name: Load VITE_* variables
+        env:
+          VARS: ${{ toJSON(vars) }}
+        run: echo "$VARS" | jq -r 'to_entries[] | select(.key | startswith("VITE_")) | "\(.key)=\(.value)"' >> "$GITHUB_ENV"
+
+      - name: Build
+        run: yarn build:worker
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: yarn wrangler deploy --name ${{ vars.CLOUDFLARE_WORKER_NAME || 'toneflix-collab' }}
