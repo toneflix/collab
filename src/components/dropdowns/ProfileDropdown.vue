@@ -153,6 +153,12 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'fas fa-layer-group',
         },
         {
+          hide: !user.value.permissions?.includes('manage-payouts'),
+          name: 'Payouts',
+          to: { name: 'admin.payouts' },
+          icon: 'fas fa-money-bill-transfer',
+        },
+        {
           hide: !user.value.permissions?.includes('manage-configuration'),
           name: 'Realtime',
           to: { name: 'admin.realtime' },
