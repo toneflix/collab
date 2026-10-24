@@ -17,6 +17,16 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Admin/AdminHomePage.vue'),
           },
           {
+            path: 'users',
+            name: 'admin.users',
+            component: () => import('pages/Admin/UsersPage.vue'),
+          },
+          {
+            path: 'users/:id(\\d+)',
+            name: 'admin.user',
+            component: () => import('pages/Admin/UserPage.vue'),
+          },
+          {
             path: 'configuration',
             name: 'admin.configuration',
             component: () => import('pages/Admin/ConfigurationPage.vue'),

@@ -92,6 +92,13 @@ export type AdminLink = {
 /** Every admin page, with the permission it needs. */
 export const adminNavigationLinks: AdminLink[] = [
   {
+    to: { name: 'admin.users' },
+    icon: 'fas fa-users',
+    title: 'Users',
+    caption: 'Accounts, their plans, balances and AI credits',
+    permission: 'manage-users',
+  },
+  {
     to: { name: 'admin.configuration' },
     icon: 'fas fa-sliders',
     title: 'Configuration',
