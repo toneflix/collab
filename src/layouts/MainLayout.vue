@@ -7,11 +7,11 @@
           flat
           round
           class="!flex-none mr-2"
-          :aria-label="sidebarExpanded ? 'Collapse menu' : 'Expand menu'"
-          @click="toggleSidebar"
+          :aria-label="leftDrawerOpen ? 'Close menu' : 'Open menu'"
+          @click="leftDrawerOpen = !leftDrawerOpen"
+          v-if="overlay"
         >
           <t-icon name="eva-menu" />
-          <q-tooltip>{{ sidebarExpanded ? 'Collapse menu' : 'Expand menu' }}</q-tooltip>
         </q-btn>
 
         <VaButton
@@ -101,10 +101,26 @@
       :mini-width="64"
       v-model="leftDrawerOpen"
     >
-      <q-toolbar class="!items-start py-3 mb-10 h-28 bg-dark absolute-top">
-        <div v-if="!collapsed">
+      <q-toolbar
+        class="!items-start !flex-nowrap py-3 mb-10 h-28 bg-dark absolute-top"
+        :class="{ '!justify-center !px-0': collapsed }"
+      >
+        <div class="!flex-none" v-if="!collapsed">
           <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
         </div>
+        <q-space v-if="!collapsed" />
+        <q-btn
+          flat
+          round
+          dense
+          class="!flex-none mt-1"
+          :aria-label="collapsed ? 'Expand menu' : 'Collapse menu'"
+          @click="toggleSidebar"
+          v-if="!overlay"
+        >
+          <t-icon :name="collapsed ? 'eva-chevron-right' : 'eva-chevron-left'" />
+          <q-tooltip anchor="center right" self="center left">{{ collapsed ? 'Expand menu' : 'Collapse menu' }}</q-tooltip>
+        </q-btn>
       </q-toolbar>
 
       <q-scroll-area class="mt-28" :class="adminMenu ? 'h-[calc(100%-169px)]' : 'h-[calc(100%-112px)]'">
@@ -279,7 +295,6 @@ const mini = ref(false);
 const overlay = computed(() => $q.screen.width < drawerBreakpoint);
 /** Whether the menu shows icons only. */
 const collapsed = computed(() => mini.value && !overlay.value);
-const sidebarExpanded = computed(() => (overlay.value ? leftDrawerOpen.value : !mini.value));
 const cache = boot.pageData.cache as unknown as {
   mainLayoutGroups: Record<string, GenericData[]>;
 };
@@ -313,11 +328,6 @@ onMounted(() => {
 });
 
 const toggleSidebar = () => {
-  if (overlay.value) {
-    leftDrawerOpen.value = !leftDrawerOpen.value;
-    return;
-  }
-
   mini.value = !mini.value;
 
   if (!route.meta.collapseSidebar) {
