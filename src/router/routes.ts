@@ -3,6 +3,7 @@ import admin from './admin';
 import artistsCreators from './artists-creators';
 import authentication from './authentication';
 import library from './library';
+import messages from './messages';
 import projects from './projects';
 import studio from './studio';
 
@@ -42,6 +43,7 @@ const routes: RouteRecordRaw[] = [
   ...projects,
   ...artistsCreators,
   ...library,
+  ...messages,
   ...studio,
   ...admin,
 

@@ -38,6 +38,13 @@ export const mainNavigationLinks: NavigationLink[] = [
     separator: true,
   },
   {
+    to: { name: 'messages' },
+    icon: 'eva-message-circle',
+    title: 'Messages',
+    badge: 'messages',
+    requiresAuth: true,
+  },
+  {
     to: { name: 'library.page', params: { type: 'liked' } },
     icon: 'eva-heart',
     title: 'liked',
