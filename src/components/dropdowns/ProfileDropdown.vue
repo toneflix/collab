@@ -127,6 +127,11 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'settings',
         },
         {
+          name: 'Notifications',
+          to: { name: 'account.notifications' },
+          icon: 'notifications',
+        },
+        {
           name: 'Studio',
           to: { name: 'studio.home' },
           icon: 'fas fa-microphone-lines',
@@ -157,6 +162,12 @@ const options = computed<ProfileOptions[]>(() =>
           name: 'Payouts',
           to: { name: 'admin.payouts' },
           icon: 'fas fa-money-bill-transfer',
+        },
+        {
+          hide: !user.value.permissions?.includes('manage-content'),
+          name: 'Moderation',
+          to: { name: 'admin.moderation' },
+          icon: 'fas fa-shield-halved',
         },
         {
           hide: !user.value.permissions?.includes('manage-configuration'),
