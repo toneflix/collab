@@ -119,8 +119,9 @@ select {
   flex: unset;
 }
 
+/* Lets long hints wrap without overlapping lines. */
 .q-field__messages {
-  @apply text-lg;
+  line-height: 1.4;
 }
 
 /* Dialogs */
