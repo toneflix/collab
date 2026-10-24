@@ -114,6 +114,7 @@
         @dirty="dirty = $event"
         @remove="removeStem"
         @files="upload"
+        @change="shareChanges"
         v-if="loaded && stems.length"
       />
 
@@ -165,6 +166,7 @@ import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
+import { useRealtimeChannel, type RealtimeMeta } from 'src/utils/realtime';
 import { Project, ProjectTrack, ResponseBody, UploadData } from 'src/utils/models';
 import { allowedAudioExts } from 'src/utils/presets';
 import { Stem, StemMeta } from 'src/utils/daw';
@@ -172,9 +174,11 @@ import {
   deleteProjectTrackStemRequest,
   loadProjectRequest,
   loadProjectTrackRequest,
+  loadProjectTrackStemRequest,
   loadProjectTrackStemsRequest,
   saveProjectTrackRequest,
   saveProjectTrackStemRequest,
+  shareLiveStemsRequest,
 } from 'src/utils/requests/requests';
 
 defineOptions({
@@ -335,6 +339,68 @@ const save = async (withPreview = false) => {
     rendering.value = false;
   }
 };
+
+/**
+ * Live collaboration: changes are shared as they're made, and changes from
+ * everyone else on the track show up here. Nobody receives their own.
+ */
+const shareChanges = (changed: Record<string, StemMeta>) => {
+  if (!boot.realtime || boot.realtime.driver === 'none') return;
+  shareLiveStemsRequest(project.value, track.value, changed)
+    .send()
+    .catch(() => {
+      // Not critical: the next change or a save brings everyone up to date.
+    });
+};
+
+const who = (e: RealtimeMeta) => e.by?.name || 'A collaborator';
+const findStem = (id: string | number) => stems.value.find((s) => String(s.id) === String(id));
+
+useRealtimeChannel(
+  () => (track.value?.id ? `project-track.${track.value.id}` : null),
+  {
+    'stems.updated': (e: RealtimeMeta & { stems: Record<string, StemMeta> }) => {
+      for (const [id, meta] of Object.entries(e.stems || {})) editor.value?.applyRemote(id, meta);
+    },
+    'stem.added': async (e: RealtimeMeta & { stem_id: string | number }) => {
+      if (findStem(e.stem_id)) return;
+      try {
+        const stem = (await loadProjectTrackStemRequest(e.stem_id, project.value, track.value).send()) as unknown as Stem;
+        if (findStem(stem.id)) return;
+        stems.value.push(stem);
+        await editor.value?.addStem(stem);
+        notify(`${who(e)} added "${stem.title || stem.name}".`, 'info');
+      } catch {
+        // It may have been removed already.
+      }
+    },
+    'stem.updated': (e: RealtimeMeta & { stem_id: string | number; title?: string; meta?: StemMeta }) => {
+      const stem = findStem(e.stem_id);
+      if (!stem) return;
+      if (e.title && e.title !== stem.title) {
+        stem.title = e.title;
+        editor.value?.renameStem(stem.id, e.title);
+      }
+      if (e.meta) editor.value?.applyRemote(stem.id, e.meta);
+    },
+    'stem.removed': (e: RealtimeMeta & { stem_id: string | number }) => {
+      const stem = findStem(e.stem_id);
+      if (!stem) return;
+      editor.value?.removeStem(stem.id);
+      stems.value = stems.value.filter((s) => String(s.id) !== String(stem.id));
+      notify(`${who(e)} removed "${stem.title || stem.name}".`, 'info');
+    },
+    'track.saved': (e: RealtimeMeta & { title?: string; stems?: Record<string, StemMeta> | null }) => {
+      if (e.title) track.value.title = e.title;
+      for (const [id, meta] of Object.entries(e.stems || {})) {
+        editor.value?.applyRemote(id, meta, true);
+        const stem = findStem(id);
+        if (stem) stem.meta = { ...stem.meta, ...meta };
+      }
+      notify(`${who(e)} saved the track.`, 'info');
+    },
+  },
+);
 
 const warnBeforeUnload = (e: BeforeUnloadEvent) => {
   if (!dirty.value) return;

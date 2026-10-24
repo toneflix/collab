@@ -173,6 +173,8 @@ const emit = defineEmits<{
   files: [files: File[]];
   /** Whether there are changes since the last save */
   dirty: [dirty: boolean];
+  /** Stems this person changed, to share with everyone else on the track */
+  change: [stems: Record<string, StemMeta>];
   ready: [];
 }>();
 
@@ -202,6 +204,9 @@ const fade = reactive({ in: 0, out: 0 });
 const tracks = new Map<string, Stem>();
 /** Each stem's saved state, to tell when there are unsaved changes */
 let saved: Record<string, string> = {};
+/** Each stem's state as others last saw it, so only new changes are shared */
+let shared: Record<string, string> = {};
+let shareTimer: ReturnType<typeof setTimeout> | undefined;
 
 const hasSelection = computed(() => !!selection.value && selection.value.end - selection.value.start > 0.05);
 const canDrop = computed(() => !props.readonly);
@@ -233,8 +238,30 @@ const snapshot = (): Record<string, StemMeta> => {
   return out;
 };
 
+/**
+ * Share what changed since the last share. Runs shortly after the last edit,
+ * so a drag sends a few updates rather than one per frame.
+ */
+const scheduleShare = () => {
+  if (props.readonly) return;
+  clearTimeout(shareTimer);
+  shareTimer = setTimeout(() => {
+    const changed: Record<string, StemMeta> = {};
+    for (const [id, meta] of Object.entries(snapshot())) {
+      const json = JSON.stringify(meta);
+      if (shared[id] === undefined) shared[id] = json;
+      else if (shared[id] !== json) {
+        shared[id] = json;
+        changed[id] = meta;
+      }
+    }
+    if (Object.keys(changed).length) emit('change', changed);
+  }, 150);
+};
+
 const checkDirty = () => {
   if (!ready.value) return;
+  scheduleShare();
   const now = snapshot();
   let dirty = false;
   for (const [id, meta] of Object.entries(now)) {
@@ -249,7 +276,97 @@ const checkDirty = () => {
 /** Call after saving, so the current state counts as saved. */
 const markSaved = () => {
   saved = Object.fromEntries(Object.entries(snapshot()).map(([id, meta]) => [id, JSON.stringify(meta)]));
+  shared = { ...saved };
   emit('dirty', false);
+};
+
+const trackIdOf = (stemId: string | number) => {
+  for (const [trackId, stem] of tracks) if (String(stem.id) === String(stemId)) return trackId;
+  return null;
+};
+
+const newClipId = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `clip-${Date.now()}-${Math.random()}`;
+
+/**
+ * Show a change someone else made to a stem: its clips, fades, volume, pan,
+ * mute and solo. The audio already loaded is reused. With `asSaved`, the
+ * result also counts as saved (they saved it). Otherwise it only counts as
+ * unsaved here if this person had their own unsaved changes on that stem.
+ */
+const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) => {
+  const engine = editor.value?.engine;
+  const trackId = trackIdOf(stemId);
+  const track = engineTrack(trackId);
+  const stem = trackId ? tracks.get(trackId) : undefined;
+  if (!engine || !trackId || !track?.clips.length || !stem) return;
+
+  const id = String(stemId);
+  const before = snapshot()[id];
+  const wasDirty = !!before && saved[id] !== undefined && saved[id] !== JSON.stringify(before);
+
+  const current = [...track.clips].sort((a, b) => a.startSample - b.startSample);
+  const template = current[0]!;
+  const rate = template.sampleRate;
+  const sourceLength = template.audioBuffer?.length ?? template.sourceDurationSamples;
+  const incoming = stemClips({ ...stem.meta, ...meta, clips: meta.clips });
+
+  const clips = incoming.map((c, i) => {
+    const base = current[i] ?? template;
+    const offsetSamples = Math.round(c.offset * rate);
+    const durationSamples = c.duration
+      ? Math.round(c.duration * rate)
+      : Math.max(0, sourceLength - offsetSamples);
+    return {
+      ...base,
+      id: current[i]?.id ?? newClipId(),
+      startSample: Math.round(c.start * rate),
+      // Recomputed from startSample by the engine.
+      startTick: undefined,
+      offsetSamples,
+      durationSamples,
+      gain: c.gain ?? 1,
+      fadeIn: c.fadeIn ? { duration: c.fadeIn, type: 'linear' as const } : undefined,
+      fadeOut: c.fadeOut ? { duration: c.fadeOut, type: 'linear' as const } : undefined,
+    };
+  });
+
+  const layout = (list: typeof clips | ClipTrack['clips']) =>
+    JSON.stringify(
+      [...list]
+        .sort((a, b) => a.startSample - b.startSample)
+        .map((c) => [c.startSample, c.offsetSamples, c.durationSamples, c.gain, c.fadeIn?.duration ?? 0, c.fadeOut?.duration ?? 0]),
+    );
+
+  if (layout(clips) !== layout(track.clips)) engine.updateTrack(trackId, { ...track, clips });
+
+  // Through the editor, so the track's controls move too.
+  const mixer: { volume?: number; pan?: number; muted?: boolean; soloed?: boolean } = {};
+  if (meta.gain !== undefined && Math.abs(meta.gain - track.volume) > 0.001) mixer.volume = meta.gain;
+  if (meta.stereoPan !== undefined && Math.abs(meta.stereoPan - track.pan) > 0.001) mixer.pan = meta.stereoPan;
+  if (meta.muted !== undefined && !!meta.muted !== track.muted) mixer.muted = !!meta.muted;
+  if (meta.soloed !== undefined && !!meta.soloed !== track.soloed) mixer.soloed = !!meta.soloed;
+  if (Object.keys(mixer).length) editor.value?.updateTrack(trackId, mixer);
+
+  stem.meta = { ...stem.meta, ...meta };
+
+  // The track controls hand changes to the engine a moment later, so work
+  // out the resulting state rather than reading it back now.
+  const after = JSON.stringify(
+    trackToMeta(stem, {
+      ...track,
+      clips: layout(clips) !== layout(track.clips) ? clips : track.clips,
+      volume: mixer.volume ?? track.volume,
+      pan: mixer.pan ?? track.pan,
+      muted: mixer.muted ?? track.muted,
+      soloed: mixer.soloed ?? track.soloed,
+    }),
+  );
+  // Already seen by everyone, so not shared again.
+  shared[id] = after;
+  if (asSaved || !wasDirty) saved[id] = after;
+  if (selectedTrackId.value === trackId) syncFades();
+  checkDirty();
 };
 
 const onState = (state: EngineState) => {
@@ -400,6 +517,7 @@ const removeStem = (stemId: string | number) => {
     }
   }
   delete saved[String(stemId)];
+  delete shared[String(stemId)];
   checkDirty();
 };
 
@@ -541,6 +659,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(shareTimer);
   const ed = editor.value;
   ed?.engine?.off('statechange', onState);
   ed?.stop();
@@ -549,7 +668,7 @@ onBeforeUnmount(() => {
   void context?.close();
 });
 
-defineExpose({ addStem, removeStem, renameStem, snapshot, markSaved, render, stop });
+defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved, render, stop });
 </script>
 
 <style lang="scss" scoped>

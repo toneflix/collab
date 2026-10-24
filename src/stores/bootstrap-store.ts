@@ -1,4 +1,4 @@
-import { Configuration, GenericData, PageData, PriviPerm, PriviRole, User } from 'src/utils/models';
+import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
 import { RouteLocationNormalized } from 'vue-router';
 
@@ -10,6 +10,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     permissions: <PriviPerm[]>[],
     pageData: <PageData>{ current: {}, meta: {}, cache: {} },
     configuration: <Configuration>{},
+    realtime: <RealtimeSettings>{ driver: 'none', authPath: 'realtime/auth', originHeader: 'X-Realtime-Origin' },
     token: <string | null | undefined>null,
     ready: <boolean>false,
     initialized: <boolean>false,
@@ -65,9 +66,13 @@ export const useBootstrapStore = defineStore('bootstrap', {
         resolve(true);
       });
     },
-    setConfig ({ configuration, csrf_token }: { configuration?: Configuration, csrf_token?: string }) {
+    setConfig ({ configuration, realtime, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, csrf_token?: string }) {
       if (configuration) {
         this.configuration = configuration;
+      }
+
+      if (realtime) {
+        this.realtime = realtime;
       }
 
       if (csrf_token) {

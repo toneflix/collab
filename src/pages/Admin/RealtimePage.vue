@@ -1,0 +1,343 @@
+<template>
+  <q-page padding>
+    <div class="max-w-3xl mx-auto">
+      <div class="py-4">
+        <h1 class="text-3xl font-circlular-std">Realtime</h1>
+        <p class="text-grey-5">
+          Choose the service that delivers live updates: new messages, and
+          changes collaborators make in the stem editor.
+        </p>
+      </div>
+
+      <q-spinner v-if="loading" />
+
+      <q-form class="flex flex-col gap-6" @submit="save" v-else-if="settings">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            class="driver"
+            :class="{ 'driver--active': form.realtime_driver === option.value }"
+            :aria-pressed="form.realtime_driver === option.value"
+            :key="option.value"
+            @click="form.realtime_driver = option.value"
+            v-for="option in drivers"
+          >
+            <span class="driver__head">
+              <q-icon :name="option.icon" size="20px" />
+              <span class="driver__label">{{ option.label }}</span>
+              <q-badge rounded color="green-9" label="In use" v-if="settings.driver === option.value" />
+            </span>
+            <span class="block mt-1 text-sm text-grey-5">{{ option.description }}</span>
+          </button>
+        </div>
+
+        <SimpleInfo v-if="form.realtime_driver === 'none'">
+          Realtime is off. Messages and editor changes show up when people
+          reload the page.
+        </SimpleInfo>
+
+        <div class="flex flex-col gap-4" v-else>
+          <p class="text-sm text-grey-5" v-if="guide">{{ guide }}</p>
+
+          <template :key="key" v-for="key in fieldKeys">
+            <q-input
+              dark
+              outlined
+              autogrow
+              type="textarea"
+              input-class="font-mono text-xs"
+              :label="fields[key]!.title"
+              :hint="hintFor(key)"
+              :placeholder="fields[key]!.isSet ? 'Saved. Paste a new one to replace it.' : ''"
+              v-model="form[key]"
+              v-if="key === 'firebase_credentials'"
+            />
+            <q-input
+              dark
+              outlined
+              :type="fields[key]!.secret && !shown[key] ? 'password' : 'text'"
+              :label="fields[key]!.title"
+              :hint="hintFor(key)"
+              :placeholder="fields[key]!.secret && fields[key]!.isSet ? 'Saved. Leave empty to keep it.' : ''"
+              autocomplete="off"
+              v-model="form[key]"
+              v-else
+            >
+              <template #append v-if="fields[key]!.secret">
+                <q-icon
+                  class="cursor-pointer"
+                  :name="shown[key] ? 'visibility_off' : 'visibility'"
+                  @click="shown[key] = !shown[key]"
+                />
+              </template>
+            </q-input>
+          </template>
+
+          <div v-if="form.realtime_driver === 'firebase'">
+            <div class="mb-1 text-sm text-grey-5">
+              Database rules, so people only read the channels they're allowed in:
+            </div>
+            <pre class="rules">{{ firebaseRules }}</pre>
+          </div>
+        </div>
+
+        <q-banner
+          rounded
+          dense
+          class="text-white bg-orange-10"
+          v-if="settings.missing.length && settings.driver !== 'none'"
+        >
+          {{ settings.driver }} still needs: {{ settings.missing.join(', ') }}.
+        </q-banner>
+
+        <div class="flex items-center gap-3">
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            type="submit"
+            color="toneflix"
+            label="Save"
+            class="!flex-none"
+            :loading="saving"
+          />
+          <q-btn
+            outline
+            rounded
+            no-caps
+            color="white"
+            label="Send a test"
+            class="!flex-none"
+            :loading="testing"
+            :disable="settings.driver === 'none' || changed"
+            @click="test"
+          >
+            <q-tooltip v-if="changed">Save first</q-tooltip>
+          </q-btn>
+          <span class="text-sm" :class="result.ok ? 'text-green-5' : 'text-red-4'" v-if="result.text">
+            {{ result.text }}
+          </span>
+        </div>
+      </q-form>
+    </div>
+  </q-page>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref } from 'vue';
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { notify } from 'src/utils/helpers';
+import { ResponseBody } from 'src/utils/models';
+import { getRealtime } from 'src/utils/realtime';
+import {
+  loadRealtimeSettingsRequest,
+  RealtimeAdminSettings,
+  RealtimeDriver,
+  saveRealtimeSettingsRequest,
+  testRealtimeRequest,
+} from 'src/utils/requests/realtime';
+
+const boot = useBootstrapStore();
+
+const drivers: { value: RealtimeDriver; label: string; icon: string; description: string }[] = [
+  { value: 'none', label: 'Off', icon: 'block', description: 'No live updates.' },
+  {
+    value: 'reverb',
+    label: 'Reverb',
+    icon: 'dns',
+    description: 'Laravel\'s own server, run alongside the API. Free; you host it.',
+  },
+  { value: 'pusher', label: 'Pusher', icon: 'cell_tower', description: 'Hosted Pusher Channels.' },
+  { value: 'ably', label: 'Ably', icon: 'hub', description: 'Hosted Ably, through its Pusher protocol support.' },
+  {
+    value: 'firebase',
+    label: 'Firebase',
+    icon: 'local_fire_department',
+    description: 'Firebase Realtime Database.',
+  },
+];
+
+const guides: Partial<Record<RealtimeDriver, string>> = {
+  reverb: 'Start the server with "php artisan reverb:start". Host and port are where browsers reach it.',
+  pusher: 'Find these under App Keys in your Pusher Channels app.',
+  ably: 'Use an API key with publish and subscribe rights, and turn on "Pusher protocol support" in the Ably app\'s settings.',
+  firebase:
+    'Paste the service account JSON from Project settings → Service accounts, and the web app\'s config from Project settings → General.',
+};
+
+const loading = ref(true);
+const saving = ref(false);
+const testing = ref(false);
+const settings = ref<RealtimeAdminSettings>();
+const form = reactive<Record<string, string | null>>({ realtime_driver: 'none' });
+const shown = reactive<Record<string, boolean>>({});
+const result = reactive({ ok: false, text: '' });
+let savedForm = '';
+
+const fields = computed(() => settings.value?.fields ?? {});
+const guide = computed(() => guides[form.realtime_driver as RealtimeDriver]);
+const changed = computed(() => JSON.stringify(form) !== savedForm);
+
+/** The settings that belong to the chosen driver */
+const fieldKeys = computed(() =>
+  Object.keys(fields.value).filter((key) => key.startsWith(`${form.realtime_driver}_`)),
+);
+
+const hintFor = (key: string) => {
+  const field = fields.value[key];
+  if (!field) return '';
+  if (field.secret && field.isSet) return field.hint || 'Saved and hidden.';
+  return field.hint;
+};
+
+const firebaseRules = `{
+  "rules": {
+    "arkstack": {
+      "channels": {
+        "$channel": {
+          ".read": "auth != null && root.child('arkstack/grants/' + auth.uid + '/' + $channel).val() > now",
+          ".indexOn": ["at"]
+        }
+      },
+      "channels-index": { ".indexOn": ["at"] }
+    }
+  }
+}`;
+
+const fill = (data: RealtimeAdminSettings) => {
+  settings.value = data;
+  Object.keys(form).forEach((key) => delete form[key]);
+  form.realtime_driver = data.driver;
+  for (const [key, field] of Object.entries(data.fields)) {
+    if (key !== 'realtime_driver') form[key] = field.secret ? '' : field.value ?? '';
+  }
+  savedForm = JSON.stringify(form);
+  // Browsers on this page connect with the new settings straight away.
+  boot.realtime = data.client;
+};
+
+const load = async () => {
+  loading.value = true;
+  try {
+    fill((await loadRealtimeSettingsRequest().send()) as unknown as RealtimeAdminSettings);
+  } catch (e) {
+    notify((e as ResponseBody)?.message || 'The realtime settings couldn\'t be loaded.', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const save = async () => {
+  saving.value = true;
+  result.text = '';
+  try {
+    const body = await saveRealtimeSettingsRequest({ ...form }).send();
+    fill(body.data);
+    notify(body.message, body.data.missing.length ? 'info' : 'success');
+  } catch (e) {
+    const errors = (e as ResponseBody)?.errors;
+    notify(
+      (errors && Object.values(errors)[0]) || (e as ResponseBody)?.message || 'The settings couldn\'t be saved.',
+      'error',
+    );
+  } finally {
+    saving.value = false;
+  }
+};
+
+/**
+ * Listen on this admin's own channel, ask the API to send a test event
+ * there, and report whether it arrived.
+ */
+const test = async () => {
+  const rt = getRealtime();
+  if (!rt) return;
+
+  testing.value = true;
+  result.text = '';
+  let stop: (() => void) | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    const arrived = new Promise<number>((resolve, reject) => {
+      timer = setTimeout(() => reject(new Error('timeout')), 10000);
+      void rt
+        .listen(`private-user.${boot.user.id}`, 'realtime.test', () => resolve(performance.now()))
+        .then((off) => (stop = off))
+        .catch(reject);
+    });
+
+    // Give the subscription a moment to be confirmed before sending.
+    await new Promise((r) => setTimeout(r, 800));
+    const started = performance.now();
+    await testRealtimeRequest().send();
+    const at = await arrived;
+
+    result.ok = true;
+    result.text = `It works: the test arrived in ${Math.max(1, Math.round(at - started))} ms.`;
+  } catch (e) {
+    result.ok = false;
+    result.text =
+      (e as Error)?.message === 'timeout'
+        ? 'The test was sent but never arrived. Check the host, port and keys.'
+        : (e as ResponseBody)?.message || (e as Error)?.message || 'The test failed.';
+  } finally {
+    clearTimeout(timer);
+    stop?.();
+    testing.value = false;
+  }
+};
+
+onMounted(load);
+</script>
+
+<style lang="scss" scoped>
+.driver {
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &--active {
+    border-color: #03bfff;
+    background: rgba(3, 191, 255, 0.1);
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  &__label {
+    flex: 1 1 auto;
+    font-weight: 700;
+    text-align: left;
+  }
+}
+
+// Hints read as notes here, smaller than the site-wide field messages.
+:deep(.q-field__messages) {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.rules {
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 12px;
+  border-radius: 8px;
+  background: #0d0d0d;
+}
+</style>

@@ -16,7 +16,7 @@ import {
 } from '../models'
 import { alova, axios } from 'src/boot/alova'
 
-import type { Stem } from '../daw'
+import type { Stem, StemMeta } from '../daw'
 import { toRaw } from 'vue'
 
 /**
@@ -444,6 +444,25 @@ export const loadProjectTrackStemsRequest = (p: Project, t: ProjectTrack, params
     hitSource: 'create-project-track-stem',
     params
   })
+}
+
+/**
+ * Fetch one stem of a project track, e.g. one a collaborator just added
+ */
+export const loadProjectTrackStemRequest = (id: string | number, p: Project, t: ProjectTrack) => {
+  return alova.Get(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}`, {
+    transform: (e: ResponseBody<Stem>) => e.data,
+    cacheFor: 0,
+  })
+}
+
+/**
+ * Share unsaved editor changes with everyone else on the track
+ *
+ * @param stems Changed stems' meta, keyed by stem id
+ */
+export const shareLiveStemsRequest = (p: Project, t: ProjectTrack, stems: Record<string, StemMeta>) => {
+  return alova.Post(`realtime/projects/${p.id}/tracks/${t.id}/live`, { stems })
 }
 
 /**

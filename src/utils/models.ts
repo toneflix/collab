@@ -89,6 +89,32 @@ export type UploadData = {
 
 export type Initialize = {
   configuration: Configuration;
+  realtime?: RealtimeSettings;
+};
+
+/**
+ * How to connect to realtime, from the API's /initialize. The driver is the
+ * service an admin picked; `transport` is the client that talks to it.
+ */
+export type RealtimeSettings = {
+  driver: 'none' | 'reverb' | 'pusher' | 'ably' | 'firebase';
+  authPath: string;
+  originHeader: string;
+  transport?: 'pusher' | 'firebase-database';
+  pusher?: {
+    key: string;
+    cluster?: string;
+    wsHost?: string;
+    wsPort?: number;
+    forceTLS?: boolean;
+  };
+  'firebase-database'?: {
+    apiKey: string;
+    projectId: string;
+    appId?: string;
+    databaseURL: string;
+    root?: string;
+  };
 };
 
 export type Configuration = {
@@ -527,6 +553,8 @@ export type Link = {
 
 export type UserComment = {
   id: string | number,
+  /** What the comment is on; for a reply, the comment it answers */
+  cid?: string | number,
   user: Artist,
   type: 'comment' | 'reply',
   userId: string | number,
