@@ -6,10 +6,10 @@
  */
 interface ImportMetaEnv {
   readonly VITE_FRONT_URL?: string;
-  readonly VITE_DEV_BASE_URL?: string;
-  readonly VITE_PROD_BASE_URL?: string;
-  readonly VITE_STAGING_BASE_URL?: string;
-  readonly VITE_BASE_URL?: string;
+  readonly VITE_DEV_API_BASE_URL?: string;
+  readonly VITE_PROD_API_BASE_URL?: string;
+  readonly VITE_STAGING_API_BASE_URL?: string;
+  readonly VITE_API_BASE_URL?: string;
   readonly VITE_API_ENVIRONMENT?: 'development' | 'staging' | 'production';
   readonly VITE_APP_ENVIRONMENT?: 'development' | 'staging' | 'production';
   readonly VITE_DEBUG?: string;

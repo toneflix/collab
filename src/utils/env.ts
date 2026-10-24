@@ -2,10 +2,10 @@
  * The app's settings from .env. Only variables that start with VITE_ reach the app.
  *
  * The API's address comes from VITE_API_ENVIRONMENT:
- *   development -> VITE_DEV_BASE_URL
- *   staging     -> VITE_STAGING_BASE_URL
- *   production  -> VITE_PROD_BASE_URL
- * and falls back to VITE_BASE_URL when that one is empty.
+ *   development -> VITE_DEV_API_BASE_URL
+ *   staging     -> VITE_STAGING_API_BASE_URL
+ *   production  -> VITE_PROD_API_BASE_URL
+ * and falls back to VITE_API_BASE_URL when that one is empty.
  * Base URLs are the API's root (e.g. https://api.example.com); the app adds /api/ itself.
  */
 export type AppEnvironment = 'development' | 'staging' | 'production';
@@ -28,15 +28,15 @@ export const appEnvironment = pick(vars.VITE_APP_ENVIRONMENT, vars.PROD ? 'produ
 export const apiEnvironment = pick(vars.VITE_API_ENVIRONMENT, appEnvironment);
 
 const baseUrls: Record<AppEnvironment, string | undefined> = {
-  development: vars.VITE_DEV_BASE_URL,
-  staging: vars.VITE_STAGING_BASE_URL,
-  production: vars.VITE_PROD_BASE_URL,
+  development: vars.VITE_DEV_API_BASE_URL,
+  staging: vars.VITE_STAGING_API_BASE_URL,
+  production: vars.VITE_PROD_API_BASE_URL,
 };
 
 /**
  * The API's root URL, without a trailing slash or /api.
  */
-export const baseUrl = trimSlash(baseUrls[apiEnvironment] || vars.VITE_BASE_URL);
+export const baseUrl = trimSlash(baseUrls[apiEnvironment] || vars.VITE_API_BASE_URL);
 
 /**
  * Where API requests go.
