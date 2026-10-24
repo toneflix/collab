@@ -88,14 +88,16 @@
         :track-id="track.id"
         :playhead="() => editor?.currentTime() ?? 0"
         :disabled="!editorReady"
+        dock="#studio-dock"
         @added="addStemFromSound"
         v-if="!project.released"
       >
-        <template #default="{ toggle }">
+        <template #default="{ toggle, open }">
           <ActionButton
             label="Sounds"
             :icon="ionMusicalNotes"
             :expanded="expanded"
+            :active="open"
             :disable="!editorReady"
             @click="toggle"
           />
@@ -135,14 +137,16 @@
         :track-id="track.id"
         :readonly="project.released"
         :dirty="dirty || tempoDirty"
+        dock="#studio-dock"
         @restored="onRestored"
         v-if="!project.released"
       >
-        <template #default="{ toggle }">
+        <template #default="{ toggle, open }">
           <ActionButton
             label="History"
             :icon="ionTime"
             :expanded="expanded"
+            :active="open"
             @click="toggle"
           />
         </template>

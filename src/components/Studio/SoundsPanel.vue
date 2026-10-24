@@ -1,17 +1,10 @@
 <template>
-  <slot :toggle="toggle" />
-  <q-dialog
-    seamless
-    position="right"
-    :maximized="$q.screen.lt.sm"
-    v-model="open"
-    @before-show="load"
-    @hide="stopPreview"
-  >
+  <slot :toggle="toggle" :open="open" />
+  <StudioSheet :dock="dock" v-model="open" @show="load" @hide="stopPreview">
     <q-card dark class="sounds" :class="{ 'sounds--mobile': $q.screen.lt.sm }">
       <header class="sounds__head">
         <div class="text-lg font-bold">Sounds</div>
-        <q-btn flat round dense icon="close" aria-label="Close sounds" class="!flex-none" v-close-popup />
+        <q-btn flat round dense icon="close" aria-label="Close sounds" class="!flex-none" @click="open = false" />
       </header>
 
       <q-tabs dense no-caps align="justify" active-color="toneflix" indicator-color="toneflix" v-model="tab">
@@ -189,11 +182,12 @@
       </q-list>
       <audio ref="player" class="hidden" @ended="playingKey = ''" @pause="playingKey = ''" />
     </q-card>
-  </q-dialog>
+  </StudioSheet>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { notify } from 'src/utils/helpers';
@@ -229,6 +223,8 @@ const props = defineProps<{
   /** Where the playhead is, for placing a new sound */
   playhead: () => number;
   disabled?: boolean;
+  /** CSS selector of the column the panel docks into on desktop. */
+  dock?: string;
 }>();
 
 const emit = defineEmits<{ added: [stem: Stem] }>();

@@ -1,18 +1,7 @@
 <template>
   <slot :toggle="toggle" :open="open" />
-  <!-- Docked beside the editor on desktop, a side sheet on smaller screens. -->
-  <component
-    :is="docked ? DockShell : QDialog"
-    seamless
-    position="right"
-    :maximized="$q.screen.lt.sm"
-    v-model="open"
-  >
-    <q-card
-      dark
-      class="ai"
-      :class="{ 'ai--mobile': $q.screen.lt.sm, 'ai--docked': docked }"
-    >
+  <StudioSheet :dock="dock" v-model="open" @show="refresh">
+    <q-card dark class="ai" :class="{ 'ai--mobile': $q.screen.lt.sm }">
       <header class="ai__head">
         <div class="min-w-0">
           <div class="text-lg font-bold">AI tools</div>
@@ -249,7 +238,7 @@
         </template>
       </div>
     </q-card>
-  </component>
+  </StudioSheet>
 </template>
 
 <script setup lang="ts">
@@ -258,19 +247,9 @@ import {
   ionCheckmarkCircle,
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
-import { date, QDialog, useQuasar } from 'quasar';
-import {
-  computed,
-  defineComponent,
-  h,
-  onBeforeUnmount,
-  onMounted,
-  reactive,
-  ref,
-  Teleport,
-  type Component,
-  watch,
-} from 'vue';
+import { date, useQuasar } from 'quasar';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
@@ -298,22 +277,6 @@ const emit = defineEmits<{ finished: [job: AiJob] }>();
 const $q = useQuasar();
 
 const open = ref(false);
-const docked = computed(() => !!props.dock && $q.screen.gt.sm);
-
-/** Renders the panel into the page's dock column while open. */
-const DockShell = defineComponent({
-  props: { modelValue: Boolean },
-  setup(shell, { slots }) {
-    return () =>
-      shell.modelValue && props.dock
-        ? h(
-            Teleport as unknown as Component,
-            { to: props.dock },
-            slots.default?.(),
-          )
-        : null;
-  },
-});
 const account = ref<AiAccount>();
 const jobs = ref<AiJob[]>([]);
 const starting = ref<'music' | 'stems' | null>(null);
@@ -466,8 +429,6 @@ const split = async () => {
   }
 };
 
-watch(open, (value) => value && refresh());
-
 onMounted(() => void loadJobs());
 onBeforeUnmount(() => clearTimeout(timer));
 
@@ -489,15 +450,6 @@ defineExpose({ toggle, onJob });
 
   > * {
     flex: 0 0 auto;
-  }
-
-  &--docked {
-    position: sticky;
-    top: 72px;
-    width: 100%;
-    height: calc(100vh - 88px);
-    margin: 0;
-    box-shadow: none;
   }
 
   &--mobile {
