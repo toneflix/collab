@@ -1,5 +1,5 @@
 import { alova, axios } from 'src/boot/alova'
-import type { ResponseBody } from '../models'
+import type { EnvKey, ResponseBody, SettingField } from '../models'
 import type { Stem } from '../daw'
 
 export type Sound = {
@@ -120,19 +120,13 @@ export const disconnectFreesoundRequest = () => alova.Delete<ResponseBody<{ conn
 
 // Admin
 
-export type SoundSettingField = {
-  title: string;
-  secret: boolean;
-  hint: string;
-  value: string | null;
-  isSet: boolean;
-}
-
 export type SyncResult = { added: number; skipped: number; failed: number; at: string; errors: string[] }
 
 export type SoundAdminSettings = {
-  fields: Record<string, SoundSettingField>;
+  fields: Record<string, SettingField>;
+  /** Both Freesound keys are set in .env */
   configured: boolean;
+  keys: { freesound: EnvKey[] };
   client: { library: boolean; freesound: boolean };
   librarySize: number;
   activeSize: number;

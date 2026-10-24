@@ -1,5 +1,5 @@
 import { alova } from 'src/boot/alova'
-import type { ResponseBody } from '../models'
+import type { EnvKey, ResponseBody, SettingField } from '../models'
 
 export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'rejected' | 'cancelled'
 
@@ -230,23 +230,16 @@ export const syncPayoutRequest = (id: number) => {
   return alova.Post<ResponseBody<Payout>>(`admin/payouts/${id}/sync`, {})
 }
 
-export type PayoutSettingField = {
-  title: string;
-  secret: boolean;
-  hint: string;
-  value: string | null;
-  isSet: boolean;
-}
-
 export type PayoutSettings = {
-  fields: Record<string, PayoutSettingField>;
+  fields: Record<string, SettingField>;
+  keys: Record<PayoutProvider, EnvKey[]>;
   currency: string;
   webhooks: Record<PayoutProvider, string>;
   countries: Omit<PayoutCountry, 'methods'>[];
 }
 
 /**
- * Which providers pay creators, and their keys. Needs manage-configuration.
+ * Which providers pay creators, and whether their .env keys are set. Needs manage-configuration.
  */
 export const loadPayoutSettingsRequest = () => {
   return alova.Get<ResponseBody<PayoutSettings>>('admin/payouts/settings', { cacheFor: 0 })

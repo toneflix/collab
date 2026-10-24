@@ -21,22 +21,20 @@
         {{ countryNames(provider.key) }}
       </div>
 
-      <div class="grid gap-3 mt-4 sm:grid-cols-2" v-if="provider.keys.length">
-        <div :key="key" v-for="key in provider.keys">
+      <EnvKeys class="mt-4" :keys="settings.keys[provider.key] ?? []" v-if="settings.keys[provider.key]?.length" />
+
+      <div class="grid gap-3 mt-4 sm:grid-cols-2" v-if="provider.settings.length">
+        <div :key="key" v-for="key in provider.settings">
           <q-input
             dark
             outlined
             dense
             hide-bottom-space
             autocomplete="off"
-            :type="fields[key]?.secret ? 'password' : 'text'"
             :label="fields[key]?.title"
-            :placeholder="fields[key]?.secret && fields[key]?.isSet ? 'Saved. Leave empty to keep it.' : ''"
             v-model="values[key]"
           />
-          <div class="mt-1 text-xs text-grey-5">
-            {{ fields[key]?.secret && fields[key]?.isSet ? 'Saved and hidden.' : fields[key]?.hint }}
-          </div>
+          <div class="mt-1 text-xs text-grey-5">{{ fields[key]?.hint }}</div>
         </div>
       </div>
 
@@ -65,6 +63,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { copyToClipboard } from 'quasar';
+import EnvKeys from 'src/components/Utilities/EnvKeys.vue';
 import { notify } from 'src/utils/helpers';
 import {
   loadPayoutSettingsRequest,
@@ -74,13 +73,13 @@ import {
   savePayoutSettingsRequest,
 } from 'src/utils/requests/payouts';
 
-const providers: { key: PayoutProvider; name: string; keys: string[]; events?: string }[] = [
-  { key: 'paystack', name: 'Paystack', keys: [], events: 'transfer events' },
-  { key: 'flutterwave', name: 'Flutterwave', keys: ['flutterwave_secret_key', 'flutterwave_webhook_hash'], events: 'transfer events' },
+const providers: { key: PayoutProvider; name: string; settings: string[]; events?: string }[] = [
+  { key: 'paystack', name: 'Paystack', settings: [], events: 'transfer events' },
+  { key: 'flutterwave', name: 'Flutterwave', settings: [], events: 'transfer events' },
   {
     key: 'stripe',
     name: 'Stripe Connect',
-    keys: ['stripe_connect_secret_key', 'stripe_webhook_secret', 'stripe_platform_country', 'stripe_currency', 'stripe_exchange_rate'],
+    settings: ['stripe_platform_country', 'stripe_currency', 'stripe_exchange_rate'],
     events: 'transfer.created and transfer.reversed',
   },
 ];
@@ -111,7 +110,7 @@ const fill = (data: PayoutSettings) => {
   settings.value = data;
   for (const [key, field] of Object.entries(data.fields)) {
     if (key.endsWith('_enabled')) toggles[key] = field.value === '1' || field.value === 'true';
-    else values[key] = field.secret ? '' : (field.value ?? '');
+    else values[key] = field.value ?? '';
   }
 };
 
@@ -129,7 +128,7 @@ onMounted(async () => {
 const save = async () => {
   saving.value = true;
   try {
-    // Empty values clear a setting, except secrets, which keep what's saved.
+    // Empty values clear a setting.
     const body = await savePayoutSettingsRequest(
       { ...toggles, ...Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v === '' ? null : v])) },
     ).send();

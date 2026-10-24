@@ -39,30 +39,14 @@
           <div class="section">
             <div class="mb-1 font-bold">Freesound app</div>
             <p class="mb-3 text-sm text-grey-5">
-              Create an API app at freesound.org/apiv2/apply and copy its Client ID and Client secret here. Set the app's
-              callback URL to:
+              Create an API app at freesound.org/apiv2/apply and put its Client ID and Client secret in the API's .env.
+              Set the app's callback URL to:
             </p>
             <div class="callback">
               <code class="truncate">{{ callbackUrl }}</code>
               <q-btn flat dense round size="sm" icon="content_copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
             </div>
-            <div class="grid gap-3 mt-4 sm:grid-cols-2">
-              <q-input dark outlined autocomplete="off" :label="fields.freesound_client_id?.title" v-model="form.freesound_client_id" />
-              <q-input
-                dark
-                outlined
-                autocomplete="off"
-                :type="showSecret ? 'text' : 'password'"
-                :label="fields.freesound_client_secret?.title"
-                :hint="fields.freesound_client_secret?.isSet ? 'Saved and hidden.' : 'Stored encrypted.'"
-                :placeholder="fields.freesound_client_secret?.isSet ? 'Saved. Leave empty to keep it.' : ''"
-                v-model="form.freesound_client_secret"
-              >
-                <template #append>
-                  <q-icon class="cursor-pointer" :name="showSecret ? 'visibility_off' : 'visibility'" @click="showSecret = !showSecret" />
-                </template>
-              </q-input>
-            </div>
+            <EnvKeys class="mt-4" :keys="settings.keys.freesound" />
           </div>
 
           <div class="section">
@@ -199,6 +183,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { copyToClipboard, date, useQuasar } from 'quasar';
+import EnvKeys from 'src/components/Utilities/EnvKeys.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import type { ResponseBody } from 'src/utils/models';
@@ -226,13 +211,10 @@ const loading = ref(true);
 const saving = ref(false);
 const syncing = ref(false);
 const connecting = ref(false);
-const showSecret = ref(false);
 const settings = ref<SoundAdminSettings>();
 const form = reactive({
   sounds_library_enabled: false,
   freesound_enabled: false,
-  freesound_client_id: '',
-  freesound_client_secret: '',
   freesound_sync_queries: '',
   freesound_sync_limit: 25 as number | string,
   freesound_sync_max_duration: 30 as number | string,
@@ -250,8 +232,6 @@ const fill = (data: SoundAdminSettings) => {
   const f = data.fields;
   form.sounds_library_enabled = on(f.sounds_library_enabled?.value);
   form.freesound_enabled = on(f.freesound_enabled?.value);
-  form.freesound_client_id = f.freesound_client_id?.value ?? '';
-  form.freesound_client_secret = '';
   form.freesound_sync_queries = f.freesound_sync_queries?.value ?? '';
   form.freesound_sync_limit = Number(f.freesound_sync_limit?.value ?? 25);
   form.freesound_sync_max_duration = Number(f.freesound_sync_max_duration?.value ?? 30);

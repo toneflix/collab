@@ -104,6 +104,21 @@ export type SoundsConfig = {
   freesound: boolean;
 };
 
+/** An admin-editable setting */
+export type SettingField = {
+  title: string;
+  hint: string;
+  value: string | null;
+};
+
+/** An API key read from the server's .env. Its value is never sent. */
+export type EnvKey = {
+  env: string;
+  title: string;
+  required: boolean;
+  isSet: boolean;
+};
+
 export type RealtimeSettings = {
   driver: 'none' | 'reverb' | 'pusher' | 'ably' | 'firebase';
   authPath: string;

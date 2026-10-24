@@ -1,29 +1,21 @@
 import { alova } from 'src/boot/alova'
-import { RealtimeSettings, ResponseBody } from '../models'
+import { EnvKey, RealtimeSettings, ResponseBody } from '../models'
 
 export type RealtimeDriver = RealtimeSettings['driver']
-
-export type RealtimeField = {
-  title: string;
-  secret: boolean;
-  hint: string;
-  /** Always null for secrets, which are never sent back */
-  value: string | null;
-  isSet: boolean;
-}
 
 export type RealtimeAdminSettings = {
   driver: RealtimeDriver;
   drivers: RealtimeDriver[];
-  fields: Record<string, RealtimeField>;
-  /** Settings the chosen driver still needs */
+  /** Each driver's .env keys */
+  keys: Partial<Record<RealtimeDriver, EnvKey[]>>;
+  /** .env keys the chosen driver still needs */
   missing: string[];
   /** What browsers get to connect */
   client: RealtimeSettings;
 }
 
 /**
- * The realtime driver and its settings (needs the manage-configuration permission).
+ * The realtime driver and whether its keys are set (needs the manage-configuration permission).
  */
 export const loadRealtimeSettingsRequest = () => {
   return alova.Get('admin/realtime', {
@@ -33,9 +25,9 @@ export const loadRealtimeSettingsRequest = () => {
 }
 
 /**
- * Save the realtime driver and settings. Empty secrets keep their saved value.
+ * Save the realtime driver.
  */
-export const saveRealtimeSettingsRequest = (form: Record<string, string | number | null>) => {
+export const saveRealtimeSettingsRequest = (form: { realtime_driver: RealtimeDriver }) => {
   return alova.Put<ResponseBody<RealtimeAdminSettings>>('admin/realtime', form)
 }
 
