@@ -180,12 +180,6 @@ useMeta(() => ({
   }
 }
 
-// Keep field hints at caption size.
-.section :deep(.q-field__messages) {
-  font-size: 12px;
-  line-height: 1.4;
-}
-
 .section {
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
