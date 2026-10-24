@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="max-w-5xl">
+    <div class="max-w-5xl mx-auto">
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">Overview</h1>
         <p class="text-grey-5" v-if="stats">How the app is doing over the last {{ stats.days }} days.</p>
