@@ -624,6 +624,8 @@ onMounted(async () => {
   ed.timescale = true;
   ed.clipHeaders = true;
   ed.interactiveClips = !props.readonly;
+  // Rows and ruler run the full width, even when the track is shorter than the view.
+  ed.fillViewport = true;
 
   const shortcuts = document.createElement('daw-keyboard-shortcuts');
   shortcuts.setAttribute('playback', '');
