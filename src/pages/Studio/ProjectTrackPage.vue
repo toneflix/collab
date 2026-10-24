@@ -207,7 +207,7 @@
 
     <q-no-ssr>
       <!-- The editor, with a column on the right that panels dock into. -->
-      <div class="studio-body">
+      <div class="studio-body" :style="fit" ref="studioBody">
         <div class="studio-main">
           <div
             class="mb-3 text-sm empty-hint"
@@ -285,6 +285,7 @@ import {
 } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConversationStore } from 'src/stores/conversation-store';
+import { useFitToScreen } from 'src/composables/useFitToScreen';
 import type { ChatRegion } from 'src/utils/requests/conversations';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
@@ -368,6 +369,10 @@ const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
 const soundsPanel = ref<InstanceType<typeof SoundsPanel>>();
 const historyPanel = ref<InstanceType<typeof HistoryPanel>>();
+const studioBody = ref<HTMLElement>();
+const { style: fit, measure: fitBody } = useFitToScreen(studioBody);
+// The body only appears once the track has loaded.
+watch(loaded, () => fitBody());
 const aiPanel = ref<InstanceType<typeof AiPanel>>();
 const route = useRoute();
 const router = useRouter();
@@ -983,16 +988,24 @@ onBeforeUnmount(() =>
   transform: rotate(180deg);
 }
 
+/* Sized to end at the bottom of the screen; the editor and dock fill it. */
 .studio-body {
   display: flex;
   flex-wrap: nowrap;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 16px;
 }
 
 .studio-main {
+  display: flex;
   flex: 1 1 auto !important;
+  flex-direction: column;
   min-width: 0;
+
+  > :deep(.stem-editor) {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 .studio-dock {
