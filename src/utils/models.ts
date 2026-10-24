@@ -181,7 +181,7 @@ export type Configuration = {
 };
 
 export type PaymentPurpose =
-  'premium' | 'release' | 'stems' | 'tip' | 'credits';
+  'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment';
 
 export type PaymentSession = {
   reference: string;

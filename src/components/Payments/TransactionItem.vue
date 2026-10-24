@@ -26,7 +26,7 @@
       <q-item-label class="font-bold text-white">
         {{ price(transaction.earned ?? transaction.amount) }}
       </q-item-label>
-      <q-item-label caption v-if="transaction.earned !== undefined">
+      <q-item-label caption v-if="transaction.earned !== undefined && transaction.purpose !== 'adjustment'">
         of {{ price(transaction.amount) }}
       </q-item-label>
     </q-item-section>
@@ -52,6 +52,7 @@ const labels = {
   stems: 'Stems',
   tip: 'Tip',
   credits: 'AI credits',
+  adjustment: 'Balance adjustment',
 };
 
 const icons = {
@@ -60,6 +61,7 @@ const icons = {
   stems: 'fas fa-layer-group',
   tip: 'fas fa-hand-holding-heart',
   credits: 'fas fa-wand-magic-sparkles',
+  adjustment: 'fas fa-scale-balanced',
 };
 
 const label = computed(() => labels[props.transaction.purpose] || 'Payment');
@@ -85,6 +87,7 @@ const when = computed(() =>
 
 const link = computed<RouteLocationRaw | undefined>(() => {
   const item = props.transaction.item;
+  if (props.transaction.purpose === 'adjustment') return undefined;
   if (!item) return { name: 'premium' };
   if (item.type === 'user')
     return { name: 'creator', params: { artist_id: item.username } };
