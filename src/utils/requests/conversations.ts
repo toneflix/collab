@@ -1,4 +1,4 @@
-import { alova } from 'src/boot/alova'
+import { alova, axios } from 'src/boot/alova'
 import type { ResponseBody } from '../models'
 
 export type ConversationType = 'project-track' | 'project' | 'track' | 'release'
@@ -10,13 +10,52 @@ export type ChatPerson = {
   imageUrl?: string | null;
 }
 
+/** A part of a project track a message points at, in seconds */
+export type ChatRegion = {
+  start: number;
+  end: number;
+  stemId?: number | string | null;
+  stemName?: string | null;
+  trackId?: number | string;
+  projectId?: number | string;
+}
+
+/** "Drums · 0:12.5–0:18" */
+export const regionLabel = (region: ChatRegion) => {
+  const t = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds - m * 60;
+    const text = Number.isInteger(Math.round(s * 10) / 10) ? String(Math.round(s)) : s.toFixed(1);
+    return `${m}:${text.padStart(text.includes('.') ? 4 : 2, '0')}`;
+  };
+  const span = `${t(region.start)}–${t(region.end)}`;
+  return region.stemName ? `${region.stemName} · ${span}` : span;
+};
+
+export type ChatVoice = {
+  url: string;
+  /** Seconds */
+  duration: number;
+  /** Loudness bars from 0 to 1 */
+  waveform: number[];
+  mime?: string | null;
+}
+
 export type ChatMessage = {
   id: number | string;
   body: string;
   user: ChatPerson | null;
   userId: number | string;
   type: 'comment' | 'reply';
-  parent: { id: number | string; body: string; user: ChatPerson | null } | null;
+  parent: {
+    id: number | string;
+    body: string;
+    user: ChatPerson | null;
+    region?: ChatRegion | null;
+    hasVoice?: boolean;
+  } | null;
+  voice?: ChatVoice | null;
+  region?: ChatRegion | null;
   conversation: { type: ConversationType; id: number | string } | null;
   createdAt: string;
   /** Set on messages this tab is still sending */
@@ -65,11 +104,42 @@ export const loadMessagesRequest = (type: string, id: string | number, before?: 
     cacheFor: 0,
   })
 
-export const sendMessageRequest = (type: string, id: string | number, body: string, replyTo?: string | number) =>
-  alova.Post<ResponseBody<ChatMessage>>(`conversations/${type}/${id}/messages`, {
-    body,
-    ...(replyTo ? { reply_to: replyTo } : {}),
-  })
+export type OutgoingMessage = {
+  body?: string;
+  replyTo?: string | number;
+  voice?: { blob: Blob; duration: number; waveform: number[] };
+  region?: ChatRegion | null;
+}
+
+/** Send a message. With a voice note it goes up as a file upload. */
+export const sendMessageRequest = (type: string, id: string | number, message: OutgoingMessage) => {
+  const url = `conversations/${type}/${id}/messages`
+  const region = message.region
+    ? { start: message.region.start, end: message.region.end, ...(message.region.stemId ? { stem_id: message.region.stemId } : {}) }
+    : undefined
+
+  if (!message.voice) {
+    return alova.Post<ResponseBody<ChatMessage>>(url, {
+      body: message.body,
+      ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+      ...(region ? { region } : {}),
+    })
+  }
+
+  const form = new FormData()
+  const { blob, duration, waveform } = message.voice
+  const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm'
+  form.append('voice', blob, `voice-note.${ext}`)
+  form.append('duration', String(Math.round(duration * 100) / 100))
+  form.append('waveform', JSON.stringify(waveform))
+  if (message.body) form.append('body', message.body)
+  if (message.replyTo) form.append('reply_to', String(message.replyTo))
+  if (region) Object.entries(region).forEach(([k, v]) => form.append(`region[${k}]`, String(v)))
+
+  const request = axios.Post<ResponseBody<ChatMessage>>(url, form)
+  request.config.headers['Content-Type'] = 'multipart/form-data'
+  return request
+}
 
 export const deleteMessageRequest = (type: string, id: string | number, messageId: string | number) =>
   alova.Delete<ResponseBody<{ id: number }>>(`conversations/${type}/${id}/messages/${messageId}`)

@@ -42,6 +42,18 @@
         >
           <q-tooltip>{{ hasSelection ? (loop ? 'Looping the selection' : 'Loop the selection') : 'Drag across the timeline to select a part to loop' }}</q-tooltip>
         </q-btn>
+        <q-btn
+          flat
+          round
+          dense
+          :icon="ionChatbubbleEllipses"
+          aria-label="Message about the selected part"
+          :disable="!ready || !hasSelection"
+          @click="messageAboutSelection"
+          v-if="commentable"
+        >
+          <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
+        </q-btn>
       </div>
 
       <div class="stem-editor__group" v-if="!readonly">
@@ -129,6 +141,7 @@
 <script setup lang="ts">
 import {
   ionAdd,
+  ionChatbubbleEllipses,
   ionArrowRedo,
   ionArrowUndo,
   ionCloudUpload,
@@ -164,6 +177,8 @@ const props = defineProps<{
   stems: Stem[];
   /** Viewing only: no editing, removing or dropping files */
   readonly?: boolean;
+  /** Show the button for messaging about a selected part */
+  commentable?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -175,6 +190,8 @@ const emit = defineEmits<{
   dirty: [dirty: boolean];
   /** Stems this person changed, to share with everyone else on the track */
   change: [stems: Record<string, StemMeta>];
+  /** Someone wants to message about the selected part */
+  comment: [region: { start: number; end: number; stemId?: string | number; stemName?: string }];
   ready: [];
 }>();
 
@@ -465,6 +482,93 @@ const split = () => {
   }
 };
 
+/** The stem row a pointer last went down on, so a selection knows which stem it's on */
+let pointerTrackId: string | null = null;
+let selectionTrackId: string | null = null;
+
+const onPointerDown = (e: Event) => {
+  const row = e.composedPath().find((el) => el instanceof HTMLElement && el.dataset?.trackId) as HTMLElement | undefined;
+  pointerTrackId = row?.dataset.trackId ?? null;
+};
+
+const messageAboutSelection = () => {
+  if (!selection.value) return;
+  const id = selectionTrackId ?? selectedTrackId.value;
+  const stem = id ? tracks.get(id) : undefined;
+  emit('comment', {
+    start: Math.round(selection.value.start * 1000) / 1000,
+    end: Math.round(selection.value.end * 1000) / 1000,
+    ...(stem ? { stemId: stem.id, stemName: stem.title || stem.name } : {}),
+  });
+};
+
+/**
+ * Show a part of the track: select it, move the playhead to its start,
+ * scroll it into view and flash a colour over it that fades away. With a
+ * stem, only that stem's row is coloured.
+ */
+const highlight = (region: { start: number; end: number; stemId?: string | number | null }) => {
+  const ed = editor.value;
+  const root = ed?.shadowRoot;
+  if (!ed || !root || !ready.value) return false;
+
+  const start = Math.max(0, region.start);
+  const end = Math.max(start + 0.05, region.end);
+  ed.setSelection(start, end);
+  selection.value = { start, end };
+  if (!playing.value) {
+    ed.seekTo(start);
+    time.value = start;
+  }
+
+  const rate = ed.effectiveSampleRate || ed.sampleRate;
+  const left = (start * rate) / ed.samplesPerPixel;
+  const width = Math.max(4, ((end - start) * rate) / ed.samplesPerPixel);
+
+  const trackId = region.stemId ? trackIdOf(region.stemId) : null;
+  const row = trackId ? root.querySelector<HTMLElement>(`.track-row[data-track-id="${trackId}"]`) : null;
+  const target = row ?? root.querySelector<HTMLElement>('.timeline');
+  const area = root.querySelector<HTMLElement>('.scroll-area');
+  if (!target) return false;
+
+  if (area) {
+    area.scrollTo({
+      left: Math.max(0, left - Math.max(24, (area.clientWidth - width) / 2)),
+      top: row ? Math.max(0, row.offsetTop - 8) : area.scrollTop,
+      behavior: 'smooth',
+    });
+  }
+  host.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const overlay = document.createElement('div');
+  overlay.setAttribute('aria-hidden', 'true');
+  Object.assign(overlay.style, {
+    position: 'absolute',
+    top: '0',
+    bottom: '0',
+    left: `${left}px`,
+    width: `${width}px`,
+    zIndex: '20',
+    pointerEvents: 'none',
+    borderRadius: '4px',
+    background: 'rgba(255, 196, 0, 0.32)',
+    boxShadow: 'inset 0 0 0 2px rgba(255, 196, 0, 0.95), 0 0 24px rgba(255, 196, 0, 0.45)',
+  });
+  target.appendChild(overlay);
+  overlay
+    .animate(
+      [
+        { opacity: 0 },
+        { opacity: 1, offset: 0.08 },
+        { opacity: 1, offset: 0.55 },
+        { opacity: 0 },
+      ],
+      { duration: 3200, easing: 'ease-out' },
+    )
+    .finished.finally(() => overlay.remove());
+  return true;
+};
+
 const undo = () => editor.value?.undo();
 const redo = () => editor.value?.redo();
 
@@ -587,6 +691,7 @@ const listeners: [string, EventListener][] = [
   ['daw-selection', (e) => {
     const { start, end } = (e as CustomEvent<{ start: number; end: number }>).detail;
     selection.value = end - start > 0.05 ? { start, end } : null;
+    selectionTrackId = selection.value ? pointerTrackId : null;
     const engine = editor.value?.engine;
     if (!engine) return;
     if (selection.value && loop.value) engine.setLoopRegion(start, end);
@@ -639,6 +744,7 @@ onMounted(async () => {
 
   host.value!.addEventListener('daw-track-remove', onRemoveRequest, true);
   listeners.forEach(([name, fn]) => ed.addEventListener(name, fn));
+  ed.addEventListener('pointerdown', onPointerDown, true);
   host.value!.appendChild(ed);
   editor.value = ed;
 
@@ -665,10 +771,11 @@ onBeforeUnmount(() => {
   ed?.stop();
   ed?.remove();
   host.value?.removeEventListener('daw-track-remove', onRemoveRequest, true);
+  ed?.removeEventListener('pointerdown', onPointerDown, true);
   void context?.close();
 });
 
-defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved, render, stop });
+defineExpose({ addStem, removeStem, renameStem, applyRemote, snapshot, markSaved, render, stop, highlight });
 </script>
 
 <style lang="scss" scoped>

@@ -110,6 +110,8 @@
         ref="editor"
         :stems="stems"
         :readonly="project.released"
+        commentable
+        @comment="messageAboutRegion"
         @ready="editorReady = true"
         @dirty="dirty = $event"
         @remove="removeStem"
@@ -156,8 +158,10 @@ import {
   ionSave,
 } from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar } from 'quasar';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import { useConversationStore } from 'src/stores/conversation-store';
+import type { ChatRegion } from 'src/utils/requests/conversations';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
@@ -209,6 +213,50 @@ const rendering = ref(false);
 const uploading = ref(0);
 const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
+const route = useRoute();
+const router = useRouter();
+const conversations = useConversationStore();
+
+/** Open the chat with the selected part of the track attached. */
+const messageAboutRegion = (region: Omit<ChatRegion, 'trackId' | 'projectId'>) => {
+  const target = { type: 'project-track' as const, id: track.value.id, title: track.value.title };
+  if ($q.screen.lt.sm) {
+    // The chat would cover the editor on a phone; the Messages page is roomier.
+    conversations.regionDraft = { key: `project-track.${track.value.id}`, region: { ...region, trackId: track.value.id, projectId: project.value.id } };
+    void router.push({ name: 'messages', params: { type: target.type, id: target.id } });
+    return;
+  }
+  conversations.messageAboutRegion(target, { ...region, trackId: track.value.id, projectId: project.value.id });
+};
+
+/** Show a part of the track a message pointed at. */
+const showRegion = (region: ChatRegion) => {
+  if (!editor.value?.highlight(region)) notify('That part of the track couldn\'t be shown.', 'info');
+};
+
+watch(
+  () => conversations.regionFocus,
+  (focus) => {
+    if (!focus || String(focus.region.trackId) !== String(track.value.id)) return;
+    conversations.regionFocus = null;
+    if (editorReady.value) showRegion(focus.region);
+  },
+);
+
+// Opened from a message elsewhere: ?region=start~end~stemId
+watch(
+  () => [editorReady.value, route.query.region] as const,
+  ([ready, query]) => {
+    if (!ready || typeof query !== 'string') return;
+    const [start, end, stemId] = query.split('~');
+    if (Number.isFinite(Number(start)) && Number.isFinite(Number(end))) {
+      // Give the editor a moment to lay out before scrolling.
+      setTimeout(() => showRegion({ start: Number(start), end: Number(end), stemId: stemId || null }), 300);
+    }
+    void router.replace({ query: { ...route.query, region: undefined } });
+  },
+  { immediate: true },
+);
 
 /** Whether the action buttons show their labels; remembered on this device */
 const expanded = ref(false);
