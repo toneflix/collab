@@ -91,6 +91,7 @@
 
 <script lang="ts" setup>
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { allowedAdminLinks } from 'src/utils/navigations';
 import { computed } from 'vue';
 import { RouteLocationRaw } from 'vue-router';
 
@@ -157,40 +158,10 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'fas fa-wand-magic-sparkles',
         },
         {
-          hide: !user.value.permissions?.includes('manage-plans'),
-          name: 'Manage plans',
-          to: { name: 'admin.plans' },
-          icon: 'fas fa-layer-group',
-        },
-        {
-          hide: !user.value.permissions?.includes('manage-payouts'),
-          name: 'Payouts',
-          to: { name: 'admin.payouts' },
-          icon: 'fas fa-money-bill-transfer',
-        },
-        {
-          hide: !user.value.permissions?.includes('manage-content'),
-          name: 'Moderation',
-          to: { name: 'admin.moderation' },
-          icon: 'fas fa-shield-halved',
-        },
-        {
-          hide: !user.value.permissions?.includes('manage-configuration'),
-          name: 'Realtime',
-          to: { name: 'admin.realtime' },
-          icon: 'fas fa-tower-broadcast',
-        },
-        {
-          hide: !user.value.permissions?.includes('manage-configuration'),
-          name: 'AI tools',
-          to: { name: 'admin.ai' },
-          icon: 'fas fa-wand-magic-sparkles',
-        },
-        {
-          hide: !user.value.permissions?.includes('manage-configuration'),
-          name: 'Sounds',
-          to: { name: 'admin.sounds' },
-          icon: 'fas fa-music',
+          hide: !allowedAdminLinks(user.value.permissions).length,
+          name: 'Admin',
+          to: { name: 'admin' },
+          icon: 'fas fa-gauge',
         },
       ].filter((e) => !e.hide),
     },

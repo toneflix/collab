@@ -1,4 +1,5 @@
-import { Categories, GenericData, NavigationLink } from './models';
+import { RouteLocationRaw } from 'vue-router';
+import { Categories, GenericData, NavigationLink, PriviPerm } from './models';
 
 export const mainNavigationLinks: NavigationLink[] = [
   {
@@ -79,6 +80,64 @@ export const mainNavigationLinks: NavigationLink[] = [
     requiresAuth: true
   },
 ]
+
+export type AdminLink = {
+  to: RouteLocationRaw;
+  icon: string;
+  title: string;
+  caption: string;
+  permission: PriviPerm;
+};
+
+/** Every admin page, with the permission it needs. */
+export const adminNavigationLinks: AdminLink[] = [
+  {
+    to: { name: 'admin.plans' },
+    icon: 'fas fa-layer-group',
+    title: 'Plans',
+    caption: 'Prices, features and billing options',
+    permission: 'manage-plans',
+  },
+  {
+    to: { name: 'admin.payouts' },
+    icon: 'fas fa-money-bill-transfer',
+    title: 'Payouts',
+    caption: 'Withdrawal requests and payout providers',
+    permission: 'manage-payouts',
+  },
+  {
+    to: { name: 'admin.moderation' },
+    icon: 'fas fa-shield-halved',
+    title: 'Moderation',
+    caption: 'Reports, copied audio, takedowns and appeals',
+    permission: 'manage-content',
+  },
+  {
+    to: { name: 'admin.realtime' },
+    icon: 'fas fa-tower-broadcast',
+    title: 'Realtime',
+    caption: 'Live updates driver and its keys',
+    permission: 'manage-configuration',
+  },
+  {
+    to: { name: 'admin.ai' },
+    icon: 'fas fa-wand-magic-sparkles',
+    title: 'AI tools',
+    caption: 'Music generation, stem splitting and credit prices',
+    permission: 'manage-configuration',
+  },
+  {
+    to: { name: 'admin.sounds' },
+    icon: 'fas fa-music',
+    title: 'Sounds',
+    caption: 'Shared sound library and Freesound',
+    permission: 'manage-configuration',
+  },
+];
+
+/** The admin pages someone with these permissions can open. */
+export const allowedAdminLinks = (permissions: PriviPerm[] = []) =>
+  adminNavigationLinks.filter((link) => permissions.includes(link.permission));
 
 export const trackErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks' | 'publish' => {
   const map: GenericData & { [string: string]: 'basic' | 'meta' | 'tracks' | 'publish' } = {
