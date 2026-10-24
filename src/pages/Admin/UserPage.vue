@@ -162,7 +162,7 @@
                   <q-item-label caption v-if="entry.reason">“{{ entry.reason }}”</q-item-label>
                 </q-item-section>
                 <q-item-section side>
-                  <q-item-label caption>{{ entry.admin ? `@${entry.admin.username}` : 'Removed admin' }}</q-item-label>
+                  <q-item-label caption>{{ actionActor(entry) }}</q-item-label>
                   <q-item-label caption>{{ date.formatDate(entry.createdAt, 'MMM D, YYYY h:mm A') }}</q-item-label>
                 </q-item-section>
               </q-item>
@@ -206,6 +206,7 @@ import { usePayments } from 'src/composables/usePayments';
 import { formatBytes, notify } from 'src/utils/helpers';
 import type { ResponseBody, Transaction } from 'src/utils/models';
 import {
+  actionActor,
   describeAction,
   endUserPlanRequest,
   loadAdminUserRequest,
