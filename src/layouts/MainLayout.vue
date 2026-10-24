@@ -3,6 +3,17 @@
     <!-- lHh Lpr lff -->
     <q-header class="text-white bg-dark">
       <q-toolbar>
+        <q-btn
+          flat
+          round
+          class="!flex-none mr-2"
+          :aria-label="sidebarExpanded ? 'Collapse menu' : 'Expand menu'"
+          @click="toggleSidebar"
+        >
+          <t-icon name="eva-menu" />
+          <q-tooltip>{{ sidebarExpanded ? 'Collapse menu' : 'Expand menu' }}</q-tooltip>
+        </q-btn>
+
         <VaButton
           round
           size="medium"
@@ -85,12 +96,13 @@
     <q-drawer
       show-if-above
       side="left"
-      :breakpoint="500"
+      :breakpoint="drawerBreakpoint"
+      :mini="collapsed"
+      :mini-width="64"
       v-model="leftDrawerOpen"
     >
-      <!-- drawer content -->
       <q-toolbar class="!items-start py-3 mb-10 h-28 bg-dark absolute-top">
-        <div>
+        <div v-if="!collapsed">
           <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
         </div>
       </q-toolbar>
@@ -116,9 +128,10 @@
               </q-item-section>
 
               <q-item-section> {{ link.title }} </q-item-section>
-              <q-item-section side v-if="link.badge === 'messages' && conversations.unread">
+              <q-item-section side v-if="!collapsed && link.badge === 'messages' && conversations.unread">
                 <q-badge rounded color="red-6" :label="unreadLabel" />
               </q-item-section>
+              <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ link.title }}</q-tooltip>
             </q-item>
 
             <q-separator
@@ -130,7 +143,7 @@
             <template
               v-if="link.group && (!link.requiresAuth || boot.user?.id)"
             >
-              <q-item dense class="label" :key="link.group">
+              <q-item dense class="label" :key="link.group" v-if="!collapsed">
                 <q-item-section class="text-gray-400">
                   {{ link.title }}
                 </q-item-section>
@@ -154,6 +167,7 @@
                 </q-item-section>
 
                 <q-item-section> {{ item.title }} </q-item-section>
+                <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ item.title }}</q-tooltip>
               </q-item>
             </template>
           </template>
@@ -173,13 +187,13 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from 'quasar';
+import { LocalStorage, useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import TIcon from 'src/components/icons/TIcon.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
 import { useNotificationStore } from 'src/stores/notification-store';
@@ -220,6 +234,17 @@ const $q = useQuasar();
 const boot = useBootstrapStore();
 const showSearch = ref($q.screen.gt.xs);
 const leftDrawerOpen = ref(false);
+
+/** Below this width the menu slides over the page instead of sitting beside it. */
+const drawerBreakpoint = 500;
+const sidebarKey = 'layout.sidebar.mini';
+/** The collapsed state people chose for pages that don't set their own. */
+const preferMini = ref(false);
+const mini = ref(false);
+const overlay = computed(() => $q.screen.width < drawerBreakpoint);
+/** Whether the menu shows icons only. */
+const collapsed = computed(() => mini.value && !overlay.value);
+const sidebarExpanded = computed(() => (overlay.value ? leftDrawerOpen.value : !mini.value));
 const cache = boot.pageData.cache as unknown as {
   mainLayoutGroups: Record<string, GenericData[]>;
 };
@@ -230,6 +255,34 @@ const conversations = useConversationStore();
 const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
 
 const notifications = useNotificationStore();
+
+// Pages like the DAW start with the menu collapsed to make room; others use the saved choice.
+watch(
+  () => route.meta.collapseSidebar,
+  (collapse) => {
+    mini.value = collapse === true || preferMini.value;
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
+  preferMini.value = LocalStorage.getItem<boolean>(sidebarKey) === true;
+  mini.value = route.meta.collapseSidebar === true || preferMini.value;
+});
+
+const toggleSidebar = () => {
+  if (overlay.value) {
+    leftDrawerOpen.value = !leftDrawerOpen.value;
+    return;
+  }
+
+  mini.value = !mini.value;
+
+  if (!route.meta.collapseSidebar) {
+    preferMini.value = mini.value;
+    LocalStorage.set(sidebarKey, mini.value);
+  }
+};
 
 // Conversations and notifications follow whoever is signed in.
 watch(

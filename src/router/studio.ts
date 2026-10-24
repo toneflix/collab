@@ -59,7 +59,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'projects/:project_id/track/:track_id',
         name: 'studio.project.track',
-        meta: { hidePlayer: true },
+        meta: { hidePlayer: true, collapseSidebar: true },
         component: () => import('pages/Studio/ProjectTrackPage.vue'),
       },
     ],
