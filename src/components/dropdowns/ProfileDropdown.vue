@@ -153,6 +153,12 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'fas fa-layer-group',
         },
         {
+          hide: !user.value.permissions?.includes('manage-content'),
+          name: 'Moderation',
+          to: { name: 'admin.moderation' },
+          icon: 'fas fa-shield-halved',
+        },
+        {
           hide: !user.value.permissions?.includes('manage-configuration'),
           name: 'Realtime',
           to: { name: 'admin.realtime' },
