@@ -40,7 +40,8 @@ export const create = defineSsrCreate(async (/* { ... } */) => {
      * (https://helmetjs.github.io/)
      */
     const { default: helmet } = await import("helmet");
-    app.use(helmet());
+    // Helmet's default CSP blocks the API, its images and the inline SSR state script
+    app.use(helmet({ contentSecurityPolicy: false }));
 
     const { default: compression } = await import("compression");
     app.use(compression());
