@@ -1361,8 +1361,12 @@ defineExpose({
     }
   }
 
+  /* Fills what's left of the editor; the timeline scrolls its stems. */
   &__host {
-    min-height: 220px;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 160px;
   }
 
   &__tempo {
@@ -1473,8 +1477,9 @@ defineExpose({
   --daw-clip-header-background: rgba(3, 191, 255, 0.22);
   --daw-clip-header-text: #ffffff;
   --daw-controls-width: 180px;
-  --daw-min-height: 200px;
-  display: block;
+  --daw-min-height: 0;
+  flex: 1 1 auto;
+  min-height: 0;
 
   @media (max-width: 599px) {
     --daw-controls-width: 110px;

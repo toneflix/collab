@@ -9,27 +9,32 @@ export default <RouteRecordRaw[]>[
       {
         path: 'plans',
         name: 'admin.plans',
-        component: () => import('pages/Admin/PlansPage.vue')
+        component: () => import('pages/Admin/PlansPage.vue'),
       },
       {
         path: 'realtime',
         name: 'admin.realtime',
-        component: () => import('pages/Admin/RealtimePage.vue')
+        component: () => import('pages/Admin/RealtimePage.vue'),
       },
       {
         path: 'payouts',
         name: 'admin.payouts',
-        component: () => import('pages/Admin/PayoutsPage.vue')
+        component: () => import('pages/Admin/PayoutsPage.vue'),
       },
       {
         path: 'moderation',
         name: 'admin.moderation',
-        component: () => import('pages/Admin/ModerationPage.vue')
+        component: () => import('pages/Admin/ModerationPage.vue'),
+      },
+      {
+        path: 'ai',
+        name: 'admin.ai',
+        component: () => import('pages/Admin/AiPage.vue'),
       },
       {
         path: 'sounds',
         name: 'admin.sounds',
-        component: () => import('pages/Admin/SoundsPage.vue')
+        component: () => import('pages/Admin/SoundsPage.vue'),
       },
     ],
   },

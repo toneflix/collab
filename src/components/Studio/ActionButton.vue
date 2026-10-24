@@ -9,7 +9,7 @@
     :text-color="expanded ? 'dark' : 'white'"
     :padding="expanded ? '6px 14px 6px 10px' : '8px'"
     class="action-btn !flex-none"
-    :class="{ 'action-btn--open': expanded }"
+    :class="{ 'action-btn--open': expanded, 'action-btn--active': active }"
     :aria-label="label"
     :loading="loading"
     :disable="disable"
@@ -30,6 +30,8 @@ defineProps<{
   icon: string;
   label: string;
   expanded?: boolean;
+  /** Highlights the button while the panel it opens is showing. */
+  active?: boolean;
   loading?: boolean;
   disable?: boolean;
 }>();
@@ -54,6 +56,11 @@ const emit = defineEmits<{ click: [] }>();
       max-width 0.3s ease,
       margin 0.3s ease,
       opacity 0.2s ease;
+  }
+
+  &--active:not(&--open) {
+    background: rgba(3, 191, 255, 0.18);
+    color: #03bfff !important;
   }
 
   &--open &__label {

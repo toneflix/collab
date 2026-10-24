@@ -2,7 +2,10 @@
   <q-item :to="link">
     <q-item-section avatar>
       <q-avatar rounded color="grey-9">
-        <img :src="transaction.item.imageUrl" v-if="transaction.item?.imageUrl" />
+        <img
+          :src="transaction.item.imageUrl"
+          v-if="transaction.item?.imageUrl"
+        />
         <q-icon :name="icon" v-else />
       </q-avatar>
     </q-item-section>
@@ -48,6 +51,7 @@ const labels = {
   release: 'Release',
   stems: 'Stems',
   tip: 'Tip',
+  credits: 'AI credits',
 };
 
 const icons = {
@@ -55,30 +59,45 @@ const icons = {
   release: 'fas fa-compact-disc',
   stems: 'fas fa-layer-group',
   tip: 'fas fa-hand-holding-heart',
+  credits: 'fas fa-wand-magic-sparkles',
 };
 
 const label = computed(() => labels[props.transaction.purpose] || 'Payment');
-const icon = computed(() => icons[props.transaction.purpose] || 'fas fa-receipt');
+const icon = computed(
+  () => icons[props.transaction.purpose] || 'fas fa-receipt',
+);
 
 const title = computed(() => {
   const t = props.transaction;
-  if (t.purpose === 'premium') return t.planName || `Premium (${t.plan || 'monthly'})`;
+  if (t.purpose === 'premium')
+    return t.planName || `Premium (${t.plan || 'monthly'})`;
   if (t.purpose === 'tip' && t.item) return `Tip to ${t.item.title}`;
+  if (t.purpose === 'credits') return t.planName || label.value;
   return t.item?.title || label.value;
 });
 
 const when = computed(() =>
-  date.formatDate(props.transaction.paidAt || props.transaction.createdAt, 'MMM D, YYYY'),
+  date.formatDate(
+    props.transaction.paidAt || props.transaction.createdAt,
+    'MMM D, YYYY',
+  ),
 );
 
 const link = computed<RouteLocationRaw | undefined>(() => {
   const item = props.transaction.item;
   if (!item) return { name: 'premium' };
-  if (item.type === 'user') return { name: 'creator', params: { artist_id: item.username } };
+  if (item.type === 'user')
+    return { name: 'creator', params: { artist_id: item.username } };
   if (!item.artist) return undefined;
   if (item.type === 'release') {
-    return { name: 'artist.album', params: { artist_id: item.artist, album_id: item.slug } };
+    return {
+      name: 'artist.album',
+      params: { artist_id: item.artist, album_id: item.slug },
+    };
   }
-  return { name: 'artist.track', params: { artist_id: item.artist, track_id: item.slug } };
+  return {
+    name: 'artist.track',
+    params: { artist_id: item.artist, track_id: item.slug },
+  };
 });
 </script>

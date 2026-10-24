@@ -29,7 +29,9 @@
           text-color="grey-4"
           class="!flex-none border border-gray-700"
           v-model="selectedPeriod"
-          :options="periods.map((p) => ({ label: p.label, value: p.key, slot: p.key }))"
+          :options="
+            periods.map((p) => ({ label: p.label, value: p.key, slot: p.key }))
+          "
         >
           <template :key="p.key" v-slot:[p.key] v-for="p in periods">
             <q-badge
@@ -98,7 +100,11 @@
                   : `Get ${plan.name}`
               "
               :amount="option.price"
-              :body="{ purpose: 'premium', plan: plan.slug, cycles: option.cycles }"
+              :body="{
+                purpose: 'premium',
+                plan: plan.slug,
+                cycles: option.cycles,
+              }"
               @paid="onPaid"
             />
           </q-card-actions>
@@ -136,7 +142,12 @@
                   <q-icon name="fas fa-xmark" color="grey-6" v-else />
                 </template>
                 <template v-else>
-                  {{ limit(Number(plan.features[feature.key] || 0), feature.unit ? ` ${feature.unit}` : '') }}
+                  {{
+                    featureValue(
+                      feature,
+                      Number(plan.features[feature.key] || 0),
+                    )
+                  }}
                 </template>
               </td>
             </tr>
@@ -162,24 +173,34 @@ import { loadSubscriptionRequest } from 'src/utils/requests/payments';
 
 const router = useRouter();
 const boot = useBootstrapStore();
-const { price, limit, period } = usePayments();
+const { price, featureValue, period } = usePayments();
 
 // The plans are public; which one you're on needs an account.
 const { data, loading, send: reloadPlans } = useRequest(loadPlansRequest);
-const { data: status, send: reloadStatus } = useRequest(loadSubscriptionRequest, {
-  immediate: !!boot.user.id,
-});
+const { data: status, send: reloadStatus } = useRequest(
+  loadSubscriptionRequest,
+  {
+    immediate: !!boot.user.id,
+  },
+);
 
 const current = computed(() => data.value?.current);
-const paidPlans = computed(() => (data.value?.plans || []).filter((p) => p.price > 0));
+const paidPlans = computed(() =>
+  (data.value?.plans || []).filter((p) => p.price > 0),
+);
 
 const periods = computed(() => data.value?.periods || []);
 
 // The billing period picked in the tabs; plans that can't be paid for that long are hidden.
 const selectedPeriod = ref<string>('');
-watch(periods, (list) => {
-  if (!list.some((p) => p.key === selectedPeriod.value)) selectedPeriod.value = list[0]?.key || '';
-}, { immediate: true });
+watch(
+  periods,
+  (list) => {
+    if (!list.some((p) => p.key === selectedPeriod.value))
+      selectedPeriod.value = list[0]?.key || '';
+  },
+  { immediate: true },
+);
 
 // The picked period as text, e.g. "month", "6 months" or "year".
 const periodText = computed(() => {
@@ -192,7 +213,9 @@ const periodText = computed(() => {
  */
 const shownPlans = computed(() =>
   paidPlans.value.flatMap((plan) => {
-    const option = plan.billingOptions.find((o) => o.period === selectedPeriod.value);
+    const option = plan.billingOptions.find(
+      (o) => o.period === selectedPeriod.value,
+    );
     return option ? [{ plan, option }] : [];
   }),
 );
@@ -201,7 +224,12 @@ const shownPlans = computed(() =>
  * The biggest discount any plan gives for a period.
  */
 const bestDiscount = (key: string) =>
-  Math.max(0, ...paidPlans.value.flatMap((p) => p.billingOptions.filter((o) => o.period === key).map((o) => o.discount)));
+  Math.max(
+    0,
+    ...paidPlans.value.flatMap((p) =>
+      p.billingOptions.filter((o) => o.period === key).map((o) => o.discount),
+    ),
+  );
 
 const date = (value?: string | null) =>
   value ? qdate.formatDate(value, 'MMM D, YYYY') : '';

@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { Plan } from 'src/utils/models';
+import { Plan, PlanFeature } from 'src/utils/models';
 
 /**
  * Helpers for showing prices in the app's currency.
@@ -48,7 +48,21 @@ export const usePayments = () => {
   /**
    * Show a limit, where 0 means there is no limit.
    */
-  const limit = (value: number, unit = '') => (value > 0 ? `${value}${unit}` : 'Unlimited');
+  const limit = (value: number, unit = '') =>
+    value > 0 ? `${value}${unit}` : 'Unlimited';
+
+  /**
+   * Show a plan's limit or monthly credits for a feature.
+   */
+  const featureValue = (
+    feature: Pick<PlanFeature, 'type' | 'unit'>,
+    value: number,
+  ) =>
+    feature.type === 'credits'
+      ? value > 0
+        ? `${value.toLocaleString()} a month`
+        : 'None'
+      : limit(value, feature.unit ? ` ${feature.unit}` : '');
 
   const isPremium = computed(() => !!boot.user.isPremium);
 
@@ -56,7 +70,10 @@ export const usePayments = () => {
    * How long a payment on a plan lasts, e.g. "month", "3 months", or "6 months"
    * when paying for 6 cycles at once.
    */
-  const period = (plan: Pick<Plan, 'interval' | 'intervalCount'>, cycles = 1) => {
+  const period = (
+    plan: Pick<Plan, 'interval' | 'intervalCount'>,
+    cycles = 1,
+  ) => {
     const count = Math.max(1, plan.intervalCount || 1) * Math.max(1, cycles);
     return count > 1 ? `${count} ${plan.interval}s` : plan.interval;
   };
@@ -64,15 +81,34 @@ export const usePayments = () => {
   /**
    * A short name for a billing option, e.g. "Monthly", "6 months" or "Annual".
    */
-  const billingLabel = (plan: Pick<Plan, 'interval' | 'intervalCount'>, cycles = 1) => {
+  const billingLabel = (
+    plan: Pick<Plan, 'interval' | 'intervalCount'>,
+    cycles = 1,
+  ) => {
     const count = Math.max(1, plan.intervalCount || 1) * Math.max(1, cycles);
-    const months = plan.interval === 'month' ? count : plan.interval === 'year' ? count * 12 : 0;
+    const months =
+      plan.interval === 'month'
+        ? count
+        : plan.interval === 'year'
+          ? count * 12
+          : 0;
     if (months === 12) return 'Annual';
     if (count === 1) {
-      return { day: 'Daily', week: 'Weekly', month: 'Monthly', year: 'Yearly' }[plan.interval];
+      return { day: 'Daily', week: 'Weekly', month: 'Monthly', year: 'Yearly' }[
+        plan.interval
+      ];
     }
     return `${count} ${plan.interval}s`;
   };
 
-  return { currency, symbol, price, limit, isPremium, period, billingLabel };
+  return {
+    currency,
+    symbol,
+    price,
+    limit,
+    featureValue,
+    isPremium,
+    period,
+    billingLabel,
+  };
 };

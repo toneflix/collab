@@ -1,13 +1,13 @@
 <template>
-  <slot :toggle="toggle" />
-  <q-dialog seamless position="right" :maximized="$q.screen.lt.sm" v-model="open" @before-show="reload">
+  <slot :toggle="toggle" :open="open" />
+  <StudioSheet :dock="dock" v-model="open" @show="reload">
     <q-card dark class="history" :class="{ 'history--mobile': $q.screen.lt.sm }">
       <header class="history__head">
         <div>
           <div class="text-lg font-bold">Version history</div>
           <div class="text-xs text-grey-5">Every save and stem change, and who made it</div>
         </div>
-        <q-btn flat round dense icon="close" aria-label="Close version history" class="!flex-none" v-close-popup />
+        <q-btn flat round dense icon="close" aria-label="Close version history" class="!flex-none" @click="open = false" />
       </header>
 
       <div class="history__list">
@@ -83,13 +83,14 @@
         <q-inner-loading dark :showing="loading && !versions.length" />
       </div>
     </q-card>
-  </q-dialog>
+  </StudioSheet>
 </template>
 
 <script setup lang="ts">
 import { ionArrowUndo, ionTime } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
 import { computed, ref } from 'vue';
+import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { avatarFallback } from 'src/utils/imageFallback';
@@ -106,6 +107,8 @@ const props = defineProps<{
   readonly?: boolean;
   /** The editor has changes that aren't saved yet */
   dirty?: boolean;
+  /** CSS selector of the column the panel docks into on desktop. */
+  dock?: string;
 }>();
 
 const emit = defineEmits<{ restored: [result: RestoreResult] }>();
