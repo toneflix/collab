@@ -119,6 +119,13 @@ export const adjustUserFundsRequest = (id: number, amount: number, reason: strin
 export const adjustUserCreditsRequest = (id: number, credits: number, reason: string) =>
   alova.Post<Detail>(`admin/users/${id}/credits`, { credits, reason });
 
+/** Who made an audit entry. */
+export const actionActor = (entry: AdminAction) => {
+  if (entry.admin) return `@${entry.admin.username}`;
+
+  return entry.details.via === 'console' ? 'Console' : 'Removed admin';
+};
+
 /** One line describing an audit entry. */
 export const describeAction = (entry: AdminAction, price: (n: number) => string) => {
   const d = entry.details as Record<string, unknown>;
@@ -133,6 +140,7 @@ export const describeAction = (entry: AdminAction, price: (n: number) => string)
     'account.unverified': 'Removed the verified badge',
     'email.verified': 'Confirmed the email address',
     'roles.changed': `Roles: ${((d.to as string[]) || []).join(', ') || 'none'}`,
+    'permissions.changed': `Direct permissions: ${((d.to as string[]) || []).join(', ') || 'none'}`,
     'plan.assigned': `Put on ${String(d.plan)} for ${String(d.period)}${d.from ? ` (was ${String(d.from)})` : ''}`,
     'plan.removed': `Removed ${String(d.plan || 'the plan')}`,
     'funds.added': `Added ${price(Number(d.amount))} to the balance`,
