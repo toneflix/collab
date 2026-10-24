@@ -17,6 +17,11 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Admin/RealtimePage.vue')
       },
       {
+        path: 'payouts',
+        name: 'admin.payouts',
+        component: () => import('pages/Admin/PayoutsPage.vue')
+      },
+      {
         path: 'moderation',
         name: 'admin.moderation',
         component: () => import('pages/Admin/ModerationPage.vue')

@@ -2,7 +2,7 @@ import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc'
-export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans' | 'manage-content'
+export type PriviPerm = 'manage-users' | 'manage-admins' | 'manage-configuration' | 'manage-plans' | 'manage-payouts' | 'manage-content'
 export type PriviRole = 'super-admin' | 'admin' | 'manager' | 'support' | 'user'
 export type ResponseStatus = 'success' | 'error' | 'danger' | 'warning' | 'info' | 'notice' | 'alert'
 
@@ -149,6 +149,9 @@ export type Configuration = {
   premium_max_collaborators: number,
   free_max_stem_size: number,
   premium_max_stem_size: number,
+  min_payout_amount: number,
+  payout_hold_days: number,
+  payout_auto_approve: boolean,
 }
 
 export type PaymentPurpose = 'premium' | 'release' | 'stems' | 'tip'
