@@ -8,6 +8,7 @@ export default <RouteRecordRaw[]>[
     children: [
       {
         path: '',
+        meta: { adminMenu: true },
         component: () => import('layouts/AdminLayout.vue'),
         children: [
           {

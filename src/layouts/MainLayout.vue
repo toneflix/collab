@@ -108,7 +108,39 @@
       </q-toolbar>
 
       <q-scroll-area class="h-[calc(100%-112px)] mt-28">
-        <q-list padding class="menu-list">
+        <q-list padding class="menu-list" v-if="adminMenu">
+          <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
+            <q-item-section avatar>
+              <t-icon name="eva-arrow-back" />
+            </q-item-section>
+            <q-item-section>Back to app</q-item-section>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Back to app</q-tooltip>
+          </q-item>
+
+          <q-separator class="q-my-lg" />
+
+          <q-item dense class="label" v-if="!collapsed">
+            <q-item-section class="text-gray-400">Admin</q-item-section>
+          </q-item>
+
+          <q-item
+            dense
+            clickable
+            v-ripple
+            :exact="link.exact"
+            :to="link.to"
+            :key="link.title"
+            v-for="link in adminLinks"
+          >
+            <q-item-section avatar>
+              <q-icon :name="link.icon" size="18px" />
+            </q-item-section>
+            <q-item-section>{{ link.title }}</q-item-section>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ link.title }}</q-tooltip>
+          </q-item>
+        </q-list>
+
+        <q-list padding class="menu-list" v-else>
           <template v-for="link in mainNavigationLinks">
             <q-item
               dense
@@ -200,7 +232,7 @@ import { useNotificationStore } from 'src/stores/notification-store';
 import type { AppNotification } from 'src/utils/requests/notifications';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import type { ChatMessage, Conversation } from 'src/utils/requests/conversations';
-import { mainNavigationLinks } from 'src/utils/navigations';
+import { allowedAdminLinks, mainNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
@@ -255,6 +287,13 @@ const conversations = useConversationStore();
 const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
 
 const notifications = useNotificationStore();
+
+/** Admin pages swap the menu for the admin links. */
+const adminMenu = computed(() => route.meta.adminMenu === true);
+const adminLinks = computed(() => [
+  { to: { name: 'admin' }, icon: 'fas fa-gauge', title: 'Overview', exact: true },
+  ...allowedAdminLinks(boot.user?.permissions).map((link) => ({ ...link, exact: false })),
+]);
 
 // Pages like the DAW start with the menu collapsed to make room; others use the saved choice.
 watch(
