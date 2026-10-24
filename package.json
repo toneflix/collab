@@ -26,6 +26,7 @@
     "@vue/devtools-api": "^8.2.1",
     "@waveform-playlist/core": "12.6.1",
     "@waveform-playlist/engine": "13.6.0",
+    "@waveform-playlist/worklets": "13.0.0",
     "alova": "^3.5.5",
     "atropos": "^2.0.2",
     "axios": "^1.20.0",

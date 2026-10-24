@@ -158,6 +158,12 @@ const options = computed<ProfileOptions[]>(() =>
           to: { name: 'admin.realtime' },
           icon: 'fas fa-tower-broadcast',
         },
+        {
+          hide: !user.value.permissions?.includes('manage-configuration'),
+          name: 'Sounds',
+          to: { name: 'admin.sounds' },
+          icon: 'fas fa-music',
+        },
       ].filter((e) => !e.hide),
     },
     {

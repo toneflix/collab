@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2 ml-auto !flex-none no-wrap" v-if="!project.released">
-        <q-badge rounded color="orange" class="max-sm:!hidden" v-if="dirty">Unsaved changes</q-badge>
+        <q-badge rounded color="orange" class="max-sm:!hidden" v-if="dirty || tempoDirty">Unsaved changes</q-badge>
         <q-btn
           unelevated
           no-caps
@@ -28,7 +28,7 @@
           :icon="ionSave"
           :label="$q.screen.gt.xs ? 'Save' : undefined"
           :loading="saving"
-          :disable="!stems.length || !editorReady"
+          :disable="(!stems.length && !tempoDirty) || !editorReady"
           @click="save()"
         >
           <q-tooltip>Save the arrangement{{ conf.previews_on_save ? ' and its preview' : '' }}</q-tooltip>
@@ -65,6 +65,27 @@
         :loading="uploading > 0"
         :disable="project.released"
         @click="fileInput?.click()"
+      />
+      <SoundsPanel
+        ref="soundsPanel"
+        :project-id="project.id"
+        :track-id="track.id"
+        :playhead="() => editor?.currentTime() ?? 0"
+        :disabled="!editorReady"
+        @added="addStemFromSound"
+        v-if="!project.released"
+      >
+        <template #default="{ toggle }">
+          <ActionButton label="Sounds" :icon="ionMusicalNotes" :expanded="expanded" :disable="!editorReady" @click="toggle" />
+        </template>
+      </SoundsPanel>
+      <ActionButton
+        label="Instrument"
+        :icon="ionGrid"
+        :expanded="expanded"
+        :disable="!editorReady"
+        @click="newInstrument"
+        v-if="!project.released"
       />
       <AssetsDialog
         :track="track"
@@ -106,10 +127,17 @@
     </div>
 
     <q-no-ssr>
+      <div class="mb-3 text-sm empty-hint" v-if="loaded && !stems.length && !project.released">
+        No stems yet. Upload the parts of this track, press record, add a sound, or make a beat with an instrument.
+      </div>
+      <SimpleInfo class="mt-4" text="This track has no stems." v-if="loaded && !stems.length && project.released" />
+
       <StemEditor
         ref="editor"
         :stems="stems"
         :readonly="project.released"
+        :bpm="track.bpm"
+        :time-signature="track.timeSignature"
         commentable
         @comment="messageAboutRegion"
         @ready="editorReady = true"
@@ -117,29 +145,21 @@
         @remove="removeStem"
         @files="upload"
         @change="shareChanges"
-        v-if="loaded && stems.length"
+        @tempo="onTempo"
+        @recorded="onRecorded"
+        @edit-instrument="editInstrument"
+        v-if="loaded && (stems.length || !project.released)"
       />
 
-      <SimpleInfo
-        class="mt-4"
-        text="No stems yet. Add the parts of this track, like drums, bass and vocals, to arrange and mix them here."
-        v-else-if="loaded"
-      >
-        <div class="flex justify-center p-4" v-if="!project.released">
-          <q-btn
-            no-caps
-            rounded
-            unelevated
-            color="white"
-            text-color="dark"
-            class="!flex-none"
-            :icon="ionAddCircle"
-            label="Add stems"
-            :loading="uploading > 0"
-            @click="fileInput?.click()"
-          />
-        </div>
-      </SimpleInfo>
+      <InstrumentDialog
+        :bpm="track.bpm || 120"
+        :time-signature="track.timeSignature || '4/4'"
+        :initial="instrument.pattern"
+        :saving="instrument.saving"
+        v-model="instrument.open"
+        @save="saveInstrument"
+        v-if="!project.released"
+      />
     </q-no-ssr>
 
     <q-inner-loading :showing="!loaded" />
@@ -154,11 +174,13 @@ import {
   ionChevronForward,
   ionCloudUpload,
   ionFolderOpen,
+  ionGrid,
   ionInformationCircle,
+  ionMusicalNotes,
   ionSave,
 } from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar } from 'quasar';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConversationStore } from 'src/stores/conversation-store';
 import type { ChatRegion } from 'src/utils/requests/conversations';
@@ -168,6 +190,10 @@ import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
+import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
+import InstrumentDialog from 'src/components/Studio/InstrumentDialog.vue';
+import { parsePattern, stepSeconds, stepsPerBar, type InstrumentPattern } from 'src/utils/studio/instruments';
+import { encodeMp3, encodeWav } from 'src/utils/daw';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { useRealtimeChannel, type RealtimeMeta } from 'src/utils/realtime';
@@ -208,11 +234,14 @@ const stems = ref<Stem[]>([]);
 const loaded = ref(false);
 const editorReady = ref(false);
 const dirty = ref(false);
+/** The tempo or meter changed since the last save */
+const tempoDirty = ref(false);
 const saving = ref(false);
 const rendering = ref(false);
 const uploading = ref(0);
 const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
+const soundsPanel = ref<InstanceType<typeof SoundsPanel>>();
 const route = useRoute();
 const router = useRouter();
 const conversations = useConversationStore();
@@ -316,6 +345,117 @@ const onFilesPicked = (e: Event) => {
   if (files.length) void upload(files);
 };
 
+/** A sound from the sounds panel was added as a stem. */
+const addStemFromSound = async (stem: Stem) => {
+  if (findStem(stem.id)) return;
+  stems.value.push(stem);
+  await editor.value?.addStem(stem);
+};
+
+const onTempo = ({ bpm, timeSignature }: { bpm: number; timeSignature: string }) => {
+  track.value.bpm = bpm;
+  track.value.timeSignature = timeSignature;
+  tempoDirty.value = true;
+};
+
+/** Save a recorded take as a stem, keeping it where it was recorded. */
+const onRecorded = async (take: { trackId: string; file: File; start: number; duration: number; name: string }) => {
+  uploading.value++;
+  try {
+    const { data } = await saveProjectTrackStemRequest(
+      { src: take.file, title: take.name, meta: { gain: 1, start: take.start, duration: take.duration } } as unknown as UploadData,
+      project.value,
+      track.value,
+    ).send();
+    const stem = data as unknown as Stem;
+    stems.value.push(stem);
+    editor.value?.adoptStem(take.trackId, stem);
+    notify(`"${take.name}" saved as a stem.`, 'success');
+  } catch (e) {
+    editor.value?.dropTrack(take.trackId);
+    notify(errorMessage(e, 'The recording couldn\'t be saved.'), 'error');
+  } finally {
+    uploading.value--;
+  }
+};
+
+/** The instrument editor: a new pattern, or the one a stem was made from. */
+const instrument = reactive<{ open: boolean; pattern: InstrumentPattern | null; stem: Stem | null; saving: boolean }>({
+  open: false,
+  pattern: null,
+  stem: null,
+  saving: false,
+});
+
+const newInstrument = () => {
+  instrument.pattern = null;
+  instrument.stem = null;
+  instrument.open = true;
+};
+
+const editInstrument = (stem: Stem) => {
+  const current = findStem(stem.id) ?? stem;
+  instrument.pattern = parsePattern(current.meta?.instrument);
+  instrument.stem = current;
+  instrument.open = !!instrument.pattern;
+};
+
+const audioFile = async (buffer: AudioBuffer, name: string) => {
+  try {
+    return new File([await encodeMp3(buffer)], `${name}.mp3`, { type: 'audio/mpeg' });
+  } catch {
+    return new File([encodeWav(buffer)], `${name}.wav`, { type: 'audio/wav' });
+  }
+};
+
+const saveInstrument = async (pattern: InstrumentPattern, buffer: AudioBuffer) => {
+  instrument.saving = true;
+  const json = JSON.stringify(pattern);
+  try {
+    if (instrument.stem) {
+      // Same place on the timeline, new audio.
+      const stem = instrument.stem;
+      const meta = editor.value?.snapshot()[String(stem.id)] ?? stem.meta;
+      const start = meta.clips?.[0]?.start ?? meta.start ?? 0;
+      const { data } = await saveProjectTrackStemRequest(
+        {
+          id: stem.id,
+          src: await audioFile(buffer, stem.title || 'Pattern'),
+          title: stem.title,
+          meta: { ...meta, start, cuein: 0, cueout: 0, duration: buffer.duration, clips: [{ start, offset: 0 }], instrument: json },
+        } as unknown as UploadData,
+        project.value,
+        track.value,
+      ).send();
+      const updated = data as unknown as Stem;
+      editor.value?.removeStem(stem.id);
+      stems.value = stems.value.map((s) => (String(s.id) === String(updated.id) ? updated : s));
+      await editor.value?.addStem(updated);
+      notify('Pattern updated.', 'success');
+    } else {
+      // A new stem at the start of the bar the playhead is in.
+      const bar = stepsPerBar(pattern.meter) * stepSeconds(pattern.bpm);
+      const start = Math.floor((editor.value?.currentTime() ?? 0) / bar + 1e-6) * bar;
+      const count = stems.value.filter((s) => parsePattern(s.meta?.instrument)?.kind === pattern.kind).length + 1;
+      const title = `${pattern.kind === 'drums' ? 'Drums' : 'Keys'} ${count}`;
+      const { data } = await saveProjectTrackStemRequest(
+        { src: await audioFile(buffer, title), title, meta: { gain: 1, start: Math.round(start * 1000) / 1000, duration: buffer.duration, instrument: json } } as unknown as UploadData,
+        project.value,
+        track.value,
+      ).send();
+      const stem = data as unknown as Stem;
+      stems.value.push(stem);
+      await editor.value?.addStem(stem);
+      notify(`"${title}" added.`, 'success');
+    }
+    instrument.open = false;
+  } catch (e) {
+    notify(errorMessage(e, 'The pattern couldn\'t be saved.'), 'error');
+  } finally {
+    instrument.saving = false;
+  }
+};
+
 const removeStem = (stem: Stem) => {
   $q.dialog({
     dark: true,
@@ -369,7 +509,7 @@ const save = async (withPreview = false) => {
       stems: Object.entries(metas).map(([id, meta]) => ({ id, meta })) as unknown as StemMeta[],
     } as unknown as ProjectTrack;
 
-    if (withPreview || conf.value.previews_on_save) {
+    if ((withPreview || conf.value.previews_on_save) && stems.value.length) {
       rendering.value = true;
       form.preview = await ed.render();
     }
@@ -379,6 +519,7 @@ const save = async (withPreview = false) => {
     // Keep the saved arrangement, so leaving and coming back shows it.
     stems.value = stems.value.map((s) => ({ ...s, meta: metas[String(s.id)] ?? s.meta }));
     ed.markSaved();
+    tempoDirty.value = false;
     notify(form.preview ? 'Saved, with a new preview.' : 'Saved.', 'success');
   } catch (e) {
     notify(errorMessage(e, 'The track couldn\'t be saved.'), 'error');
@@ -402,6 +543,17 @@ const shareChanges = (changed: Record<string, StemMeta>) => {
 };
 
 const who = (e: RealtimeMeta) => e.by?.name || 'A collaborator';
+
+const reloadStem = async (id: string | number) => {
+  try {
+    const fresh = (await loadProjectTrackStemRequest(id, project.value, track.value).send()) as unknown as Stem;
+    editor.value?.removeStem(id);
+    stems.value = stems.value.map((s) => (String(s.id) === String(id) ? fresh : s));
+    await editor.value?.addStem(fresh);
+  } catch {
+    // It may have been removed.
+  }
+};
 const findStem = (id: string | number) => stems.value.find((s) => String(s.id) === String(id));
 
 useRealtimeChannel(
@@ -425,6 +577,11 @@ useRealtimeChannel(
     'stem.updated': (e: RealtimeMeta & { stem_id: string | number; title?: string; meta?: StemMeta }) => {
       const stem = findStem(e.stem_id);
       if (!stem) return;
+      // A pattern was changed, so its audio is new: load the stem again.
+      if (e.meta?.instrument && e.meta.instrument !== stem.meta?.instrument) {
+        void reloadStem(stem.id);
+        return;
+      }
       if (e.title && e.title !== stem.title) {
         stem.title = e.title;
         editor.value?.renameStem(stem.id, e.title);
@@ -438,8 +595,10 @@ useRealtimeChannel(
       stems.value = stems.value.filter((s) => String(s.id) !== String(stem.id));
       notify(`${who(e)} removed "${stem.title || stem.name}".`, 'info');
     },
-    'track.saved': (e: RealtimeMeta & { title?: string; stems?: Record<string, StemMeta> | null }) => {
+    'track.saved': (e: RealtimeMeta & { title?: string; bpm?: number; timeSignature?: string; stems?: Record<string, StemMeta> | null }) => {
       if (e.title) track.value.title = e.title;
+      if (e.bpm) track.value.bpm = e.bpm;
+      if (e.timeSignature) track.value.timeSignature = e.timeSignature;
       for (const [id, meta] of Object.entries(e.stems || {})) {
         editor.value?.applyRemote(id, meta, true);
         const stem = findStem(id);
@@ -451,12 +610,12 @@ useRealtimeChannel(
 );
 
 const warnBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (!dirty.value) return;
+  if (!dirty.value && !tempoDirty.value) return;
   e.preventDefault();
 };
 
 onBeforeRouteLeave(() => {
-  if (!dirty.value) return true;
+  if (!dirty.value && !tempoDirty.value) return true;
   return new Promise<boolean>((resolve) => {
     $q.dialog({
       dark: true,
@@ -484,6 +643,13 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnloa
 </script>
 
 <style lang="scss" scoped>
+.empty-hint {
+  padding: 10px 14px;
+  color: #b8bcc4;
+  border-radius: 10px;
+  background: rgba(3, 191, 255, 0.08);
+}
+
 .expand-toggle :deep(.q-icon) {
   transition: transform 0.3s ease;
 }

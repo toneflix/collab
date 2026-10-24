@@ -1767,6 +1767,11 @@
   dependencies:
     "@waveform-playlist/core" "12.6.1"
 
+"@waveform-playlist/worklets@13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@waveform-playlist/worklets/-/worklets-13.0.0.tgz#4adf1d2a1df8311aadc72d01164e02a2c738a409"
+  integrity sha512-0DsUQ0IKa6pqMhq/WMEfMmMfmjZzIHIZU1eKXrKUnk8CsCXdd03lfALoRd8iqfL0MClSlDr4TZF6z9R6PZ84ig==
+
 acorn-jsx@^5.3.2:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"
