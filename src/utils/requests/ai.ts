@@ -53,6 +53,8 @@ export type AiJob = {
   /** Ids of the stems it made */
   stems: number[];
   error?: string | null;
+  /** Something that went wrong in a job that still finished, like a failed split */
+  notice?: string | null;
   createdAt: string;
   finishedAt?: string | null;
 };

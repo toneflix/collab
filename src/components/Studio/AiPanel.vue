@@ -232,6 +232,12 @@
                 >
                   {{ job.error }}
                 </div>
+                <div
+                  class="text-xs text-amber-5"
+                  v-else-if="job.status === 'succeeded' && job.notice"
+                >
+                  {{ job.notice }}
+                </div>
               </div>
             </div>
           </div>
@@ -352,8 +358,10 @@ const onJob = (job: AiJob) => {
     !handed.has(job.id)
   ) {
     handed.add(job.id);
-    if (job.status === 'succeeded') emit('finished', job);
-    else
+    if (job.status === 'succeeded') {
+      emit('finished', job);
+      if (job.notice) notify(job.notice, 'warning');
+    } else
       notify(
         job.error || 'The AI job failed. Your credits were refunded.',
         'error',
