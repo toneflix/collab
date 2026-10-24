@@ -50,6 +50,11 @@ const links = [
     to: { name: 'studio.earnings' },
   },
   {
+    icon: 'fas fa-shield-halved',
+    title: 'Takedowns',
+    to: { name: 'studio.takedowns' },
+  },
+  {
     icon: 'fas fa-users-line',
     title: 'Artists & Collabers',
     to: { name: 'studio.collabers' },
