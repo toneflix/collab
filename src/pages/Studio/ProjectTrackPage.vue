@@ -107,14 +107,16 @@
         :track-id="track.id"
         :stems="stems"
         :disabled="!editorReady"
+        dock="#studio-dock"
         @finished="onAiFinished"
         v-if="!project.released"
       >
-        <template #default="{ toggle }">
+        <template #default="{ toggle, open }">
           <ActionButton
             label="AI tools"
             :icon="ionSparkles"
             :expanded="expanded"
+            :active="open"
             @click="toggle"
           />
         </template>
@@ -200,37 +202,43 @@
     </div>
 
     <q-no-ssr>
-      <div
-        class="mb-3 text-sm empty-hint"
-        v-if="loaded && !stems.length && !project.released"
-      >
-        No stems yet. Upload the parts of this track, press record, add a sound,
-        or make a beat with an instrument.
-      </div>
-      <SimpleInfo
-        class="mt-4"
-        text="This track has no stems."
-        v-if="loaded && !stems.length && project.released"
-      />
+      <!-- The editor, with a column on the right that panels dock into. -->
+      <div class="studio-body">
+        <div class="studio-main">
+          <div
+            class="mb-3 text-sm empty-hint"
+            v-if="loaded && !stems.length && !project.released"
+          >
+            No stems yet. Upload the parts of this track, press record, add a
+            sound, or make a beat with an instrument.
+          </div>
+          <SimpleInfo
+            class="mt-4"
+            text="This track has no stems."
+            v-if="loaded && !stems.length && project.released"
+          />
 
-      <StemEditor
-        ref="editor"
-        :stems="stems"
-        :readonly="project.released"
-        :bpm="track.bpm"
-        :time-signature="track.timeSignature"
-        commentable
-        @comment="messageAboutRegion"
-        @ready="editorReady = true"
-        @dirty="dirty = $event"
-        @remove="removeStem"
-        @files="upload"
-        @change="shareChanges"
-        @tempo="onTempo"
-        @recorded="onRecorded"
-        @edit-instrument="editInstrument"
-        v-if="loaded && (stems.length || !project.released)"
-      />
+          <StemEditor
+            ref="editor"
+            :stems="stems"
+            :readonly="project.released"
+            :bpm="track.bpm"
+            :time-signature="track.timeSignature"
+            commentable
+            @comment="messageAboutRegion"
+            @ready="editorReady = true"
+            @dirty="dirty = $event"
+            @remove="removeStem"
+            @files="upload"
+            @change="shareChanges"
+            @tempo="onTempo"
+            @recorded="onRecorded"
+            @edit-instrument="editInstrument"
+            v-if="loaded && (stems.length || !project.released)"
+          />
+        </div>
+        <div id="studio-dock" class="studio-dock" />
+      </div>
 
       <InstrumentDialog
         :bpm="track.bpm || 120"
@@ -969,5 +977,25 @@ onBeforeUnmount(() =>
 
 .expand-toggle--open :deep(.q-icon) {
   transform: rotate(180deg);
+}
+
+.studio-body {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.studio-main {
+  flex: 1 1 auto !important;
+  min-width: 0;
+}
+
+.studio-dock {
+  flex: 0 0 380px !important;
+
+  &:empty {
+    display: none;
+  }
 }
 </style>

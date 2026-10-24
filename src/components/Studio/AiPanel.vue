@@ -1,13 +1,18 @@
 <template>
-  <slot :toggle="toggle" />
-  <q-dialog
+  <slot :toggle="toggle" :open="open" />
+  <!-- Docked beside the editor on desktop, a side sheet on smaller screens. -->
+  <component
+    :is="docked ? DockShell : QDialog"
     seamless
     position="right"
     :maximized="$q.screen.lt.sm"
     v-model="open"
-    @before-show="refresh"
   >
-    <q-card dark class="ai" :class="{ 'ai--mobile': $q.screen.lt.sm }">
+    <q-card
+      dark
+      class="ai"
+      :class="{ 'ai--mobile': $q.screen.lt.sm, 'ai--docked': docked }"
+    >
       <header class="ai__head">
         <div class="min-w-0">
           <div class="text-lg font-bold">AI tools</div>
@@ -30,7 +35,7 @@
           icon="close"
           aria-label="Close AI tools"
           class="!flex-none"
-          v-close-popup
+          @click="open = false"
         />
       </header>
 
@@ -244,7 +249,7 @@
         </template>
       </div>
     </q-card>
-  </q-dialog>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -253,8 +258,19 @@ import {
   ionCheckmarkCircle,
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
-import { date, useQuasar } from 'quasar';
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { date, QDialog, useQuasar } from 'quasar';
+import {
+  computed,
+  defineComponent,
+  h,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  Teleport,
+  type Component,
+  watch,
+} from 'vue';
 import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
@@ -273,6 +289,8 @@ const props = defineProps<{
   trackId: string | number;
   stems: Stem[];
   disabled?: boolean;
+  /** CSS selector of the column the panel docks into on desktop. */
+  dock?: string;
 }>();
 
 const emit = defineEmits<{ finished: [job: AiJob] }>();
@@ -280,6 +298,22 @@ const emit = defineEmits<{ finished: [job: AiJob] }>();
 const $q = useQuasar();
 
 const open = ref(false);
+const docked = computed(() => !!props.dock && $q.screen.gt.sm);
+
+/** Renders the panel into the page's dock column while open. */
+const DockShell = defineComponent({
+  props: { modelValue: Boolean },
+  setup(shell, { slots }) {
+    return () =>
+      shell.modelValue && props.dock
+        ? h(
+            Teleport as unknown as Component,
+            { to: props.dock },
+            slots.default?.(),
+          )
+        : null;
+  },
+});
 const account = ref<AiAccount>();
 const jobs = ref<AiJob[]>([]);
 const starting = ref<'music' | 'stems' | null>(null);
@@ -432,6 +466,8 @@ const split = async () => {
   }
 };
 
+watch(open, (value) => value && refresh());
+
 onMounted(() => void loadJobs());
 onBeforeUnmount(() => clearTimeout(timer));
 
@@ -453,6 +489,15 @@ defineExpose({ toggle, onJob });
 
   > * {
     flex: 0 0 auto;
+  }
+
+  &--docked {
+    position: sticky;
+    top: 72px;
+    width: 100%;
+    height: calc(100vh - 88px);
+    margin: 0;
+    box-shadow: none;
   }
 
   &--mobile {
