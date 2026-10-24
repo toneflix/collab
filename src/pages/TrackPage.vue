@@ -117,7 +117,16 @@
                   </VaButton>
                 </ConversationDialog>
               </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none">
+                <ReportDialog type="track" label="track" :id="track.id" />
+              </span>
             </div>
+            <q-banner dense rounded class="mt-4 text-white bg-red-10 max-w-96" v-if="track.takenDown">
+              <template #avatar><q-icon name="fas fa-ban" /></template>
+              This track was taken down, so only you can see it.
+              <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
+            </q-banner>
             <p class="mt-4 text-sm max-w-96">
               {{ track.description }}
             </p>
@@ -191,6 +200,7 @@ import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import TrackPurchases from 'src/components/Payments/TrackPurchases.vue';
+import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {

@@ -110,7 +110,16 @@
                   </VaButton>
                 </ConversationDialog>
               </span>
+              <span class="!flex-none">•</span>
+              <span class="!flex-none">
+                <ReportDialog type="release" label="release" :id="album.id" />
+              </span>
             </div>
+            <q-banner dense rounded class="mt-4 text-white bg-red-10 max-w-96" v-if="album.takenDown">
+              <template #avatar><q-icon name="fas fa-ban" /></template>
+              This release was taken down, so only you can see it.
+              <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
+            </q-banner>
             <p class="mt-4 text-sm max-w-96">
               {{ album.description }}
             </p>
@@ -193,6 +202,7 @@ import {
 } from '@quasar/extras/ionicons-v8';
 import { formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
 import PayButton from 'src/components/Payments/PayButton.vue';
+import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
