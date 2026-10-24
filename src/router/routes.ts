@@ -4,6 +4,7 @@ import artistsCreators from './artists-creators';
 import authentication from './authentication';
 import library from './library';
 import messages from './messages';
+import notifications from './notifications';
 import projects from './projects';
 import studio from './studio';
 
@@ -50,6 +51,7 @@ const routes: RouteRecordRaw[] = [
   ...artistsCreators,
   ...library,
   ...messages,
+  ...notifications,
   ...studio,
   ...admin,
 
