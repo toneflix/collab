@@ -87,6 +87,19 @@
         @click="newInstrument"
         v-if="!project.released"
       />
+      <HistoryPanel
+        ref="historyPanel"
+        :project-id="project.id"
+        :track-id="track.id"
+        :readonly="project.released"
+        :dirty="dirty || tempoDirty"
+        @restored="onRestored"
+        v-if="!project.released"
+      >
+        <template #default="{ toggle }">
+          <ActionButton label="History" :icon="ionTime" :expanded="expanded" @click="toggle" />
+        </template>
+      </HistoryPanel>
       <AssetsDialog
         :track="track"
         :stems="stems"
@@ -178,6 +191,7 @@ import {
   ionInformationCircle,
   ionMusicalNotes,
   ionSave,
+  ionTime,
 } from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
@@ -191,6 +205,7 @@ import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
 import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
+import HistoryPanel from 'src/components/Studio/HistoryPanel.vue';
 import InstrumentDialog from 'src/components/Studio/InstrumentDialog.vue';
 import { parsePattern, stepSeconds, stepsPerBar, type InstrumentPattern } from 'src/utils/studio/instruments';
 import { encodeMp3, encodeWav } from 'src/utils/daw';
@@ -242,6 +257,7 @@ const uploading = ref(0);
 const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
 const soundsPanel = ref<InstanceType<typeof SoundsPanel>>();
+const historyPanel = ref<InstanceType<typeof HistoryPanel>>();
 const route = useRoute();
 const router = useRouter();
 const conversations = useConversationStore();
@@ -301,9 +317,9 @@ const toggleExpanded = () => {
 const errorMessage = (e: unknown, fallback: string) =>
   (e as ResponseBody)?.message || (e as Error)?.message || fallback;
 
-const loadStems = async () => {
+const loadStems = async (fresh = false) => {
   try {
-    const list = (await loadProjectTrackStemsRequest(project.value, track.value).send()) as unknown as Stem[];
+    const list = (await loadProjectTrackStemsRequest(project.value, track.value).send(fresh)) as unknown as Stem[];
     // Oldest first, so stems keep their place after one is saved.
     stems.value = [...list].sort(
       (a, b) =>
@@ -469,6 +485,7 @@ const removeStem = (stem: Stem) => {
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => s.id !== stem.id);
       notify('Stem removed.', 'success');
+      historyPanel.value?.refresh();
     } catch (e) {
       notify(errorMessage(e, 'The stem couldn\'t be removed.'), 'error');
     }
@@ -521,6 +538,7 @@ const save = async (withPreview = false) => {
     ed.markSaved();
     tempoDirty.value = false;
     notify(form.preview ? 'Saved, with a new preview.' : 'Saved.', 'success');
+    historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, 'The track couldn\'t be saved.'), 'error');
   } finally {
@@ -528,6 +546,26 @@ const save = async (withPreview = false) => {
     rendering.value = false;
   }
 };
+
+/**
+ * Load the track and its stems again from the server, e.g. after a version
+ * was restored. The editor starts over with what's saved.
+ */
+const reloadTrack = async () => {
+  editor.value?.stop();
+  loaded.value = false;
+  editorReady.value = false;
+  dirty.value = false;
+  tempoDirty.value = false;
+  try {
+    track.value = await loadProjectTrackRequest(project.value, String(track.value.id)).send(true);
+  } catch {
+    // Keep what we have; the stems still reload.
+  }
+  await loadStems(true);
+};
+
+const onRestored = () => void reloadTrack();
 
 /**
  * Live collaboration: changes are shared as they're made, and changes from
@@ -570,6 +608,7 @@ useRealtimeChannel(
         stems.value.push(stem);
         await editor.value?.addStem(stem);
         notify(`${who(e)} added "${stem.title || stem.name}".`, 'info');
+        historyPanel.value?.refresh();
       } catch {
         // It may have been removed already.
       }
@@ -594,6 +633,7 @@ useRealtimeChannel(
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => String(s.id) !== String(stem.id));
       notify(`${who(e)} removed "${stem.title || stem.name}".`, 'info');
+      historyPanel.value?.refresh();
     },
     'track.saved': (e: RealtimeMeta & { title?: string; bpm?: number; timeSignature?: string; stems?: Record<string, StemMeta> | null }) => {
       if (e.title) track.value.title = e.title;
@@ -605,6 +645,12 @@ useRealtimeChannel(
         if (stem) stem.meta = { ...stem.meta, ...meta };
       }
       notify(`${who(e)} saved the track.`, 'info');
+      historyPanel.value?.refresh();
+    },
+    'track.restored': async (e: RealtimeMeta) => {
+      await reloadTrack();
+      historyPanel.value?.refresh();
+      notify(`${who(e)} restored an earlier version of the track.`, 'info');
     },
   },
 );
