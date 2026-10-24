@@ -38,6 +38,16 @@ npm run format
 quasar build
 ```
 
+### Run the SSR app on Cloudflare Workers
+
+```bash
+yarn --cwd src-ssr install
+yarn worker:dev       # builds dist/ssr for Workers and serves it with wrangler at http://localhost:8787
+yarn worker:deploy    # builds and deploys with wrangler (run `yarn wrangler login` first)
+```
+
+The Worker settings live in `wrangler.jsonc`. `yarn build` and `yarn quasar build -m ssr` still produce the regular SPA and Node builds.
+
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

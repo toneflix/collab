@@ -10,6 +10,9 @@ node_modules
 /dist
 /quasar.config.*.temporary.compiled*
 
+# Cloudflare Workers local state
+.wrangler
+
 # Cordova related directories and files
 /src-cordova/node_modules
 /src-cordova/platforms
