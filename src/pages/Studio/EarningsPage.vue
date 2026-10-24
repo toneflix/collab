@@ -47,14 +47,17 @@
 
         <q-item class="py-3">
           <q-item-section avatar>
-            <q-avatar rounded color="grey-9" icon="fas fa-building-columns" size="40px" />
+            <q-avatar rounded color="grey-9" :icon="methodIcon(account?.method)" size="40px" />
           </q-item-section>
           <q-item-section v-if="account">
             <q-item-label class="font-bold">{{ account.accountName }}</q-item-label>
-            <q-item-label caption>{{ account.bankName }} · {{ account.accountNumber }}</q-item-label>
+            <q-item-label caption>{{ accountLine(account) }} · {{ account.currency }}</q-item-label>
+            <q-item-label caption class="text-orange-4" v-if="account.status === 'pending'">
+              Finish setting up with {{ providerNames[account.provider] }} before you can withdraw.
+            </q-item-label>
           </q-item-section>
           <q-item-section v-else>
-            <q-item-label class="font-bold">No bank account yet</q-item-label>
+            <q-item-label class="font-bold">No payout account yet</q-item-label>
             <q-item-label caption>Add the account your withdrawals are paid into.</q-item-label>
           </q-item-section>
           <q-item-section side>
@@ -64,7 +67,7 @@
               no-caps
               size="sm"
               color="white"
-              :label="account ? 'Change' : 'Add account'"
+              :label="account?.status === 'pending' ? 'Finish setup' : account ? 'Change' : 'Add account'"
               @click="editingAccount = true"
             />
           </q-item-section>
@@ -178,6 +181,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
+import { useRoute, useRouter } from 'vue-router';
 import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutAccountDialog from 'src/components/Payments/PayoutAccountDialog.vue';
@@ -191,12 +195,16 @@ import { Earnings } from 'src/utils/models';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import { loadEarningsRequest } from 'src/utils/requests/payments';
 import {
+  accountLine,
   cancelPayoutRequest,
+  loadPayoutAccountRequest,
   loadPayoutsRequest,
+  methodIcon,
   Payout,
   PayoutAccount,
   payoutError,
   PayoutSummary,
+  providerNames,
 } from 'src/utils/requests/payouts';
 
 const { price } = usePayments();
@@ -262,11 +270,13 @@ watch(payouts, (body) => {
 });
 
 const canWithdraw = computed(
-  () => !!account.value && wallet.value.available > 0 && wallet.value.available >= wallet.value.minimum,
+  () =>
+    account.value?.status === 'active' && wallet.value.available > 0 && wallet.value.available >= wallet.value.minimum,
 );
 
 const withdrawHint = computed(() => {
-  if (!account.value) return 'Add a bank account first';
+  if (!account.value) return 'Add a payout account first';
+  if (account.value.status !== 'active') return 'Finish setting up your payout account first';
   if (wallet.value.available < wallet.value.minimum) {
     return `You can withdraw once you have ${price(wallet.value.minimum)} available`;
   }
@@ -274,6 +284,25 @@ const withdrawHint = computed(() => {
 });
 
 const onAccountSaved = (saved: PayoutAccount | null) => (account.value = saved);
+
+// Back from the provider's onboarding: check whether it is done, then tidy the link.
+const route = useRoute();
+const router = useRouter();
+
+if (route.query.payouts === 'connected') {
+  void loadPayoutAccountRequest()
+    .send()
+    .then((body) => {
+      account.value = body.data;
+      if (body.data?.status === 'active') notify('Your payout account is ready.', 'success');
+      else notify('Your account isn\'t ready yet. Finish the remaining steps to start withdrawing.', 'warning');
+    })
+    .catch(() => undefined);
+
+  const query = { ...route.query };
+  delete query.payouts;
+  void router.replace({ query });
+}
 
 const onRequested = (_payout: Payout, next: PayoutSummary) => {
   wallet.value = next;
