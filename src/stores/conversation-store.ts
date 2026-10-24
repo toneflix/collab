@@ -4,6 +4,7 @@ import {
   loadConversationsRequest,
   markConversationReadRequest,
   type ChatMessage,
+  type ChatRegion,
   type Conversation,
   type ConversationType,
 } from 'src/utils/requests/conversations';
@@ -57,6 +58,10 @@ export const useConversationStore = defineStore('conversations', {
     },
     /** Conversations on screen right now; incoming messages there count as read */
     visible: <string[]>[],
+    /** A part of a track waiting to be attached to the next message there */
+    regionDraft: <{ key: string; region: ChatRegion } | null>null,
+    /** A part of a track someone asked to see; the track's page shows it */
+    regionFocus: <{ region: ChatRegion; at: number } | null>null,
   }),
 
   getters: {
@@ -81,6 +86,17 @@ export const useConversationStore = defineStore('conversations', {
     openDock(conversation: ConversationRef) {
       this.dock.conversation = conversation;
       this.dock.minimized = false;
+    },
+
+    /** Open the chat for a project track with a part of it ready to message about. */
+    messageAboutRegion(conversation: ConversationRef, region: ChatRegion) {
+      this.openDock(conversation);
+      this.regionDraft = { key: conversationKey(conversation), region };
+    },
+
+    /** Ask the track's page to show a part of the track. */
+    showRegion(region: ChatRegion) {
+      this.regionFocus = { region, at: Date.now() };
     },
 
     closeDock() {
@@ -149,6 +165,8 @@ export const useConversationStore = defineStore('conversations', {
       this.loaded = false;
       this.dock.conversation = null;
       this.visible = [];
+      this.regionDraft = null;
+      this.regionFocus = null;
     },
   },
 });
