@@ -9,17 +9,22 @@ export default <RouteRecordRaw[]>[
       {
         path: '',
         name: 'studio.home',
-        component: () => import('pages/Studio/StudioHomePage.vue')
+        component: () => import('pages/Studio/StudioHomePage.vue'),
       },
       {
         path: 'releases',
         name: 'studio.releases',
-        component: () => import('pages/Studio/ReleasesPage.vue')
+        component: () => import('pages/Studio/ReleasesPage.vue'),
       },
       {
         path: 'earnings',
         name: 'studio.earnings',
-        component: () => import('pages/Studio/EarningsPage.vue')
+        component: () => import('pages/Studio/EarningsPage.vue'),
+      },
+      {
+        path: 'credits',
+        name: 'studio.credits',
+        component: () => import('pages/Studio/CreditsPage.vue'),
       },
       {
         path: 'takedowns',
@@ -29,33 +34,33 @@ export default <RouteRecordRaw[]>[
       {
         path: 'collabers',
         name: 'studio.collabers',
-        component: () => import('pages/Studio/CollabersPage.vue')
+        component: () => import('pages/Studio/CollabersPage.vue'),
       },
       {
         path: 'release/create/:release_id?',
         name: 'studio.release.create',
-        component: () => import('pages/Studio/CreateReleasePage.vue')
+        component: () => import('pages/Studio/CreateReleasePage.vue'),
       },
       {
         path: 'projects',
         name: 'studio.projects',
-        component: () => import('pages/Studio/ProjectListPage.vue')
+        component: () => import('pages/Studio/ProjectListPage.vue'),
       },
       {
         path: 'projects/create/:project_id?',
         name: 'studio.projects.create',
-        component: () => import('pages/Studio/CreateProjectPage.vue')
+        component: () => import('pages/Studio/CreateProjectPage.vue'),
       },
       {
         path: 'projects/:project_id',
         name: 'studio.project',
-        component: () => import('pages/Studio/ProjectPage.vue')
+        component: () => import('pages/Studio/ProjectPage.vue'),
       },
       {
         path: 'projects/:project_id/track/:track_id',
         name: 'studio.project.track',
         meta: { hidePlayer: true },
-        component: () => import('pages/Studio/ProjectTrackPage.vue')
+        component: () => import('pages/Studio/ProjectTrackPage.vue'),
       },
     ],
   },

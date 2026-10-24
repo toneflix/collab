@@ -52,11 +52,17 @@
             <div class="text-xs text-grey-6">{{ plan.slug }}</div>
             <div class="mt-1 text-2xl font-bold">
               {{ plan.price > 0 ? price(plan.price) : 'Free' }}
-              <span class="text-sm font-normal text-grey-5" v-if="plan.price > 0">
+              <span
+                class="text-sm font-normal text-grey-5"
+                v-if="plan.price > 0"
+              >
                 / {{ period(plan) }}
               </span>
             </div>
-            <div class="flex gap-1 mt-1" v-if="plan.price > 0 && plan.billingOptions.length > 1">
+            <div
+              class="flex gap-1 mt-1"
+              v-if="plan.price > 0 && plan.billingOptions.length > 1"
+            >
               <q-badge
                 outline
                 color="green-5"
@@ -67,7 +73,9 @@
               />
             </div>
             <div class="mt-1 text-xs text-grey-5">
-              {{ plan.subscribers || 0 }} active subscriber{{ plan.subscribers === 1 ? '' : 's' }}
+              {{ plan.subscribers || 0 }} active subscriber{{
+                plan.subscribers === 1 ? '' : 's'
+              }}
             </div>
           </q-card-section>
           <q-card-section class="pt-0">
@@ -87,7 +95,12 @@
                   <q-icon name="fas fa-xmark" color="grey-6" v-else />
                 </template>
                 <template v-else>
-                  {{ limit(Number(plan.features[feature.key] || 0), feature.unit ? ` ${feature.unit}` : '') }}
+                  {{
+                    featureValue(
+                      feature,
+                      Number(plan.features[feature.key] || 0),
+                    )
+                  }}
                 </template>
               </span>
             </div>
@@ -190,11 +203,17 @@
                 icon="add"
                 label="Add option"
                 class="!flex-none"
-                @click="form.billing_options.push({ cycles: nextCycles(), discount: 0 })"
+                @click="
+                  form.billing_options.push({
+                    cycles: nextCycles(),
+                    discount: 0,
+                  })
+                "
               />
             </div>
             <div class="text-xs text-grey-6">
-              Let people pay for several {{ form.interval }}s at once, with a discount.
+              Let people pay for several {{ form.interval }}s at once, with a
+              discount.
             </div>
             <div
               class="flex items-start gap-2 mt-2 no-wrap"
@@ -230,7 +249,16 @@
                 :error-message="errors[`billing_options.${i}.discount`]"
               />
               <div class="pt-2 text-sm text-grey-5">
-                {{ price(optionPrice(option)) }} for {{ period({ interval: form.interval, intervalCount: form.interval_count }, option.cycles) }}
+                {{ price(optionPrice(option)) }} for
+                {{
+                  period(
+                    {
+                      interval: form.interval,
+                      intervalCount: form.interval_count,
+                    },
+                    option.cycles,
+                  )
+                }}
               </div>
               <q-btn
                 flat
@@ -252,14 +280,22 @@
             v-model.number="form.sort"
           />
           <div class="flex flex-col">
-            <q-toggle dark label="Active" v-model="form.active" :disable="form.is_default" />
+            <q-toggle
+              dark
+              label="Active"
+              v-model="form.active"
+              :disable="form.is_default"
+            />
             <q-toggle
               dark
               label="Default plan"
               v-model="form.is_default"
               :disable="!!editingPlan?.isDefault"
             />
-            <div class="text-xs text-negative" v-if="errors.is_default || errors.active">
+            <div
+              class="text-xs text-negative"
+              v-if="errors.is_default || errors.active"
+            >
               {{ errors.is_default || errors.active }}
             </div>
           </div>
@@ -278,7 +314,12 @@
               <div>{{ feature.title }}</div>
               <div class="text-xs text-grey-6">
                 {{ feature.description }}
-                <template v-if="feature.type === 'limit'">0 means no limit.</template>
+                <template v-if="feature.type === 'limit'"
+                  >0 means no limit.</template
+                >
+                <template v-if="feature.type === 'credits'"
+                  >Given each month. 0 means none.</template
+                >
               </div>
             </div>
             <q-toggle
@@ -296,7 +337,9 @@
               :suffix="feature.unit || undefined"
               :min="0"
               :model-value="Number(form.features[feature.key] || 0)"
-              @update:model-value="(v) => (form.features[feature.key] = Number(v || 0))"
+              @update:model-value="
+                (v) => (form.features[feature.key] = Number(v || 0))
+              "
               v-else
             />
           </div>
@@ -335,23 +378,35 @@ import {
 } from 'src/utils/requests/plans';
 
 const $q = useQuasar();
-const { price, limit, period, symbol, billingLabel } = usePayments();
+const { price, featureValue, period, symbol, billingLabel } = usePayments();
 
 /**
  * What a bulk option costs: the price for every cycle, less its discount.
  */
 const optionPrice = (option: { cycles: number; discount: number }) =>
-  Math.round((form.value.price || 0) * (option.cycles || 0) * (1 - (option.discount || 0) / 100) * 100) / 100;
+  Math.round(
+    (form.value.price || 0) *
+      (option.cycles || 0) *
+      (1 - (option.discount || 0) / 100) *
+      100,
+  ) / 100;
 
 /**
  * A sensible next option: 6 periods, then 12, then a year more each time.
  */
 const nextCycles = () => {
   const taken = form.value.billing_options.map((o) => o.cycles);
-  return [6, 12, 24, 36].find((c) => !taken.includes(c)) || Math.max(1, ...taken) + 12;
+  return (
+    [6, 12, 24, 36].find((c) => !taken.includes(c)) ||
+    Math.max(1, ...taken) + 12
+  );
 };
 
-const { data: plansData, loading, send: reload } = useRequest(loadAdminPlansRequest);
+const {
+  data: plansData,
+  loading,
+  send: reload,
+} = useRequest(loadAdminPlansRequest);
 const { data: featuresData } = useRequest(loadPlanFeaturesRequest);
 
 const plans = computed(() => plansData.value || []);
@@ -368,7 +423,7 @@ const editing = ref(false);
 const editingPlan = ref<Plan | null>(null);
 const form = ref<PlanForm & { id?: number }>(blank());
 
-function blank (): PlanForm & { id?: number } {
+function blank(): PlanForm & { id?: number } {
   return {
     name: '',
     slug: '',
@@ -377,7 +432,9 @@ function blank (): PlanForm & { id?: number } {
     interval: 'month',
     interval_count: 1,
     billing_options: [],
-    features: Object.fromEntries(features.value?.map((f) => [f.key, f.default]) || []),
+    features: Object.fromEntries(
+      features.value?.map((f) => [f.key, f.default]) || [],
+    ),
     is_default: false,
     active: true,
     sort: plans.value.length,
@@ -411,10 +468,13 @@ const {
   loading: saving,
   error,
   send: sendSave,
-} = useRequest(() => {
-  const { id, ...body } = form.value;
-  return savePlanRequest(body, id);
-}, { immediate: false });
+} = useRequest(
+  () => {
+    const { id, ...body } = form.value;
+    return savePlanRequest(body, id);
+  },
+  { immediate: false },
+);
 
 const errors = computed<Record<string, string>>(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
@@ -433,7 +493,7 @@ const remove = (plan: Plan) => {
     title: `Delete ${plan.name}?`,
     message: plan.subscribers
       ? 'People are subscribed to this plan, so it will be deactivated instead. They keep it until their time runs out.'
-      : 'This can\'t be undone.',
+      : "This can't be undone.",
     cancel: true,
     ok: { label: 'Delete', color: 'red-5', flat: true, noCaps: true },
   }).onOk(async () => {

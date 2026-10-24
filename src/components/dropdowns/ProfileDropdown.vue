@@ -152,6 +152,11 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'fas fa-sack-dollar',
         },
         {
+          name: 'AI credits',
+          to: { name: 'studio.credits' },
+          icon: 'fas fa-wand-magic-sparkles',
+        },
+        {
           hide: !user.value.permissions?.includes('manage-plans'),
           name: 'Manage plans',
           to: { name: 'admin.plans' },
@@ -174,6 +179,12 @@ const options = computed<ProfileOptions[]>(() =>
           name: 'Realtime',
           to: { name: 'admin.realtime' },
           icon: 'fas fa-tower-broadcast',
+        },
+        {
+          hide: !user.value.permissions?.includes('manage-configuration'),
+          name: 'AI tools',
+          to: { name: 'admin.ai' },
+          icon: 'fas fa-wand-magic-sparkles',
         },
         {
           hide: !user.value.permissions?.includes('manage-configuration'),
@@ -219,7 +230,6 @@ const options = computed<ProfileOptions[]>(() =>
     },
   ].filter((e) => !e.hide),
 );
-
 </script>
 
 <style lang="scss">
