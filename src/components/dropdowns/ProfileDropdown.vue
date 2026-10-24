@@ -127,6 +127,11 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'settings',
         },
         {
+          name: 'Notifications',
+          to: { name: 'account.notifications' },
+          icon: 'notifications',
+        },
+        {
           name: 'Studio',
           to: { name: 'studio.home' },
           icon: 'fas fa-microphone-lines',

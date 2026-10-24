@@ -53,6 +53,8 @@
           <q-tooltip>Messages</q-tooltip>
         </q-btn>
 
+        <NotificationBell v-if="boot.user?.id" />
+
         <div>
           <ProfileDropdown>
             <template #anchor="{ isShown }">
@@ -176,9 +178,12 @@ import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import TIcon from 'src/components/icons/TIcon.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
+import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
+import { useNotificationStore } from 'src/stores/notification-store';
+import type { AppNotification } from 'src/utils/requests/notifications';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import type { ChatMessage, Conversation } from 'src/utils/requests/conversations';
 import { mainNavigationLinks } from 'src/utils/navigations';
@@ -224,12 +229,18 @@ const router = useRouter();
 const conversations = useConversationStore();
 const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
 
-// Conversations follow whoever is signed in.
+const notifications = useNotificationStore();
+
+// Conversations and notifications follow whoever is signed in.
 watch(
   () => boot.user?.id,
   (id) => {
     conversations.reset();
-    if (id) void conversations.load();
+    notifications.reset();
+    if (id) {
+      void conversations.load();
+      void notifications.load();
+    }
   },
   { immediate: true },
 );
@@ -267,6 +278,7 @@ useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
     });
   },
   'conversation.deleted': () => conversations.removed(),
+  'notification.created': ({ notification }: { notification: AppNotification }) => notifications.receive(notification),
 });
 
 const routeBuilder = (item: GenericData, group: string) => {
