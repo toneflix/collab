@@ -1,0 +1,39 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: |
+            yarn.lock
+            src-ssr/yarn.lock
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          yarn --cwd src-ssr install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Build
+        run: yarn build
