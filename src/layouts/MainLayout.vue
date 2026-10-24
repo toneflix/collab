@@ -40,6 +40,19 @@
 
         <q-space />
 
+        <q-btn
+          flat
+          round
+          class="!flex-none mr-2"
+          aria-label="Messages"
+          :to="{ name: 'messages' }"
+          v-if="boot.user?.id"
+        >
+          <t-icon name="eva-message-circle" />
+          <q-badge floating rounded color="red-6" :label="unreadLabel" v-if="conversations.unread" />
+          <q-tooltip>Messages</q-tooltip>
+        </q-btn>
+
         <div>
           <ProfileDropdown>
             <template #anchor="{ isShown }">
@@ -101,6 +114,9 @@
               </q-item-section>
 
               <q-item-section> {{ link.title }} </q-item-section>
+              <q-item-section side v-if="link.badge === 'messages' && conversations.unread">
+                <q-badge rounded color="red-6" :label="unreadLabel" />
+              </q-item-section>
             </q-item>
 
             <q-separator
@@ -145,6 +161,7 @@
 
     <q-page-container>
       <router-view />
+      <ConversationDock v-if="boot.user?.id" />
     </q-page-container>
 
     <q-footer class="text-white bg-glass">
@@ -158,7 +175,12 @@ import { useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import TIcon from 'src/components/icons/TIcon.vue';
-import { ref } from 'vue';
+import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
+import { useRealtimeChannel } from 'src/utils/realtime';
+import type { ChatMessage, Conversation } from 'src/utils/requests/conversations';
 import { mainNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
@@ -196,6 +218,56 @@ const leftDrawerOpen = ref(false);
 const cache = boot.pageData.cache as unknown as {
   mainLayoutGroups: Record<string, GenericData[]>;
 };
+
+const route = useRoute();
+const router = useRouter();
+const conversations = useConversationStore();
+const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
+
+// Conversations follow whoever is signed in.
+watch(
+  () => boot.user?.id,
+  (id) => {
+    conversations.reset();
+    if (id) void conversations.load();
+  },
+  { immediate: true },
+);
+
+/** New messages anywhere the user takes part, for the unread counts and a nudge. */
+useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
+  'conversation.posted': ({ conversation, message }: { conversation: Conversation; message: ChatMessage }) => {
+    const key = conversation.key || conversationKey(conversation);
+    const onScreen = conversations.visible.includes(key);
+    conversations.receive(conversation, message);
+    // The corner window already shows its own unread count.
+    const inDock = conversations.dock.conversation && conversationKey(conversations.dock.conversation) === key;
+    if (onScreen || inDock || !message) return;
+
+    $q.notify({
+      group: key,
+      color: 'grey-10',
+      textColor: 'white',
+      position: 'top-right',
+      avatar: message.user?.imageUrl || undefined,
+      message: `${message.user?.name || 'Someone'} · ${conversation.title}`,
+      caption: message.body.length > 90 ? `${message.body.slice(0, 90)}…` : message.body,
+      actions: [
+        {
+          label: 'Reply',
+          color: 'light-blue-4',
+          noCaps: true,
+          handler: () => {
+            if (route.name === 'messages' || $q.screen.lt.sm) {
+              void router.push({ name: 'messages', params: { type: conversation.type, id: conversation.id } });
+            } else conversations.openDock(conversation);
+          },
+        },
+      ],
+    });
+  },
+  'conversation.deleted': () => conversations.removed(),
+});
 
 const routeBuilder = (item: GenericData, group: string) => {
   if (group === 'creator/projects') {

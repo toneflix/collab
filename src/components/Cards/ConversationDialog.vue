@@ -1,6 +1,6 @@
 <template>
-  <slot :toggle="() => (toggle = !toggle)">
-    <q-btn icon="fas fa-info-circle" v-bind="$attrs" @click="toggle = !toggle">
+  <slot :toggle="open">
+    <q-btn icon="fas fa-info-circle" v-bind="$attrs" @click="open">
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
@@ -31,6 +31,9 @@
 import { PropType, ref } from 'vue';
 import CommentSection from '../Sections/CommentSection.vue';
 import { GenericData, UserComment } from 'src/utils/models';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { useConversationStore } from 'src/stores/conversation-store';
+import type { ConversationType } from 'src/utils/requests/conversations';
 
 const emit = defineEmits<{
   commented: [value: UserComment, type: 'comment' | 'reply'];
@@ -40,7 +43,7 @@ defineOptions({
   name: 'ProjectTrackInfoDialog',
 });
 
-defineProps({
+const props = defineProps({
   id: {
     type: [String, Number],
     required: true,
@@ -61,6 +64,30 @@ defineProps({
 });
 
 const toggle = ref(false);
+const boot = useBootstrapStore();
+const conversations = useConversationStore();
 
-defineExpose({ toggle: () => (toggle.value = !toggle.value) });
+/** Which conversation these props point at, in the conversations API's terms. */
+const conversationType = (): ConversationType => {
+  if (props.params.baseUrl === 'tracks') return 'track';
+  if (props.params.baseUrl === 'releases') return 'release';
+  if (props.params.track_id) return 'project-track';
+  return 'project';
+};
+
+/**
+ * Signed-in people chat in the corner window, which leaves the page usable.
+ * Guests can still read the conversation here.
+ */
+const open = () => {
+  if (!boot.user?.id) {
+    toggle.value = !toggle.value;
+    return;
+  }
+  const type = conversationType();
+  const id = type === 'project-track' ? (props.params.track_id as string | number) : props.id;
+  conversations.openDock({ type, id, title: props.title === 'Conversation' ? undefined : props.title });
+};
+
+defineExpose({ toggle: open });
 </script>
