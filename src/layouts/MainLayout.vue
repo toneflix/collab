@@ -107,18 +107,8 @@
         </div>
       </q-toolbar>
 
-      <q-scroll-area class="h-[calc(100%-112px)] mt-28">
+      <q-scroll-area class="mt-28" :class="adminMenu ? 'h-[calc(100%-169px)]' : 'h-[calc(100%-112px)]'">
         <q-list padding class="menu-list" v-if="adminMenu">
-          <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
-            <q-item-section avatar>
-              <t-icon name="eva-arrow-back" />
-            </q-item-section>
-            <q-item-section>Back to app</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Back to app</q-tooltip>
-          </q-item>
-
-          <q-separator class="q-my-lg" />
-
           <q-item dense class="label" v-if="!collapsed">
             <q-item-section class="text-gray-400">Admin</q-item-section>
           </q-item>
@@ -205,6 +195,19 @@
           </template>
         </q-list>
       </q-scroll-area>
+
+      <div class="absolute-bottom bg-dark" v-if="adminMenu">
+        <q-separator />
+        <q-list padding class="menu-list">
+          <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
+            <q-item-section avatar>
+              <t-icon name="eva-arrow-back" />
+            </q-item-section>
+            <q-item-section>Back to app</q-item-section>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Back to app</q-tooltip>
+          </q-item>
+        </q-list>
+      </div>
     </q-drawer>
 
     <q-page-container>
