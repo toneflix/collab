@@ -4,10 +4,19 @@
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">Payouts</h1>
         <p class="text-grey-5">
-          Creators' withdrawal requests. Approving one sends the money from your
-          Paystack balance to their bank.
+          Creators' withdrawal requests. Approving one sends the money through the
+          provider that pays the creator's country.
         </p>
       </div>
+
+      <q-tabs dense no-caps align="left" active-color="toneflix" class="mb-4" v-model="view" v-if="canConfigure">
+        <q-tab name="requests" label="Requests" />
+        <q-tab name="providers" label="Providers" />
+      </q-tabs>
+
+      <PayoutProviderSettings v-if="view === 'providers'" />
+
+      <template v-else>
 
       <q-banner rounded dense class="mb-4 text-white bg-orange-10" v-if="summary.pendingCount">
         {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
@@ -79,6 +88,7 @@
       <div class="flex justify-center mt-4" v-if="pageCount > 1">
         <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
       </div>
+      </template>
     </div>
   </q-page>
 </template>
@@ -89,10 +99,14 @@ import { useMeta, useQuasar } from 'quasar';
 import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
+import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { usePayments } from 'src/composables/usePayments';
 import { notify } from 'src/utils/helpers';
 import {
+  accountLine,
   approvePayoutRequest,
+  money,
   loadAdminPayoutsRequest,
   Payout,
   payoutError,
@@ -102,7 +116,11 @@ import {
 } from 'src/utils/requests/payouts';
 
 const $q = useQuasar();
+const boot = useBootstrapStore();
 const { price } = usePayments();
+
+const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
+const view = ref<'requests' | 'providers'>('requests');
 
 const statuses: { value: PayoutStatus | ''; label: string }[] = [
   { value: 'pending', label: 'Waiting' },
@@ -146,7 +164,12 @@ const approve = (payout: Payout) => {
   $q.dialog({
     dark: true,
     title: 'Send this withdrawal?',
-    message: `${price(payout.amount)} goes to ${payout.bank.accountName} (${payout.bank.name} ${payout.bank.accountNumber}).`,
+    message: `${price(payout.amount)} goes to ${payout.bank.accountName} (${accountLine({
+      method: payout.bank.method || 'bank',
+      bankName: payout.bank.name,
+      accountNumber: payout.bank.accountNumber,
+      provider: payout.provider || 'paystack',
+    })})${payout.payoutCurrency && payout.payoutCurrency !== payout.currency ? `, paid out as ${money(payout.payoutAmount, payout.payoutCurrency)}` : ''}.`,
     cancel: { flat: true, noCaps: true, label: 'Not yet' },
     ok: { unelevated: true, rounded: true, noCaps: true, color: 'toneflix', label: 'Send' },
   }).onOk(() => void act(payout, () => approvePayoutRequest(payout.id).send(), 'The withdrawal couldn\'t be sent.'));
@@ -166,7 +189,7 @@ const reject = (payout: Payout) => {
 };
 
 const sync = (payout: Payout) =>
-  act(payout, () => syncPayoutRequest(payout.id).send(), 'Paystack couldn\'t be reached.');
+  act(payout, () => syncPayoutRequest(payout.id).send(), 'The provider couldn\'t be reached.');
 
 useMeta(() => ({
   title: 'Payouts',

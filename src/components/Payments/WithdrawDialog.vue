@@ -5,7 +5,7 @@
         <div class="text-lg font-bold">Withdraw earnings</div>
         <div class="text-xs text-grey-5">
           {{ price(summary.available) }} available.
-          {{ autoApprove ? 'It\'s sent to your bank straight away.' : 'An admin reviews each withdrawal before it\'s sent.' }}
+          {{ autoApprove ? 'It\'s sent to your account straight away.' : 'An admin reviews each withdrawal before it\'s sent.' }}
         </div>
       </q-card-section>
 
@@ -31,10 +31,13 @@
           </q-input>
 
           <div class="flex items-center gap-3 px-3 py-2 rounded destination">
-            <q-icon name="fas fa-building-columns" class="!flex-none text-grey-5" />
+            <q-icon :name="methodIcon(account.method)" class="!flex-none text-grey-5" />
             <div>
               <div class="text-sm font-bold">{{ account.accountName }}</div>
-              <div class="text-xs text-grey-5">{{ account.bankName }} · {{ account.accountNumber }}</div>
+              <div class="text-xs text-grey-5">{{ accountLine(account) }}</div>
+              <div class="text-xs text-grey-5" v-if="account.currency !== currency">
+                Converted to {{ account.currency }} when it's sent.
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -63,6 +66,8 @@ import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import {
+  accountLine,
+  methodIcon,
   Payout,
   PayoutAccount,
   payoutError,
@@ -82,7 +87,7 @@ const emit = defineEmits<{
 const show = defineModel<boolean>({ default: false });
 
 const boot = useBootstrapStore();
-const { price, symbol } = usePayments();
+const { currency, price, symbol } = usePayments();
 
 const amount = ref(0);
 const sending = ref(false);
