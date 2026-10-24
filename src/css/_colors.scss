@@ -45,8 +45,8 @@
   /* From https://css.glass */
   background: rgba(32, 32, 32, 0.38);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20.3px);
-  -webkit-backdrop-filter: blur(12.3px);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   &.white-glass {
     background: rgba(95, 95, 95, 0.38);
   }
@@ -56,8 +56,8 @@
   /* From https://css.glass */
   color: rgba(255, 255, 255, 0.38);
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(12.3px);
   -webkit-backdrop-filter: blur(12.3px);
+  backdrop-filter: blur(12.3px);
 }
 
 .bg-dark-opaque {
