@@ -87,14 +87,23 @@
             v-else-if="tool === 'music'"
             @submit="generate"
           >
+            <div class="ai__model">
+              <q-icon :name="ionSparkles" size="14px" class="!flex-none" />
+              <span class="min-w-0 truncate">{{ account.music.name }}</span>
+              <span class="!flex-none text-grey-6">· {{ musicPrice(account.music) }}</span>
+            </div>
             <q-input
               dark
               filled
               autogrow
               counter
-              maxlength="2000"
+              :maxlength="account.music.promptLength[1]"
               input-class="ai__prompt"
-              placeholder='Describe it: genre, mood, instruments, tempo. Like "Mellow afrobeats groove, 100 BPM, guitars and log drums"'
+              :placeholder="
+                account.music.lyricsLength
+                  ? 'Describe the style: genre, mood, instruments, voice. Like &quot;Mellow afrobeats, warm male vocals, guitars and log drums&quot;'
+                  : 'Describe it: genre, mood, instruments, tempo. Like &quot;Mellow afrobeats groove, 100 BPM, guitars and log drums&quot;'
+              "
               :disable="disabled"
               v-model="form.prompt"
             />
@@ -110,24 +119,117 @@
               </button>
             </div>
 
-            <div class="mt-3 text-sm">
-              Length <b>{{ clock(form.seconds) }}</b>
-            </div>
-            <q-slider
-              dark
-              color="toneflix"
-              :min="5"
-              :max="account.musicMaxSeconds"
-              :step="5"
-              v-model="form.seconds"
-            />
+            <template v-if="account.music.lyricsLength">
+              <div class="mt-3 ai__label">Lyrics</div>
+              <q-input
+                dark
+                filled
+                autogrow
+                counter
+                type="textarea"
+                :maxlength="account.music.lyricsLength[1]"
+                input-class="ai__lyrics"
+                placeholder="[verse]&#10;Write the words to sing&#10;[chorus]&#10;..."
+                hint="Mark parts with [verse], [chorus], [bridge] and [outro]."
+                :disable="disabled"
+                v-model="form.lyrics"
+              />
+            </template>
 
+            <template v-if="account.music.maxSeconds">
+              <div class="mt-3 text-sm">
+                Length <b>{{ clock(form.seconds) }}</b>
+              </div>
+              <q-slider
+                dark
+                color="toneflix"
+                :min="5"
+                :max="account.music.maxSeconds"
+                :step="5"
+                v-model="form.seconds"
+              />
+            </template>
+            <div class="mt-3 text-xs text-grey-6" v-else>
+              {{ account.music.name }} picks the length from the lyrics.
+            </div>
+
+            <div class="mt-3" v-if="account.music.references.length">
+              <div class="ai__label">Reference audio <span class="normal-case">(optional)</span></div>
+              <q-btn-toggle
+                dense
+                no-caps
+                unelevated
+                spread
+                toggle-color="toneflix"
+                color="grey-10"
+                class="ai__kinds"
+                :options="referenceKinds"
+                v-model="form.reference_kind"
+              />
+              <div class="ai__reference" v-if="form.reference || form.reference_stem_id">
+                <q-icon :name="form.reference ? ionDocumentAttach : ionMusicalNote" size="18px" class="!flex-none" />
+                <div class="min-w-0 truncate text-sm">{{ referenceName }}</div>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  size="sm"
+                  icon="close"
+                  aria-label="Remove the reference"
+                  class="!flex-none"
+                  @click="clearReference"
+                />
+              </div>
+              <div class="flex items-center gap-2 no-wrap mt-2" v-else>
+                <q-select
+                  dark
+                  filled
+                  dense
+                  emit-value
+                  map-options
+                  clearable
+                  class="min-w-0"
+                  label="A stem on this track"
+                  :options="stemOptions"
+                  :disable="disabled || !stems.length"
+                  v-model="form.reference_stem_id"
+                />
+                <q-btn
+                  flat
+                  no-caps
+                  rounded
+                  color="grey-4"
+                  class="!flex-none"
+                  label="Upload"
+                  :icon="ionCloudUpload"
+                  :disable="disabled"
+                  @click="referenceInput?.click()"
+                />
+                <input
+                  ref="referenceInput"
+                  type="file"
+                  class="hidden"
+                  accept=".mp3,.wav,audio/mpeg,audio/wav"
+                  @change="pickReference"
+                />
+              </div>
+              <div class="mt-1 text-xs text-grey-6">
+                MP3 or WAV longer than {{ account.music.referenceMinSeconds }} seconds. The new song
+                follows its {{ referenceHint }}.
+              </div>
+            </div>
+
+            <div class="mt-3 text-xs text-grey-6" v-if="account.music.instrumentalOnly">
+              {{ account.music.name }} makes instrumentals, with no vocals.
+            </div>
             <q-toggle
               dark
               dense
               color="toneflix"
+              class="mt-2"
               label="Instrumental, no vocals"
               v-model="form.instrumental"
+              v-if="account.music.instrumentalOption"
             />
             <div class="mt-2">
               <q-toggle
@@ -159,7 +261,7 @@
                 :loading="starting === 'music'"
                 :disable="
                   disabled ||
-                  form.prompt.trim().length < 3 ||
+                  !formReady ||
                   cost > account.balance.total ||
                   !!starting
                 "
@@ -280,7 +382,10 @@
 import {
   ionAlertCircle,
   ionCheckmarkCircle,
+  ionCloudUpload,
+  ionDocumentAttach,
   ionGitBranch,
+  ionMusicalNote,
   ionMusicalNotes,
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
@@ -295,9 +400,12 @@ import {
   loadAiAccountRequest,
   loadAiJobsRequest,
   musicCost,
+  musicPrice,
   splitStemRequest,
   type AiAccount,
   type AiJob,
+  type MusicForm,
+  type ReferenceKind,
 } from 'src/utils/requests/ai';
 
 const props = defineProps<{
@@ -320,9 +428,50 @@ const starting = ref<'music' | 'stems' | null>(null);
 const splitId = ref<string | number | null>(null);
 const form = reactive({
   prompt: '',
+  lyrics: '',
   seconds: 30,
   instrumental: false,
   split: false,
+  reference: null as File | null,
+  reference_stem_id: null as string | number | null,
+  reference_kind: 'song' as ReferenceKind,
+});
+const referenceInput = ref<HTMLInputElement>();
+
+const kindLabels: Record<ReferenceKind, { label: string; hint: string }> = {
+  song: { label: 'Song', hint: 'style, arrangement and vocals' },
+  voice: { label: 'Voice', hint: 'singing voice' },
+  instrumental: { label: 'Instrumental', hint: 'instrumental' },
+};
+
+const referenceKinds = computed(() =>
+  (account.value?.music.references ?? []).map((kind) => ({ label: kindLabels[kind].label, value: kind })),
+);
+const referenceHint = computed(() => kindLabels[form.reference_kind].hint);
+const referenceName = computed(() => {
+  if (form.reference) return form.reference.name;
+  const stem = props.stems.find((s) => String(s.id) === String(form.reference_stem_id));
+  return stem ? stemTitle(stem) : '';
+});
+
+const pickReference = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  form.reference = input.files?.[0] ?? null;
+  form.reference_stem_id = null;
+  input.value = '';
+};
+
+const clearReference = () => {
+  form.reference = null;
+  form.reference_stem_id = null;
+};
+
+/** Whether the music form has what the model needs. */
+const formReady = computed(() => {
+  const music = account.value?.music;
+  if (!music) return false;
+  if (form.prompt.trim().length < music.promptLength[0]) return false;
+  return !music.lyricsLength || form.lyrics.trim().length >= music.lyricsLength[0];
 });
 
 const tool = ref<'music' | 'stems' | null>(null);
@@ -334,9 +483,17 @@ const tools = computed(() => {
     {
       key: 'music' as const,
       title: 'Generate music',
-      text: 'Turn a prompt into a loop or a full track, with or without vocals.',
+      text: acc?.music.lyricsLength
+        ? 'Turn your lyrics and a style into a full song.'
+        : acc?.music.instrumentalOnly
+          ? 'Turn a prompt into a loop or an instrumental.'
+          : 'Turn a prompt into a loop or a full track, with or without vocals.',
       icon: ionMusicalNotes,
-      cost: acc ? `From ${musicCost(acc, 5, false)} credits` : '',
+      cost: !acc
+        ? ''
+        : acc.music.pricing === 'per10s'
+          ? `From ${musicCost(acc, 5, false)} credits`
+          : `${musicCost(acc, 0, false)} credits a song`,
     },
     {
       key: 'stems' as const,
@@ -409,7 +566,9 @@ const errorText = (e: unknown, fallback: string) => {
 const loadAccount = async () => {
   try {
     account.value = await loadAiAccountRequest().send();
-    form.seconds = Math.min(form.seconds, account.value.musicMaxSeconds);
+    const music = account.value.music;
+    if (music.maxSeconds) form.seconds = Math.min(form.seconds, music.maxSeconds);
+    if (!music.references.includes(form.reference_kind)) form.reference_kind = music.references[0] ?? 'song';
   } catch {
     // The panel shows its loading state until the next try.
   }
@@ -476,16 +635,38 @@ const refresh = () => {
   void loadJobs();
 };
 
+/** The music form, with only what the current model takes. */
+const musicForm = (): MusicForm => {
+  const music = account.value!.music;
+  const referenced = music.references.length > 0 && (!!form.reference || !!form.reference_stem_id);
+
+  return {
+    prompt: form.prompt.trim(),
+    split: form.split,
+    ...(music.maxSeconds ? { seconds: form.seconds } : {}),
+    ...(music.lyricsLength ? { lyrics: form.lyrics.trim() } : {}),
+    ...(music.instrumentalOption ? { instrumental: form.instrumental } : {}),
+    ...(referenced
+      ? {
+          reference: form.reference,
+          reference_stem_id: form.reference ? null : form.reference_stem_id,
+          reference_kind: form.reference_kind,
+        }
+      : {}),
+  };
+};
+
 const generate = async () => {
   starting.value = 'music';
   try {
     const { data, message } = await generateMusicRequest(
       props.projectId,
       props.trackId,
-      { ...form, prompt: form.prompt.trim() },
+      musicForm(),
     ).send();
     notify(message, 'success');
     onJob(data);
+    clearReference();
     void loadAccount();
   } catch (e) {
     notify(errorText(e, "The music couldn't be started."), 'error');
@@ -606,6 +787,48 @@ defineExpose({ toggle, onJob });
   :deep(.ai__prompt) {
     min-height: 64px;
     line-height: 1.4;
+  }
+
+  :deep(.ai__lyrics) {
+    min-height: 120px;
+    line-height: 1.45;
+  }
+
+  &__model {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    color: #c9ccd2;
+    font-size: 12px;
+
+    .q-icon {
+      color: #03bfff;
+    }
+  }
+
+  &__kinds {
+    margin-top: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  &__reference {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 6px 6px 10px;
+    border: 1px solid rgba(3, 191, 255, 0.35);
+    border-radius: 10px;
+    background: rgba(3, 191, 255, 0.06);
+
+    > .min-w-0 {
+      flex: 1 1 auto;
+    }
   }
 
   &__ideas {

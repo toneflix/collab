@@ -54,10 +54,16 @@
           </q-card-section>
           <q-separator dark />
           <q-card-section class="text-sm text-grey-4">
-            Music uses {{ account.costs.music10s }} credits for every 10
-            seconds, so a 30 second loop uses
-            {{ musicCost(account, 30, false) }}. Splitting into stems uses
-            {{ account.costs.stems }}.
+            <template v-if="account.music.pricing === 'per10s'">
+              Music from {{ account.music.name }} uses
+              {{ account.music.credits }} credits for every 10 seconds, so a
+              30 second loop uses {{ musicCost(account, 30, false) }}.
+            </template>
+            <template v-else>
+              A song from {{ account.music.name }} uses
+              {{ account.music.credits }} credits.
+            </template>
+            Splitting into stems uses {{ account.costs.stems }}.
           </q-card-section>
         </q-card>
 
