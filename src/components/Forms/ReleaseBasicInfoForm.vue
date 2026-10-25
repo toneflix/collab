@@ -231,6 +231,22 @@
             v-model.number="form.stems_price"
           />
         </div>
+        <div class="col-span-2" v-if="showVersion">
+          <label class="block mb-2 text-xl text-gray-400"> Version </label>
+          <q-input
+            outlined
+            clearable
+            maxlength="60"
+            color="primary"
+            class="custom-q-class no-fill"
+            input-class="custom-input-class"
+            placeholder="e.g. Radio Edit, Acoustic or Deluxe"
+            hint="Optional. Tells this release apart from the project's other versions."
+            :error="!!errors.version"
+            :error-message="errors.version"
+            v-model="(form as Release).version"
+          />
+        </div>
         <div class="col-span-2">
           <label class="block mb-2 text-xl text-gray-400"> Description </label>
           <q-input
@@ -291,6 +307,8 @@ const emit = defineEmits(['error', 'error-cleared']);
 const props = defineProps({
   hidePrivacyOptions: Boolean,
   showPlayer: Boolean,
+  /** Shows the version label field, for releases of a project. */
+  showVersion: Boolean,
   type: {
     type: String as PropType<'release' | 'track'>,
     default: 'release',

@@ -46,10 +46,10 @@
       </label>
       <q-input
         outlined
-        required
         color="primary"
         class="custom-q-class no-fill"
         input-class="custom-input-class"
+        hint="Optional"
         placeholder="e.g. USS9X0004321"
         :error="!!errors.isrc || !!errors['release.isrc']"
         :error-message="errors.isrc || errors['release.isrc']"
@@ -57,20 +57,26 @@
       />
     </div>
     <div class="col-span-2 md:col-span-1">
-      <label class="block mb-2 text-xl text-gray-400"> Publisher </label>
+      <label class="block mb-2 text-xl text-gray-400">
+        Publisher
+        <span class="text-center text-red-500">*</span>
+      </label>
       <q-input
         outlined
         required
         color="primary"
         class="custom-q-class no-fill"
         input-class="custom-input-class"
-        :error="!!errors.composer || !!errors['release.composer']"
-        :error-message="errors.composer || errors['release.composer']"
+        :error="!!errors.publisher || !!errors['release.publisher']"
+        :error-message="errors.publisher || errors['release.publisher']"
         v-model="form.publisher"
       />
     </div>
     <div class="col-span-2 md:col-span-1">
-      <label class="block mb-2 text-xl text-gray-400"> Composer </label>
+      <label class="block mb-2 text-xl text-gray-400">
+        Composer
+        <span class="text-center text-red-500">*</span>
+      </label>
       <q-input
         outlined
         required
@@ -86,7 +92,10 @@
       <q-separator />
     </div>
     <div class="col-span-2 md:col-span-1">
-      <label class="block mb-2 text-xl text-gray-400"> Record Label </label>
+      <label class="block mb-2 text-xl text-gray-400">
+        Record Label
+        <span class="text-center text-red-500">*</span>
+      </label>
       <q-input
         outlined
         required
@@ -148,10 +157,10 @@
       </label>
       <q-input
         outlined
-        required
         color="primary"
         class="custom-q-class no-fill"
         input-class="custom-input-class"
+        hint="Optional"
         :error="!!errors.iswc || !!errors['release.iswc']"
         :error-message="errors.iswc || errors['release.iswc']"
         placeholder="e.g. T-056.789.012-1"
@@ -161,6 +170,7 @@
     <div class="col-span-2 md:col-span-1">
       <label class="block mb-2 text-xl text-gray-400">
         P Line
+        <span class="text-center text-red-500">*</span>
         <HoverCard
           trigger="click"
           class="inline-flex items-center justify-center"

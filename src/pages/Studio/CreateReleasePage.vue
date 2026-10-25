@@ -23,17 +23,8 @@
       >
         <q-tab name="basic" label="Basic Info" />
         <q-tab name="meta" label="Meta Data" />
-        <q-tab name="tracks" label="Tracks" :disable="!form.title" />
-        <q-tab
-          name="publish"
-          label="Publish"
-          v-if="
-            !!form.title &&
-            !!form.artist_id &&
-            tracks.length >= 1 &&
-            !!form.draft
-          "
-        />
+        <q-tab name="tracks" label="Tracks" />
+        <q-tab name="publish" label="Publish" />
       </q-tabs>
 
       <q-separator />
@@ -44,7 +35,7 @@
         v-if="uploading.loaded && uploading.loaded <= 1"
       />
 
-      <q-form @submit="save">
+      <q-form @submit.prevent="next">
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel name="basic">
             <ReleaseBasicInfoForm
@@ -55,18 +46,7 @@
                 username: form.artist?.username,
                 imageUrl: form.imageUrl,
               }"
-            />
-            <q-input
-              outlined
-              clearable
-              class="mt-4"
-              label="Version (optional)"
-              hint="Tells this release apart from the project's other versions, like Radio Edit or Deluxe."
-              maxlength="60"
-              :error="!!errors.version"
-              :error-message="errors.version?.[0]"
-              v-model="form.version"
-              v-if="form.project_id"
+              :show-version="!!form.project_id"
             />
           </q-tab-panel>
           <q-tab-panel name="meta">
@@ -227,25 +207,37 @@
           <q-tab-panel name="publish">
             <q-banner
               rounded
+              class="p-2 m-3 text-orange-900 border border-orange-800 border-solid bg-orange-50 rounded-xl"
+              v-if="missing.length"
+            >
+              <div class="mb-1 text-lg font-semibold">
+                This release can't be published yet
+              </div>
+              <div class="mb-2">
+                Add the following, or save it as a draft and finish later:
+              </div>
+              <ul class="ml-5 list-disc">
+                <li :key="item.label" v-for="item in missing">
+                  <a class="underline cursor-pointer" @click="goTo(item.tab)">
+                    {{ item.label }}
+                  </a>
+                </li>
+              </ul>
+            </q-banner>
+            <q-banner
+              rounded
               class="p-2 m-3 text-center text-green-800 border border-green-800 border-solid bg-green-50 rounded-xl"
+              v-else-if="form.draft"
             >
               <span class="text-lg">
                 Once your release is published, it will become available to
                 everyone, by publishing this release you acknowledge that you
                 have read and accepted our
-                <router-link
-                  :to="{
-                    name: 'home',
-                  }"
-                >
+                <router-link :to="{ name: 'home' }">
                   <span class="text-info">Terms of Service</span>
                 </router-link>
                 and our
-                <router-link
-                  :to="{
-                    name: 'home',
-                  }"
-                >
+                <router-link :to="{ name: 'home' }">
                   <span class="text-info">Privacy Policy.</span>
                 </router-link>
               </span>
@@ -271,24 +263,43 @@
                     v-for="release in otherVersions"
                   />
                 </div>
-                <div class="flex justify-center w-full">
-                  <q-btn
-                    label="Publish Now"
-                    class="font-semibold !flex-none rounded-xl"
-                    icon="fas fa-check-circle"
-                    :loading="saving"
-                    @click="
-                      () => {
-                        form.draft = 0;
-                        form.publish = 1;
-                        form.retire = retire;
-                        save();
-                      }
-                    "
-                  />
-                </div>
               </template>
             </q-banner>
+            <div class="m-3 text-center text-lg" v-else>
+              This release is published. Saving updates it for everyone.
+            </div>
+
+            <div class="flex justify-center gap-2 mt-4">
+              <q-btn
+                no-caps
+                outline
+                color="primary"
+                class="text-xl rounded-lg !flex-none"
+                label="Save Draft"
+                :loading="saving && !form.publish"
+                @click="saveDraft"
+                v-if="form.draft && !missing.length"
+              />
+              <q-btn
+                no-caps
+                color="primary"
+                class="text-xl rounded-lg !flex-none"
+                :label="form.draft ? 'Save Draft' : 'Save Changes'"
+                :loading="saving"
+                @click="form.draft ? saveDraft() : saveRelease(false)"
+                v-if="missing.length || !form.draft"
+              />
+              <q-btn
+                no-caps
+                color="primary"
+                class="text-xl rounded-lg !flex-none"
+                icon="fas fa-check-circle"
+                label="Publish Now"
+                :loading="saving && !!form.publish"
+                @click="saveRelease(true)"
+                v-else
+              />
+            </div>
           </q-tab-panel>
         </q-tab-panels>
 
@@ -299,18 +310,18 @@
           <q-btn
             no-caps
             outline
-            type="submit"
             color="primary"
             class="mb-5 text-xl rounded-lg md:!mb-0"
-            label="Cancel"
+            label="Back"
+            @click="back"
+            v-if="tab !== 'basic'"
           />
           <q-btn
             no-caps
-            type="submit"
             color="primary"
             class="mb-5 text-xl rounded-lg md:!mb-0"
-            label="Save"
-            :loading="saving"
+            label="Next"
+            @click="next"
           />
         </div>
       </q-form>
@@ -345,7 +356,7 @@ import {
   loadReleaseRequest,
   saveTrackRequest,
 } from 'src/utils/requests/requests';
-import { trackErrorStep } from 'src/utils/navigations';
+import { releaseErrorStep, trackErrorStep } from 'src/utils/navigations';
 import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
@@ -454,7 +465,7 @@ const {
   initialForm: {
     ...curr.release,
     slug: curr.release.slug || '',
-    draft: curr.release.draft ? 1 : 0,
+    draft: curr.release.id && !curr.release.draft ? 0 : 1,
     pline: curr.release.pline || '',
     privacy: curr.release.privacy || 'public',
     explicit: curr.release.explicit ? 1 : 0,
@@ -493,7 +504,53 @@ const versionLabel = (release: Release) =>
     .filter(Boolean)
     .join(' · ');
 
+const steps = ['basic', 'meta', 'tracks', 'publish'] as const;
+
+const goTo = (step: (typeof steps)[number]) => {
+  tab.value = step;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const next = () => goTo(steps[Math.min(steps.indexOf(tab.value) + 1, steps.length - 1)]);
+
+const back = () => goTo(steps[Math.max(steps.indexOf(tab.value) - 1, 0)]);
+
+// What publishing needs, with the step where each is filled in.
+const missing = computed(() =>
+  [
+    { label: 'Release title', tab: 'basic', ok: !!form.value.title },
+    { label: 'Genre', tab: 'basic', ok: !!form.value.genre_id },
+    { label: 'Artist', tab: 'basic', ok: !!form.value.artist_id },
+    { label: 'Publisher', tab: 'meta', ok: !!form.value.publisher },
+    { label: 'Composer', tab: 'meta', ok: !!form.value.composer },
+    { label: 'Record label', tab: 'meta', ok: !!form.value.record_label },
+    { label: 'P line', tab: 'meta', ok: !!form.value.pline },
+    { label: 'At least one track', tab: 'tracks', ok: tracks.value.length > 0 },
+  ].filter((item) => !item.ok) as { label: string; tab: typeof tab.value }[],
+);
+
+// The draft state to go back to when a save fails.
+const previousDraft = ref(form.value.draft);
+
+const saveDraft = () => {
+  previousDraft.value = form.value.draft;
+  form.value.draft = 1;
+  form.value.publish = 0;
+  save();
+};
+
+const saveRelease = (publish: boolean) => {
+  previousDraft.value = form.value.draft;
+  form.value.draft = 0;
+  form.value.publish = publish ? 1 : 0;
+  form.value.retire = publish ? retire.value : [];
+  save();
+};
+
 onError(({ error }) => {
+  tab.value = releaseErrorStep(error.errors ?? {});
+  form.value.draft = previousDraft.value;
+
   Object.keys(error.errors).map((e) => {
     const i = e.split('tracks.')?.[1];
     if (i) {
@@ -508,7 +565,6 @@ onSuccess(({ data }) => {
   form.value.publish = 0;
   form.value.retire = [];
   retire.value = [];
-  tab.value = 'basic';
   notify(data.message, data.status);
   if (!route.params.release_id) {
     router.replace({ params: { release_id: data.data.id } });

@@ -179,6 +179,20 @@ export const trackErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks'
   return map[key] || 'basic';
 }
 
+/**
+ * The release form step that holds a field the API rejected.
+ */
+export const releaseErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks' | 'publish' => {
+  const meta = ['isrc', 'iswc', 'pline', 'composer', 'publisher', 'record_label', 'release_date', 'contains_music', 'explicit', 'price'];
+  const keys = Object.keys(errors);
+
+  if (keys.some((key) => key.startsWith('tracks'))) return 'tracks';
+  if (keys.some((key) => meta.includes(key))) return 'meta';
+  if (keys.some((key) => key === 'retire' || key.startsWith('retire.'))) return 'publish';
+
+  return 'basic';
+};
+
 export const categoryChecker = (categories: Categories) => {
   return Object.entries(categories)
     .flatMap((e) => e[1])
