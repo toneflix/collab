@@ -4,9 +4,9 @@
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">AI tools</h1>
         <p class="text-grey-5">
-          Music generation with the model you pick below, stem splitting with
-          Demucs and lyrics with Whisper, all run on Replicate. Plans choose who gets the tools and how many
-          credits come each month. Everyone with the tools can buy more credits.
+          Music generation, stem splitting and lyrics run on Replicate by default. Suno is an
+          optional second engine for music and stems. Plans choose who gets the tools and how
+          many credits come each month. Everyone with the tools can buy more credits.
         </p>
       </div>
 
@@ -29,12 +29,45 @@
         </div>
 
         <div class="section">
-          <div class="mb-1 font-bold">Replicate</div>
+          <div class="mb-1 font-bold">Engines</div>
           <p class="mb-3 text-sm text-grey-5">
-            Create a token at replicate.com/account/api-tokens and put it in the
-            API's .env.
+            Keys go in the API's .env. Replicate runs every tool unless you switch music or stems
+            to Suno below.
           </p>
-          <EnvKeys :keys="settings.keys.replicate" />
+          <div class="engines">
+            <div class="engine">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold !flex-none">Replicate</span>
+                <q-badge
+                  rounded
+                  class="!flex-none"
+                  :color="settings.client.engines.replicate ? 'green-9' : 'grey-8'"
+                  :label="settings.client.engines.replicate ? 'Ready' : 'No key'"
+                />
+              </div>
+              <p class="mb-2 text-xs text-grey-5">
+                Music models, Demucs stems, Whisper lyrics and the AI moderator. Create a token at
+                replicate.com/account/api-tokens.
+              </p>
+              <EnvKeys :keys="settings.keys.replicate" />
+            </div>
+            <div class="engine">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold !flex-none">Suno</span>
+                <q-badge
+                  rounded
+                  class="!flex-none"
+                  :color="settings.client.engines.suno ? 'green-9' : 'grey-8'"
+                  :label="settings.client.engines.suno ? 'Ready' : 'No key'"
+                />
+              </div>
+              <p class="mb-2 text-xs text-grey-5">
+                Songs and stems through sunoapi.org, a reseller, not Suno itself. Its terms don't
+                say who owns what it makes. Get a key at sunoapi.org/api-key.
+              </p>
+              <EnvKeys :keys="settings.keys.suno" />
+            </div>
+          </div>
         </div>
 
         <div class="section">
@@ -63,6 +96,13 @@
                 <div class="flex items-baseline gap-2">
                   <span class="font-bold !flex-none">{{ model.name }}</span>
                   <code class="text-xs text-grey-6 !flex-none">{{ model.id }}</code>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    class="!flex-none"
+                    label="Needs its key"
+                    v-if="!settings.client.engines[model.engine]"
+                  />
                 </div>
                 <div class="text-sm text-grey-5">{{ model.description }}</div>
                 <div class="model__tags">
@@ -88,6 +128,101 @@
                   :hint="fields[model.creditsSetting]?.hint"
                   v-model.number="form.credits[model.creditsSetting]"
                 />
+                <div class="model__extra" v-if="model.engine === 'suno'">
+                  <q-select
+                    dark
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    class="model__credits"
+                    :label="fields.ai_suno_model?.title"
+                    :hint="fields.ai_suno_model?.hint"
+                    :options="sunoVersions"
+                    v-model="form.ai_suno_model"
+                  />
+                  <q-toggle
+                    dark
+                    color="toneflix"
+                    :label="fields.ai_suno_keep_both?.title"
+                    v-model="form.ai_suno_keep_both"
+                  />
+                  <div class="text-xs text-grey-5">{{ fields.ai_suno_keep_both?.hint }}</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mb-1 font-bold">Stem splitting</div>
+          <p class="mb-3 text-sm text-grey-5">
+            {{ fields.ai_stems_engine?.hint }} Jobs already started keep the engine and price they
+            started with.
+          </p>
+          <div class="models">
+            <label class="model" :class="{ 'model--on': form.ai_stems_engine === 'replicate' }">
+              <q-radio dense dark color="toneflix" class="!flex-none" val="replicate" v-model="form.ai_stems_engine" />
+              <div class="min-w-0 model__body">
+                <div class="font-bold">Demucs on Replicate</div>
+                <div class="text-sm text-grey-5">
+                  Vocals, drums, bass and other, as lossless parts that add up to the song exactly.
+                </div>
+                <q-input
+                  dark
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  class="mt-3 model__credits"
+                  label="Credits per split"
+                  :hint="fields.ai_stems_credits?.hint"
+                  v-model.number="form.ai_stems_credits"
+                />
+              </div>
+            </label>
+            <label class="model" :class="{ 'model--on': form.ai_stems_engine === 'suno' }">
+              <q-radio dense dark color="toneflix" class="!flex-none" val="suno" v-model="form.ai_stems_engine" />
+              <div class="min-w-0 model__body">
+                <div class="flex items-baseline gap-2">
+                  <span class="font-bold !flex-none">Suno</span>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    class="!flex-none"
+                    label="Needs its key"
+                    v-if="!settings.client.engines.suno"
+                  />
+                </div>
+                <div class="text-sm text-grey-5">
+                  Up to 12 parts, like backing vocals, guitar and synth. Songs Suno made are split
+                  without uploading them again.
+                </div>
+                <div class="model__extra">
+                  <q-select
+                    dark
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    class="model__credits"
+                    :label="fields.ai_stems_suno_type?.title"
+                    :hint="fields.ai_stems_suno_type?.hint"
+                    :options="sunoStemTypes"
+                    v-model="form.ai_stems_suno_type"
+                  />
+                  <q-input
+                    dark
+                    outlined
+                    dense
+                    type="number"
+                    min="1"
+                    class="model__credits"
+                    label="Credits per split"
+                    :hint="fields.ai_stems_suno_credits?.hint"
+                    v-model.number="form.ai_stems_suno_credits"
+                  />
+                </div>
               </div>
             </label>
           </div>
@@ -96,9 +231,9 @@
         <div class="section">
           <div class="mb-1 font-bold">Credits</div>
           <p class="mb-3 text-sm text-grey-5">
-            A split costs us about $0.03 and a 30 second ElevenLabs track about
-            $0.08. The defaults sell a credit for about four times what it
-            costs us.
+            A Demucs split costs us about $0.03, a 30 second ElevenLabs track about $0.08 and a
+            Suno song about $0.06. The defaults sell a credit for about four times what it costs
+            us.
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <q-input
@@ -118,15 +253,6 @@
               :label="fields.ai_credit_packs?.title"
               :hint="fields.ai_credit_packs?.hint"
               v-model="form.ai_credit_packs"
-            />
-            <q-input
-              dark
-              outlined
-              type="number"
-              min="1"
-              :label="fields.ai_stems_credits?.title"
-              :hint="fields.ai_stems_credits?.hint"
-              v-model.number="form.ai_stems_credits"
             />
             <q-input
               dark
@@ -297,7 +423,12 @@ const form = reactive({
   ai_credit_packs: '',
   ai_music_model: '',
   credits: {} as Record<string, number | string>,
+  ai_suno_model: 'V5_5',
+  ai_suno_keep_both: false,
+  ai_stems_engine: 'replicate',
   ai_stems_credits: 5 as number | string,
+  ai_stems_suno_type: 'split_stem',
+  ai_stems_suno_credits: 50 as number | string,
   ai_music_max_seconds: 300 as number | string,
   ai_lyrics_auto: true,
   ai_lyrics_credits: 2 as number | string,
@@ -315,6 +446,11 @@ let savedForm = '';
 const fields = computed(() => settings.value?.fields ?? {});
 const changed = computed(() => JSON.stringify(form) !== savedForm);
 
+const toOptions = (map?: Record<string, string>) =>
+  Object.entries(map ?? {}).map(([value, label]) => ({ value, label }));
+const sunoVersions = computed(() => toOptions(settings.value?.options.sunoVersions));
+const sunoStemTypes = computed(() => toOptions(settings.value?.options.sunoStemTypes));
+
 const fill = (data: AiAdminSettings) => {
   settings.value = data;
   const f = data.fields;
@@ -325,7 +461,12 @@ const fill = (data: AiAdminSettings) => {
   form.credits = Object.fromEntries(
     data.models.map((m) => [m.creditsSetting, Number(f[m.creditsSetting]?.value ?? m.credits)]),
   );
+  form.ai_suno_model = f.ai_suno_model?.value ?? 'V5_5';
+  form.ai_suno_keep_both = f.ai_suno_keep_both?.value === '1';
+  form.ai_stems_engine = f.ai_stems_engine?.value ?? 'replicate';
   form.ai_stems_credits = Number(f.ai_stems_credits?.value ?? 5);
+  form.ai_stems_suno_type = f.ai_stems_suno_type?.value ?? 'split_stem';
+  form.ai_stems_suno_credits = Number(f.ai_stems_suno_credits?.value ?? 50);
   form.ai_music_max_seconds = Number(f.ai_music_max_seconds?.value ?? 300);
   form.ai_lyrics_auto = f.ai_lyrics_auto?.value === '1';
   form.ai_lyrics_credits = Number(f.ai_lyrics_credits?.value ?? 2);
@@ -446,6 +587,30 @@ useMeta(() => ({
   &__credits {
     max-width: 320px;
   }
+
+  &__extra {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+}
+
+.engines {
+  display: grid;
+  gap: 12px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.engine {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .section {
