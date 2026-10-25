@@ -120,6 +120,12 @@
                   },
                 },
                 {
+                  show: project.isOwner && !projectReleaseBlocker(project),
+                  label: projectReleaseLabel(project),
+                  icon: 'fas fa-compact-disc',
+                  to: projectReleaseLink(project),
+                },
+                {
                   show: project.isOwner,
                   label: 'Delete Project',
                   icon: 'fas fa-trash',
@@ -153,6 +159,11 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { intStr } from 'src/utils/helpers';
 import { PageMeta, Project } from 'src/utils/models';
 import { loadProjectsRequest } from 'src/utils/requests/requests';
+import {
+  projectReleaseBlocker,
+  projectReleaseLabel,
+  projectReleaseLink,
+} from 'src/utils/navigations';
 import { ref } from 'vue';
 
 defineOptions({

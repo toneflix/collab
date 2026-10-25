@@ -56,6 +56,18 @@
                 imageUrl: form.imageUrl,
               }"
             />
+            <q-input
+              outlined
+              clearable
+              class="mt-4"
+              label="Version (optional)"
+              hint="Tells this release apart from the project's other versions, like Radio Edit or Deluxe."
+              maxlength="60"
+              :error="!!errors.version"
+              :error-message="errors.version?.[0]"
+              v-model="form.version"
+              v-if="form.project_id"
+            />
           </q-tab-panel>
           <q-tab-panel name="meta">
             <ReleaseMetaDataForm v-model:form="form" :errors="errors" />
@@ -239,6 +251,26 @@
               </span>
 
               <template v-slot:action>
+                <div class="w-full mb-3 text-left" v-if="otherVersions.length">
+                  <div class="mb-1 font-semibold">
+                    Retire earlier versions when this one is published
+                  </div>
+                  <div class="mb-2 text-sm">
+                    Retired releases are no longer listed or sold. People who
+                    bought them keep them, and you can bring them back from
+                    your releases.
+                  </div>
+                  <q-checkbox
+                    dense
+                    color="green-9"
+                    class="w-full py-1"
+                    :key="release.id"
+                    :val="release.id"
+                    :label="versionLabel(release)"
+                    v-model="retire"
+                    v-for="release in otherVersions"
+                  />
+                </div>
                 <div class="flex justify-center w-full">
                   <q-btn
                     label="Publish Now"
@@ -249,6 +281,7 @@
                       () => {
                         form.draft = 0;
                         form.publish = 1;
+                        form.retire = retire;
                         save();
                       }
                     "
@@ -304,9 +337,10 @@ import {
 } from 'src/utils/models';
 import { computed, ref, watch } from 'vue';
 import { useGenres } from 'src/composables/useGenres';
-import { useForm } from 'alova/client';
+import { useForm, useWatcher } from 'alova/client';
 import {
   createReleaseRequest,
+  loadCreatorReleasesRequest,
   loadProjectRequest,
   loadReleaseRequest,
   saveTrackRequest,
@@ -317,6 +351,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
 import { allowedAudioExts } from 'src/utils/presets';
 import { getAudioDuration } from 'src/utils/requests/content';
+import { date } from 'quasar';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -325,7 +360,7 @@ defineOptions({
     let release = {} as Release;
     let project = {} as Project;
     const id = currentRoute.params.release_id as string;
-    const pid = currentRoute.params.project_id as string;
+    const pid = currentRoute.query.project_id as string;
 
     // Load Release
     if (id) {
@@ -354,7 +389,7 @@ defineOptions({
       release.description = project.description;
       release.project_id = project.id;
 
-      if (project.tracks) {
+      if (project.tracks?.length) {
         release.artist = project.tracks[0].artist;
         release.artist_id = project.tracks[0].artist_id;
 
@@ -434,6 +469,30 @@ genresReady.then((list) => {
   trackForm.value.genre_id ||= list[0]?.id;
 });
 
+// The project's other published releases, which this one can retire.
+const { data: projectReleases } = useWatcher(
+  () => loadCreatorReleasesRequest({ project_id: form.value.project_id ?? '', limit: 50 }),
+  [() => form.value.project_id],
+  {
+    immediate: true,
+    initialData: { data: [] },
+    middleware: (_, next) => (form.value.project_id ? next() : undefined),
+  },
+);
+
+const otherVersions = computed(() =>
+  (projectReleases.value?.data ?? []).filter(
+    (release) => !release.draft && !release.retired && release.id !== form.value.id,
+  ),
+);
+
+const retire = ref<(string | number)[]>([]);
+
+const versionLabel = (release: Release) =>
+  [release.title, release.version, date.formatDate(release.releaseDate, 'MMM D, YYYY')]
+    .filter(Boolean)
+    .join(' · ');
+
 onError(({ error }) => {
   Object.keys(error.errors).map((e) => {
     const i = e.split('tracks.')?.[1];
@@ -444,8 +503,11 @@ onError(({ error }) => {
 });
 
 onSuccess(({ data }) => {
+  form.value.id = data.data.id;
   form.value.draft = data.data?.draft ? 1 : 0;
   form.value.publish = 0;
+  form.value.retire = [];
+  retire.value = [];
   tab.value = 'basic';
   notify(data.message, data.status);
   if (!route.params.release_id) {

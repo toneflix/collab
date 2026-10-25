@@ -19,7 +19,7 @@
               padding="xs sm"
               icon="fas fa-cloud-upload"
               color="primary"
-              :disable="released"
+              :disable="readonly"
             />
             <q-popup-edit title="Upload Asset" v-model="form" v-slot="scope">
               <q-form
@@ -126,7 +126,7 @@
                   size="xs"
                   icon="fas fa-edit"
                   color="white"
-                  :disable="released"
+                  :disable="readonly"
                 />
                 <q-popup-edit
                   title="Rename"
@@ -241,7 +241,7 @@ const props = defineProps({
     type: String,
     default: 'Assets',
   },
-  released: Boolean,
+  readonly: Boolean,
 });
 
 const toggle = ref(false);

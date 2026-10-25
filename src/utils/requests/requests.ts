@@ -176,6 +176,24 @@ export const loadReleaseRequest = (id: string | string[], params?: GenericData) 
 }
 
 /**
+ * Fetch the signed in creator's own releases, drafts and retired ones included
+ *
+ * @param params Optional parameters, like project_id to list one project's versions
+ */
+export const loadCreatorReleasesRequest = (params?: GenericData) => {
+  return alova.Get<ResponseBody<Release[]>>('creator/releases', {
+    params: { with: 'artist', ...params }
+  })
+}
+
+/**
+ * Retire a published release, or bring it back
+ */
+export const retireReleaseRequest = (id: string | number, retired: boolean) => {
+  return alova.Put<ResponseBody<Release>>(`creator/releases/${id}/retirement`, { retired })
+}
+
+/**
  * Create/Update a release
  *
  * @param f The form data object

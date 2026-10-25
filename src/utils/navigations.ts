@@ -1,5 +1,5 @@
 import { RouteLocationRaw } from 'vue-router';
-import { Categories, GenericData, NavigationLink, PriviPerm } from './models';
+import { Categories, GenericData, NavigationLink, PriviPerm, Project } from './models';
 
 export const mainNavigationLinks: NavigationLink[] = [
   {
@@ -186,3 +186,31 @@ export const categoryChecker = (categories: Categories) => {
       return !e.data || !e.data.list || e.data.list.length < 1;
     })
 }
+
+/**
+ * Where the owner releases a project, or continues its unpublished release.
+ */
+export const projectReleaseLink = (project: Project): RouteLocationRaw => ({
+  name: 'studio.release.create',
+  params: project.draftReleaseId ? { release_id: project.draftReleaseId } : {},
+  query: { project_id: project.id },
+});
+
+/**
+ * The label for the owner's release action on a project.
+ */
+export const projectReleaseLabel = (project: Project): string => {
+  if (project.draftReleaseId) return 'Continue Release';
+
+  return project.released ? 'Release New Version' : 'Release Project';
+};
+
+/**
+ * Why a project can't be released yet, or null when it can.
+ */
+export const projectReleaseBlocker = (project: Project): string | null => {
+  if (!project.tracksCount) return 'Add a track to this project before releasing it.';
+  if (!project.ready) return 'Add a stem with audio to a track before releasing it.';
+
+  return null;
+};
