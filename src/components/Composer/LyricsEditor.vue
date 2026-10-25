@@ -343,8 +343,12 @@ const replaceLine = (number: number, text: string) => {
 const showGhost = (number: number, options: string[]) => {
   if (!view || !options.length || number > view.state.doc.lines) return false;
   if (view.state.doc.lineAt(view.state.selection.main.head).number !== number) return false;
-  const below = view.state.doc.line(number).text.trim() !== '';
-  view.dispatch({ effects: setGhost.of({ line: number, options, index: 0, below }) });
+  const line = view.state.doc.line(number);
+  const below = line.text.trim() !== '';
+  view.dispatch({
+    effects: [setGhost.of({ line: number, options, index: 0, below }), EditorView.scrollIntoView(line.to, { y: 'nearest' })],
+  });
+  view.focus();
   return true;
 };
 
