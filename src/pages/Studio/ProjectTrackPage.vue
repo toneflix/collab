@@ -1,7 +1,7 @@
 <template>
   <q-page class="p-3 md:p-4">
     <!-- Track header and actions -->
-    <div class="flex items-center gap-3 mb-3 no-wrap">
+    <div class="flex items-center gap-2 mb-2 no-wrap">
       <q-btn
         flat
         round
@@ -11,34 +11,36 @@
         :icon="ionArrowBack"
         :to="{ name: 'studio.project', params: { project_id: project.id } }"
       />
-      <div class="min-w-0">
-        <div class="text-xl font-bold truncate">{{ track.title }}</div>
-        <div class="text-sm truncate text-grey-5">
-          {{ project.title }} • {{ stems.length }}
-          {{ stems.length === 1 ? 'stem' : 'stems' }}
+      <div class="studio-title">
+        <h1 class="studio-title__name" :title="track.title">{{ track.title }}</h1>
+        <div class="studio-title__meta">
+          <router-link
+            class="hover:underline"
+            :to="{ name: 'studio.project', params: { project_id: project.id } }"
+            >{{ project.title }}</router-link
+          >
+          • {{ stems.length }} {{ stems.length === 1 ? 'stem' : 'stems' }}
           <template v-if="project.released"> • Released</template>
           <template v-if="viewOnly"> • View only</template>
         </div>
-        <div class="flex items-center gap-2 mt-1">
-          <AudioTagChips
-            class="!flex-none"
-            :tags="track.tags"
-            :editable="!viewOnly"
-            :target="{ projectId: project.id, trackId: track.id }"
-            @update:tags="track.tags = $event"
-          />
-          <q-btn
-            flat
-            dense
-            no-caps
-            size="sm"
-            class="!flex-none text-grey-4"
-            :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
-            title="Set the studio tempo to the detected tempo"
-            @click="useTagTempo"
-            v-if="tagTempoDiffers"
-          />
-        </div>
+        <AudioTagChips
+          class="studio-title__tags"
+          :tags="track.tags"
+          :editable="!viewOnly"
+          :target="{ projectId: project.id, trackId: track.id }"
+          @update:tags="track.tags = $event"
+        />
+        <q-btn
+          flat
+          dense
+          no-caps
+          size="sm"
+          class="!flex-none text-grey-4 max-sm:!hidden"
+          :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
+          title="Set the studio tempo to the detected tempo"
+          @click="useTagTempo"
+          v-if="tagTempoDiffers"
+        />
       </div>
       <div
         class="flex items-center gap-2 ml-auto !flex-none no-wrap"
@@ -1175,6 +1177,55 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+/* Title, project, stem count and tags on one line; the title gives way first. */
+.studio-title {
+  display: flex;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+
+  &__name {
+    flex: 0 1 auto;
+    min-width: 4em;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: normal;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    flex: 0 1000 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: #9ea3ab;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__tags {
+    flex: none;
+    flex-wrap: nowrap;
+    align-self: center;
+  }
+
+  > * {
+    flex-grow: 0;
+  }
+
+  @media (max-width: 599px) {
+    &__meta {
+      display: none;
+    }
+  }
+}
+
 .empty-hint {
   padding: 10px 14px;
   color: #b8bcc4;
