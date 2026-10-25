@@ -583,7 +583,11 @@ export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => 
  * @param p The project object
  * @returns
  */
-export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
+/**
+ * Save a project track. With `render`, the server mixes the saved stems into
+ * a new preview.
+ */
+export const saveProjectTrackRequest = (f: ProjectTrack, p: Project, options: { render?: boolean } = {}) => {
 
   const request = axios.Post<ResponseBody<ProjectTrack>>(`creator/projects/${p.id}/tracks${f.id ? '/' + f.id : ''}`, {
     title: f.title,
@@ -591,6 +595,8 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
     bpm: f.bpm,
     time_signature: f.timeSignature,
     preview: typeof f.preview !== 'string' ? f.preview : undefined,
+    mix_volume: f.mixVolume,
+    render: options.render ? 1 : undefined,
     privacy: f.privacy,
     genre_id: f.genreId,
     artist_id: f.artistId,

@@ -366,10 +366,8 @@ import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';
 import {
-  encodeMp3,
   encodeWav,
   formatClock,
-  mixdown,
   Stem,
   StemMeta,
   stemClips,
@@ -394,6 +392,8 @@ const props = defineProps<{
   bpm?: number;
   /** The track's meter, like "4/4" */
   timeSignature?: string;
+  /** The saved master volume, 0 to 1 */
+  mixVolume?: number;
 }>();
 
 const emit = defineEmits<{
@@ -445,7 +445,7 @@ const canRedo = ref(false);
 const loop = ref(false);
 const selection = ref<{ start: number; end: number } | null>(null);
 const selectedTrackId = ref<string | null>(null);
-const masterVolume = ref(100);
+const masterVolume = ref(Math.round((props.mixVolume ?? 1) * 100));
 const dropping = ref(false);
 const fade = reactive({ in: 0, out: 0 });
 
@@ -1063,12 +1063,8 @@ const onRecordingComplete = async (e: Event) => {
     notify('That take was too short to keep.', 'info');
     return;
   }
-  let file: File;
-  try {
-    file = new File([await encodeMp3(audioBuffer)], `${name}.mp3`, { type: 'audio/mpeg' });
-  } catch {
-    file = new File([encodeWav(audioBuffer)], `${name}.wav`, { type: 'audio/wav' });
-  }
+  // Uploaded lossless; the server does any encoding.
+  const file = new File([encodeWav(audioBuffer)], `${name}.wav`, { type: 'audio/wav' });
   emit('recorded', {
     trackId,
     file,
@@ -1376,25 +1372,6 @@ const renameStem = (stemId: string | number, title: string) => {
   }
 };
 
-/** Mix every stem down to one audio file: MP3, or WAV if MP3 can't be made. */
-const render = async (): Promise<File> => {
-  const ed = editor.value;
-  if (!ed) throw new Error('The editor is not ready.');
-  const state = ed.engine?.getState();
-  if (!state) throw new Error('The editor is not ready.');
-  const { getEffectDefinitions } = await import('@dawcore/components');
-  const mix = await mixdown(state.tracks, masterVolume.value / 100, ed.sampleRate || 44100, {
-    effects: (trackId) => effects.get(trackId) ?? [],
-    definitions: getEffectDefinitions(),
-  });
-  try {
-    return new File([await encodeMp3(mix)], 'preview.mp3', { type: 'audio/mpeg' });
-  } catch (e) {
-    console.warn('[stem editor] MP3 encoding failed, using WAV', e);
-    return new File([encodeWav(mix)], 'preview.wav', { type: 'audio/wav' });
-  }
-};
-
 const onDrop = (e: DragEvent) => {
   dropping.value = false;
   if (props.readonly) return;
@@ -1504,6 +1481,7 @@ onMounted(async () => {
 
   const engine = await ed.ready();
   engine.on('statechange', onState);
+  engine.setMasterVolume(masterVolume.value / 100);
   applyTempo();
 
   silence = new StemPlaceholders(context);
@@ -1547,7 +1525,7 @@ defineExpose({
   applyRemote,
   snapshot,
   markSaved,
-  render,
+  mixVolume: () => masterVolume.value / 100,
   stop,
   highlight,
   currentTime,

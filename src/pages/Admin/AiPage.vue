@@ -4,8 +4,8 @@
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">AI tools</h1>
         <p class="text-grey-5">
-          Music generation with ElevenLabs Music, stem splitting with Demucs and
-          lyrics with Whisper, all run on Replicate. Plans choose who gets the tools and how many
+          Music generation with the model you pick below, stem splitting with
+          Demucs and lyrics with Whisper, all run on Replicate. Plans choose who gets the tools and how many
           credits come each month. Everyone with the tools can buy more credits.
         </p>
       </div>
@@ -38,11 +38,67 @@
         </div>
 
         <div class="section">
+          <div class="mb-1 font-bold">Music model</div>
+          <p class="mb-3 text-sm text-grey-5">
+            The studio generates music with this model. Each model has its own
+            price in credits. Jobs already started keep the model and price
+            they started with.
+          </p>
+          <div class="models">
+            <label
+              class="model"
+              :class="{ 'model--on': form.ai_music_model === model.id }"
+              :key="model.id"
+              v-for="model in settings.models"
+            >
+              <q-radio
+                dense
+                dark
+                color="toneflix"
+                class="!flex-none"
+                :val="model.id"
+                v-model="form.ai_music_model"
+              />
+              <div class="min-w-0 model__body">
+                <div class="flex items-baseline gap-2">
+                  <span class="font-bold !flex-none">{{ model.name }}</span>
+                  <code class="text-xs text-grey-6 !flex-none">{{ model.id }}</code>
+                </div>
+                <div class="text-sm text-grey-5">{{ model.description }}</div>
+                <div class="model__tags">
+                  <q-chip
+                    dense
+                    square
+                    dark
+                    color="grey-9"
+                    class="!flex-none"
+                    :key="tag"
+                    v-for="tag in modelTags(model)"
+                    >{{ tag }}</q-chip
+                  >
+                </div>
+                <q-input
+                  dark
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  class="model__credits"
+                  :label="model.pricing === 'per10s' ? 'Credits per 10 seconds' : 'Credits per song'"
+                  :hint="fields[model.creditsSetting]?.hint"
+                  v-model.number="form.credits[model.creditsSetting]"
+                />
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
           <div class="mb-1 font-bold">Credits</div>
           <p class="mb-3 text-sm text-grey-5">
-            Generating a 30 second track costs us about $0.08 and a split about
-            $0.01. The defaults sell a credit for about four times what it costs
-            us.
+            A split costs us about $0.03 and a 30 second ElevenLabs track about
+            $0.08. The defaults sell a credit for about four times what it
+            costs us.
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <q-input
@@ -62,15 +118,6 @@
               :label="fields.ai_credit_packs?.title"
               :hint="fields.ai_credit_packs?.hint"
               v-model="form.ai_credit_packs"
-            />
-            <q-input
-              dark
-              outlined
-              type="number"
-              min="1"
-              :label="fields.ai_music_credits?.title"
-              :hint="fields.ai_music_credits?.hint"
-              v-model.number="form.ai_music_credits"
             />
             <q-input
               dark
@@ -236,6 +283,7 @@ import {
   loadAiSettingsRequest,
   saveAiSettingsRequest,
   type AiAdminSettings,
+  type MusicModel,
 } from 'src/utils/requests/ai';
 
 const { price } = usePayments();
@@ -247,7 +295,8 @@ const form = reactive({
   ai_enabled: false,
   ai_credit_price: 0 as number | string,
   ai_credit_packs: '',
-  ai_music_credits: 5 as number | string,
+  ai_music_model: '',
+  credits: {} as Record<string, number | string>,
   ai_stems_credits: 5 as number | string,
   ai_music_max_seconds: 300 as number | string,
   ai_lyrics_auto: true,
@@ -272,7 +321,10 @@ const fill = (data: AiAdminSettings) => {
   form.ai_enabled = f.ai_enabled?.value === '1';
   form.ai_credit_price = Number(f.ai_credit_price?.value ?? 0);
   form.ai_credit_packs = f.ai_credit_packs?.value ?? '';
-  form.ai_music_credits = Number(f.ai_music_credits?.value ?? 5);
+  form.ai_music_model = f.ai_music_model?.value ?? data.client.music.id;
+  form.credits = Object.fromEntries(
+    data.models.map((m) => [m.creditsSetting, Number(f[m.creditsSetting]?.value ?? m.credits)]),
+  );
   form.ai_stems_credits = Number(f.ai_stems_credits?.value ?? 5);
   form.ai_music_max_seconds = Number(f.ai_music_max_seconds?.value ?? 300);
   form.ai_lyrics_auto = f.ai_lyrics_auto?.value === '1';
@@ -286,6 +338,16 @@ const fill = (data: AiAdminSettings) => {
   savedForm = JSON.stringify(form);
 };
 
+/** What a model can do, in a few words. */
+const modelTags = (model: MusicModel) =>
+  [
+    model.maxSeconds ? `Up to ${Math.round(model.maxSeconds / 6) / 10} min` : 'Model picks the length',
+    model.lyricsLength ? 'Sings your lyrics' : null,
+    model.instrumentalOnly ? 'Instrumental only' : null,
+    model.instrumentalOption ? 'Vocals or instrumental' : null,
+    model.references.length ? 'Reference audio' : null,
+  ].filter((tag): tag is string => !!tag);
+
 const errorText = (e: unknown, fallback: string) => {
   const err = e as ResponseBody;
   const first = err?.errors ? Object.values(err.errors)[0] : undefined;
@@ -295,7 +357,8 @@ const errorText = (e: unknown, fallback: string) => {
 const save = async () => {
   saving.value = true;
   try {
-    const body = await saveAiSettingsRequest({ ...form }).send();
+    const { credits, ...rest } = form;
+    const body = await saveAiSettingsRequest({ ...rest, ...credits }).send();
     fill(body.data);
     notify(body.message, 'success');
   } catch (e) {
@@ -339,6 +402,49 @@ useMeta(() => ({
 
   > .min-w-0 {
     flex: 1 1 auto;
+  }
+}
+
+.models {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.model {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+
+  &--on {
+    border-color: rgba(3, 191, 255, 0.55);
+    background: rgba(3, 191, 255, 0.06);
+  }
+
+  &__body {
+    flex: 1 1 auto;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 6px 0 10px;
+
+    .q-chip {
+      margin: 0;
+      font-size: 11px;
+    }
+  }
+
+  &__credits {
+    max-width: 320px;
   }
 }
 

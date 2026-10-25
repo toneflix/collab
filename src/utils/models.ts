@@ -568,6 +568,8 @@ export type Project = {
   collaboratorsCount: number;
 };
 
+export type MixState = { status: 'rendering' | 'ready' | 'failed'; error?: string };
+
 export interface ProjectTrack {
   id: string | number;
   src: string | File;
@@ -593,6 +595,10 @@ export interface ProjectTrack {
   timeSignature?: string;
   /** Tempo and key detected in the preview mix, or set by a collaborator */
   tags?: AudioTags;
+  /** The studio's master volume, 0 to 1 */
+  mixVolume?: number;
+  /** Where the server is with the newest preview mix */
+  mix?: MixState | null;
   interaction?: Interaction;
   updatedAt: string;
   createdAt: string;

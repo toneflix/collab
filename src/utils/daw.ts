@@ -1,6 +1,5 @@
-import type { ClipConfig, EffectDefinition, TrackConfig } from '@dawcore/components';
+import type { ClipConfig, TrackConfig } from '@dawcore/components';
 import type { ClipTrack, FadeType } from '@waveform-playlist/core';
-import { connectEffects, type StemEffect } from './studio/effects';
 
 export type { FadeType };
 
@@ -178,77 +177,6 @@ export const trackToMeta = (stem: Stem, track: ClipTrack): StemMeta => {
 };
 
 /**
- * Mix tracks down to one stereo AudioBuffer, the way they sound in the
- * editor: volume, pan, mute, solo, clip gain and fades.
- */
-export const mixdown = async (
-  tracks: ClipTrack[],
-  masterVolume = 1,
-  sampleRate = 44100,
-  fx?: { effects: (trackId: string) => StemEffect[]; definitions: Map<string, EffectDefinition> },
-): Promise<AudioBuffer> => {
-  const anySolo = tracks.some((t) => t.soloed);
-  const audible = tracks.filter((t) => (anySolo ? t.soloed : !t.muted));
-
-  const length = Math.max(
-    0,
-    ...tracks.flatMap((t) => t.clips.map((c) => (c.startSample + c.durationSamples) / c.sampleRate)),
-  );
-  if (length <= 0) throw new Error('There is nothing to mix.');
-
-  const ctx = new OfflineAudioContext(2, Math.ceil(length * sampleRate), sampleRate);
-  const master = ctx.createGain();
-  master.gain.value = masterVolume;
-  master.connect(ctx.destination);
-
-  for (const track of audible) {
-    const volume = ctx.createGain();
-    volume.gain.value = track.volume;
-    const pan = ctx.createStereoPanner();
-    pan.pan.value = track.pan;
-    volume.connect(pan).connect(master);
-    // The stem's effects sit before its volume and pan, as in the editor.
-    const input = fx ? connectEffects(ctx, fx.effects(track.id), volume, fx.definitions) : volume;
-
-    for (const clip of track.clips) {
-      if (!clip.audioBuffer || clip.durationSamples <= 0) continue;
-
-      const start = clip.startSample / clip.sampleRate;
-      const offset = clip.offsetSamples / clip.sampleRate;
-      const duration = clip.durationSamples / clip.sampleRate;
-      const gain = clip.gain ?? 1;
-
-      const source = ctx.createBufferSource();
-      source.buffer = clip.audioBuffer;
-      const env = ctx.createGain();
-      env.gain.value = gain;
-
-      // Linear fades, scaled down if they overlap, as in the editor.
-      let fadeIn = clip.fadeIn?.duration ?? 0;
-      let fadeOut = clip.fadeOut?.duration ?? 0;
-      if (fadeIn + fadeOut > duration) {
-        const ratio = duration / (fadeIn + fadeOut);
-        fadeIn *= ratio;
-        fadeOut *= ratio;
-      }
-      if (fadeIn > 0) {
-        env.gain.setValueAtTime(0, start);
-        env.gain.linearRampToValueAtTime(gain, start + fadeIn);
-      }
-      if (fadeOut > 0) {
-        env.gain.setValueAtTime(gain, start + duration - fadeOut);
-        env.gain.linearRampToValueAtTime(0, start + duration);
-      }
-
-      source.connect(env).connect(input);
-      source.start(start, offset, duration);
-    }
-  }
-
-  return ctx.startRendering();
-};
-
-/**
  * Encode an AudioBuffer as a 16-bit PCM WAV file.
  */
 export const encodeWav = (buffer: AudioBuffer): Blob => {
@@ -287,30 +215,6 @@ export const encodeWav = (buffer: AudioBuffer): Blob => {
   }
 
   return new Blob([view], { type: 'audio/wav' });
-};
-
-/**
- * Encode an AudioBuffer as MP3, so a full-length preview stays small enough
- * to upload. The encoder loads only when it's first needed.
- */
-export const encodeMp3 = async (buffer: AudioBuffer): Promise<Blob> => {
-  const { Output, Mp3OutputFormat, BufferTarget, AudioBufferSource, Quality, canEncodeAudio } =
-    await import('mediabunny');
-
-  if (!(await canEncodeAudio('mp3'))) {
-    const { registerMp3Encoder } = await import('@mediabunny/mp3-encoder');
-    registerMp3Encoder();
-  }
-
-  const output = new Output({ format: new Mp3OutputFormat(), target: new BufferTarget() });
-  // 128 kbps keeps a 3-minute preview around 3 MB.
-  const source = new AudioBufferSource({ codec: 'mp3', quality: new Quality(128_000) });
-  output.addAudioTrack(source);
-  await output.start();
-  await source.add(buffer);
-  await output.finalize();
-
-  return new Blob([output.target.buffer!], { type: 'audio/mpeg' });
 };
 
 /** Format seconds as m:ss.t for the editor clock. */
