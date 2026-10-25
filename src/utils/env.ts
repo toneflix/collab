@@ -1,5 +1,6 @@
 /**
  * The app's settings from .env. Only variables that start with VITE_ reach the app.
+ * Each one is read as import.meta.env.KEY so the SSR webserver build can inline it too.
  *
  * The API's address comes from VITE_API_ENVIRONMENT:
  *   development -> VITE_DEV_API_BASE_URL
@@ -10,8 +11,6 @@
  */
 export type AppEnvironment = 'development' | 'staging' | 'production';
 
-const vars = import.meta.env;
-
 const trimSlash = (url?: string) => (url || '').trim().replace(/\/+$/, '');
 
 const pick = (value: string | undefined, fallback: AppEnvironment): AppEnvironment =>
@@ -20,23 +19,23 @@ const pick = (value: string | undefined, fallback: AppEnvironment): AppEnvironme
 /**
  * Where the app runs. Defaults to production in a production build.
  */
-export const appEnvironment = pick(vars.VITE_APP_ENVIRONMENT, vars.PROD ? 'production' : 'development');
+export const appEnvironment = pick(import.meta.env.VITE_APP_ENVIRONMENT, import.meta.env.PROD ? 'production' : 'development');
 
 /**
  * Which API the app talks to. Defaults to the app's own environment.
  */
-export const apiEnvironment = pick(vars.VITE_API_ENVIRONMENT, appEnvironment);
+export const apiEnvironment = pick(import.meta.env.VITE_API_ENVIRONMENT, appEnvironment);
 
 const baseUrls: Record<AppEnvironment, string | undefined> = {
-  development: vars.VITE_DEV_API_BASE_URL,
-  staging: vars.VITE_STAGING_API_BASE_URL,
-  production: vars.VITE_PROD_API_BASE_URL,
+  development: import.meta.env.VITE_DEV_API_BASE_URL,
+  staging: import.meta.env.VITE_STAGING_API_BASE_URL,
+  production: import.meta.env.VITE_PROD_API_BASE_URL,
 };
 
 /**
  * The API's root URL, without a trailing slash or /api.
  */
-export const baseUrl = trimSlash(baseUrls[apiEnvironment] || vars.VITE_API_BASE_URL);
+export const baseUrl = trimSlash(baseUrls[apiEnvironment] || import.meta.env.VITE_API_BASE_URL);
 
 /**
  * Where API requests go.
@@ -46,8 +45,8 @@ export const apiUrl = `${baseUrl}/api/`;
 /**
  * The public address of this app, without a trailing slash.
  */
-export const frontUrl = trimSlash(vars.VITE_FRONT_URL) || (typeof window !== 'undefined' ? window.location.origin : '');
+export const frontUrl = trimSlash(import.meta.env.VITE_FRONT_URL) || (typeof window !== 'undefined' ? window.location.origin : '');
 
-export const debug = ['true', '1', 'yes'].includes(String(vars.VITE_DEBUG || '').toLowerCase());
+export const debug = ['true', '1', 'yes'].includes(String(import.meta.env.VITE_DEBUG || '').toLowerCase());
 
-export const logLevel = vars.VITE_LOG_LEVEL || 'error';
+export const logLevel = import.meta.env.VITE_LOG_LEVEL || 'error';
