@@ -1,6 +1,6 @@
 <template>
   <q-page class="p-3 md:p-4">
-    <div class="flex items-center gap-3 mb-3 no-wrap">
+    <div class="flex items-center gap-x-3 gap-y-2 mb-3" :class="narrow ? 'flex-wrap' : 'no-wrap'">
       <q-btn
         flat
         round
@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 ml-auto !flex-none no-wrap" v-if="song">
+      <div class="flex items-center gap-2 no-wrap" :class="narrow ? 'song-actions--narrow' : 'ml-auto !flex-none'" v-if="song">
         <q-btn
           unelevated
           rounded
@@ -58,7 +58,7 @@
         <ActionButton
           :label="beatPlaying ? 'Pause beat' : 'Play beat'"
           :icon="beatPlaying ? ionPause : ionPlay"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="beatPlaying"
           @click="toggleBeat"
           v-if="song.beat"
@@ -66,32 +66,40 @@
         <ActionButton
           label="Rhyme colours"
           :icon="ionColorPalette"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="song.settings.rhymeColours"
           @click="toggleColours"
         />
         <ActionButton
           label="Write with AI"
           :icon="ionSparkles"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="panels.write"
           @click="panels.write = !panels.write"
         />
         <ActionButton
           :label="song.project ? 'Update the lyric sheet' : 'Make a project'"
           :icon="song.project ? ionSync : ionAlbums"
-          :expanded="expanded"
+          :expanded="showLabels"
           :loading="syncing"
           @click="song.project ? syncLyrics() : (projectDialog = true)"
         />
-        <ActionButton label="Lookup" :icon="ionSearch" :expanded="expanded" :active="panels.lookup" @click="toggleLookup" />
-        <ActionButton label="Notes" :icon="ionDocumentText" :expanded="expanded" :active="panels.notes" @click="panels.notes = !panels.notes" />
-        <ActionButton label="Versions" :icon="ionTime" :expanded="expanded" :active="panels.versions" @click="panels.versions = !panels.versions" />
+        <ActionButton label="Lookup" :icon="ionSearch" :expanded="showLabels" :active="panels.lookup" @click="toggleLookup" />
+        <ActionButton label="Notes" :icon="ionDocumentText" :expanded="showLabels" :active="panels.notes" @click="panels.notes = !panels.notes" />
+        <ActionButton label="Versions" :icon="ionTime" :expanded="showLabels" :active="panels.versions" @click="panels.versions = !panels.versions" />
+        <ActionButton
+          label="How it works"
+          :icon="ionInformationCircleOutline"
+          :expanded="showLabels"
+          :active="panels.help"
+          @click="panels.help = !panels.help"
+        />
         <q-btn
           flat
           round
           dense
           class="!flex-none expand-toggle"
+          v-if="!narrow"
           :class="{ 'expand-toggle--open': expanded }"
           :icon="ionChevronForward"
           :aria-label="expanded ? 'Hide labels' : 'Show labels'"
@@ -157,6 +165,7 @@
       />
       <LookupPanel dock="#composer-dock" v-model="panels.lookup" v-model:word="lookupWord" @insert="editor?.insertWord($event)" />
       <NotesPanel dock="#composer-dock" :song="song" v-model="panels.notes" @change="onNotesChange" />
+      <HelpPanel dock="#composer-dock" v-model="panels.help" @section="insertSection" />
       <VersionsPanel dock="#composer-dock" :song-id="song.id" :flush="flush" v-model="panels.versions" @restored="onRestored" />
       <q-dialog persistent v-model="leaving">
         <q-card dark class="!flex-none leave-card">
@@ -185,6 +194,7 @@ import {
   ionChevronForward,
   ionColorPalette,
   ionDocumentText,
+  ionInformationCircleOutline,
   ionPause,
   ionPlay,
   ionSaveOutline,
@@ -197,6 +207,7 @@ import {
 import { date, LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import HelpPanel from 'src/components/Composer/HelpPanel.vue';
 import LookupPanel from 'src/components/Composer/LookupPanel.vue';
 import LyricsEditor from 'src/components/Composer/LyricsEditor.vue';
 import NotesPanel from 'src/components/Composer/NotesPanel.vue';
@@ -237,7 +248,7 @@ const editor = ref<InstanceType<typeof LyricsEditor>>();
 const beat = ref<HTMLAudioElement | null>(null);
 const beatPlaying = ref(false);
 const sounds = new WordSounds();
-const panels = reactive({ write: false, lookup: false, notes: false, versions: false });
+const panels = reactive({ write: false, lookup: false, notes: false, versions: false, help: false });
 const lookupWord = ref('');
 
 const bodyEl = ref<HTMLElement>();
@@ -495,6 +506,11 @@ const onCursor = ({ line, number }: { line: string; number: number }) => {
   if (word) stripTimer = setTimeout(() => void loadStrip(word), 800);
 };
 
+/** Starts a section under the line the cursor is on, with a blank line before it when needed */
+const insertSection = (tag: string) => {
+  editor.value?.insertLines(`${cursorText.value.trim() ? '\n' : ''}${tag}\n`);
+};
+
 const onWordClick = (word: string) => {
   if (panels.lookup) lookupWord.value = word;
 };
@@ -630,6 +646,9 @@ const syncLyrics = async () => {
 /* ---------- Layout ---------- */
 
 const expanded = ref(false);
+/** Phones and small tablets: actions go on their own scrolling row, icons only */
+const narrow = computed(() => $q.screen.lt.md);
+const showLabels = computed(() => expanded.value && !narrow.value);
 const toggleExpanded = () => {
   expanded.value = !expanded.value;
   try {
@@ -725,6 +744,16 @@ onBeforeUnmount(() => {
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.song-actions--narrow {
+  flex: 0 0 100% !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  > * {
+    flex: none !important;
   }
 }
 
