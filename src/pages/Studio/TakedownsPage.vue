@@ -139,7 +139,7 @@ const load = async (page = 1) => {
   try {
     const response = await loadMyTakedownsRequest(page).send();
     takedowns.value = response.data;
-    meta.value = { page: response.meta?.current_page ?? 1, lastPage: response.meta?.last_page ?? 1 };
+    meta.value = { page: response.meta?.currentPage ?? 1, lastPage: response.meta?.lastPage ?? 1 };
   } catch (error) {
     notify((error as Error).message, 'error');
   } finally {

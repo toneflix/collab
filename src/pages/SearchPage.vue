@@ -209,7 +209,7 @@ const lastPage = ref(1);
 
 const trackLink = (track: Track) => ({
   name: 'artist.track',
-  params: { artist_id: track.artist?.username || track.artist_id, track_id: track.slug },
+  params: { artist_id: track.artist?.username || track.artistId, track_id: track.slug },
 });
 
 const escape = (value: string) =>
@@ -230,9 +230,9 @@ const loadTracks = async (to = 1) => {
     if (term !== JSON.stringify(params.value)) return;
     const list = res.data as SearchTrack[];
     tracks.value = to === 1 ? list : [...tracks.value, ...list];
-    const meta = (res as unknown as { meta?: { current_page?: number; last_page?: number } }).meta;
-    page.value = meta?.current_page ?? to;
-    lastPage.value = meta?.last_page ?? to;
+    const meta = (res as unknown as { meta?: { currentPage?: number; lastPage?: number } }).meta;
+    page.value = meta?.currentPage ?? to;
+    lastPage.value = meta?.lastPage ?? to;
   } catch {
     if (to === 1) tracks.value = [];
   } finally {

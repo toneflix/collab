@@ -543,7 +543,7 @@ export const deleteProjectTrackStemRequest = (id: string, p: Project, t: Project
 export const loadProjectTrackAssetsRequest = (t: ProjectTrack, params?: GenericData, guest = false) => {
   const url = guest ? 'projects' : 'creator/projects'
 
-  return alova.Get(`${url}/${t.project_id}/tracks/${t.id}/assets`, {
+  return alova.Get(`${url}/${t.projectId}/tracks/${t.id}/assets`, {
     transform: (e: ResponseBody<FileAsset[]>) => e.data,
     hitSource: 'create-project-track-asset',
     params
@@ -558,7 +558,7 @@ export const loadProjectTrackAssetsRequest = (t: ProjectTrack, params?: GenericD
  * @returns
  */
 export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => {
-  const request = axios.Post<ResponseBody<FileAsset>>(`creator/projects/${t.project_id}/tracks/${t.id}/assets`, {
+  const request = axios.Post<ResponseBody<FileAsset>>(`creator/projects/${t.projectId}/tracks/${t.id}/assets`, {
     title: f.title,
     meta: f.meta,
     description: f.description,
@@ -592,8 +592,8 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
     time_signature: f.timeSignature,
     preview: typeof f.preview !== 'string' ? f.preview : undefined,
     privacy: f.privacy,
-    genre_id: f.genre_id,
-    artist_id: f.artist_id,
+    genre_id: f.genreId,
+    artist_id: f.artistId,
     description: f.description,
     _method: f.id ? 'PUT' : 'POST',
   }, {
@@ -641,7 +641,7 @@ export const saveProjectCollaboratorRequest = (f: Collaber, p: Project, params?:
   const form = {
     role: f.role,
     custom: f.custom,
-    user_id: String(f.user_id),
+    user_id: String(f.userId),
     _method: f.id ? 'PUT' : 'POST',
   }
 

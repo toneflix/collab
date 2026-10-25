@@ -26,8 +26,8 @@ export type CollabRequest = {
   approved: boolean;
   rejected: boolean;
   seen: boolean;
-  custom_data: { action?: 'invitation' | 'request'; type?: string } | null;
-  created_at: string;
+  customData: { action?: 'invitation' | 'request'; type?: string } | null;
+  createdAt: string;
 }
 
 export type NotificationCategorySetting = {
@@ -60,7 +60,7 @@ export const loadNotificationsRequest = (params: { page?: number; limit?: number
     transform: (e: NotificationsBody) => ({
       list: [...(e.important?.data ?? []), ...e.data],
       unread: e.stats?.unread ?? 0,
-      lastPage: e.meta?.last_page ?? 1,
+      lastPage: e.meta?.lastPage ?? 1,
     }),
     cacheFor: 0,
   })

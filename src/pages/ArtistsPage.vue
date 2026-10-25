@@ -80,21 +80,21 @@ const categories = reactive({
   top: [
     {
       id: 'top-artists',
-      data: data.value.trending_artists,
+      data: data.value.trendingArtists,
       slug: 'top-artists',
       title: 'Top Artists',
       params: { filters: 'trending' },
     },
     {
       id: 'new-artists',
-      data: data.value.latest_artists,
+      data: data.value.latestArtists,
       slug: 'new-artists',
       title: 'New Artists',
       params: { filters: 'latest' },
     },
     {
       id: 'recommended-artists',
-      data: data.value.recommended_artists,
+      data: data.value.recommendedArtists,
       slug: 'recommended-artists',
       title: 'Recommended Artists',
       params: { filters: 'recommends' },
@@ -103,7 +103,7 @@ const categories = reactive({
   next: [
     {
       id: 'all',
-      data: data.value.random_artists,
+      data: data.value.randomArtists,
       slug: 'all',
       title: 'All Artists',
       params: { filters: 'random' },

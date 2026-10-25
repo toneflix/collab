@@ -125,10 +125,10 @@ export type PayoutSummary = {
 export type Bank = { name: string; code: string }
 
 export type ResolvedAccount = {
-  account_name: string;
-  account_number: string;
-  bank_code: string;
-  bank_name: string;
+  accountName: string;
+  accountNumber: string;
+  bankCode: string;
+  bankName: string;
 }
 
 export type PayoutsResponse = ResponseBody<Payout[]> & {

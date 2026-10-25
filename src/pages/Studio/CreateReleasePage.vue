@@ -385,6 +385,7 @@ import {
   saveTrackRequest,
 } from 'src/utils/requests/requests';
 import { releaseErrorStep, trackErrorStep } from 'src/utils/navigations';
+import { releaseFormFields, trackFormFields } from 'src/utils/release-form';
 import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
@@ -396,24 +397,22 @@ defineOptions({
   async preFetch({ currentRoute, store }) {
     const boot = useBootstrapStore(store);
     let tracks = [] as Track[];
-    let release = {} as Release;
+    let release = {} as Release & UploadData;
     let project = {} as Project;
     const id = currentRoute.params.release_id as string;
     const pid = currentRoute.query.project_id as string;
 
     // Load Release
     if (id) {
-      release = await loadReleaseRequest(id, {
+      const loaded = await loadReleaseRequest(id, {
         with: 'artist,genre,tracks,project,streamUrl',
       }).send();
 
-      // The API sends stemsPrice and takes stems_price.
-      tracks = (release.tracks ?? []).map((track) =>
-        Object.assign(track, { stems_price: track.stemsPrice ?? 0 }),
-      );
+      // The API sends camelCase fields and the form sends its request names.
+      release = releaseFormFields(loaded);
+      tracks = (release.tracks ?? []).map(trackFormFields);
       release.draft = release.draft ? 1 : 0;
       release.explicit = release.explicit ? 1 : 0;
-      release.contains_music = release.contains_music ? 1 : 0;
     }
 
     // Load Project
@@ -430,7 +429,7 @@ defineOptions({
 
       if (project.tracks?.length) {
         release.artist = project.tracks[0].artist;
-        release.artist_id = project.tracks[0].artist_id;
+        release.artist_id = project.tracks[0].artistId;
 
         tracks = project.tracks.map((track) => {
           return {
@@ -441,8 +440,8 @@ defineOptions({
             imageUrl: project.imageUrl,
             streamUrl: track.preview as string,
             privacy: track.privacy,
-            genre_id: track.genre_id,
-            artist_id: track.artist_id,
+            genre_id: track.genreId,
+            artist_id: track.artistId,
             description: track.description,
             project_track_id: track.id,
           } as unknown as Track;
@@ -470,7 +469,7 @@ const fileInputRefs = ref<HTMLInputElement[]>([]);
 const curr = useBootstrapStore().pageData.current as {
   tracks: (Track & UploadData)[];
   project: Project;
-  release: Release;
+  release: Release & UploadData;
 };
 
 const tracks = ref<(Track & UploadData)[]>(curr.tracks || []);
@@ -686,8 +685,7 @@ const processUpload = async (files?: File[]) => {
         uploader.value.removeAtIndex(0);
         tempFiles.value = [];
         data.explicit = data.explicit ? 1 : 0;
-        data.contains_music = data.contains_music ? 1 : 0;
-        tracks.value.push(data);
+        tracks.value.push(trackFormFields(data));
         router.push({
           name: 'studio.release.create',
           params: { release_id: data.release?.id },

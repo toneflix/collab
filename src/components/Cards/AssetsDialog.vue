@@ -189,7 +189,7 @@
                 label: 'Delete File',
                 icon: 'fas fa-trash',
                 color: 'negative',
-                target: `creator/projects/${track.project_id}/tracks/${track.id}/assets/${asset.id}`,
+                target: `creator/projects/${track.projectId}/tracks/${track.id}/assets/${asset.id}`,
                 action: 'delete',
                 callback: () => assets.splice(i, 1),
               },

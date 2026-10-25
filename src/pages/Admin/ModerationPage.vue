@@ -464,7 +464,7 @@ const searchHint = computed(() => ({
 }[tab.value as string] || 'Search by title, name or username'));
 
 const setPages = (meta?: PageMeta) => {
-  pages.value = { page: meta?.current_page ?? 1, lastPage: meta?.last_page ?? 1 };
+  pages.value = { page: meta?.currentPage ?? 1, lastPage: meta?.lastPage ?? 1 };
 };
 
 const load = async (page = 1) => {

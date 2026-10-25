@@ -142,7 +142,7 @@
           hide-all-link
           :special-icon="[
             'check_circle',
-            (id: string | number) => id === project.user_id,
+            (id: string | number) => id === project.userId,
           ]"
           :params="{ limit: 30, project_id: project.id }"
           v-model:categories="categories.creators"

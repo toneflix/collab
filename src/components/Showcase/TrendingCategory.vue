@@ -127,7 +127,7 @@ const loadMore = () => {
     return false;
   const cmeta = category.value.data?.meta as PageMeta;
 
-  if (cmeta.last_page > cmeta.current_page) {
+  if (cmeta.lastPage > cmeta.currentPage) {
     page.value++;
   }
 };

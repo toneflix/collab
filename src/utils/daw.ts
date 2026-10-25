@@ -58,8 +58,8 @@ export interface Stem {
   size: number;
   name: string;
   title?: string;
-  stem_id?: string | number | null;
-  track_id?: string | number;
+  stemId?: string | number | null;
+  trackId?: string | number;
   meta: StemMeta;
   createdAt?: string;
 }

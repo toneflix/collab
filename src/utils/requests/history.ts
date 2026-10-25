@@ -29,7 +29,7 @@ export type TrackVersion = {
 export type VersionList = {
   data: TrackVersion[];
   currentId: number | null;
-  meta: { current_page: number; last_page: number; total: number };
+  meta: { currentPage: number; lastPage: number; total: number };
 }
 
 export type RestoreResult = ResponseBody<TrackVersion> & {

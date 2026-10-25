@@ -144,7 +144,7 @@ const { data, loading, send: reload } = useWatcher(
 );
 
 const list = computed(() => data.value?.data || []);
-const pageCount = computed(() => data.value?.meta?.last_page || 1);
+const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 const summary = computed(() => data.value?.summary || { pendingCount: 0, pendingAmount: 0 });
 
 const act = async (payout: Payout, request: () => Promise<{ message: string }>, fallback: string) => {

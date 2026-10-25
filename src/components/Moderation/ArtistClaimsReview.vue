@@ -223,7 +223,7 @@ const load = async (page = 1) => {
   try {
     const response = await loadArtistClaimsRequest({ status: status.value, search: props.search || undefined, page }).send();
     claims.value = response.data;
-    pages.value = { page: response.meta?.current_page ?? 1, lastPage: response.meta?.last_page ?? 1 };
+    pages.value = { page: response.meta?.currentPage ?? 1, lastPage: response.meta?.lastPage ?? 1 };
     aiModerator.value = !!response.stats.aiModerator;
     emit('stats', response.stats);
   } catch (error) {

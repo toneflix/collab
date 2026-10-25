@@ -80,7 +80,7 @@ export type Conversation = {
 }
 
 type ListBody = ResponseBody<Conversation[]> & { unread: number }
-type MessagesBody = ResponseBody<ChatMessage[]> & { meta: { next_cursor: string | null } }
+type MessagesBody = ResponseBody<ChatMessage[]> & { meta: { nextCursor: string | null } }
 
 /** The signed-in user's conversations, most recent first */
 export const loadConversationsRequest = () =>
@@ -100,7 +100,7 @@ export const loadConversationRequest = (type: string, id: string | number) =>
 export const loadMessagesRequest = (type: string, id: string | number, cursor?: string | null) =>
   alova.Get(`conversations/${type}/${id}/messages`, {
     params: { limit: 30, ...(cursor ? { cursor } : {}) },
-    transform: (e: MessagesBody) => ({ messages: e.data, cursor: e.meta?.next_cursor ?? null }),
+    transform: (e: MessagesBody) => ({ messages: e.data, cursor: e.meta?.nextCursor ?? null }),
     cacheFor: 0,
   })
 

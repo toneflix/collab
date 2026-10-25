@@ -214,7 +214,7 @@
         </div>
         <div
           class="col-span-2"
-          v-if="type === 'track' && (form as Track).project_track_id"
+          v-if="type === 'track' && (form as Track & UploadData).project_track_id"
         >
           <label class="block mb-2 text-xl text-gray-400"> Stems Price </label>
           <q-input

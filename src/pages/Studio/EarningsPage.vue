@@ -230,7 +230,7 @@ const { data, loading } = useWatcher(
 );
 
 const earnings = computed(() => data.value?.data || []);
-const pageCount = computed(() => data.value?.meta?.last_page || 1);
+const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 const summary = computed<Earnings>(
   () => data.value?.summary || { earned: 0, currency: '', byPurpose: {} },
 );
@@ -250,7 +250,7 @@ const {
 });
 
 const payoutList = computed(() => payouts.value?.data || []);
-const payoutPages = computed(() => payouts.value?.meta?.last_page || 1);
+const payoutPages = computed(() => payouts.value?.meta?.lastPage || 1);
 const account = ref<PayoutAccount | null>(null);
 const wallet = ref<PayoutSummary>({
   earned: 0,
