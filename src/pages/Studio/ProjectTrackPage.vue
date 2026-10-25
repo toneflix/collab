@@ -46,6 +46,16 @@
       >
         <q-badge
           rounded
+          color="grey-9"
+          class="mix-badge max-sm:!hidden"
+          v-if="rendering"
+        >
+          <q-spinner-audio size="11px" color="toneflix" class="mr-1" />
+          Mixing preview
+          <q-tooltip>The server is mixing the saved stems into the preview</q-tooltip>
+        </q-badge>
+        <q-badge
+          rounded
           color="orange"
           class="max-sm:!hidden"
           v-if="dirty || tempoDirty"
@@ -278,6 +288,7 @@
             :readonly="viewOnly"
             :bpm="track.bpm"
             :time-signature="track.timeSignature"
+            :mix-volume="track.mixVolume"
             commentable
             @comment="messageAboutRegion"
             @ready="editorReady = true"
@@ -361,11 +372,12 @@ import {
   stepsPerBar,
   type InstrumentPattern,
 } from 'src/utils/studio/instruments';
-import { encodeMp3, encodeWav } from 'src/utils/daw';
+import { encodeWav } from 'src/utils/daw';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { useRealtimeChannel, type RealtimeMeta } from 'src/utils/realtime';
 import {
+  MixState,
   Project,
   ProjectTrack,
   ResponseBody,
@@ -440,7 +452,6 @@ const releaseBlocker = computed(() =>
 /** The tempo or meter changed since the last save */
 const tempoDirty = ref(false);
 const saving = ref(false);
-const rendering = ref(false);
 const uploading = ref(0);
 const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
@@ -756,15 +767,9 @@ const editInstrument = (stem: Stem) => {
   instrument.open = !!instrument.pattern;
 };
 
-const audioFile = async (buffer: AudioBuffer, name: string) => {
-  try {
-    return new File([await encodeMp3(buffer)], `${name}.mp3`, {
-      type: 'audio/mpeg',
-    });
-  } catch {
-    return new File([encodeWav(buffer)], `${name}.wav`, { type: 'audio/wav' });
-  }
-};
+/** Instrument audio is uploaded lossless; the server does any encoding. */
+const audioFile = (buffer: AudioBuffer, name: string) =>
+  new File([encodeWav(buffer)], `${name}.wav`, { type: 'audio/wav' });
 
 const saveInstrument = async (
   pattern: InstrumentPattern,
@@ -781,7 +786,7 @@ const saveInstrument = async (
       const updated = await sendStem(
         {
           id: stem.id,
-          src: await audioFile(buffer, stem.title || 'Pattern'),
+          src: audioFile(buffer, stem.title || 'Pattern'),
           title: stem.title,
           meta: {
             ...meta,
@@ -814,7 +819,7 @@ const saveInstrument = async (
       const title = `${pattern.kind === 'drums' ? 'Drums' : 'Keys'} ${count}`;
       const stem = await sendStem(
         {
-          src: await audioFile(buffer, title),
+          src: audioFile(buffer, title),
           title,
           meta: {
             gain: 1,
@@ -885,7 +890,8 @@ const renameStem = async (form: UploadData) => {
 
 /**
  * Save every stem's arrangement. With `withPreview`, or when the site
- * renders previews on every save, the mix is also saved as the preview.
+ * renders previews on every save, the server also mixes the saved stems
+ * into a new preview.
  */
 const save = async (withPreview = false) => {
   const ed = editor.value;
@@ -896,37 +902,69 @@ const save = async (withPreview = false) => {
 
   try {
     const metas = ed.snapshot();
+    const render = (withPreview || conf.value.previews_on_save) && stems.value.length > 0;
     const form = {
       ...track.value,
       preview: undefined,
+      mixVolume: ed.mixVolume(),
       stems: Object.entries(metas).map(([id, meta]) => ({
         id,
         meta,
       })) as unknown as StemMeta[],
     } as unknown as ProjectTrack;
 
-    if ((withPreview || conf.value.previews_on_save) && stems.value.length) {
-      rendering.value = true;
-      form.preview = await ed.render();
-    }
-
-    await saveProjectTrackRequest(form, project.value).send();
+    await saveProjectTrackRequest(form, project.value, { render }).send();
 
     // Keep the saved arrangement, so leaving and coming back shows it.
     stems.value = stems.value.map((s) => ({
       ...s,
       meta: metas[String(s.id)] ?? s.meta,
     }));
+    track.value.mixVolume = form.mixVolume;
     ed.markSaved();
     tempoDirty.value = false;
-    notify(form.preview ? 'Saved, with a new preview.' : 'Saved.', 'success');
+    if (render) onMix({ status: 'rendering' });
+    notify(render ? 'Saved. The preview is being mixed.' : 'Saved.', 'success');
     historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, "The track couldn't be saved."), 'error');
   } finally {
     saving.value = false;
-    rendering.value = false;
   }
+};
+
+/** Whether the server is mixing the preview. */
+const rendering = computed(() => track.value.mix?.status === 'rendering');
+
+let mixTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Fetch the track's preview and mix state again. */
+const refreshMix = async () => {
+  try {
+    const fresh = await loadProjectTrackRequest(project.value, String(track.value.id)).send(true);
+    onMix(fresh.mix ?? null, fresh);
+  } catch {
+    onMix(track.value.mix ?? null);
+  }
+};
+
+/**
+ * Take the newest preview mix state, from a save, realtime or a check. While
+ * it renders, check now and then in case realtime updates don't arrive.
+ */
+const onMix = (mix: MixState | null, fresh?: ProjectTrack) => {
+  const was = track.value.mix?.status;
+  track.value.mix = mix;
+  if (fresh) {
+    track.value.preview = fresh.preview;
+    track.value.tags = fresh.tags;
+  }
+
+  clearTimeout(mixTimer);
+  if (mix?.status === 'rendering') mixTimer = setTimeout(() => void refreshMix(), 4000);
+  else if (was === 'rendering' && mix?.status === 'ready') notify('The preview mix is ready.', 'success');
+  else if (was === 'rendering' && mix?.status === 'failed')
+    notify(mix.error || "The preview couldn't be mixed.", 'error');
 };
 
 /**
@@ -1070,6 +1108,7 @@ useRealtimeChannel(
       notify(`${who(e)} saved the track.`, 'info');
       historyPanel.value?.refresh();
     },
+    'track.mix': () => void refreshMix(),
     'tags.updated': (e: RealtimeMeta & { tags: AudioTags }) => {
       track.value.tags = e.tags;
     },
@@ -1110,11 +1149,13 @@ onMounted(() => {
   }
   window.addEventListener('beforeunload', warnBeforeUnload);
   void loadStems();
+  onMix(track.value.mix ?? null);
 });
 
-onBeforeUnmount(() =>
-  window.removeEventListener('beforeunload', warnBeforeUnload),
-);
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', warnBeforeUnload);
+  clearTimeout(mixTimer);
+});
 </script>
 
 <style lang="scss" scoped>
