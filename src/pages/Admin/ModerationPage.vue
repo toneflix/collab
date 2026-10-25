@@ -29,8 +29,20 @@
         <q-tab name="restored" label="Restored" />
       </q-tabs>
 
-      <template v-if="tab === 'queue'">
-        <div class="flex flex-wrap gap-2 mb-4">
+      <div class="flex flex-wrap gap-2 mb-4">
+        <q-input
+          dark
+          dense
+          outlined
+          clearable
+          debounce="400"
+          class="min-w-56 grow"
+          :placeholder="tab === 'releases' ? 'Search by title or creator' : 'Search by title, name or username'"
+          v-model="search"
+        >
+          <template #prepend><q-icon name="fas fa-magnifying-glass" size="xs" /></template>
+        </q-input>
+        <template v-if="tab === 'queue'">
           <q-select
             dark
             dense
@@ -53,12 +65,15 @@
             :options="sourceOptions"
             v-model="filters.source"
           />
-        </div>
+        </template>
+      </div>
+
+      <template v-if="tab === 'queue'">
 
         <div class="py-10 text-center" v-if="loading && !queue.length"><q-spinner size="md" /></div>
         <div class="py-12 text-center text-grey-5" v-else-if="!queue.length">
           <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
-          <div>Nothing waiting for review.</div>
+          <div>{{ search ? 'Nothing matches your search.' : 'Nothing waiting for review.' }}</div>
         </div>
 
         <div class="flex flex-col gap-3" v-else>
@@ -180,7 +195,7 @@
         <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
         <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
           <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
-          <div>No releases waiting for approval.</div>
+          <div>{{ search ? 'No releases match your search.' : 'No releases waiting for approval.' }}</div>
         </div>
 
         <div class="flex flex-col gap-3" v-else>
@@ -255,7 +270,7 @@
       <template v-else>
         <div class="py-10 text-center" v-if="loading && !takedowns.length"><q-spinner size="md" /></div>
         <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
-          {{ tab === 'appealed' ? 'No appeals waiting.' : 'Nothing here yet.' }}
+          {{ search ? 'Nothing matches your search.' : tab === 'appealed' ? 'No appeals waiting.' : 'Nothing here yet.' }}
         </div>
 
         <div class="flex flex-col gap-3" v-else>
@@ -400,6 +415,7 @@ const sourceOptions = [
 const boot = useBootstrapStore();
 const tab = ref<'queue' | 'releases' | Takedown['status']>('queue');
 const filters = reactive({ type: '', source: '' });
+const search = ref<string | null>('');
 const queue = ref<QueueItem[]>([]);
 const takedowns = ref<Takedown[]>([]);
 const reviews = ref<ReleaseReview[]>([]);
@@ -419,15 +435,15 @@ const load = async (page = 1) => {
 
   try {
     if (tab.value === 'queue') {
-      const response = await loadModerationQueueRequest({ ...filters, page }).send();
+      const response = await loadModerationQueueRequest({ ...filters, search: search.value || undefined, page }).send();
       queue.value = response.data;
       meta.value = response.meta;
     } else if (tab.value === 'releases') {
-      const response = await loadReleaseReviewsRequest(page).send();
+      const response = await loadReleaseReviewsRequest({ search: search.value || undefined, page }).send();
       reviews.value = response.data;
       meta.value = response.meta;
     } else {
-      const response = await loadAdminTakedownsRequest({ status: tab.value, page }).send();
+      const response = await loadAdminTakedownsRequest({ status: tab.value, search: search.value || undefined, page }).send();
       takedowns.value = response.data;
       meta.value = response.meta;
     }
@@ -492,7 +508,7 @@ const review = (release: ReleaseReview, action: 'approve' | 'reject') => {
   );
 };
 
-watch([tab, () => filters.type, () => filters.source], () => load(), { immediate: true });
+watch([tab, search, () => filters.type, () => filters.source], () => load(), { immediate: true });
 
 useMeta({ title: 'Moderation - Admin' });
 </script>

@@ -111,7 +111,7 @@ export type ReportForm = {
   claim?: { original_url?: string; claimant?: string; email?: string; statement?: boolean };
 }
 
-type QueueParams = { type?: string; reason?: string; source?: string; page?: number; limit?: number }
+type QueueParams = { type?: string; reason?: string; source?: string; search?: string; page?: number; limit?: number }
 
 export const reportContentRequest = (form: ReportForm) =>
   alova.Post<ResponseBody<Report>>('safety/reports', form)
@@ -119,7 +119,7 @@ export const reportContentRequest = (form: ReportForm) =>
 export const loadModerationQueueRequest = (params: QueueParams = {}) =>
   alova.Get<{ data: QueueItem[]; meta: ModerationMeta }>('admin/moderation/queue', { params: clean(params), cacheFor: 0 })
 
-export const loadAdminTakedownsRequest = (params: { status?: string; page?: number } = {}) =>
+export const loadAdminTakedownsRequest = (params: { status?: string; search?: string; page?: number } = {}) =>
   alova.Get<{ data: Takedown[]; meta: ModerationMeta }>('admin/moderation/takedowns', { params: clean(params), cacheFor: 0 })
 
 export const takeDownRequest = (type: ReportableType, id: number, form: { reason: string; note?: string }) =>
@@ -137,9 +137,9 @@ export const restoreTakedownRequest = (id: number, resolution?: string) =>
 export const upholdTakedownRequest = (id: number, resolution?: string) =>
   alova.Post<ResponseBody<Takedown>>(`admin/moderation/takedowns/${id}/uphold`, { resolution })
 
-export const loadReleaseReviewsRequest = (page = 1) =>
+export const loadReleaseReviewsRequest = (params: { search?: string; page?: number } = {}) =>
   alova.Get<{ data: ReleaseReview[]; meta: ModerationMeta }>('admin/moderation/releases', {
-    params: { page, with: 'artist' },
+    params: clean({ ...params, with: 'artist' }),
     cacheFor: 0,
   })
 
