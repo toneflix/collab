@@ -18,6 +18,8 @@ import {
   defineSsrRenderPreloadTag,
   defineSsrServeStaticContent
 } from "#q-app";
+import { baseUrl } from "src/utils/env";
+import { ContentSecurityPolicy } from "./csp";
 
 const isCloudflareWorker =
   globalThis.navigator?.userAgent === "Cloudflare-Workers";
@@ -43,8 +45,10 @@ export const create = defineSsrCreate(async (/* { ... } */) => {
      * (https://helmetjs.github.io/)
      */
     const { default: helmet } = await import("helmet");
-    // Helmet's default CSP blocks the API, its images and the inline SSR state script
-    app.use(helmet({ contentSecurityPolicy: false }));
+    const csp = new ContentSecurityPolicy(baseUrl);
+
+    app.use(csp.nonceMiddleware());
+    app.use(helmet({ contentSecurityPolicy: csp.helmetOptions() }));
 
     // Cloudflare compresses Worker responses itself
     if (!isCloudflareWorker) {

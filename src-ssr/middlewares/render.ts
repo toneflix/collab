@@ -33,7 +33,11 @@ export default defineSsrMiddleware(({ app, resolve, render, serve }) => {
     res.setHeader("Content-Type", "text/html");
 
     try {
-      const renderedHtml = await render({ req, res });
+      const renderedHtml = await render({
+        req,
+        res,
+        nonce: res.locals.cspNonce
+      });
       res.send(renderedHtml);
     } catch (err) {
       if (isRouteNotFoundError(err)) {
