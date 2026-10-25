@@ -133,7 +133,7 @@ export type MusicForm = {
 
 export type AiAdminSettings = {
   fields: Record<string, SettingField>;
-  keys: Record<AiEngine, EnvKey[]>;
+  keys: Record<AiEngine, EnvKey[]> & { datamuse?: EnvKey[] };
   client: AiConfig;
   /** Every music model admins can switch to */
   models: MusicModel[];
@@ -143,6 +143,10 @@ export type AiAdminSettings = {
     /** Kinds of Suno stem splits, id to label */
     sunoStemTypes: Record<string, string>;
     engines: Record<AiEngine, string>;
+    /** Where Composer's word lookups come from, id to label */
+    wordSources?: Record<string, string>;
+    /** Music models that sing lyrics, which Composer songs can use */
+    composerMusicModels?: string[];
   };
   currency: string;
 };

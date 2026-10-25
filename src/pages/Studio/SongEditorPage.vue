@@ -27,6 +27,15 @@
             ·
           </template>
           <span :class="{ 'text-orange': status === 'error' }">{{ statusText }}</span>
+          <template v-if="song?.project">
+            ·
+            <router-link
+              class="text-toneflix"
+              :to="{ name: 'studio.project.track', params: { project_id: song.project.slug, track_id: song.project.trackId } }"
+            >
+              Project: {{ song.project.title }}
+            </router-link>
+          </template>
         </div>
       </div>
 
@@ -52,6 +61,13 @@
           :expanded="expanded"
           :active="panels.write"
           @click="panels.write = !panels.write"
+        />
+        <ActionButton
+          :label="song.project ? 'Update the lyric sheet' : 'Make a project'"
+          :icon="song.project ? ionSync : ionAlbums"
+          :expanded="expanded"
+          :loading="syncing"
+          @click="song.project ? syncLyrics() : (projectDialog = true)"
         />
         <ActionButton label="Lookup" :icon="ionSearch" :expanded="expanded" :active="panels.lookup" @click="toggleLookup" />
         <ActionButton label="Notes" :icon="ionDocumentText" :expanded="expanded" :active="panels.notes" @click="panels.notes = !panels.notes" />
@@ -111,6 +127,7 @@
     </q-no-ssr>
 
     <template v-if="song">
+      <SongProjectDialog :song="song" :ai="ai" :flush="flush" v-model="projectDialog" @created="onProjectCreated" />
       <WritePanel
         dock="#composer-dock"
         :account="ai"
@@ -139,8 +156,10 @@ import {
   ionDocumentText,
   ionPause,
   ionPlay,
+  ionAlbums,
   ionSearch,
   ionSparkles,
+  ionSync,
   ionTime,
 } from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar } from 'quasar';
@@ -149,6 +168,7 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import LookupPanel from 'src/components/Composer/LookupPanel.vue';
 import LyricsEditor from 'src/components/Composer/LyricsEditor.vue';
 import NotesPanel from 'src/components/Composer/NotesPanel.vue';
+import SongProjectDialog from 'src/components/Composer/SongProjectDialog.vue';
 import VersionsPanel from 'src/components/Composer/VersionsPanel.vue';
 import WritePanel from 'src/components/Composer/WritePanel.vue';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
@@ -163,6 +183,7 @@ import {
   rhymesRequest,
   saveSongRequest,
   suggestLyricsRequest,
+  syncSongLyricsRequest,
   type LyricSuggestion,
   type Song,
   type SongInput,
@@ -488,6 +509,35 @@ const maybeAutoSuggest = () => {
     ghostAsked.value = number;
     void ask('line', { auto: true });
   }, 700);
+};
+
+/* ---------- Project ---------- */
+
+const projectDialog = ref(false);
+const syncing = ref(false);
+
+const onProjectCreated = (made: Song) => {
+  if (!song.value || !made.project) return;
+  song.value.project = made.project;
+  void router.push({
+    name: 'studio.project.track',
+    params: { project_id: made.project.slug, track_id: made.project.trackId },
+  });
+};
+
+/** Puts the song's latest lyrics on its project track's lyric sheet */
+const syncLyrics = async () => {
+  if (!song.value?.project) return;
+  syncing.value = true;
+  try {
+    await flush();
+    const res = await syncSongLyricsRequest(song.value.id).send();
+    notify(res.message, 'success');
+  } catch (e) {
+    notifyError(e, "The lyric sheet couldn't be updated.");
+  } finally {
+    syncing.value = false;
+  }
 };
 
 /* ---------- Layout ---------- */
