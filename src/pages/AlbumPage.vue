@@ -35,7 +35,7 @@
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
               <span class="!flex-none">
-                {{ intStr(album.tracksCount) }} Tracks
+                {{ countStr(album.tracksCount, 'Track') }}
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
@@ -200,7 +200,7 @@ import {
   ionPause,
   ionPlay,
 } from '@quasar/extras/ionicons-v8';
-import { formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
+import { countStr, formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
 import PayButton from 'src/components/Payments/PayButton.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import { usePayments } from 'src/composables/usePayments';

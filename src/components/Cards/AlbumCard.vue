@@ -30,7 +30,7 @@
           {{ album.title }}
         </h6>
         <div class="text-gray-400 text-subtitle2">
-          {{ album.tracksCount }} Tracks
+          {{ countStr(album.tracksCount, 'Track') }}
           <span class="!flex-none">•</span>
           {{ formatSeconds(album.duration) }}
         </div>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatSeconds } from 'src/utils/helpers';
+import { countStr, formatSeconds } from 'src/utils/helpers';
 import { Album } from 'src/utils/models';
 import { PropType } from 'vue';
 
