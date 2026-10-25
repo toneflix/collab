@@ -140,6 +140,7 @@
         :track-id="track.id"
         :stems="stems"
         :song-lyrics="track.song?.body"
+        :details="musicDetails"
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"
@@ -463,6 +464,20 @@ const { style: fit, measure: fitBody } = useFitToScreen(studioBody);
 // The body only appears once the track has loaded.
 watch(loaded, () => fitBody());
 const aiPanel = ref<InstanceType<typeof AiPanel>>();
+
+/** The track's genre and its song's mood, tempo and key, for describing AI music */
+const musicDetails = computed(() => {
+  const t = track.value;
+  const song = t.song;
+  // 120 is the studio's default tempo, so it says nothing about the song.
+  const studioBpm = t.bpm && t.bpm !== 120 ? t.bpm : null;
+  return {
+    genre: t.genre?.title ?? null,
+    mood: song?.mood ?? null,
+    bpm: song?.bpm || t.tags?.bpm || studioBpm,
+    key: song?.key || t.tags?.key || null,
+  };
+});
 const lyricsPanel = ref<InstanceType<typeof LyricsPanel>>();
 const route = useRoute();
 const router = useRouter();
