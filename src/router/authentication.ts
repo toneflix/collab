@@ -1,5 +1,6 @@
 import { alova } from 'src/boot/alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { stemAudio } from 'src/utils/studio/stem-audio';
 import { RouteRecordRaw } from 'vue-router';
 
 export default <RouteRecordRaw[]>[
@@ -39,6 +40,8 @@ export default <RouteRecordRaw[]>[
         beforeEnter: async () => {
           alova.Post('account/logout').send();
           await useBootstrapStore().clearAuth();
+          // Studio audio kept on this device belongs to the account signing out.
+          await stemAudio.clear();
           return { name: 'auth.login' };
         },
       },

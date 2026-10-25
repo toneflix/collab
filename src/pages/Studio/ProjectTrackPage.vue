@@ -317,6 +317,7 @@ import {
 } from 'src/utils/models';
 import { allowedAudioExts } from 'src/utils/presets';
 import { Stem, StemMeta } from 'src/utils/daw';
+import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
   loadProjectRequest,
@@ -483,30 +484,53 @@ const loadStems = async (fresh = false) => {
   }
 };
 
-/** Upload audio files as new stems and add them to the editor. */
-const upload = async (files: File[]) => {
-  for (const file of files) {
-    uploading.value++;
-    try {
-      const { data } = await saveProjectTrackStemRequest(
-        {
-          src: file,
-          title: file.name.replace(/\.[^.]+$/, ''),
-          meta: { gain: 1 },
-        } as UploadData,
-        project.value,
-        track.value,
-      ).send();
-      const stem = data as unknown as Stem;
-      stems.value.push(stem);
-      await editor.value?.addStem(stem);
-    } catch (e) {
-      notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
-    } finally {
-      uploading.value--;
-    }
+/** Send a stem's audio, showing its progress in the editor. */
+const sendStem = async (data: UploadData, key: string, name: string) => {
+  const progress = editor.value?.trackUpload(key, name);
+  const request = saveProjectTrackStemRequest(data, project.value, track.value);
+  const stop = request.onUpload(({ loaded, total }) =>
+    progress?.progress(loaded, total),
+  );
+
+  try {
+    const { data: stem } = await request.send();
+    if (data.src instanceof File)
+      await stemAudio.put(stem as unknown as Stem, data.src);
+    return stem as unknown as Stem;
+  } finally {
+    stop();
+    progress?.done();
   }
 };
+
+/**
+ * Add audio files as new stems. Each one is on the timeline right away and
+ * uploads in the background.
+ */
+const upload = (files: File[]) =>
+  Promise.all(
+    files.map(async (file) => {
+      const title = file.name.replace(/\.[^.]+$/, '');
+      uploading.value++;
+      const trackId = (await editor.value?.addLocal(file, title)) ?? null;
+
+      try {
+        const stem = await sendStem(
+          { src: file, title, meta: { gain: 1 } } as UploadData,
+          trackId ?? title,
+          title,
+        );
+        stems.value.push(stem);
+        if (trackId) editor.value?.adoptStem(trackId, stem);
+        else await editor.value?.addStem(stem);
+      } catch (e) {
+        if (trackId) editor.value?.dropTrack(trackId);
+        notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
+      } finally {
+        uploading.value--;
+      }
+    }),
+  );
 
 /** Give a stem new audio, keeping its place and settings on the track. */
 const replaceAudio = async (stem: Stem, file: File) => {
@@ -514,17 +538,11 @@ const replaceAudio = async (stem: Stem, file: File) => {
   try {
     const meta: Partial<StemMeta> = { ...stem.meta };
     delete meta.src;
-    const { data } = await saveProjectTrackStemRequest(
-      {
-        id: stem.id,
-        src: file,
-        title: stem.title,
-        meta,
-      } as unknown as UploadData,
-      project.value,
-      track.value,
-    ).send();
-    const updated = data as unknown as Stem;
+    const updated = await sendStem(
+      { id: stem.id, src: file, title: stem.title, meta } as unknown as UploadData,
+      `replace-${stem.id}`,
+      stem.title || stem.name,
+    );
     stems.value = stems.value.map((s) => (s.id === updated.id ? updated : s));
     editor.value?.removeStem(updated.id);
     await editor.value?.addStem(updated);
@@ -602,16 +620,15 @@ const onRecorded = async (take: {
 }) => {
   uploading.value++;
   try {
-    const { data } = await saveProjectTrackStemRequest(
+    const stem = await sendStem(
       {
         src: take.file,
         title: take.name,
         meta: { gain: 1, start: take.start, duration: take.duration },
       } as unknown as UploadData,
-      project.value,
-      track.value,
-    ).send();
-    const stem = data as unknown as Stem;
+      take.trackId,
+      take.name,
+    );
     stems.value.push(stem);
     editor.value?.adoptStem(take.trackId, stem);
     notify(`"${take.name}" saved as a stem.`, 'success');
@@ -671,7 +688,7 @@ const saveInstrument = async (
       const stem = instrument.stem;
       const meta = editor.value?.snapshot()[String(stem.id)] ?? stem.meta;
       const start = meta.clips?.[0]?.start ?? meta.start ?? 0;
-      const { data } = await saveProjectTrackStemRequest(
+      const updated = await sendStem(
         {
           id: stem.id,
           src: await audioFile(buffer, stem.title || 'Pattern'),
@@ -686,10 +703,9 @@ const saveInstrument = async (
             instrument: json,
           },
         } as unknown as UploadData,
-        project.value,
-        track.value,
-      ).send();
-      const updated = data as unknown as Stem;
+        `pattern-${stem.id}`,
+        stem.title || 'Pattern',
+      );
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.map((s) =>
         String(s.id) === String(updated.id) ? updated : s,
@@ -706,7 +722,7 @@ const saveInstrument = async (
           (s) => parsePattern(s.meta?.instrument)?.kind === pattern.kind,
         ).length + 1;
       const title = `${pattern.kind === 'drums' ? 'Drums' : 'Keys'} ${count}`;
-      const { data } = await saveProjectTrackStemRequest(
+      const stem = await sendStem(
         {
           src: await audioFile(buffer, title),
           title,
@@ -717,10 +733,9 @@ const saveInstrument = async (
             instrument: json,
           },
         } as unknown as UploadData,
-        project.value,
-        track.value,
-      ).send();
-      const stem = data as unknown as Stem;
+        `pattern-${title}`,
+        title,
+      );
       stems.value.push(stem);
       await editor.value?.addStem(stem);
       notify(`"${title}" added.`, 'success');
@@ -749,6 +764,7 @@ const removeStem = (stem: Stem) => {
       ).send();
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => s.id !== stem.id);
+      void stemAudio.forget(stem.id);
       notify('Stem removed.', 'success');
       historyPanel.value?.refresh();
     } catch (e) {
@@ -936,6 +952,7 @@ useRealtimeChannel(
       if (!stem) return;
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => String(s.id) !== String(stem.id));
+      void stemAudio.forget(stem.id);
       notify(`${who(e)} removed "${stem.title || stem.name}".`, 'info');
       historyPanel.value?.refresh();
     },

@@ -278,7 +278,7 @@
         <div class="flex-1 min-w-0">
           <div class="text-sm font-bold truncate">{{ stem.title || stem.name }}</div>
           <div class="text-xs text-grey-5">
-            Its audio couldn't be loaded.<template v-if="!readonly"> Upload the file again or remove the stem.</template>
+            Its audio couldn't be loaded, so it plays silence.<template v-if="!readonly"> Upload the file again or remove the stem.</template>
           </div>
         </div>
         <template v-if="!readonly">
@@ -315,6 +315,8 @@
         @change="onReplacementPicked"
       />
     </div>
+
+    <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
 
     <div ref="host" class="stem-editor__host" />
 
@@ -355,12 +357,26 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { LocalStorage } from 'quasar';
 import type { SnapTo } from '@waveform-playlist/core';
 import EffectsPanel from './EffectsPanel.vue';
+import StemActivity, { type StemActivityItem } from './StemActivity.vue';
+import { stemAudio } from 'src/utils/studio/stem-audio';
+import { StemPlaceholders } from 'src/utils/studio/placeholders';
 import { parseEffects, registerStudioEffects, serializeEffects, type StemEffect } from 'src/utils/studio/effects';
 import { parsePattern } from 'src/utils/studio/instruments';
 import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';
-import { encodeMp3, encodeWav, formatClock, mixdown, Stem, StemMeta, stemClips, stemToTrack, trackToMeta } from 'src/utils/daw';
+import {
+  encodeMp3,
+  encodeWav,
+  formatClock,
+  mixdown,
+  Stem,
+  StemMeta,
+  stemClips,
+  stemTitle,
+  stemToTrack,
+  trackToMeta,
+} from 'src/utils/daw';
 import { allowedAudioExts } from 'src/utils/presets';
 
 /**
@@ -514,7 +530,8 @@ const snapshot = (): Record<string, StemMeta> => {
 
   for (const track of state.tracks) {
     const stem = tracks.get(track.id);
-    if (stem) out[String(stem.id)] = withExtras(stem, track.id, trackToMeta(stem, track));
+    // A stem still waiting for audio keeps the arrangement it was saved with.
+    if (stem && !placeholders.has(track.id)) out[String(stem.id)] = withExtras(stem, track.id, trackToMeta(stem, track));
   }
   return out;
 };
@@ -653,16 +670,17 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
 
   // The track controls hand changes to the engine a moment later, so work
   // out the resulting state rather than reading it back now.
-  const after = JSON.stringify(
-    withExtras(stem, trackId, trackToMeta(stem, {
-      ...track,
-      clips: layout(clips) !== layout(track.clips) ? clips : track.clips,
-      volume: mixer.volume ?? track.volume,
-      pan: mixer.pan ?? track.pan,
-      muted: mixer.muted ?? track.muted,
-      soloed: mixer.soloed ?? track.soloed,
-    })),
-  );
+  const next: ClipTrack = {
+    ...track,
+    clips: layout(clips) !== layout(track.clips) ? clips : track.clips,
+    volume: mixer.volume ?? track.volume,
+    pan: mixer.pan ?? track.pan,
+    muted: mixer.muted ?? track.muted,
+    soloed: mixer.soloed ?? track.soloed,
+  };
+  const after = JSON.stringify(withExtras(stem, trackId, trackToMeta(stem, next)));
+  // Someone else's change to a stem still loading isn't an edit made here.
+  if (placeholders.has(trackId)) placeholders.set(trackId, layoutOf(stem, next));
   // Already seen by everyone, so not shared again.
   shared[id] = after;
   if (asSaved || !wasDirty) saved[id] = after;
@@ -1139,28 +1157,174 @@ const onReplacementPicked = (e: Event) => {
   replacing = null;
 };
 
-const addStem = async (stem: Stem) => {
-  const ed = editor.value;
-  // Before the editor is up, stems come in through the `stems` prop.
-  if (!ed || added.has(String(stem.id))) return;
-  added.add(String(stem.id));
-  let el: Awaited<ReturnType<DawEditorElement['addTrack']>>;
-  try {
-    el = await ed.addTrack(stemToTrack(stem));
-  } catch {
-    missing.value = [...missing.value.filter((s) => String(s.id) !== String(stem.id)), stem];
-    return;
+/** What's loading or uploading, keyed by stem or track */
+const activity = reactive(new Map<string, StemActivityItem>());
+/** How many finished since the editor was last idle */
+const finished = ref(0);
+
+const setActivity = (key: string, patch: Partial<StemActivityItem>) => {
+  const current = activity.get(key) ?? { key, name: '', phase: 'download' as const, loaded: 0, total: 0 };
+  activity.set(key, { ...current, ...patch });
+};
+
+const endActivity = (key: string) => {
+  if (activity.delete(key)) finished.value++;
+  if (!activity.size) finished.value = 0;
+};
+
+/** Stem id → its audio being read from this device or downloaded */
+const audioLoads = new Map<string, Promise<Blob>>();
+
+const fetchAudio = (stem: Stem) => {
+  const id = String(stem.id);
+  const running = audioLoads.get(id);
+  if (running) return running;
+
+  const key = `stem-${id}`;
+  setActivity(key, { name: stemTitle(stem), phase: 'download', loaded: 0, total: stem.size || 0 });
+  const load = stemAudio.get(stem, ({ loaded, total, cached }) =>
+    setActivity(key, { phase: cached ? 'cached' : 'download', loaded, total }),
+  );
+  audioLoads.set(id, load);
+
+  return load;
+};
+
+/** Let go of the editor's decoded copy of a blob URL; the clips keep their own. */
+const releaseUrl = (url: string) => {
+  URL.revokeObjectURL(url);
+  (editor.value as unknown as { _audioCache?: Map<string, unknown> })?._audioCache?.delete(url);
+};
+
+/** Track id → its stem's layout when the placeholder was made, while it waits for audio */
+const placeholders = new Map<string, string>();
+let silence: StemPlaceholders | null = null;
+
+/** Show the undo and redo buttons as the engine's history stands. */
+const syncHistory = () => {
+  const state = editor.value?.engine?.getState();
+  canUndo.value = !!state?.canUndo;
+  canRedo.value = !!state?.canRedo;
+};
+
+const layoutOf = (stem: Stem, track: ClipTrack) => JSON.stringify(trackToMeta(stem, track));
+
+/** Drop a clip's drawn waveform, so it's drawn again from new audio. */
+const forgetPeaks = (clipIds: Set<string>) => {
+  const host = editor.value as unknown as Record<'_peaksData' | '_clipOffsets' | '_clipBuffers', Map<string, unknown>>;
+  for (const field of ['_peaksData', '_clipOffsets', '_clipBuffers'] as const) {
+    if (host?.[field]) host[field] = new Map([...host[field]].filter(([id]) => !clipIds.has(id)));
   }
-  tracks.set(el.trackId, stem);
+};
+
+/**
+ * Put a stem on the timeline with silent clips where its audio goes, so it
+ * has its place, controls and arrangement before the audio is in.
+ */
+const placeStem = async (stem: Stem): Promise<string | undefined> => {
+  const ed = editor.value;
+  const engine = ed?.engine;
+  // Before the editor is up, stems come in through the `stems` prop.
+  if (!ed || !engine || !silence || added.has(String(stem.id))) return;
+  added.add(String(stem.id));
+
+  const el = await ed.addTrack({ ...stemToTrack(stem), clips: [] });
+  const trackId = el.trackId;
+  const track = engineTrack(trackId);
+  if (!track) return;
+
+  const placed: ClipTrack = {
+    ...track,
+    clips: silence.clips(stemClips(stem.meta || ({} as StemMeta)), stemTitle(stem)),
+  };
+  silence.quietly(
+    engine,
+    () => engine.updateTrack(trackId, placed),
+    (list) => (list.some((t) => t.id === trackId) ? list : [...list, placed]),
+  );
+  syncHistory();
+  tracks.set(trackId, stem);
+  placeholders.set(trackId, layoutOf(stem, engineTrack(trackId) ?? placed));
+
   const fx = parseEffects(stem.meta?.effects);
   if (fx.length) {
-    effects.set(el.trackId, fx);
-    await applyEffects(el.trackId);
+    effects.set(trackId, fx);
+    await applyEffects(trackId);
   }
-  // The editor doesn't load fades from clips yet, so they are set on the engine.
-  const clips = stemClips(stem.meta || ({} as StemMeta));
-  if (clips.some((c) => c.fadeIn || c.fadeOut)) setFades(el.trackId, clips);
-  return el.trackId;
+
+  return trackId;
+};
+
+/** Load a placed stem's audio into its silent clips. */
+const fillStem = async (stem: Stem, trackId: string) => {
+  const key = `stem-${stem.id}`;
+  const id = String(stem.id);
+  try {
+    const blob = await fetchAudio(stem);
+    setActivity(key, { phase: 'decode' });
+    const audio = await context!.decodeAudioData(await blob.arrayBuffer());
+
+    const engine = editor.value?.engine;
+    const track = engineTrack(trackId);
+    if (!engine || !track || tracks.get(trackId) !== stem) return;
+
+    // Edits made while it loaded are kept, and count as unsaved.
+    const edited = placeholders.get(trackId) !== layoutOf(stem, track);
+    forgetPeaks(new Set(track.clips.map((c) => c.id)));
+    silence!.fill(engine, trackId, audio);
+    syncHistory();
+    placeholders.delete(trackId);
+    missing.value = missing.value.filter((s) => String(s.id) !== id);
+
+    const meta = snapshot()[id];
+    if (meta) {
+      saved[id] = edited ? '' : JSON.stringify(meta);
+      shared[id] = edited ? '' : saved[id]!;
+    }
+    checkDirty();
+  } catch {
+    missing.value = [...missing.value.filter((s) => String(s.id) !== id), stem];
+  } finally {
+    audioLoads.delete(id);
+    endActivity(key);
+  }
+};
+
+const addStem = async (stem: Stem) => {
+  const trackId = await placeStem(stem);
+  if (trackId) await fillStem(stem, trackId);
+
+  return trackId;
+};
+
+/**
+ * Put a file on the timeline straight away, before it's uploaded. The parent
+ * uploads it and calls adoptStem, or dropTrack if that fails.
+ */
+const addLocal = async (file: File, name: string): Promise<string | null> => {
+  const ed = editor.value;
+  if (!ed) return null;
+
+  const url = URL.createObjectURL(file);
+  try {
+    const el = await ed.addTrack({ name, clips: [{ src: url, name }] });
+    return el.trackId;
+  } catch {
+    return null;
+  } finally {
+    releaseUrl(url);
+  }
+};
+
+/** Show an upload's progress under the toolbar until `done` is called. */
+const trackUpload = (key: string, name: string) => {
+  const id = `upload-${key}`;
+  setActivity(id, { name, phase: 'upload', loaded: 0, total: 0 });
+
+  return {
+    progress: (loaded: number, total: number) => setActivity(id, { loaded, total }),
+    done: () => endActivity(id),
+  };
 };
 
 const removeStem = (stemId: string | number) => {
@@ -1171,6 +1335,7 @@ const removeStem = (stemId: string | number) => {
       editor.value?.removeTrack(trackId);
       tracks.delete(trackId);
       effects.delete(trackId);
+      placeholders.delete(trackId);
       added.delete(String(stemId));
       if (selectedTrackId.value === trackId) selectedTrackId.value = null;
     }
@@ -1276,6 +1441,9 @@ const listeners: [string, EventListener][] = [
 ];
 
 onMounted(async () => {
+  // Start on the audio while the editor itself loads.
+  props.stems.forEach((stem) => void fetchAudio(stem).catch(() => undefined));
+
   // The web components need the browser, so they load here and not during SSR.
   const [{ registerEffect }, { NativePlayoutAdapter }] = await Promise.all([
     import('@dawcore/components'),
@@ -1324,7 +1492,8 @@ onMounted(async () => {
   engine.on('statechange', onState);
   applyTempo();
 
-  await Promise.allSettled(props.stems.map(addStem));
+  silence = new StemPlaceholders(context);
+  const placed = await Promise.all(props.stems.map((stem) => placeStem(stem).catch(() => undefined)));
   // Loading isn't something to undo.
   engine.clearHistory();
   canUndo.value = false;
@@ -1335,6 +1504,11 @@ onMounted(async () => {
   fit();
   markSaved();
   emit('ready');
+
+  props.stems.forEach((stem, i) => {
+    const trackId = placed[i];
+    if (trackId) void fillStem(stem, trackId);
+  });
 });
 
 onBeforeUnmount(() => {
@@ -1352,6 +1526,8 @@ onBeforeUnmount(() => {
 
 defineExpose({
   addStem,
+  addLocal,
+  trackUpload,
   removeStem,
   renameStem,
   applyRemote,
