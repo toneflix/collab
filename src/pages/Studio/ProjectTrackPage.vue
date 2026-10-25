@@ -300,6 +300,7 @@
             @dirty="dirty = $event"
             @remove="removeStem"
             @replace="replaceAudio"
+            @duplicate="duplicateStem"
             @files="upload"
             @change="shareChanges"
             @tempo="onTempo"
@@ -398,6 +399,7 @@ import { Stem, StemMeta } from 'src/utils/daw';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
+  duplicateProjectTrackStemRequest,
   loadProjectRequest,
   loadProjectTrackRequest,
   loadProjectTrackStemRequest,
@@ -663,6 +665,33 @@ const replaceAudio = async (stem: Stem, file: File) => {
     historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
+  } finally {
+    uploading.value--;
+  }
+};
+
+/** Copy a stem onto the track, just below the original. Its audio is reused from this device. */
+const duplicateStem = async (stem: Stem, meta: StemMeta) => {
+  uploading.value++;
+  try {
+    const { data } = await duplicateProjectTrackStemRequest(
+      stem.id,
+      project.value,
+      track.value,
+      meta,
+    ).send();
+    const copy = data as unknown as Stem;
+    try {
+      await stemAudio.put(copy, await stemAudio.get(stem));
+    } catch {
+      // It downloads like any other stem instead.
+    }
+    stems.value.push(copy);
+    await editor.value?.addStem(copy);
+    if (meta.order !== undefined) editor.value?.moveStem(copy.id, meta.order);
+    historyPanel.value?.refresh();
+  } catch (e) {
+    notify(errorMessage(e, "The stem couldn't be duplicated."), 'error');
   } finally {
     uploading.value--;
   }

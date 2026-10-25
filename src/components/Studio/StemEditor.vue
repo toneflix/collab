@@ -291,6 +291,19 @@
             />
           </q-menu>
         </q-btn>
+        <q-btn
+          flat
+          round
+          dense
+          size="sm"
+          color="grey-4"
+          class="!flex-none"
+          :icon="ionCopyOutline"
+          aria-label="Duplicate stem"
+          @click="duplicate(selected.id)"
+        >
+          <q-tooltip>Duplicate this stem</q-tooltip>
+        </q-btn>
         <div class="stem-colors" role="radiogroup" aria-label="Stem colour">
           <button
             type="button"
@@ -391,6 +404,7 @@ import {
   ionArrowRedo,
   ionArrowUndo,
   ionCloudUpload,
+  ionCopyOutline,
   ionCut,
   ionHelpCircleOutline,
   ionLocateOutline,
@@ -473,6 +487,8 @@ const emit = defineEmits<{
   recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string }];
   /** Open the instrument editor for a stem made from a pattern */
   'edit-instrument': [stem: Stem];
+  /** Copy a stem onto the track, with these settings for the copy */
+  duplicate: [stem: Stem, meta: StemMeta];
   /** New audio was picked for a stem whose audio couldn't be loaded */
   replace: [stem: Stem, file: File];
   ready: [];
@@ -1287,6 +1303,21 @@ const setMasterEffectParams = (index: number, params: Record<string, number>) =>
   editor.value?.setEffectParams(live.id, params);
 };
 
+/** Ask the parent to copy a stem, placed just below it. */
+const duplicate = (trackId: string) => {
+  const stem = tracks.get(trackId);
+  const meta = snapshot()[String(stem?.id)];
+  if (!stem || !meta || props.readonly) return;
+  emit('duplicate', stem, { ...meta, order: orderOf(trackId) + 1 });
+};
+
+/** Move a stem to a place from the top. */
+const moveStem = (stemId: string | number, index: number) => {
+  const trackId = trackIdOf(stemId);
+  if (trackId) editor.value?.reorderTrack(trackId, index);
+  setTimeout(checkDirty);
+};
+
 /** Give a track its colour, and show it on its controls and clips. */
 const colorTrack = (trackId: string, color: string) => {
   colors.set(trackId, color);
@@ -1306,7 +1337,7 @@ const colorNewTracks = (state: EngineState) =>
 
 /** Select a stem from its controls, as clicking its row does. */
 const selectTrack = (trackId: string) => {
-  if (!tracks.has(trackId) || selectedTrackId.value === trackId) return;
+  if (!engineTrack(trackId) || selectedTrackId.value === trackId) return;
   editor.value?.engine?.selectTrack(trackId);
   selectedTrackId.value = trackId;
   look?.select(trackId);
@@ -1744,6 +1775,7 @@ defineExpose({
   markSaved,
   mixVolume: () => masterVolume.value / 100,
   masterEffects: () => serializeEffects(master.value),
+  moveStem,
   stop,
   highlight,
   currentTime,
