@@ -100,7 +100,7 @@
               :maxlength="account.music.promptLength[1]"
               input-class="ai__prompt"
               :placeholder="
-                account.music.lyricsLength
+                account.music.lyricsLength && account.music.lyricsRequired
                   ? 'Describe the style: genre, mood, instruments, voice. Like &quot;Mellow afrobeats, warm male vocals, guitars and log drums&quot;'
                   : 'Describe it: genre, mood, instruments, tempo. Like &quot;Mellow afrobeats groove, 100 BPM, guitars and log drums&quot;'
               "
@@ -120,7 +120,10 @@
             </div>
 
             <template v-if="account.music.lyricsLength">
-              <div class="mt-3 ai__label">Lyrics</div>
+              <div class="mt-3 ai__label">
+                Lyrics
+                <span class="normal-case" v-if="!account.music.lyricsRequired">(optional)</span>
+              </div>
               <q-input
                 dark
                 filled
@@ -130,7 +133,11 @@
                 :maxlength="account.music.lyricsLength[1]"
                 input-class="ai__lyrics"
                 placeholder="[verse]&#10;Write the words to sing&#10;[chorus]&#10;..."
-                hint="Mark parts with [verse], [chorus], [bridge] and [outro]."
+                :hint="
+                  account.music.lyricsRequired
+                    ? 'Mark parts with [verse], [chorus], [bridge] and [outro].'
+                    : `Mark parts with [verse], [chorus] and [bridge]. Leave it empty and ${account.music.name} writes the lyrics.`
+                "
                 :disable="disabled"
                 v-model="form.lyrics"
               />
@@ -143,11 +150,15 @@
               <q-slider
                 dark
                 color="toneflix"
-                :min="5"
+                :min="minSeconds"
                 :max="account.music.maxSeconds"
                 :step="5"
                 v-model="form.seconds"
               />
+              <div class="text-xs text-grey-6" v-if="lengthIgnored">
+                {{ account.music.name }} follows the length when you write lyrics or ask for an
+                instrumental. Otherwise it picks one.
+              </div>
             </template>
             <div class="mt-3 text-xs text-grey-6" v-else>
               {{ account.music.name }} picks the length from the lyrics.
@@ -165,6 +176,7 @@
                 class="ai__kinds"
                 :options="referenceKinds"
                 v-model="form.reference_kind"
+                v-if="referenceKinds.length > 1"
               />
               <div class="ai__reference" v-if="form.reference || form.reference_stem_id">
                 <q-icon :name="form.reference ? ionDocumentAttach : ionMusicalNote" size="18px" class="!flex-none" />
@@ -215,7 +227,9 @@
               </div>
               <div class="mt-1 text-xs text-grey-6">
                 MP3 or WAV longer than {{ account.music.referenceMinSeconds }} seconds. The new song
-                follows its {{ referenceHint }}.
+                follows its {{ referenceHint }}<template v-if="!account.music.lyricsRequired"
+                  >, and {{ account.music.name }} writes the lyrics</template
+                >.
               </div>
             </div>
 
@@ -240,8 +254,7 @@
                 v-model="form.split"
               />
               <div class="ml-10 text-xs text-grey-6">
-                Adds vocals, drums, bass and other as separate stems you can
-                mix.
+                Adds {{ partsText }} as separate stems you can mix.
               </div>
             </div>
 
@@ -277,7 +290,7 @@
 
           <div class="ai__section" v-else-if="tool === 'stems'">
             <div class="mb-2 text-xs text-grey-6">
-              Pull vocals, drums, bass and other out of a full mix. Uses
+              Pull {{ partsText }} out of a full mix. Uses
               {{ account.costs.stems }} credits.
             </div>
             <div class="flex items-center gap-2 no-wrap">
@@ -336,6 +349,17 @@
                   color="toneflix"
                   v-if="job.status === 'queued' || job.status === 'running'"
                 />
+                <q-spinner-audio
+                  size="18px"
+                  color="toneflix"
+                  v-else-if="job.choosing != null"
+                />
+                <q-icon
+                  :name="ionAlbums"
+                  size="18px"
+                  class="text-toneflix"
+                  v-else-if="awaitingPick(job)"
+                />
                 <q-icon
                   :name="
                     job.status === 'failed'
@@ -369,6 +393,46 @@
                 >
                   {{ job.notice }}
                 </div>
+                <div class="versions" v-if="awaitingPick(job) && job.choosing == null">
+                  <div class="text-xs text-grey-5">
+                    Pick the version that goes on the track. The other one is deleted.
+                  </div>
+                  <div class="version" :key="version.index" v-for="version in job.versions">
+                    <q-btn
+                      round
+                      dense
+                      flat
+                      size="sm"
+                      class="!flex-none"
+                      :icon="playing === versionKey(job, version) ? ionPause : ionPlay"
+                      :aria-label="`Play version ${version.index + 1}`"
+                      :disable="!version.url"
+                      @click="play(job, version)"
+                    />
+                    <div class="min-w-0">
+                      <div class="text-sm truncate">
+                        Version {{ version.index + 1 }}<template v-if="version.title">
+                          · {{ version.title }}</template
+                        >
+                      </div>
+                      <div class="text-xs text-grey-6" v-if="version.duration">
+                        {{ clock(Math.round(version.duration)) }}
+                      </div>
+                    </div>
+                    <q-btn
+                      unelevated
+                      rounded
+                      dense
+                      no-caps
+                      color="toneflix"
+                      class="!flex-none px-3"
+                      label="Use this"
+                      :loading="picking === versionKey(job, version)"
+                      :disable="disabled || !version.url || !!picking"
+                      @click="choose(job, version)"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -380,6 +444,7 @@
 
 <script setup lang="ts">
 import {
+  ionAlbums,
   ionAlertCircle,
   ionCheckmarkCircle,
   ionCloudUpload,
@@ -387,6 +452,8 @@ import {
   ionGitBranch,
   ionMusicalNote,
   ionMusicalNotes,
+  ionPause,
+  ionPlay,
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
@@ -396,7 +463,10 @@ import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
 import {
+  awaitingPick,
+  chooseVersionRequest,
   generateMusicRequest,
+  jobDone,
   loadAiAccountRequest,
   loadAiJobsRequest,
   musicCost,
@@ -406,6 +476,7 @@ import {
   type AiJob,
   type MusicForm,
   type ReferenceKind,
+  type SongVersion,
 } from 'src/utils/requests/ai';
 
 const props = defineProps<{
@@ -471,8 +542,24 @@ const formReady = computed(() => {
   const music = account.value?.music;
   if (!music) return false;
   if (form.prompt.trim().length < music.promptLength[0]) return false;
-  return !music.lyricsLength || form.lyrics.trim().length >= music.lyricsLength[0];
+  return !music.lyricsLength || !music.lyricsRequired || form.lyrics.trim().length >= music.lyricsLength[0];
 });
+
+const minSeconds = computed(() => Math.ceil(Math.max(5, account.value?.music.minSeconds ?? 5) / 5) * 5);
+
+/** Whether the model will pick its own length for this form. */
+const lengthIgnored = computed(() => {
+  const music = account.value?.music;
+  if (!music?.lyricsLength || music.lyricsRequired) return false;
+  const referenced = !!form.reference || !!form.reference_stem_id;
+  return referenced || (!form.instrumental && !form.lyrics.trim());
+});
+
+const partsText = computed(() =>
+  account.value?.stemsEngine === 'suno'
+    ? 'vocals, drums, bass and the other instruments'
+    : 'vocals, drums, bass and other',
+);
 
 const tool = ref<'music' | 'stems' | null>(null);
 
@@ -483,7 +570,9 @@ const tools = computed(() => {
     {
       key: 'music' as const,
       title: 'Generate music',
-      text: acc?.music.lyricsLength
+      text: acc?.music.lyricsLength && !acc.music.lyricsRequired
+        ? 'Turn a style, and your lyrics if you have them, into a full song.'
+        : acc?.music.lyricsLength
         ? 'Turn your lyrics and a style into a full song.'
         : acc?.music.instrumentalOnly
           ? 'Turn a prompt into a loop or an instrumental.'
@@ -498,7 +587,7 @@ const tools = computed(() => {
     {
       key: 'stems' as const,
       title: 'Split a stem',
-      text: 'Pull vocals, drums, bass and other out of a full mix.',
+      text: `Pull ${partsText.value} out of a full mix.`,
       icon: ionGitBranch,
       cost: acc ? `${acc.costs.stems} credits` : '',
     },
@@ -526,7 +615,7 @@ const stemOptions = computed(() =>
   props.stems.map((s) => ({ label: stemTitle(s), value: s.id })),
 );
 const unfinished = computed(() =>
-  jobs.value.some((j) => j.status === 'queued' || j.status === 'running'),
+  jobs.value.some((j) => j.status === 'queued' || j.status === 'running' || j.choosing != null),
 );
 
 const toggle = () => (open.value = !open.value);
@@ -553,7 +642,13 @@ const statusText = (job: AiJob) =>
     succeeded:
       job.kind === 'lyrics'
         ? `Wrote ${job.lines ?? 0} ${job.lines === 1 ? 'line' : 'lines'}`
-        : `Added ${job.stems.length} ${job.stems.length === 1 ? 'stem' : 'stems'}`,
+        : job.choosing != null
+          ? `Adding version ${job.choosing + 1}`
+          : awaitingPick(job)
+            ? `${job.versions!.length} versions ready`
+            : job.versions?.length && job.chosen == null
+              ? 'Versions expired'
+              : `Added ${job.stems.length} ${job.stems.length === 1 ? 'stem' : 'stems'}`,
     failed: 'Failed',
   })[job.status];
 
@@ -567,7 +662,7 @@ const loadAccount = async () => {
   try {
     account.value = await loadAiAccountRequest().send();
     const music = account.value.music;
-    if (music.maxSeconds) form.seconds = Math.min(form.seconds, music.maxSeconds);
+    if (music.maxSeconds) form.seconds = Math.max(minSeconds.value, Math.min(form.seconds, music.maxSeconds));
     if (!music.references.includes(form.reference_kind)) form.reference_kind = music.references[0] ?? 'song';
   } catch {
     // The panel shows its loading state until the next try.
@@ -576,6 +671,8 @@ const loadAccount = async () => {
 
 /** Done jobs already handed to the page, so their stems are added once. */
 const handed = new Set<number>();
+/** Jobs whose versions people were already told to pick from. */
+const prompted = new Set<number>();
 
 /**
  * Take a job's latest state, from the list, a realtime event or a start.
@@ -587,12 +684,14 @@ const onJob = (job: AiJob) => {
   if (at >= 0) jobs.value.splice(at, 1, job);
   else jobs.value.unshift(job);
 
+  if (awaitingPick(job) && !prompted.has(job.id) && !handed.has(job.id)) {
+    prompted.add(job.id);
+    notify('Your song is ready in two versions. Pick the one for the track in AI tools.', 'success');
+    void loadAccount();
+  }
+
   // The lyric sheet tells people about its own jobs.
-  if (
-    (job.status === 'succeeded' || job.status === 'failed') &&
-    !handed.has(job.id) &&
-    job.kind !== 'lyrics'
-  ) {
+  if (jobDone(job) && !handed.has(job.id) && job.kind !== 'lyrics') {
     handed.add(job.id);
     if (job.status === 'succeeded') {
       emit('finished', job);
@@ -612,10 +711,10 @@ const loadJobs = async () => {
   try {
     const list = await loadAiJobsRequest(props.projectId, props.trackId).send();
     // Jobs that finished before this page opened don't need handing over.
-    if (!jobs.value.length)
-      list
-        .filter((j) => j.status === 'succeeded' || j.status === 'failed')
-        .forEach((j) => handed.add(j.id));
+    if (!jobs.value.length) {
+      list.filter(jobDone).forEach((j) => handed.add(j.id));
+      list.filter(awaitingPick).forEach((j) => prompted.add(j.id));
+    }
     [...list].reverse().forEach(onJob);
   } catch {
     // Try again with the next poll.
@@ -695,8 +794,57 @@ const split = async () => {
   }
 };
 
+let player: HTMLAudioElement | null = null;
+const playing = ref<string | null>(null);
+const picking = ref<string | null>(null);
+
+const versionKey = (job: AiJob, version: SongVersion) => `${job.id}:${version.index}`;
+
+/** The one audio element versions play in, made on first use. */
+const audio = () => {
+  if (!player) {
+    player = new Audio();
+    player.addEventListener('ended', () => (playing.value = null));
+    player.addEventListener('pause', () => (playing.value = null));
+  }
+  return player;
+};
+
+/** Play a version, or stop it when it's the one playing. */
+const play = (job: AiJob, version: SongVersion) => {
+  const key = versionKey(job, version);
+  if (playing.value === key) {
+    audio().pause();
+    return;
+  }
+  if (!version.url) return;
+  audio().src = version.url;
+  void audio().play().then(
+    () => (playing.value = key),
+    () => notify("That version couldn't be played.", 'error'),
+  );
+};
+
+const choose = async (job: AiJob, version: SongVersion) => {
+  picking.value = versionKey(job, version);
+  player?.pause();
+  try {
+    const { data, message } = await chooseVersionRequest(job.id, version.index).send();
+    notify(message, 'success');
+    onJob(data);
+  } catch (e) {
+    notify(errorText(e, "That version couldn't be added."), 'error');
+  } finally {
+    picking.value = null;
+  }
+};
+
 onMounted(() => void loadJobs());
-onBeforeUnmount(() => clearTimeout(timer));
+onBeforeUnmount(() => {
+  clearTimeout(timer);
+  player?.pause();
+  player?.removeAttribute('src');
+});
 
 defineExpose({ toggle, onJob });
 </script>
@@ -931,6 +1079,28 @@ defineExpose({ toggle, onJob });
     margin-top: 6px;
     color: #c9ccd2;
     font-size: 11px;
+  }
+}
+
+.versions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.version {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+
+  > .min-w-0 {
+    flex: 1 1 auto;
   }
 }
 

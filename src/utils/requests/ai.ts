@@ -5,21 +5,28 @@ export type CreditPack = { credits: number; discount: number; price: number };
 
 export type ReferenceKind = 'song' | 'voice' | 'instrumental';
 
+/** A service AI tools run on */
+export type AiEngine = 'replicate' | 'suno';
+
 /** A music generation model, what it can do and what it costs */
 export type MusicModel = {
   id: string;
   name: string;
+  engine: AiEngine;
   description: string;
   /** Credits charged per 10 seconds asked for, or once per song */
   pricing: 'per10s' | 'song';
   credits: number;
   /** The admin setting that holds its credits */
   creditsSetting: string;
+  minSeconds: number;
   /** Longest track people can ask for; empty when the model picks the length */
   maxSeconds: number | null;
   promptLength: [number, number];
   /** Shortest and longest lyrics; empty when the model takes none */
   lyricsLength: [number, number] | null;
+  /** Whether lyrics must be given; when not, the model writes its own */
+  lyricsRequired: boolean;
   /** Whether people can ask for no vocals */
   instrumentalOption: boolean;
   /** Whether it only makes instrumentals */
@@ -37,6 +44,10 @@ export type AiConfig = {
   costs: { stems: number; lyrics: number };
   /** The model music is generated with */
   music: MusicModel;
+  /** The engine stems are split on */
+  stemsEngine: AiEngine;
+  /** Which engines have their key set */
+  engines: Record<AiEngine, boolean>;
 };
 
 export type CreditBalance = {
@@ -67,6 +78,16 @@ export type CreditEntry = {
 
 export type AiJobStatus = 'queued' | 'running' | 'succeeded' | 'failed';
 
+/** One of the versions a music model made, waiting for a pick */
+export type SongVersion = {
+  index: number;
+  title?: string | null;
+  duration?: number | null;
+  image?: string | null;
+  /** A link that plays it; empty once a version was picked or they expired */
+  url?: string | null;
+};
+
 export type AiJob = {
   id: number;
   kind: 'music' | 'stems' | 'lyrics';
@@ -87,6 +108,12 @@ export type AiJob = {
   error?: string | null;
   /** Something that went wrong in a job that still finished, like a failed split */
   notice?: string | null;
+  /** Versions of the song to pick from, when the model made several */
+  versions?: SongVersion[] | null;
+  /** The version picked for the track */
+  chosen?: number | null;
+  /** The version on its way to the track */
+  choosing?: number | null;
   createdAt: string;
   finishedAt?: string | null;
 };
@@ -106,10 +133,17 @@ export type MusicForm = {
 
 export type AiAdminSettings = {
   fields: Record<string, SettingField>;
-  keys: { replicate: EnvKey[] };
+  keys: Record<AiEngine, EnvKey[]>;
   client: AiConfig;
   /** Every music model admins can switch to */
   models: MusicModel[];
+  options: {
+    /** Suno model versions, id to label */
+    sunoVersions: Record<string, string>;
+    /** Kinds of Suno stem splits, id to label */
+    sunoStemTypes: Record<string, string>;
+    engines: Record<AiEngine, string>;
+  };
   currency: string;
 };
 
@@ -186,6 +220,22 @@ export const loadAiJobRequest = (id: number) =>
     transform: (e: ResponseBody<AiJob>) => e.data,
     cacheFor: 0,
   });
+
+/** Put the picked version of a generated song on its track */
+export const chooseVersionRequest = (jobId: number, index: number) =>
+  alova.Post<ResponseBody<AiJob>>(`creator/ai/jobs/${jobId}/versions/${index}`);
+
+/** Whether a job is done from its owner's side: failed, or added to the track */
+export const jobDone = (job: AiJob) =>
+  job.status === 'failed' ||
+  (job.status === 'succeeded' && !(job.versions?.length && job.chosen == null));
+
+/** Whether a job's versions are waiting for a pick */
+export const awaitingPick = (job: AiJob) =>
+  job.status === 'succeeded' &&
+  !!job.versions?.length &&
+  job.chosen == null &&
+  job.versions.some((v) => !!v.url);
 
 export const loadAiSettingsRequest = () =>
   alova.Get('admin/ai', {
