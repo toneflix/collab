@@ -139,6 +139,7 @@
         :project-id="project.id"
         :track-id="track.id"
         :stems="stems"
+        :song-lyrics="track.song?.body"
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"
