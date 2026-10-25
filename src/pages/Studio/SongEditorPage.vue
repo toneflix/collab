@@ -78,11 +78,10 @@
           @click="panels.write = !panels.write"
         />
         <ActionButton
-          :label="song.project ? 'Update the lyric sheet' : 'Make a project'"
-          :icon="song.project ? ionSync : ionAlbums"
+          :label="song.project ? 'Open the project' : 'Make a project'"
+          :icon="ionAlbums"
           :expanded="showLabels"
-          :loading="syncing"
-          @click="song.project ? syncLyrics() : (projectDialog = true)"
+          @click="song.project ? openProject() : (projectDialog = true)"
         />
         <ActionButton label="Lookup" :icon="ionSearch" :expanded="showLabels" :active="panels.lookup" @click="toggleLookup" />
         <ActionButton label="Notes" :icon="ionDocumentText" :expanded="showLabels" :active="panels.notes" @click="panels.notes = !panels.notes" />
@@ -201,7 +200,6 @@ import {
   ionAlbums,
   ionSearch,
   ionSparkles,
-  ionSync,
   ionTime,
 } from '@quasar/extras/ionicons-v8';
 import { date, LocalStorage, useQuasar } from 'quasar';
@@ -227,7 +225,6 @@ import {
   rhymesRequest,
   saveSongRequest,
   suggestLyricsRequest,
-  syncSongLyricsRequest,
   type LyricSuggestion,
   type Song,
   type SongInput,
@@ -617,7 +614,6 @@ const maybeAutoSuggest = () => {
 /* ---------- Project ---------- */
 
 const projectDialog = ref(false);
-const syncing = ref(false);
 
 const onProjectCreated = (made: Song) => {
   if (!song.value || !made.project) return;
@@ -628,19 +624,13 @@ const onProjectCreated = (made: Song) => {
   });
 };
 
-/** Puts the song's latest lyrics on its project track's lyric sheet */
-const syncLyrics = async () => {
+/** Saved changes to the lyrics also update the project's lyric sheet, so the project opens up to date */
+const openProject = () => {
   if (!song.value?.project) return;
-  syncing.value = true;
-  try {
-    await flush();
-    const res = await syncSongLyricsRequest(song.value.id).send();
-    notify(res.message, 'success');
-  } catch (e) {
-    notifyError(e, "The lyric sheet couldn't be updated.");
-  } finally {
-    syncing.value = false;
-  }
+  void router.push({
+    name: 'studio.project.track',
+    params: { project_id: song.value.project.slug, track_id: song.value.project.trackId },
+  });
 };
 
 /* ---------- Layout ---------- */

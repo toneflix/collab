@@ -457,7 +457,7 @@ import {
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
@@ -483,6 +483,8 @@ const props = defineProps<{
   projectId: string | number;
   trackId: string | number;
   stems: Stem[];
+  /** Lyrics of the Composer song the track came from, to start from when it has no stems */
+  songLyrics?: string | null;
   disabled?: boolean;
   /** CSS selector of the column the panel docks into on desktop. */
   dock?: string;
@@ -618,7 +620,20 @@ const unfinished = computed(() =>
   jobs.value.some((j) => j.status === 'queued' || j.status === 'running' || j.choosing != null),
 );
 
+/** A track made from a song starts its first generation from the song's lyrics */
+const prefillLyrics = () => {
+  if (!form.lyrics.trim() && !props.stems.length && props.songLyrics?.trim()) form.lyrics = props.songLyrics.trim();
+};
+
 const toggle = () => (open.value = !open.value);
+
+watch(
+  () => [open.value, props.songLyrics, props.stems.length] as const,
+  ([isOpen]) => {
+    if (isOpen) prefillLyrics();
+  },
+  { immediate: true },
+);
 
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
