@@ -19,6 +19,18 @@ const RESTART_AFTER = 3;
  */
 const MAX_FAILED_IN_A_ROW = 3;
 
+/** How many tracks to add each time the queue is topped up */
+const UP_NEXT_BATCH = 10;
+
+/** Queued tracks sent to the API so it doesn't suggest them again */
+const MAX_EXCLUDED = 100;
+
+/** Played tracks kept behind the current one before the oldest are dropped */
+const KEEP_PLAYED = 50;
+
+/** The request topping up the queue, shared by everyone waiting on it */
+let extending: Promise<number> | null = null;
+
 /**
  * Keep only what the queue needs to show and reload a track. Stream links
  * expire, so they are never kept and are fetched again when a track plays.
@@ -80,8 +92,6 @@ export const usePlayerStore = defineStore('player', {
     repeat: 'off' as RepeatMode,
     shuffle: false,
 
-    /** Set while fetching more tracks when the queue runs out */
-    extending: false,
     failedInARow: 0,
     /** Bumped on every load, so a slow request for an old track can't take over */
     loadId: 0,
@@ -95,8 +105,13 @@ export const usePlayerStore = defineStore('player', {
       const i = state.order[state.index];
       return i === undefined ? null : (state.queue[i] ?? null);
     },
+    /** Playback never runs out: the queue is topped up, starts over, or a lone track loops */
     hasNext (state): boolean {
-      return state.index < state.order.length - 1 || state.repeat === 'all';
+      return state.order.length > 0;
+    },
+    /** Whether the track playing is the last one queued */
+    atEnd (state): boolean {
+      return state.index >= state.order.length - 1;
     },
     /** The queue in play order, e.g. for an "Up next" list */
     ordered (state): Track[] {
@@ -129,7 +144,7 @@ export const usePlayerStore = defineStore('player', {
         onWaiting: () => {
           this.loading = true;
         },
-        onEnded: () => this.next(true),
+        onEnded: () => this.next(),
         onError: () => this.failed('This track couldn\'t be played.'),
       });
       audioEngine.setVolume(this.volume, this.muted);
@@ -237,6 +252,7 @@ export const usePlayerStore = defineStore('player', {
       if (!track) return;
 
       const id = ++this.loadId;
+      void this.topUp();
       this.loading = true;
       this.error = null;
       clock.position = 0;
@@ -308,36 +324,77 @@ export const usePlayerStore = defineStore('player', {
     /**
      * Go to the next track. `auto` is set when the previous one finished.
      */
-    async next (auto = false) {
-      if (this.index < this.order.length - 1) {
+    async next () {
+      if (!this.atEnd) {
         this.index++;
         return this.load(true);
       }
 
-      if (this.repeat === 'all' && this.order.length) {
-        if (this.shuffle) this.reorder(this.order[0]);
-        this.index = 0;
-        return this.load(true);
-      }
-
-      // The queue ran out: keep the music going with recommendations.
-      if (this.extending) return;
-      this.extending = true;
-      const more = await this.fetchMore();
-      this.extending = false;
-
-      if (more.length) {
-        const start = this.queue.length;
-        this.queue.push(...more.map(slim));
-        this.order.push(...more.map((_, i) => start + i));
+      if (this.repeat === 'off' && (await this.extend()) && !this.atEnd) {
         this.index++;
         return this.load(true);
       }
 
-      if (auto) {
-        this.playing = false;
-        clock.position = 0;
-      }
+      // Nothing new to play: start the queue over, which loops a lone track.
+      if (!this.order.length) return;
+      if (this.shuffle) this.reorder(this.order[0]);
+      this.index = 0;
+      return this.load(true);
+    },
+
+    /**
+     * Fetch more tracks while the last queued one plays, so the next one is
+     * ready before it ends. Repeat modes keep the queue as it is.
+     */
+    topUp () {
+      if (this.repeat === 'off' && this.atEnd) return this.extend();
+    },
+
+    /**
+     * Add tracks like the current one to the end of the queue.
+     *
+     * @returns How many tracks were added.
+     */
+    extend (): Promise<number> {
+      extending ??= this.fetchMore()
+        .then((more) => {
+          const known = new Set(this.queue.map((t) => t.id));
+          const fresh = more.filter((t) => !known.has(t.id));
+          const start = this.queue.length;
+
+          this.queue.push(...fresh.map(slim));
+          this.order.push(...fresh.map((_, i) => start + i));
+          this.trim();
+
+          return fresh.length;
+        })
+        .finally(() => {
+          extending = null;
+        });
+
+      return extending;
+    },
+
+    /**
+     * Drop the oldest played tracks so an endless session keeps a small queue.
+     */
+    trim () {
+      const drop = this.index - KEEP_PLAYED;
+      if (drop <= 0) return;
+
+      const dropped = new Set(this.order.slice(0, drop));
+      const moved = new Map<number, number>();
+      const queue: Track[] = [];
+
+      this.queue.forEach((track, i) => {
+        if (dropped.has(i)) return;
+        moved.set(i, queue.length);
+        queue.push(track);
+      });
+
+      this.queue = queue;
+      this.order = this.order.slice(drop).map((i) => moved.get(i)!);
+      this.index -= drop;
     },
 
     /**
@@ -383,6 +440,7 @@ export const usePlayerStore = defineStore('player', {
       const modes: RepeatMode[] = ['off', 'all', 'one'];
       this.repeat = modes[(modes.indexOf(this.repeat) + 1) % modes.length]!;
       audioEngine.setLoop(this.repeat === 'one');
+      void this.topUp();
     },
 
     toggleShuffle () {
@@ -402,11 +460,23 @@ export const usePlayerStore = defineStore('player', {
       return this.playing && this.source === source;
     },
 
+    /**
+     * Tracks like the current one that aren't queued yet. The API only comes
+     * back empty when the current track is the only one there is.
+     */
     async fetchMore (): Promise<Track[]> {
+      const queued = [...new Set(this.ordered.map((t) => t.id))].slice(-MAX_EXCLUDED);
+
       try {
-        const { data } = await loadPlaylistRequest({ randomize: true, with: 'artist' }).send();
-        const known = new Set(this.queue.map((t) => t.id));
-        return (data || []).filter((t) => !known.has(t.id));
+        const { data } = await loadPlaylistRequest({
+          randomize: true,
+          with: 'artist',
+          limit: UP_NEXT_BATCH,
+          ...(this.current ? { similar_to: this.current.id } : {}),
+          ...(queued.length ? { exclude: queued.join(',') } : {}),
+        }).send();
+
+        return data || [];
       } catch {
         return [];
       }
@@ -428,7 +498,7 @@ export const usePlayerStore = defineStore('player', {
       }
 
       notify(`${message} Skipping to the next one.`, 'warning');
-      return this.next(true);
+      return this.next();
     },
   },
 });
