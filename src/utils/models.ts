@@ -541,6 +541,7 @@ export type Project = {
     'open-projects' | 'recent-projects' | 'top-projects' | 'trending-projects';
   ready?: boolean;
   tracks?: ProjectTrack[];
+  collaborators?: Collaber[];
   proped: boolean;
   isOwner: boolean;
   user_id?: string | number;
