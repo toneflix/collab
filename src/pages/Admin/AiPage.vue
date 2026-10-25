@@ -382,6 +382,60 @@
             </div>
           </template>
 
+          <template #composer>
+            <p class="mb-3 text-sm text-grey-5">
+              Composer is the lyrics notepad in the studio. Its suggestions use
+              the Replicate token from Engines and need a plan with AI tools.
+            </p>
+            <div class="flex flex-col gap-3">
+              <div class="grid gap-3 sm:grid-cols-2">
+                <q-select
+                  dark
+                  outlined
+                  emit-value
+                  map-options
+                  :label="fields.composer_word_source?.title"
+                  :hint="fields.composer_word_source?.hint"
+                  :options="wordSources"
+                  v-model="form.composer_word_source"
+                />
+                <div class="text-sm" v-if="settings?.keys.datamuse">
+                  <EnvKeys :keys="settings.keys.datamuse" />
+                </div>
+                <q-input
+                  dark
+                  outlined
+                  :label="fields.ai_composer_model?.title"
+                  :hint="fields.ai_composer_model?.hint"
+                  v-model="form.ai_composer_model"
+                />
+                <q-select
+                  dark
+                  outlined
+                  emit-value
+                  map-options
+                  :label="fields.ai_composer_music_model?.title"
+                  :hint="fields.ai_composer_music_model?.hint"
+                  :options="composerMusicModels"
+                  v-model="form.ai_composer_music_model"
+                />
+              </div>
+              <div class="grid gap-3 grid-cols-2 sm:grid-cols-4">
+                <q-input
+                  dark
+                  outlined
+                  type="number"
+                  min="1"
+                  :key="key"
+                  :label="composerCostLabels[key]"
+                  :hint="fields[key]?.hint"
+                  v-model.number="form[key]"
+                  v-for="key in composerCosts"
+                />
+              </div>
+            </div>
+          </template>
+
           <template #moderator>
             <p class="mb-3 text-sm text-grey-5">
               Reviews artist claims and releases waiting for approval. Admins
@@ -483,7 +537,28 @@ const form = reactive({
   ai_moderator_claims_auto: false,
   ai_moderator_releases_auto: false,
   ai_moderator_confidence: 80 as number | string,
+  composer_word_source: 'datamuse',
+  ai_composer_model: '',
+  ai_composer_music_model: '',
+  ai_composer_line_credits: 1 as number | string,
+  ai_composer_block_credits: 1 as number | string,
+  ai_composer_verse_credits: 2 as number | string,
+  ai_composer_rewrite_credits: 1 as number | string,
 });
+
+const composerCosts = [
+  'ai_composer_line_credits',
+  'ai_composer_block_credits',
+  'ai_composer_verse_credits',
+  'ai_composer_rewrite_credits',
+] as const;
+
+const composerCostLabels: Record<(typeof composerCosts)[number], string> = {
+  ai_composer_line_credits: 'Next line',
+  ai_composer_block_credits: 'Next 4 lines',
+  ai_composer_verse_credits: 'A verse',
+  ai_composer_rewrite_credits: 'Rewrite a line',
+};
 
 const moderatorToggles = [
   'ai_moderator_claims_auto',
@@ -555,6 +630,18 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     fields: ['ai_tags_auto'],
   },
   {
+    key: 'composer',
+    icon: 'fas fa-pen-nib',
+    title: 'Composer',
+    caption: 'Word lookups, lyric suggestions and songs from lyrics.',
+    fields: [
+      'composer_word_source',
+      'ai_composer_model',
+      'ai_composer_music_model',
+      ...composerCosts,
+    ],
+  },
+  {
     key: 'moderator',
     icon: 'fas fa-robot',
     title: 'AI moderator',
@@ -583,6 +670,15 @@ const toOptions = (map?: Record<string, string>) =>
   Object.entries(map ?? {}).map(([value, label]) => ({ value, label }));
 const sunoVersions = computed(() =>
   toOptions(settings.value?.options.sunoVersions),
+);
+const wordSources = computed(() =>
+  toOptions(settings.value?.options.wordSources),
+);
+const composerMusicModels = computed(() =>
+  (settings.value?.options.composerMusicModels ?? []).map((id) => ({
+    value: id,
+    label: settings.value?.models.find((m) => m.id === id)?.name ?? id,
+  })),
 );
 const sunoStemTypes = computed(() =>
   toOptions(settings.value?.options.sunoStemTypes),
@@ -616,6 +712,12 @@ const fill = (data: AiAdminSettings) => {
   form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
   form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';
   form.ai_moderator_confidence = Number(f.ai_moderator_confidence?.value ?? 80);
+  form.composer_word_source = f.composer_word_source?.value ?? 'datamuse';
+  form.ai_composer_model = f.ai_composer_model?.value ?? '';
+  form.ai_composer_music_model = f.ai_composer_music_model?.value ?? '';
+  for (const key of composerCosts) {
+    form[key] = Number(f[key]?.value ?? data.client.costs.composer?.[key.split('_')[2] as 'line'] ?? 1);
+  }
   saved.value = JSON.parse(JSON.stringify(form));
 };
 
