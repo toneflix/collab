@@ -1,5 +1,5 @@
 import { alova } from 'src/boot/alova';
-import type { EnvKey, ResponseBody, SettingField } from '../models';
+import type { EnvKey, PageMeta, ResponseBody, SettingField } from '../models';
 
 export type CreditPack = { credits: number; discount: number; price: number };
 
@@ -97,10 +97,7 @@ export const loadAiAccountRequest = () =>
   });
 
 export const loadCreditHistoryRequest = (page = 1) =>
-  alova.Get<{
-    data: CreditEntry[];
-    meta: { total: number; page: number; lastPage: number };
-  }>('account/ai/history', {
+  alova.Get<ResponseBody<CreditEntry[]> & { meta: PageMeta }>('account/ai/history', {
     params: { page, limit: 20 },
     cacheFor: 0,
   });
