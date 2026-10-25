@@ -24,6 +24,7 @@
           unelevated
           size="md"
           color="glass"
+          text-color="white"
           class="!flex-none mx-1 white-glass"
           :aria-label="player.playing ? 'Pause' : 'Play'"
           :disable="!track.id"
