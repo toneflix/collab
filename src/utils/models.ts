@@ -1,3 +1,4 @@
+import type { ArtistClaim } from './requests/artists';
 import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
 import type { AudioTags } from './requests/tags';
@@ -409,6 +410,10 @@ export interface Artist {
   canEdit?: boolean;
   /** The viewer can mark the artist verified */
   canVerify?: boolean;
+  /** No account manages the artist yet */
+  claimable?: boolean;
+  /** The viewer's latest claim on the artist, on the artist page */
+  yourClaim?: ArtistClaim | null;
 }
 
 export interface User extends Artist {

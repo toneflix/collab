@@ -94,6 +94,8 @@ export type ModerationMeta = {
   appeals: number;
   /** Releases waiting for approval */
   releases?: number;
+  /** Artist claims waiting for review */
+  claims?: number;
 }
 
 export type ReleaseReview = Release & {

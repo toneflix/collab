@@ -89,10 +89,37 @@
                   @click="editing = true"
                 />
               </span>
+              <span class="!flex-none" v-else-if="artist.claimable && artist.yourClaim?.status !== 'pending'">
+                <q-btn
+                  dense
+                  no-caps
+                  rounded
+                  outline
+                  size="sm"
+                  padding="0 sm"
+                  icon="fas fa-id-badge"
+                  label="Claim this artist"
+                  @click="claimDialog?.open()"
+                />
+                <q-tooltip>Manage this artist? Claim the profile to edit it and manage the catalogue.</q-tooltip>
+              </span>
             </div>
             <p class="block mt-4 text-sm max-w-96">
               {{ artist.about }}
             </p>
+            <div class="claim-status" v-if="artist.claimable && artist.yourClaim">
+              <template v-if="artist.yourClaim.status === 'pending'">
+                <q-icon name="fas fa-hourglass-half" color="orange-5" class="!flex-none" />
+                <span>Your claim is being reviewed. We'll let you know when a moderator decides.</span>
+              </template>
+              <template v-else-if="artist.yourClaim.status === 'rejected'">
+                <q-icon name="fas fa-circle-xmark" color="red-5" class="!flex-none" />
+                <span>
+                  Your claim was declined<template v-if="artist.yourClaim.reviewNote">: {{ artist.yourClaim.reviewNote }}</template>.
+                  You can send a new one with more proof.
+                </span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -130,6 +157,12 @@
       @saved="(e) => (artist = { ...artist, ...e })"
       v-if="artist?.canEdit"
     />
+    <ArtistClaimDialog
+      ref="claimDialog"
+      :artist="artist"
+      @claimed="(claim) => (artist = { ...artist, yourClaim: claim })"
+      v-if="artist?.claimable"
+    />
     <OopsAlert
       text="This artist is not home now, you may check back later..."
       v-else-if="!loading"
@@ -164,6 +197,7 @@ import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
 import ArtistEditDialog from 'src/components/Artists/ArtistEditDialog.vue';
+import ArtistClaimDialog from 'src/components/Artists/ArtistClaimDialog.vue';
 import { usePlayerStore } from 'src/stores/player-store';
 
 defineOptions({
@@ -254,6 +288,7 @@ const { data: artist, loading } = useWatcher(
 );
 
 const editing = ref(false);
+const claimDialog = ref<InstanceType<typeof ArtistClaimDialog> | null>(null);
 
 const togglePlay = () => {
   if (current.tracks.length) {
@@ -284,6 +319,19 @@ useMeta(() => {
 </script>
 
 <style scoped>
+.claim-status {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 28rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.35);
+}
+
 .cover-photo::after {
   content: '';
   position: absolute;
