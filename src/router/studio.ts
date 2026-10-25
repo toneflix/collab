@@ -47,6 +47,17 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Studio/ProjectListPage.vue'),
       },
       {
+        path: 'composer',
+        name: 'studio.composer',
+        component: () => import('pages/Studio/ComposerPage.vue'),
+      },
+      {
+        path: 'composer/:song_id',
+        name: 'studio.composer.song',
+        meta: { hidePlayer: true },
+        component: () => import('pages/Studio/SongEditorPage.vue'),
+      },
+      {
         path: 'projects/create/:project_id?',
         name: 'studio.projects.create',
         component: () => import('pages/Studio/CreateProjectPage.vue'),
