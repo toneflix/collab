@@ -233,6 +233,7 @@
             @ready="editorReady = true"
             @dirty="dirty = $event"
             @remove="removeStem"
+            @replace="replaceAudio"
             @files="upload"
             @change="shareChanges"
             @tempo="onTempo"
@@ -504,6 +505,35 @@ const upload = async (files: File[]) => {
     } finally {
       uploading.value--;
     }
+  }
+};
+
+/** Give a stem new audio, keeping its place and settings on the track. */
+const replaceAudio = async (stem: Stem, file: File) => {
+  uploading.value++;
+  try {
+    const meta: Partial<StemMeta> = { ...stem.meta };
+    delete meta.src;
+    const { data } = await saveProjectTrackStemRequest(
+      {
+        id: stem.id,
+        src: file,
+        title: stem.title,
+        meta,
+      } as unknown as UploadData,
+      project.value,
+      track.value,
+    ).send();
+    const updated = data as unknown as Stem;
+    stems.value = stems.value.map((s) => (s.id === updated.id ? updated : s));
+    editor.value?.removeStem(updated.id);
+    await editor.value?.addStem(updated);
+    notify(`"${updated.title || updated.name}" has its audio back.`, 'success');
+    historyPanel.value?.refresh();
+  } catch (e) {
+    notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
+  } finally {
+    uploading.value--;
   }
 };
 
