@@ -21,6 +21,10 @@
   "dependencies": {
     "@alova/adapter-axios": "^2.0.20",
     "@arkstack/realtime": "0.20.2",
+    "@codemirror/autocomplete": "^6.20.4",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@dawcore/components": "0.0.37",
     "@dawcore/transport": "0.0.14",
     "@quasar/extras": "^2.1.0",

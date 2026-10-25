@@ -33,6 +33,12 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Projects',
   },
   {
+    to: { name: 'studio.composer' },
+    icon: 'eva-edit-2',
+    title: 'Composer',
+    requiresAuth: true,
+  },
+  {
     to: '',
     icon: '',
     title: 's1',
