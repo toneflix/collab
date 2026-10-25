@@ -153,7 +153,7 @@ import VersionsPanel from 'src/components/Composer/VersionsPanel.vue';
 import WritePanel from 'src/components/Composer/WritePanel.vue';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
 import { useFitToScreen } from 'src/composables/useFitToScreen';
-import { isSectionLine, lastWordOf, WordSounds } from 'src/utils/composer';
+import { errorShown, isSectionLine, lastWordOf, notifyError, requestStatus, WordSounds } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
 import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import {
@@ -220,7 +220,6 @@ const queue = (input: SongInput) => {
 };
 
 const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
-const statusCode = (e: unknown) => (e as { response?: { status?: number }; status?: number })?.response?.status ?? (e as { status?: number })?.status;
 
 /** Saves whatever is waiting now; resolves once the server has it */
 const flush = async (): Promise<void> => {
@@ -243,12 +242,12 @@ const flush = async (): Promise<void> => {
       status.value = Object.keys(pending.value).length ? 'pending' : 'saved';
     } catch (e) {
       pending.value = { ...sending, ...pending.value };
-      if (statusCode(e) === 409) {
+      if (requestStatus(e) === 409) {
         status.value = 'error';
         conflict();
       } else {
         status.value = 'error';
-        notify(errorText(e, "Your changes couldn't be saved."), 'error');
+        notifyError(e, "Your changes couldn't be saved.");
       }
     } finally {
       saving = null;
@@ -293,7 +292,7 @@ const load = async () => {
     status.value = 'idle';
     fitBody();
   } catch (e) {
-    notify(errorText(e, "This song couldn't be opened."), 'error');
+    notifyError(e, "This song couldn't be opened.");
     void router.replace({ name: 'studio.composer' });
   }
 };
@@ -449,9 +448,12 @@ const ask = async (kind: SuggestionKind, { instruction = '', auto = false } = {}
   } catch (e) {
     if (auto) {
       setAutoSuggest(false);
-      notify(`${errorText(e, 'Suggestions stopped.')} Automatic suggestions are off for now.`, 'error');
+      notify(
+        errorShown(e) ? 'Automatic suggestions are off for now.' : `${errorText(e, 'Suggestions stopped.')} Automatic suggestions are off for now.`,
+        'error',
+      );
     } else {
-      notify(errorText(e, 'No suggestion this time.'), 'error');
+      notifyError(e, 'No suggestion this time.');
     }
   } finally {
     asking.value = null;
