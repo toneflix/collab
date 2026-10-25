@@ -86,6 +86,22 @@ export type QueueItem = {
   takedown: Takedown | null;
 }
 
+export type AiReview = {
+  id: number;
+  /** "manual" when an admin sent it, "auto" when automatic review sent it */
+  mode: 'manual' | 'auto';
+  /** "flagged" means the moderator wasn't confident and a person should decide */
+  status: 'queued' | 'decided' | 'flagged' | 'failed' | 'skipped';
+  decision?: 'approve' | 'reject' | 'unsure' | null;
+  confidence?: number | null;
+  summary?: string | null;
+  note?: string | null;
+  error?: string | null;
+  model?: string | null;
+  decidedAt?: string | null;
+  createdAt: string;
+}
+
 export type ModerationMeta = {
   total: number;
   page: number;
@@ -96,6 +112,8 @@ export type ModerationMeta = {
   releases?: number;
   /** Artist claims waiting for review */
   claims?: number;
+  /** Whether the AI moderator can be used */
+  aiModerator?: boolean;
 }
 
 export type ReleaseReview = Release & {
@@ -103,6 +121,7 @@ export type ReleaseReview = Release & {
   /** Title of the project this release is a version of */
   versionOf?: string | null;
   submittedAt: string;
+  aiReview?: AiReview | null;
 }
 
 export type ReportForm = {
@@ -150,6 +169,9 @@ export const approveReleaseRequest = (id: number | string) =>
 
 export const rejectReleaseRequest = (id: number | string, note: string) =>
   alova.Post<ResponseBody<{ id: number }>>(`admin/moderation/releases/${id}/reject`, { note })
+
+export const sendReleaseToAiRequest = (id: number | string) =>
+  alova.Post<ResponseBody<AiReview>>(`admin/moderation/releases/${id}/ai-review`)
 
 export const loadMyTakedownsRequest = (page = 1) =>
   alova.Get<{ data: Takedown[]; meta: { total: number; page: number; lastPage: number } }>('account/takedowns', { params: { page }, cacheFor: 0 })

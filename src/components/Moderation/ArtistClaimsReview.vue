@@ -88,6 +88,8 @@
             </div>
           </div>
 
+          <AiReviewStatus :review="claim.aiReview" v-if="claim.aiReview" />
+
           <div class="report" v-if="claim.status !== 'pending'">
             <div class="mb-1 text-xs text-grey-5">
               {{ claim.status === 'approved' ? 'Approved' : 'Declined' }}
@@ -134,6 +136,20 @@
                 :loading="busy === `reject:${claim.id}`"
                 @click="review(claim, 'reject')"
               />
+              <q-btn
+                outline
+                rounded
+                no-caps
+                size="sm"
+                color="purple-3"
+                icon="fas fa-wand-magic-sparkles"
+                label="Send to AI moderator"
+                class="!flex-none"
+                v-if="aiModerator"
+                :disable="claim.aiReview?.status === 'queued'"
+                :loading="busy === `ai:${claim.id}`"
+                @click="sendToAi(claim)"
+              />
             </div>
           </template>
         </q-card-section>
@@ -150,17 +166,20 @@
 import { exportFile } from 'quasar';
 import { reactive, ref, watch } from 'vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
+import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
+import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
 import {
   approveArtistClaimRequest,
   claimRoleLabel,
   downloadClaimDocumentRequest,
   loadArtistClaimsRequest,
   rejectArtistClaimRequest,
+  sendClaimToAiRequest,
   type ArtistClaim,
 } from 'src/utils/requests/artists';
 
 const props = defineProps<{ search?: string | null }>();
-const emit = defineEmits<{ meta: [meta: Record<string, number>] }>();
+const emit = defineEmits<{ meta: [meta: Record<string, number | boolean | undefined>] }>();
 
 const statusOptions = [
   { label: 'Waiting', value: 'pending' },
@@ -174,6 +193,7 @@ const notes = reactive<Record<number, string>>({});
 const pages = ref({ page: 1, lastPage: 1 });
 const loading = ref(false);
 const busy = ref<string | null>(null);
+const aiModerator = ref(false);
 
 const load = async (page = 1) => {
   loading.value = true;
@@ -182,6 +202,7 @@ const load = async (page = 1) => {
     const response = await loadArtistClaimsRequest({ status: status.value, search: props.search || undefined, page }).send();
     claims.value = response.data;
     pages.value = { page: response.meta.page, lastPage: response.meta.lastPage };
+    aiModerator.value = !!response.meta.aiModerator;
     emit('meta', response.meta);
   } catch (error) {
     notify((error as Error).message, 'error');
@@ -206,6 +227,22 @@ const review = async (claim: ArtistClaim, action: 'approve' | 'reject') => {
     busy.value = null;
   }
 };
+
+const sendToAi = async (claim: ArtistClaim) => {
+  busy.value = `ai:${claim.id}`;
+
+  try {
+    const { message } = await sendClaimToAiRequest(claim.id).send();
+    notify(message, 'success');
+    await load(pages.value.page);
+  } catch (error) {
+    notify((error as Error).message, 'error');
+  } finally {
+    busy.value = null;
+  }
+};
+
+useAiReviewPolling(claims, () => load(pages.value.page));
 
 const openDocument = async (claim: ArtistClaim) => {
   busy.value = `document:${claim.id}`;

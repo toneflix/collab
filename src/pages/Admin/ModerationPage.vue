@@ -232,6 +232,8 @@
                 </div>
               </div>
 
+              <AiReviewStatus :review="release.aiReview" v-if="release.aiReview" />
+
               <q-input
                 dark
                 filled
@@ -267,6 +269,20 @@
                   :disable="!reviewNotes[release.id]?.trim()"
                   :loading="busy === `reject:${release.id}`"
                   @click="review(release, 'reject')"
+                />
+                <q-btn
+                  outline
+                  rounded
+                  no-caps
+                  size="sm"
+                  color="purple-3"
+                  icon="fas fa-wand-magic-sparkles"
+                  label="Send to AI moderator"
+                  class="!flex-none"
+                  v-if="meta.aiModerator"
+                  :disable="release.aiReview?.status === 'queued'"
+                  :loading="busy === `ai:${release.id}`"
+                  @click="run(`ai:${release.id}`, () => sendReleaseToAiRequest(release.id).send())"
                 />
               </div>
             </q-card-section>
@@ -381,6 +397,8 @@ import { useMeta } from 'quasar';
 import { computed, reactive, ref, watch } from 'vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
 import ArtistClaimsReview from 'src/components/Moderation/ArtistClaimsReview.vue';
+import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
+import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import {
@@ -392,6 +410,7 @@ import {
   loadReleaseReviewsRequest,
   reasonLabel,
   rejectReleaseRequest,
+  sendReleaseToAiRequest,
   reportReasons,
   resolveReportsRequest,
   restoreTakedownRequest,
@@ -522,6 +541,8 @@ const review = (release: ReleaseReview, action: 'approve' | 'reject') => {
       : rejectReleaseRequest(release.id, reviewNotes[release.id] || '').send(),
   );
 };
+
+useAiReviewPolling(reviews, () => load(pages.value.page));
 
 watch([tab, search, () => filters.type, () => filters.source], () => load(), { immediate: true });
 
