@@ -12,319 +12,326 @@
         }"
         v-if="form.project_id"
       />
-      <q-tabs
-        dense
-        no-caps
-        class="text-grey"
-        active-color="primary"
-        indicator-color="primary"
-        align="left"
-        v-model="tab"
-      >
-        <q-tab name="basic" label="Basic Info" />
-        <q-tab name="meta" label="Meta Data" />
-        <q-tab name="tracks" label="Tracks" />
-        <q-tab name="publish" label="Publish" />
-      </q-tabs>
-
-      <q-separator />
-      <q-linear-progress
-        color="primary"
-        track-color="grey"
-        :value="uploading.total / uploading.loaded"
-        v-if="uploading.loaded && uploading.loaded <= 1"
+      <ReleasePublished
+        :release="published"
+        @edit="published = undefined"
+        v-if="published"
       />
+      <template v-else>
+        <q-tabs
+          dense
+          no-caps
+          class="text-grey"
+          active-color="primary"
+          indicator-color="primary"
+          align="left"
+          v-model="tab"
+        >
+          <q-tab name="basic" label="Basic Info" />
+          <q-tab name="meta" label="Meta Data" />
+          <q-tab name="tracks" label="Tracks" />
+          <q-tab name="publish" label="Publish" />
+        </q-tabs>
 
-      <q-form @submit.prevent="next">
-        <q-tab-panels v-model="tab" animated>
-          <q-tab-panel name="basic">
-            <ReleaseBasicInfoForm
-              v-model:form="form"
-              :errors="errors"
-              :meta="{
-                title: form.title,
-                username: form.artist?.username,
-                imageUrl: form.imageUrl,
-              }"
-              :show-version="!!form.project_id"
-            />
-          </q-tab-panel>
-          <q-tab-panel name="meta">
-            <ReleaseMetaDataForm v-model:form="form" :errors="errors" />
-          </q-tab-panel>
-          <q-tab-panel name="tracks">
-            <div class="grid gap-y-4 md:grid-cols-2 md:gap-x-4">
-              <div class="col-span-2" v-if="!form.project_id">
-                <label class="block mb-2 text-xl text-gray-400">
-                  Upload Tracks
-                </label>
-                <q-file
-                  outlined
-                  multiple
-                  bottom-slots
-                  ref="uploader"
-                  color="primary"
-                  class="custom-q-class no-fill"
-                  label="Select Files"
-                  input-class="custom-input-class"
-                  max-files="1"
-                  :accept="allowedAudioExts.join(', ')"
-                  v-model="file"
-                  @update:model-value="processUpload"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="cloud_upload" @click.stop.prevent />
-                  </template>
-                  <template v-slot:append>
-                    <q-btn
-                      outline
-                      color="primary"
-                      icon-right="chevron_right"
-                      label="Retry"
-                      :loading="loading"
-                      @click="processUpload()"
-                      v-if="tError"
-                    />
-                  </template>
-                </q-file>
-              </div>
+        <q-separator />
+        <q-linear-progress
+          color="primary"
+          track-color="grey"
+          :value="uploading.total / uploading.loaded"
+          v-if="uploading.loaded && uploading.loaded <= 1"
+        />
 
-              <div class="col-span-2">
-                <q-list bordered separator class="rounded-borders">
-                  <q-expansion-item
-                    expand-separator
-                    :class="{ 'rounded ring-1 ring-red-600': track.hasError }"
-                    :model-value="track.hasError"
-                    :key="track.id + String(i)"
-                    v-for="(track, i) in tracks"
+        <q-form @submit.prevent="next">
+          <q-tab-panels v-model="tab" animated>
+            <q-tab-panel name="basic">
+              <ReleaseBasicInfoForm
+                v-model:form="form"
+                :errors="errors"
+                :meta="{
+                  title: form.title,
+                  username: form.artist?.username,
+                  imageUrl: form.imageUrl,
+                }"
+                :show-version="!!form.project_id"
+              />
+            </q-tab-panel>
+            <q-tab-panel name="meta">
+              <ReleaseMetaDataForm v-model:form="form" :errors="errors" />
+            </q-tab-panel>
+            <q-tab-panel name="tracks">
+              <div class="grid gap-y-4 md:grid-cols-2 md:gap-x-4">
+                <div class="col-span-2" v-if="!form.project_id">
+                  <label class="block mb-2 text-xl text-gray-400">
+                    Upload Tracks
+                  </label>
+                  <q-file
+                    outlined
+                    multiple
+                    bottom-slots
+                    ref="uploader"
+                    color="primary"
+                    class="custom-q-class no-fill"
+                    label="Select Files"
+                    input-class="custom-input-class"
+                    max-files="1"
+                    :accept="allowedAudioExts.join(', ')"
+                    v-model="file"
+                    @update:model-value="processUpload"
                   >
-                    <template v-slot:header>
-                      <q-item-section avatar>
-                        <q-avatar
-                          icon="fas fa-compact-disc"
-                          color="white"
-                          text-color="dark"
-                          class="bg-white !bg-contain !bg-no-repeat !bg-center"
-                          :style="{
-                            backgroundImage: `linear-gradient(#da000066, #f6f6f6d9), url(${track.imageUrl}) !important`,
-                          }"
-                        />
-                      </q-item-section>
-
-                      <q-item-section> {{ track.title }} </q-item-section>
-
-                      <q-item-section side v-if="$route.params.release_id">
-                        <div class="items-center row">
-                          <ContentRemover
-                            flat
-                            dense
-                            round
-                            size="md"
-                            icon="clear"
-                            color="red"
-                            :id="track.id"
-                            :list="(() => tracks as unknown as GenericData[])()"
-                            :base-url="`creator/releases/${$route.params.release_id}/tracks`"
-                            :disabled="!!track.project_track_id"
-                            @click.stop.prevent
-                          />
-                        </div>
-                      </q-item-section>
+                    <template v-slot:prepend>
+                      <q-icon name="cloud_upload" @click.stop.prevent />
                     </template>
-                    <q-card>
-                      <q-card-section>
-                        <ReleaseBasicInfoForm
-                          hide-privacy-options
-                          show-player
-                          type="track"
-                          v-model:form="tracks[i]"
-                          :index="i + 1"
-                          :errors="errors"
-                          :meta="{
-                            title: track.title,
-                            username: track.artist?.username,
-                            imageUrl: track.imageUrl,
-                          }"
-                          @error="track.hasError = true"
-                          @error-cleared="delete track.hasError"
-                        >
-                          <template #avatar-bottom v-if="streamUrls[i]">
-                            <q-btn
+                    <template v-slot:append>
+                      <q-btn
+                        outline
+                        color="primary"
+                        icon-right="chevron_right"
+                        label="Retry"
+                        :loading="loading"
+                        @click="processUpload()"
+                        v-if="tError"
+                      />
+                    </template>
+                  </q-file>
+                </div>
+
+                <div class="col-span-2">
+                  <q-list bordered separator class="rounded-borders">
+                    <q-expansion-item
+                      expand-separator
+                      :class="{ 'rounded ring-1 ring-red-600': track.hasError }"
+                      :model-value="track.hasError"
+                      :key="track.id + String(i)"
+                      v-for="(track, i) in tracks"
+                    >
+                      <template v-slot:header>
+                        <q-item-section avatar>
+                          <q-avatar
+                            icon="fas fa-compact-disc"
+                            color="white"
+                            text-color="dark"
+                            class="bg-white !bg-contain !bg-no-repeat !bg-center"
+                            :style="{
+                              backgroundImage: `linear-gradient(#da000066, #f6f6f6d9), url(${track.imageUrl}) !important`,
+                            }"
+                          />
+                        </q-item-section>
+
+                        <q-item-section> {{ track.title }} </q-item-section>
+
+                        <q-item-section side v-if="$route.params.release_id">
+                          <div class="items-center row">
+                            <ContentRemover
                               flat
                               dense
                               round
-                              icon="refresh"
-                              class="m-2 absolute-top-right"
-                              v-if="streamUrls[i]"
-                              @click="resetTrack(i)"
+                              size="md"
+                              icon="clear"
+                              color="red"
+                              :id="track.id"
+                              :list="(() => tracks as unknown as GenericData[])()"
+                              :base-url="`creator/releases/${$route.params.release_id}/tracks`"
+                              :disabled="!!track.project_track_id"
+                              @click.stop.prevent
                             />
-                          </template>
-                          <template
-                            #avatar-center
-                            v-if="
-                              form.draft &&
-                              track.project_track_id &&
-                              (!track.id || track.audioMissing)
-                            "
+                          </div>
+                        </q-item-section>
+                      </template>
+                      <q-card>
+                        <q-card-section>
+                          <ReleaseBasicInfoForm
+                            hide-privacy-options
+                            show-player
+                            type="track"
+                            v-model:form="tracks[i]"
+                            :index="i + 1"
+                            :errors="errors"
+                            :meta="{
+                              title: track.title,
+                              username: track.artist?.username,
+                              imageUrl: track.imageUrl,
+                            }"
+                            @error="track.hasError = true"
+                            @error-cleared="delete track.hasError"
                           >
-                            <q-btn
-                              dense
-                              no-caps
-                              rounded
-                              padding="xs none"
-                              unelevated
-                              icon="fas fa-file-audio"
-                              class="w-full mt-2 overflow-hidden text-ellipsis"
-                              color="primary"
-                              :label="
-                                subString(
-                                  tempFiles[i]?.name || 'Change Audio',
-                                  12,
-                                )
+                            <template #avatar-bottom v-if="streamUrls[i]">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                icon="refresh"
+                                class="m-2 absolute-top-right"
+                                v-if="streamUrls[i]"
+                                @click="resetTrack(i)"
+                              />
+                            </template>
+                            <template
+                              #avatar-center
+                              v-if="
+                                form.draft &&
+                                track.project_track_id &&
+                                (!track.id || track.audioMissing)
                               "
-                              @click="fileInputRefs[i].click()"
-                            />
-                            <input
-                              type="file"
-                              class="hidden"
-                              :ref="
-                                (e) =>
-                                  (fileInputRefs[i] = e as HTMLInputElement)
-                              "
-                              :accept="allowedAudioExts.join(', ')"
-                              @change="(e) => setFile(e as HTMLInputEvent, i)"
-                            />
-                          </template>
-                        </ReleaseBasicInfoForm>
-                      </q-card-section>
-                    </q-card>
-                  </q-expansion-item>
-                </q-list>
-              </div>
-            </div>
-          </q-tab-panel>
-
-          <q-tab-panel name="publish">
-            <q-banner
-              rounded
-              class="p-2 m-3 text-orange-900 border border-orange-800 border-solid bg-orange-50 rounded-xl"
-              v-if="missing.length"
-            >
-              <div class="mb-1 text-lg font-semibold">
-                This release can't be published yet
-              </div>
-              <div class="mb-2">
-                Add the following, or save it as a draft and finish later:
-              </div>
-              <ul class="ml-5 list-disc">
-                <li :key="item.label" v-for="item in missing">
-                  <a class="underline cursor-pointer" @click="goTo(item.tab)">
-                    {{ item.label }}
-                  </a>
-                </li>
-              </ul>
-            </q-banner>
-            <q-banner
-              rounded
-              class="p-2 m-3 text-center text-green-800 border border-green-800 border-solid bg-green-50 rounded-xl"
-              v-else-if="form.draft"
-            >
-              <span class="text-lg">
-                Once your release is published, it will become available to
-                everyone, by publishing this release you acknowledge that you
-                have read and accepted our
-                <router-link :to="{ name: 'home' }">
-                  <span class="text-info">Terms of Service</span>
-                </router-link>
-                and our
-                <router-link :to="{ name: 'home' }">
-                  <span class="text-info">Privacy Policy.</span>
-                </router-link>
-              </span>
-
-              <template v-slot:action>
-                <div class="w-full mb-3 text-left" v-if="otherVersions.length">
-                  <div class="mb-1 font-semibold">
-                    Retire earlier versions when this one is published
-                  </div>
-                  <div class="mb-2 text-sm">
-                    Retired releases are no longer listed or sold. People who
-                    bought them keep them, and you can bring them back from
-                    your releases.
-                  </div>
-                  <q-checkbox
-                    dense
-                    color="green-9"
-                    class="w-full py-1"
-                    :key="release.id"
-                    :val="release.id"
-                    :label="versionLabel(release)"
-                    v-model="retire"
-                    v-for="release in otherVersions"
-                  />
+                            >
+                              <q-btn
+                                dense
+                                no-caps
+                                rounded
+                                padding="xs none"
+                                unelevated
+                                icon="fas fa-file-audio"
+                                class="w-full mt-2 overflow-hidden text-ellipsis"
+                                color="primary"
+                                :label="
+                                  subString(
+                                    tempFiles[i]?.name || 'Change Audio',
+                                    12,
+                                  )
+                                "
+                                @click="fileInputRefs[i].click()"
+                              />
+                              <input
+                                type="file"
+                                class="hidden"
+                                :ref="
+                                  (e) =>
+                                    (fileInputRefs[i] = e as HTMLInputElement)
+                                "
+                                :accept="allowedAudioExts.join(', ')"
+                                @change="(e) => setFile(e as HTMLInputEvent, i)"
+                              />
+                            </template>
+                          </ReleaseBasicInfoForm>
+                        </q-card-section>
+                      </q-card>
+                    </q-expansion-item>
+                  </q-list>
                 </div>
-              </template>
-            </q-banner>
-            <div class="m-3 text-center text-lg" v-else>
-              This release is published. Saving updates it for everyone.
-            </div>
+              </div>
+            </q-tab-panel>
 
-            <div class="flex justify-center gap-2 mt-4">
-              <q-btn
-                no-caps
-                outline
-                color="primary"
-                class="text-xl rounded-lg !flex-none"
-                label="Save Draft"
-                :loading="saving && !form.publish"
-                @click="saveDraft"
-                v-if="form.draft && !missing.length"
-              />
-              <q-btn
-                no-caps
-                color="primary"
-                class="text-xl rounded-lg !flex-none"
-                :label="form.draft ? 'Save Draft' : 'Save Changes'"
-                :loading="saving"
-                @click="form.draft ? saveDraft() : saveRelease(false)"
-                v-if="missing.length || !form.draft"
-              />
-              <q-btn
-                no-caps
-                color="primary"
-                class="text-xl rounded-lg !flex-none"
-                icon="fas fa-check-circle"
-                label="Publish Now"
-                :loading="saving && !!form.publish"
-                @click="saveRelease(true)"
-                v-else
-              />
-            </div>
-          </q-tab-panel>
-        </q-tab-panels>
+            <q-tab-panel name="publish">
+              <q-banner
+                rounded
+                class="p-2 m-3 text-orange-900 border border-orange-800 border-solid bg-orange-50 rounded-xl"
+                v-if="missing.length"
+              >
+                <div class="mb-1 text-lg font-semibold">
+                  This release can't be published yet
+                </div>
+                <div class="mb-2">
+                  Add the following, or save it as a draft and finish later:
+                </div>
+                <ul class="ml-5 list-disc">
+                  <li :key="item.label" v-for="item in missing">
+                    <a class="underline cursor-pointer" @click="goTo(item.tab)">
+                      {{ item.label }}
+                    </a>
+                  </li>
+                </ul>
+              </q-banner>
+              <q-banner
+                rounded
+                class="p-2 m-3 text-center text-green-800 border border-green-800 border-solid bg-green-50 rounded-xl"
+                v-else-if="form.draft"
+              >
+                <span class="text-lg">
+                  Once your release is published, it will become available to
+                  everyone, by publishing this release you acknowledge that you
+                  have read and accepted our
+                  <router-link :to="{ name: 'home' }">
+                    <span class="text-info">Terms of Service</span>
+                  </router-link>
+                  and our
+                  <router-link :to="{ name: 'home' }">
+                    <span class="text-info">Privacy Policy.</span>
+                  </router-link>
+                </span>
 
-        <div
-          class="justify-end gap-2 mt-4 text-center md:flex md:items-center md:col-span-2"
-          v-if="tab !== 'publish'"
-        >
-          <q-btn
-            no-caps
-            outline
-            color="primary"
-            class="mb-5 text-xl rounded-lg md:!mb-0"
-            label="Back"
-            @click="back"
-            v-if="tab !== 'basic'"
-          />
-          <q-btn
-            no-caps
-            color="primary"
-            class="mb-5 text-xl rounded-lg md:!mb-0"
-            label="Next"
-            @click="next"
-          />
-        </div>
-      </q-form>
+                <template v-slot:action>
+                  <div class="w-full mb-3 text-left" v-if="otherVersions.length">
+                    <div class="mb-1 font-semibold">
+                      Retire earlier versions when this one is published
+                    </div>
+                    <div class="mb-2 text-sm">
+                      Retired releases are no longer listed or sold. People who
+                      bought them keep them, and you can bring them back from
+                      your releases.
+                    </div>
+                    <q-checkbox
+                      dense
+                      color="green-9"
+                      class="w-full py-1"
+                      :key="release.id"
+                      :val="release.id"
+                      :label="versionLabel(release)"
+                      v-model="retire"
+                      v-for="release in otherVersions"
+                    />
+                  </div>
+                </template>
+              </q-banner>
+              <div class="m-3 text-center text-lg" v-else>
+                This release is published. Saving updates it for everyone.
+              </div>
+
+              <div class="flex justify-center gap-2 mt-4">
+                <q-btn
+                  no-caps
+                  outline
+                  color="primary"
+                  class="text-xl rounded-lg !flex-none"
+                  label="Save Draft"
+                  :loading="saving && !form.publish"
+                  @click="saveDraft"
+                  v-if="form.draft && !missing.length"
+                />
+                <q-btn
+                  no-caps
+                  color="primary"
+                  class="text-xl rounded-lg !flex-none"
+                  :label="form.draft ? 'Save Draft' : 'Save Changes'"
+                  :loading="saving"
+                  @click="form.draft ? saveDraft() : saveRelease(false)"
+                  v-if="missing.length || !form.draft"
+                />
+                <q-btn
+                  no-caps
+                  color="primary"
+                  class="text-xl rounded-lg !flex-none"
+                  icon="fas fa-check-circle"
+                  label="Publish Now"
+                  :loading="saving && !!form.publish"
+                  @click="saveRelease(true)"
+                  v-else
+                />
+              </div>
+            </q-tab-panel>
+          </q-tab-panels>
+
+          <div
+            class="justify-end gap-2 mt-4 text-center md:flex md:items-center md:col-span-2"
+            v-if="tab !== 'publish'"
+          >
+            <q-btn
+              no-caps
+              outline
+              color="primary"
+              class="mb-5 text-xl rounded-lg md:!mb-0"
+              label="Back"
+              @click="back"
+              v-if="tab !== 'basic'"
+            />
+            <q-btn
+              no-caps
+              color="primary"
+              class="mb-5 text-xl rounded-lg md:!mb-0"
+              label="Next"
+              @click="next"
+            />
+          </div>
+        </q-form>
+      </template>
       <q-inner-loading
         class="bg-gray-800/70"
         :showing="!!form.publish && saving"
@@ -337,6 +344,7 @@
 import ContentRemover from 'src/components/Utilities/ContentRemover.vue';
 import ReleaseBasicInfoForm from 'src/components/Forms/ReleaseBasicInfoForm.vue';
 import ReleaseMetaDataForm from 'src/components/Forms/ReleaseMetaDataForm.vue';
+import ReleasePublished from 'src/components/Studio/ReleasePublished.vue';
 import {
   GenericData,
   HTMLInputEvent,
@@ -559,13 +567,23 @@ onError(({ error }) => {
   });
 });
 
+// The release that was just published, which swaps the form for a success screen.
+const published = ref<Release>();
+
 onSuccess(({ data }) => {
+  if (form.value.publish && !data.data?.draft) {
+    published.value = data.data;
+  }
+
   form.value.id = data.data.id;
   form.value.draft = data.data?.draft ? 1 : 0;
   form.value.publish = 0;
   form.value.retire = [];
   retire.value = [];
-  notify(data.message, data.status);
+  if (!published.value) {
+    notify(data.message, data.status);
+  }
+
   if (!route.params.release_id) {
     router.replace({ params: { release_id: data.data.id } });
   }
