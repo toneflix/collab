@@ -108,11 +108,12 @@ export const stemClips = (meta: StemMeta): StemClip[] => {
 };
 
 /**
- * Turn a stem into the config `<daw-editor>.addTrack()` takes.
+ * Turn a stem into the config `<daw-editor>.addTrack()` takes. `audioUrl`
+ * points the clips at audio already on this device instead of the network.
  */
-export const stemToTrack = (stem: Stem): TrackConfig => {
+export const stemToTrack = (stem: Stem, audioUrl?: string): TrackConfig => {
   const meta = stem.meta || ({} as StemMeta);
-  const src = meta.src || stem.src;
+  const src = audioUrl || meta.src || stem.src;
 
   return {
     name: stemTitle(stem),
