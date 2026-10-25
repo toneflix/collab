@@ -99,7 +99,10 @@ export const usePlayerStore = defineStore('player', {
 
   getters: {
     position: () => clock.position,
-    duration: () => clock.duration,
+    /** The audio's length once loaded, otherwise the length saved with the track */
+    duration (): number {
+      return clock.duration || this.current?.duration || 0;
+    },
     buffered: () => clock.buffered,
     current (state): Track | null {
       const i = state.order[state.index];
@@ -118,7 +121,7 @@ export const usePlayerStore = defineStore('player', {
       return state.order.map((i) => state.queue[i]).filter((t): t is Track => !!t);
     },
     progress (): number {
-      return clock.duration ? (clock.position / clock.duration) * 100 : 0;
+      return this.duration ? (clock.position / this.duration) * 100 : 0;
     },
   },
 
