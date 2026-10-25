@@ -120,7 +120,7 @@ export const disconnectFreesoundRequest = () => alova.Delete<ResponseBody<{ conn
 
 // Admin
 
-export type SyncResult = { added: number; skipped: number; failed: number; at: string; errors: string[] }
+export type SyncResult = { added: number; skipped: number; failed: number; paused?: boolean; at: string; errors: string[] }
 
 export type SoundAdminSettings = {
   fields: Record<string, SettingField>;
