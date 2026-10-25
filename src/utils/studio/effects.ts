@@ -1,5 +1,7 @@
 import type { EffectDefinition, EffectInstance } from '@dawcore/components';
+import { reactive } from 'vue';
 import { EFFECT_NODES } from './effect-nodes';
+import type { FaustEffect } from '../requests/effects';
 
 /**
  * Effects a stem can have. They run live in the editor, and the API renders
@@ -21,13 +23,19 @@ export type EffectType =
   | 'tf-limiter'
   | 'tf-chorus'
   | 'tf-flanger'
-  | 'tf-phaser';
+  | 'tf-phaser'
+  | `faust-${string}`
+  | 'wam';
 
 /** One effect on a stem, as saved in the stem's `meta.effects`. */
 export interface StemEffect {
   type: EffectType;
   params: Record<string, number>;
   bypassed?: boolean;
+  /** A plugin's module link, name and saved settings (type `wam`) */
+  url?: string;
+  name?: string;
+  state?: unknown;
 }
 
 export interface EffectParam {
@@ -47,6 +55,8 @@ export interface EffectInfo {
   description: string;
   defaults: Record<string, number>;
   params: EffectParam[];
+  /** For an effect written in Faust: what the browser compiles, and each setting's plugin parameter */
+  faust?: { name: string; source: string; addresses: Record<string, string> };
 }
 
 /** The effects offered in the studio, in menu order. */
@@ -230,7 +240,77 @@ export const EFFECTS: EffectInfo[] = [
 /** The groups of the add menu, in order. */
 export const EFFECT_GROUPS = ['Tone', 'Dynamics', 'Colour', 'Space', 'Movement'] as const;
 
-export const effectInfo = (type: string) => EFFECTS.find((e) => e.type === type);
+/** Faust effects from the server, added once they've loaded. */
+const faustEffects = reactive<EffectInfo[]>([]);
+
+/** Offer the server's Faust effects in the studio. */
+export const addFaustEffects = (list: FaustEffect[]) => {
+  faustEffects.splice(
+    0,
+    faustEffects.length,
+    ...list.map((f): EffectInfo => ({
+      type: f.type,
+      group: (EFFECT_GROUPS as readonly string[]).includes(f.group) ? (f.group as EffectInfo['group']) : 'Colour',
+      label: f.label,
+      description: f.description,
+      defaults: Object.fromEntries(f.params.map((p) => [p.key, p.init])),
+      params: f.params.map((p) => ({
+        key: p.key,
+        label: p.key[0]!.toUpperCase() + p.key.slice(1),
+        min: p.min,
+        max: p.max,
+        step: p.step,
+        ...(p.unit ? { unit: p.unit } : {}),
+      })),
+      faust: {
+        name: f.name,
+        source: f.source,
+        addresses: Object.fromEntries(f.params.map((p) => [p.key, p.address])),
+      },
+    })),
+  );
+};
+
+/** Every effect the studio offers: its own, then the Faust ones. */
+export const allEffects = () => [...EFFECTS, ...faustEffects];
+
+export const effectInfo = (type: string) => allEffects().find((e) => e.type === type);
+
+export const isFaust = (type: string) => type.startsWith('faust-');
+
+/** A Web Audio Module plugin loaded from a link, which the server can't run. */
+export const isPlugin = (effect: StemEffect) => effect.type === 'wam';
+
+/** Whether a chain needs printing to audio for the server's mix. */
+export const needsPrint = (list: StemEffect[]) => list.some((e) => isPlugin(e) && !e.bypassed);
+
+/** A plugin's name, or the folder of its link. */
+export const pluginName = (effect: StemEffect) => {
+  if (effect.name) return effect.name;
+  try {
+    const parts = new URL(effect.url ?? '').pathname.split('/').filter((p) => p && !/^(index\.js|dist|src|build)$/.test(p));
+    return parts[parts.length - 1] ?? 'Plugin';
+  } catch {
+    return 'Plugin';
+  }
+};
+
+const pluginUrl = (value: unknown) => {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === 'https:' || url.hostname === 'localhost' ? url.href : null;
+  } catch {
+    return null;
+  }
+};
+
+/** A Faust effect's settings keyed by its plugin's parameter ids. */
+export const faustState = (info: EffectInfo, params: Record<string, number>) =>
+  Object.fromEntries(
+    Object.entries(params)
+      .filter(([key]) => info.faust?.addresses[key])
+      .map(([key, value]) => [info.faust!.addresses[key]!, value]),
+  );
 
 const db = (value: number) => Math.max(-40, Math.min(40, Number(value) || 0));
 
@@ -376,16 +456,43 @@ export const parseEffects = (value: unknown): StemEffect[] => {
   if (!Array.isArray(list)) return [];
 
   return list
-    .filter((e): e is StemEffect => !!e && typeof e === 'object' && !!effectInfo((e as StemEffect).type))
+    .filter(
+      (e): e is StemEffect =>
+        !!e &&
+        typeof e === 'object' &&
+        (!!effectInfo((e as StemEffect).type) ||
+          isFaust(String((e as StemEffect).type)) ||
+          (isPlugin(e as StemEffect) && !!pluginUrl((e as StemEffect).url))),
+    )
     .slice(0, 8)
-    .map((e) => {
-      const info = effectInfo(e.type)!;
+    .map((e): StemEffect => {
+      const info = effectInfo(e.type);
+      const bypassed = e.bypassed === true || String(e.bypassed) === 'true';
+      if (isPlugin(e)) {
+        return {
+          type: 'wam',
+          url: pluginUrl(e.url)!,
+          ...(typeof e.name === 'string' ? { name: e.name.slice(0, 80) } : {}),
+          ...(e.state !== undefined ? { state: e.state } : {}),
+          params: {},
+          bypassed,
+        };
+      }
+      // A Faust effect from before the list loaded keeps its settings as saved.
+      if (!info) {
+        const kept = Object.entries(e.params ?? {}).filter(([, v]) => Number.isFinite(Number(v)));
+        return {
+          type: e.type,
+          params: Object.fromEntries(kept.map(([k, v]) => [k, Number(v)])),
+          bypassed,
+        };
+      }
       const params: Record<string, number> = { ...info.defaults };
       for (const p of info.params) {
         const n = Number(e.params?.[p.key]);
         if (Number.isFinite(n)) params[p.key] = Math.max(p.min, Math.min(p.max, n));
       }
-      return { type: e.type, params, bypassed: e.bypassed === true || String(e.bypassed) === 'true' };
+      return { type: e.type, params, bypassed };
     });
 };
 

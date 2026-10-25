@@ -231,6 +231,13 @@
     lit "^3.3.3"
     waveform-data "^4.5.2"
 
+"@dawcore/faust@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@dawcore/faust/-/faust-0.0.1.tgz#e0541aa514c84a5f2a7adfca2775f156121440f5"
+  integrity sha512-UlN/hfg4vd5becG71se7sBKSpuHmR/Og1+YVUQqbKL+4+2lzIoyfDsVJAo1TD+9XMen5tf3ZiwFXerOjfjCC2Q==
+  dependencies:
+    "@shren/faust2wam" "0.0.16"
+
 "@dawcore/spectrogram@0.0.7":
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/@dawcore/spectrogram/-/spectrogram-0.0.7.tgz#350403b7e19c8c5e77e54ed0bccc4e0d8ea76899"
@@ -243,6 +250,14 @@
   version "0.0.14"
   resolved "https://registry.yarnpkg.com/@dawcore/transport/-/transport-0.0.14.tgz#cbe3d061ca2e2f0c8c131ffb45f41613af5cf6c0"
   integrity sha512-bTW6UEZ2Xj+XUl5Nhb5+e6CLS4Z3gMDhNwkW97AvGxSjavJZe2fm0jOygfTP3MpogZmL2P4p5vhF3zJKynIMEw==
+
+"@dawcore/wam@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@dawcore/wam/-/wam-0.0.3.tgz#b627f311874f5367c7b1ffe36441f50894c78c32"
+  integrity sha512-Z4yAepZ0Qjdm42fCaruy8b6dJ3zlm/dDomYFJcVWLNZUd6Fq2DHItcWXZblQr3ReelTPvc4x82tFvD+/Qf0y/g==
+  dependencies:
+    "@webaudiomodules/api" "2.0.0-alpha.6"
+    "@webaudiomodules/sdk" "0.0.12"
 
 "@dual-bundle/import-meta-resolve@^4.2.1":
   version "4.2.1"
@@ -873,6 +888,13 @@
     "@floating-ui/dom" "^1.6.1"
     "@floating-ui/utils" "^0.2.1"
     vue-demi ">=0.13.0"
+
+"@grame/faustwasm@^0.15.7":
+  version "0.15.7"
+  resolved "https://registry.yarnpkg.com/@grame/faustwasm/-/faustwasm-0.15.7.tgz#f63715f89953ac0e0ad36709b103dbc0f525e477"
+  integrity sha512-Y+fyQZQU4SLjxrdEK5SvOGWWutPRioWmbzcxhkU+zTAQ1lO+lfnlH5iIRDXdR1g52jpm6b/oyvBablHibEuVaA==
+  dependencies:
+    "@types/emscripten" "^1.39.10"
 
 "@grpc/grpc-js@~1.9.0":
   version "1.9.16"
@@ -1706,6 +1728,28 @@
   resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz#e3fcee093fbb5ce765e1ad088ff4de2889f6f9be"
   integrity sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==
 
+"@shren/faust-ui@^1.1.19":
+  version "1.1.19"
+  resolved "https://registry.yarnpkg.com/@shren/faust-ui/-/faust-ui-1.1.19.tgz#5c2833893895c13811d3f28638ee9b4f016cd1a3"
+  integrity sha512-PZvNsdDM2H4l3NTZV1in38oqe03GWxGohsMefom0luOUVmfntp7ctb1eW7s+vkUKAJH5je5tIlbynigqTQ0gjA==
+
+"@shren/faust2wam@0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@shren/faust2wam/-/faust2wam-0.0.16.tgz#05abf9acb645c5811c805179a60b06920532cdf9"
+  integrity sha512-kxMQyFbjEP8NoIo29McDVdIVFZDV4GyPagPlPSLcr47EKwxJXtVBcrUc+OvOjUnE2YhRGGyq5m37VnuiFOrBBQ==
+  dependencies:
+    "@grame/faustwasm" "^0.15.7"
+    "@shren/faust-ui" "^1.1.19"
+    "@shren/fftw-js" "^0.1.10"
+    "@webaudiomodules/api" "^2.0.0-alpha.6"
+    "@webaudiomodules/sdk" "^0.0.11"
+    "@webaudiomodules/sdk-parammgr" "^0.0.13"
+
+"@shren/fftw-js@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@shren/fftw-js/-/fftw-js-0.1.10.tgz#84ce17289d7947631822fbced61be452684e6e3e"
+  integrity sha512-3usCK/bowx3YgEklzKZiUKY7sYCoE7yQKdt/H4UqpICALntMtg8FE4vszTJAqSrvu5ZNecpEkjastlB0er/OBQ==
+
 "@sindresorhus/is@^7.0.2":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-7.2.0.tgz#7c594e1a64336d2008d99d814056d459421504d4"
@@ -1850,6 +1894,11 @@
   version "11.0.3"
   resolved "https://registry.yarnpkg.com/@types/cordova/-/cordova-11.0.3.tgz#4301b1c614899c1c99a83aac45914285462201b7"
   integrity sha512-kyuRQ40/NWQVhqGIHq78Ehu2Bf9Mlg0LhmSmis6ZFJK7z933FRfYi8tHe/k/0fB+PGfCf95rJC6TO7dopaFvAg==
+
+"@types/emscripten@^1.39.10":
+  version "1.41.6"
+  resolved "https://registry.yarnpkg.com/@types/emscripten/-/emscripten-1.41.6.tgz#0d852a4c29fc2c035ed9232f00135717f1a920f1"
+  integrity sha512-uN+9i8bFT5CUcZfyIEYDrSueACEyKGbUs5kC/72DGlZZoinh84sJfVV0i8UOJD1asdzkvLPBRrKs41kZ8MdEXg==
 
 "@types/esrecurse@^4.3.1":
   version "4.3.1"
@@ -2200,6 +2249,26 @@
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@waveform-playlist/worklets/-/worklets-13.0.0.tgz#4adf1d2a1df8311aadc72d01164e02a2c738a409"
   integrity sha512-0DsUQ0IKa6pqMhq/WMEfMmMfmjZzIHIZU1eKXrKUnk8CsCXdd03lfALoRd8iqfL0MClSlDr4TZF6z9R6PZ84ig==
+
+"@webaudiomodules/api@2.0.0-alpha.6", "@webaudiomodules/api@^2.0.0-alpha.6":
+  version "2.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@webaudiomodules/api/-/api-2.0.0-alpha.6.tgz#85333478ee8ac4782b25952325ced738a70da704"
+  integrity sha512-GFyp7fVgNd26aFlmk7svGWtwrS1PqrwWajR+JDnbF3aSka9TteZbIcKA6lQ1D7gMc+n8h+te69h+zG5DWwYKIw==
+
+"@webaudiomodules/sdk-parammgr@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@webaudiomodules/sdk-parammgr/-/sdk-parammgr-0.0.13.tgz#6c57b2182b62004aa65d494fe1ac0f2f0d64f82e"
+  integrity sha512-1KPjO9BlEfBAeMjfZZ6vfq2wOpRI01FHDyk9ZcCtMACciaHZZmeGobWkf4OToZs5kInGm1fN2dwStgQkiMk09Q==
+
+"@webaudiomodules/sdk@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@webaudiomodules/sdk/-/sdk-0.0.12.tgz#70f37047b49fc4e33de050c5ce6df98112e52734"
+  integrity sha512-8eV+7wX8Wjrkjs3sIysq508ehS4mBEkLdwk8xinY3IXGi/zvWIfoipbWfvQ+AsaKnN3hBMGZI0AgLf1GlApBIA==
+
+"@webaudiomodules/sdk@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@webaudiomodules/sdk/-/sdk-0.0.11.tgz#3daca4832611580fb2c50980e1e44076bf851a20"
+  integrity sha512-AJkxPWHUQLriXSEMnrSZ3iB8/kItbiN4B7gbm4I543z/xI+Ic+N/oj+tX1YKuQ2sgeQyr2fSt2+t2Keq1V+WCA==
 
 acorn-jsx@^5.3.2:
   version "5.3.2"

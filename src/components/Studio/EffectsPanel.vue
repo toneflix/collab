@@ -11,6 +11,7 @@
         label="Add"
         :disable="readonly || modelValue.length >= 8"
         dropdown-icon="expand_more"
+        @show="plugins && loadPlugins()"
       >
         <q-list dark dense class="min-w-64 max-h-[60vh]">
           <template :key="group" v-for="group in EFFECT_GROUPS">
@@ -19,12 +20,30 @@
               clickable
               v-close-popup
               :key="e.type"
-              v-for="e in EFFECTS.filter((x) => x.group === group)"
+              v-for="e in allEffects().filter((x) => x.group === group)"
               @click="add(e.type)"
             >
               <q-item-section>
                 <q-item-label>{{ e.label }}</q-item-label>
                 <q-item-label caption>{{ e.description }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+          <template v-if="plugins">
+            <q-item-label header class="!py-2 !text-xs uppercase tracking-wider">Plugins</q-item-label>
+            <q-item clickable v-close-popup :key="p.url" v-for="p in library" @click="addPlugin(p.url, p.name)">
+              <q-item-section>
+                <q-item-label>{{ p.name }}</q-item-label>
+                <q-item-label caption>{{ [p.vendor, p.description].filter(Boolean).join(' · ') }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item v-if="loadingLibrary">
+              <q-item-section class="text-grey-5">Loading community plugins…</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="askForPlugin">
+              <q-item-section>
+                <q-item-label>Plugin from a link…</q-item-label>
+                <q-item-label caption>Any Web Audio Module (WAM 2) effect.</q-item-label>
               </q-item-section>
             </q-item>
           </template>
@@ -49,9 +68,23 @@
         />
         <span class="font-bold">{{ label(effect) }}</span>
         <q-space />
+        <q-btn
+          flat
+          dense
+          no-caps
+          size="sm"
+          label="Open"
+          icon="tune"
+          :aria-label="`Open ${label(effect)}`"
+          @click="emit('open', i)"
+          v-if="isPlugin(effect)"
+        />
         <q-btn flat round dense size="sm" icon="arrow_upward" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
         <q-btn flat round dense size="sm" icon="arrow_downward" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
         <q-btn flat round dense size="sm" icon="close" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
+      </div>
+      <div class="fx__note" v-if="isPlugin(effect)">
+        A plugin from {{ host(effect) }}. When you save, the stem is recorded through it so the mix sounds the same.
       </div>
       <label class="fx__param" :key="p.key" v-for="p in effectInfo(effect.type)?.params ?? []">
         <span class="fx__param-label">{{ p.label }}</span>
@@ -73,13 +106,31 @@
 </template>
 
 <script setup lang="ts">
-import { EFFECT_GROUPS, EFFECTS, effectInfo, type EffectType, type StemEffect } from 'src/utils/studio/effects';
+import type { WamLibraryEntry } from '@dawcore/wam';
+import { useQuasar } from 'quasar';
+import { ref } from 'vue';
+import {
+  allEffects,
+  EFFECT_GROUPS,
+  effectInfo,
+  isPlugin,
+  pluginName,
+  type EffectType,
+  type StemEffect,
+} from 'src/utils/studio/effects';
+import { loadPluginLibrary } from 'src/utils/studio/plugins';
 
 /**
  * The effect chain of one stem: add, reorder, switch off and adjust effects.
  * Changes are emitted right away so they can be heard while dragging.
  */
-const props = defineProps<{ modelValue: StemEffect[]; name: string; readonly?: boolean }>();
+const props = defineProps<{
+  modelValue: StemEffect[];
+  name: string;
+  readonly?: boolean;
+  /** Offer Web Audio Module plugins too */
+  plugins?: boolean;
+}>();
 
 const emit = defineEmits<{
   /** The chain changed shape: added, removed, moved or switched */
@@ -88,9 +139,48 @@ const emit = defineEmits<{
   param: [index: number, params: Record<string, number>];
   /** A slider was let go */
   commit: [];
+  /** Show a plugin's own controls */
+  open: [index: number];
 }>();
 
-const label = (e: StemEffect) => effectInfo(e.type)?.label ?? e.type;
+const $q = useQuasar();
+
+const label = (e: StemEffect) => (isPlugin(e) ? pluginName(e) : effectInfo(e.type)?.label ?? e.type);
+
+const host = (e: StemEffect) => {
+  try {
+    return new URL(e.url ?? '').hostname;
+  } catch {
+    return 'another site';
+  }
+};
+
+const library = ref<WamLibraryEntry[]>([]);
+const loadingLibrary = ref(false);
+
+const loadPlugins = async () => {
+  if (library.value.length) return;
+  loadingLibrary.value = true;
+  library.value = await loadPluginLibrary();
+  loadingLibrary.value = false;
+};
+
+const addPlugin = (url: string, name?: string) =>
+  emit('update:modelValue', [
+    ...props.modelValue,
+    { type: 'wam', url, ...(name ? { name } : {}), params: {}, bypassed: false },
+  ]);
+
+const askForPlugin = () =>
+  $q
+    .dialog({
+      title: 'Add a plugin',
+      message: "Paste the link to a Web Audio Module plugin's index.js. The site must allow other sites to load it.",
+      prompt: { model: '', type: 'url', isValid: (v: string) => /^(https:\/\/|http:\/\/localhost[:/])\S+$/.test(v.trim()) },
+      cancel: true,
+      dark: true,
+    })
+    .onOk((url: string) => addPlugin(url.trim()));
 
 const format = (value: number, unit?: string) => {
   if (unit === 'Hz') {
@@ -173,6 +263,12 @@ const setParam = (i: number, key: string, value: number | null) => {
     align-items: center;
     gap: 8px;
     font-size: 0.8rem;
+  }
+
+  &__note {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #9aa0a8;
   }
 
   &__param-label {

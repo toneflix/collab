@@ -286,11 +286,13 @@
         >
           <q-menu ref="effectsMenu" dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
             <EffectsPanel
+              plugins
               :name="selected.name"
               :model-value="selectedEffects"
               @update:model-value="setEffects(selected.id, $event)"
               @param="(i, params) => setEffectParams(selected!.id, i, params)"
               @commit="checkDirty"
+              @open="openPlugin(selected!.id, $event)"
             />
           </q-menu>
         </q-btn>
@@ -392,6 +394,17 @@
 
     <div ref="host" class="stem-editor__host" />
 
+    <q-dialog v-model="pluginOpen" @hide="closePlugin">
+      <q-card dark class="bg-[#1c1c1c] max-w-[95vw]">
+        <q-card-section class="flex items-center gap-2 py-2">
+          <div class="font-bold">{{ pluginTitle }}</div>
+          <q-space />
+          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+        </q-card-section>
+        <div ref="pluginHost" class="stem-editor__plugin" />
+      </q-card>
+    </q-dialog>
+
     <div class="stem-editor__dropzone" v-if="dropping">
       <q-icon :name="ionCloudUpload" size="40px" />
       <div class="mt-2 text-lg font-bold">Drop audio files to add them as stems</div>
@@ -423,7 +436,7 @@ import {
   ionVolumeHigh,
   ionVolumeMute,
 } from '@quasar/extras/ionicons-v8';
-import type { DawEditorElement } from '@dawcore/components';
+import type { DawEditorElement, SerializedEffectEntry } from '@dawcore/components';
 import type { NativePlayoutAdapter } from '@dawcore/transport';
 import type { ClipTrack } from '@waveform-playlist/core';
 import type { EngineState } from '@waveform-playlist/engine';
@@ -434,7 +447,21 @@ import EffectsPanel from './EffectsPanel.vue';
 import StemActivity, { type StemActivityItem } from './StemActivity.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import { StemPlaceholders } from 'src/utils/studio/placeholders';
-import { parseEffects, registerStudioEffects, serializeEffects, type StemEffect } from 'src/utils/studio/effects';
+import {
+  addFaustEffects,
+  effectInfo,
+  faustState,
+  isFaust,
+  isPlugin,
+  needsPrint,
+  parseEffects,
+  pluginName,
+  registerStudioEffects,
+  serializeEffects,
+  type StemEffect,
+} from 'src/utils/studio/effects';
+import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
+import { flacOf, printKey, printStem } from 'src/utils/studio/print';
 import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
@@ -1252,19 +1279,188 @@ const dropTrack = (trackId: string) => {
   if (!tracks.has(trackId)) editor.value?.removeTrack(trackId);
 };
 
+/**
+ * The editor's form of a chain. Faust effects and plugins load in the
+ * browser, which needs running audio (and the Faust source from the server),
+ * so until then they are left out. `applied` lists which entries of `list` made it in.
+ */
+const chainOf = (list: StemEffect[]) => {
+  const ready = context?.state === 'running';
+  const applied: number[] = [];
+  const entries = list.flatMap((e, i): SerializedEffectEntry[] => {
+    if (isPlugin(e)) {
+      if (!ready) return [];
+      applied.push(i);
+
+      return [{ kind: 'wam', url: e.url!, bypassed: !!e.bypassed, state: e.state }];
+    }
+    if (!isFaust(e.type)) {
+      applied.push(i);
+
+      return [{ kind: 'native', type: e.type, params: e.params, bypassed: !!e.bypassed }];
+    }
+    const info = effectInfo(e.type);
+    if (!info?.faust || !ready) return [];
+    applied.push(i);
+
+    return [
+      {
+        kind: 'wam',
+        faustDsp: info.faust.source,
+        faustName: info.faust.name,
+        bypassed: !!e.bypassed,
+        state: faustState(info, e.params),
+      },
+    ];
+  });
+
+  return { entries, applied, complete: applied.length === list.length };
+};
+
+/** Effect index in `effects` → index in the editor's chain, per track ('' is the master). */
+const liveIndex = new Map<string, number[]>();
+/** Chains still missing Faust effects, applied again once they can load. */
+const pendingFaust = new Set<string>();
+let faustLoaded = false;
+
+/** The params the editor takes for an effect: Faust ones by plugin address. */
+const liveParams = (effect: StemEffect, params: Record<string, number>) => {
+  const info = isFaust(effect.type) ? effectInfo(effect.type) : undefined;
+
+  return info?.faust ? faustState(info, params) : params;
+};
+
 /** Rebuild a track's effect chain in the editor from `effects`. */
 const applyEffects = async (trackId: string) => {
   const ed = editor.value;
   if (!ed) return;
-  const list = effects.get(trackId) ?? [];
+  const chain = chainOf(effects.get(trackId) ?? []);
+  liveIndex.set(trackId, chain.applied);
+  if (chain.complete) pendingFaust.delete(trackId);
+  else pendingFaust.add(trackId);
   try {
-    await ed.setTrackEffectsState(
-      trackId,
-      list.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
-    );
+    await ed.setTrackEffectsState(trackId, chain.entries);
   } catch (err) {
     console.warn('[stem editor] effects', err);
   }
+  namePlugins(trackId);
+};
+
+/** Keep each plugin's own name, and say when one couldn't load. */
+const namePlugins = (trackId: string) => {
+  const list = effects.get(trackId) ?? [];
+  const live = editor.value?.trackEffects(trackId) ?? [];
+  liveIndex.get(trackId)?.forEach((index, at) => {
+    const effect = list[index];
+    const state = live[at];
+    if (!effect || !isPlugin(effect) || !state) return;
+    if (state.error) notify(`${pluginName(effect)} couldn't load: ${state.error}`, 'error');
+    else if (!effect.name && state.label) effect.name = state.label;
+  });
+};
+
+const pluginOpen = ref(false);
+const pluginTitle = ref('');
+const pluginHost = ref<HTMLElement>();
+let pluginShown: { trackId: string; effectId: string } | null = null;
+
+/** Show a plugin's own controls in a dialog. */
+const openPlugin = async (trackId: string, index: number) => {
+  const ed = editor.value;
+  const effect = effects.get(trackId)?.[index];
+  if (!ed || !effect) return;
+  if (context?.state !== 'running') {
+    await context?.resume();
+    await applyEffects(trackId);
+  }
+  const live = ed.trackEffects(trackId)[liveIndex.get(trackId)?.indexOf(index) ?? -1];
+  if (!live || live.error) {
+    notify(`${pluginName(effect)} isn't loaded.`, 'error');
+    return;
+  }
+  pluginTitle.value = pluginName(effect);
+  pluginOpen.value = true;
+  await nextTick();
+  try {
+    await ed.openTrackEffectGui(trackId, live.id, pluginHost.value!);
+    pluginShown = { trackId, effectId: live.id };
+  } catch (err) {
+    pluginOpen.value = false;
+    notify(`${pluginName(effect)} has no controls to show.`, 'info');
+    console.warn('[stem editor] plugin gui', err);
+  }
+};
+
+const closePlugin = () => {
+  if (pluginShown) editor.value?.closeTrackEffectGui(pluginShown.trackId, pluginShown.effectId);
+  pluginShown = null;
+};
+
+/**
+ * Record each stem with a plugin on through its chain, when its clips or
+ * effects changed since the last time, and hand the audio to `upload`. The
+ * server mixes that audio in place of the stem. Plugin settings are read
+ * back into the stem's effects first, so they're saved too.
+ */
+const printPlugins = async (
+  upload: (stem: Stem, audio: Blob, start: number, key: string) => Promise<Stem>,
+  onRecord?: (stem: Stem) => void,
+) => {
+  const ed = editor.value;
+  if (!ed) return;
+  for (const [trackId, list] of effects) {
+    const stem = tracks.get(trackId);
+    if (!stem || !needsPrint(list) || placeholders.has(trackId)) continue;
+    if (pendingFaust.has(trackId)) {
+      await context?.resume();
+      await applyEffects(trackId);
+    }
+
+    const live = await ed.getTrackEffectsState(trackId);
+    // A plugin that didn't load passes the sound through untouched; keep the last print.
+    if (live.some((e) => e.placeholder)) {
+      throw new Error(`A plugin on ${stem.title || 'a stem'} didn't load, so it wasn't recorded again.`);
+    }
+    liveIndex.get(trackId)?.forEach((index, at) => {
+      if (list[index] && isPlugin(list[index]) && live[at]?.kind === 'wam') list[index].state = live[at].state;
+    });
+
+    const clips = engineTrack(trackId)?.clips ?? [];
+    const key = await printKey({
+      src: stem.src,
+      clips: clips.map((c) => [c.startSample, c.offsetSamples, c.durationSamples, c.gain ?? 1, c.fadeIn?.duration ?? 0, c.fadeOut?.duration ?? 0]),
+      effects: serializeEffects(list),
+      tempo: [tempo.value, meter.value],
+    });
+    if (stem.meta?.print?.key === key) continue;
+
+    onRecord?.(stem);
+    const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
+    const printed = await printStem(clips, live, { bpm: tempo.value, beats, unit });
+    if (!printed) continue;
+    const saved = await upload(stem, flacOf(printed.audio), printed.start, key);
+    stem.meta = { ...stem.meta, print: saved.meta?.print };
+  }
+};
+
+/** Apply chains that were waiting on Faust effects. */
+const applyPendingFaust = () => {
+  if (context?.state !== 'running' || !faustLoaded) return;
+  const waiting = [...pendingFaust];
+  pendingFaust.clear();
+  waiting.forEach((id) => void (id === '' ? applyMaster() : applyEffects(id)));
+};
+
+/** Load the server's Faust effects so the add menu offers them and saved ones can play. */
+const loadFaust = async () => {
+  try {
+    const { data } = await loadFaustEffectsRequest().send();
+    addFaustEffects(data ?? []);
+  } catch (err) {
+    console.warn('[stem editor] faust effects', err);
+  }
+  faustLoaded = true;
+  applyPendingFaust();
 };
 
 const setEffects = (trackId: string, list: StemEffect[]) => {
@@ -1278,16 +1474,18 @@ const setEffectParams = (trackId: string, index: number, params: Record<string, 
   const ed = editor.value;
   if (!list?.[index] || !ed) return;
   list[index] = { ...list[index], params: { ...params } };
-  const live = ed.trackEffects(trackId)[index];
-  if (live) ed.setTrackEffectParams(trackId, live.id, params);
+  const live = ed.trackEffects(trackId)[liveIndex.get(trackId)?.indexOf(index) ?? -1];
+  if (live) ed.setTrackEffectParams(trackId, live.id, liveParams(list[index], params));
 };
 
 /** Rebuild the master chain in the editor from `master`. */
 const applyMaster = async () => {
+  const chain = chainOf(master.value);
+  liveIndex.set('', chain.applied);
+  if (chain.complete) pendingFaust.delete('');
+  else pendingFaust.add('');
   try {
-    await editor.value?.setEffectsState(
-      master.value.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
-    );
+    await editor.value?.setEffectsState(chain.entries);
   } catch (err) {
     console.warn('[stem editor] master effects', err);
   }
@@ -1300,10 +1498,10 @@ const setMasterEffects = (list: StemEffect[]) => {
 
 const setMasterEffectParams = (index: number, params: Record<string, number>) => {
   const effect = master.value[index];
-  const live = editor.value?.effects[index];
-  if (!effect || !live) return;
+  const live = editor.value?.effects[liveIndex.get('')?.indexOf(index) ?? -1];
+  if (!effect) return;
   master.value[index] = { ...effect, params: { ...params } };
-  editor.value?.setEffectParams(live.id, params);
+  if (live) editor.value?.setEffectParams(live.id, liveParams(effect, params));
 };
 
 /** Ask the parent to copy a stem, placed just below it. */
@@ -1751,6 +1949,8 @@ onMounted(async () => {
   ed.appendChild(shortcuts);
 
   context = new AudioContext();
+  context.addEventListener('statechange', applyPendingFaust);
+  void loadFaust();
   adapter = new NativePlayoutAdapter(context);
   ed.adapter = adapter;
   adapter.transport.on('countIn', ({ beat }: { beat: number }) => {
@@ -1826,6 +2026,7 @@ defineExpose({
   masterEffects: () => serializeEffects(master.value),
   moveStem,
   stop,
+  printPlugins,
   highlight,
   currentTime,
   seek,
@@ -1939,6 +2140,13 @@ defineExpose({
     color: #ffd7d7;
     background: rgba(229, 57, 53, 0.16);
     border-bottom: 1px solid rgba(229, 57, 53, 0.35);
+  }
+
+  &__plugin {
+    min-width: min(320px, 90vw);
+    max-height: 80vh;
+    overflow: auto;
+    padding: 0 12px 12px;
   }
 
   &__dropzone {
