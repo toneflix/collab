@@ -1,6 +1,6 @@
 <template>
   <q-page class="p-3 md:p-4">
-    <div class="flex items-center gap-3 mb-3 no-wrap">
+    <div class="flex items-center gap-x-3 gap-y-2 mb-3" :class="narrow ? 'flex-wrap' : 'no-wrap'">
       <q-btn
         flat
         round
@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 ml-auto !flex-none no-wrap" v-if="song">
+      <div class="flex items-center gap-2 no-wrap" :class="narrow ? 'song-actions--narrow' : 'ml-auto !flex-none'" v-if="song">
         <q-btn
           unelevated
           rounded
@@ -58,7 +58,7 @@
         <ActionButton
           :label="beatPlaying ? 'Pause beat' : 'Play beat'"
           :icon="beatPlaying ? ionPause : ionPlay"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="beatPlaying"
           @click="toggleBeat"
           v-if="song.beat"
@@ -66,31 +66,31 @@
         <ActionButton
           label="Rhyme colours"
           :icon="ionColorPalette"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="song.settings.rhymeColours"
           @click="toggleColours"
         />
         <ActionButton
           label="Write with AI"
           :icon="ionSparkles"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="panels.write"
           @click="panels.write = !panels.write"
         />
         <ActionButton
           :label="song.project ? 'Update the lyric sheet' : 'Make a project'"
           :icon="song.project ? ionSync : ionAlbums"
-          :expanded="expanded"
+          :expanded="showLabels"
           :loading="syncing"
           @click="song.project ? syncLyrics() : (projectDialog = true)"
         />
-        <ActionButton label="Lookup" :icon="ionSearch" :expanded="expanded" :active="panels.lookup" @click="toggleLookup" />
-        <ActionButton label="Notes" :icon="ionDocumentText" :expanded="expanded" :active="panels.notes" @click="panels.notes = !panels.notes" />
-        <ActionButton label="Versions" :icon="ionTime" :expanded="expanded" :active="panels.versions" @click="panels.versions = !panels.versions" />
+        <ActionButton label="Lookup" :icon="ionSearch" :expanded="showLabels" :active="panels.lookup" @click="toggleLookup" />
+        <ActionButton label="Notes" :icon="ionDocumentText" :expanded="showLabels" :active="panels.notes" @click="panels.notes = !panels.notes" />
+        <ActionButton label="Versions" :icon="ionTime" :expanded="showLabels" :active="panels.versions" @click="panels.versions = !panels.versions" />
         <ActionButton
           label="How it works"
           :icon="ionInformationCircleOutline"
-          :expanded="expanded"
+          :expanded="showLabels"
           :active="panels.help"
           @click="panels.help = !panels.help"
         />
@@ -99,6 +99,7 @@
           round
           dense
           class="!flex-none expand-toggle"
+          v-if="!narrow"
           :class="{ 'expand-toggle--open': expanded }"
           :icon="ionChevronForward"
           :aria-label="expanded ? 'Hide labels' : 'Show labels'"
@@ -645,6 +646,9 @@ const syncLyrics = async () => {
 /* ---------- Layout ---------- */
 
 const expanded = ref(false);
+/** Phones and small tablets: actions go on their own scrolling row, icons only */
+const narrow = computed(() => $q.screen.lt.md);
+const showLabels = computed(() => expanded.value && !narrow.value);
 const toggleExpanded = () => {
   expanded.value = !expanded.value;
   try {
@@ -740,6 +744,16 @@ onBeforeUnmount(() => {
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.song-actions--narrow {
+  flex: 0 0 100% !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  > * {
+    flex: none !important;
   }
 }
 
