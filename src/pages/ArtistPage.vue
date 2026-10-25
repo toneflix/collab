@@ -2,9 +2,10 @@
   <q-page padding>
     <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist?.id">
       <div
-        class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
+        class="absolute top-0 bottom-0 left-0 right-0 bg-center bg-cover h-72 bg-slate-500"
+        :class="artist.coverUrl ? 'cover-photo' : 'blur-3xl'"
         :style="{
-          backgroundImage: `url(${artist.imageUrl})`,
+          backgroundImage: `url(${artist.coverUrl || artist.imageUrl})`,
         }"
       ></div>
       <div class="absolute flex justify-center md:!justify-start w-full">
@@ -75,6 +76,19 @@
               <span class="!flex-none">
                 {{ intStr(artist.reputation) }} Reps.
               </span>
+              <span class="!flex-none" v-if="artist.canEdit">
+                <q-btn
+                  dense
+                  no-caps
+                  rounded
+                  outline
+                  size="sm"
+                  padding="0 sm"
+                  icon="fas fa-pen"
+                  label="Edit profile"
+                  @click="editing = true"
+                />
+              </span>
             </div>
             <p class="block mt-4 text-sm max-w-96">
               {{ artist.about }}
@@ -110,6 +124,12 @@
         />
       </div>
     </div>
+    <ArtistEditDialog
+      v-model="editing"
+      :artist="artist"
+      @saved="(e) => (artist = { ...artist, ...e })"
+      v-if="artist?.canEdit"
+    />
     <OopsAlert
       text="This artist is not home now, you may check back later..."
       v-else-if="!loading"
@@ -143,6 +163,7 @@ import { useWatcher } from 'alova/client';
 import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
+import ArtistEditDialog from 'src/components/Artists/ArtistEditDialog.vue';
 import { usePlayerStore } from 'src/stores/player-store';
 
 defineOptions({
@@ -232,6 +253,8 @@ const { data: artist, loading } = useWatcher(
   },
 );
 
+const editing = ref(false);
+
 const togglePlay = () => {
   if (current.tracks.length) {
     player.toggleQueue(current.tracks, route.fullPath);
@@ -259,3 +282,12 @@ useMeta(() => {
     : { title: 'Not found' };
 });
 </script>
+
+<style scoped>
+.cover-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.75));
+}
+</style>

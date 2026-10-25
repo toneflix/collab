@@ -404,6 +404,11 @@ export interface Artist {
   isPremium?: boolean;
   badge?: boolean;
   acceptsTips?: boolean;
+  coverUrl?: string | null;
+  /** The viewer manages the artist or is an admin */
+  canEdit?: boolean;
+  /** The viewer can mark the artist verified */
+  canVerify?: boolean;
 }
 
 export interface User extends Artist {
