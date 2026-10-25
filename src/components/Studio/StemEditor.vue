@@ -197,6 +197,30 @@
       </div>
 
       <div class="stem-editor__group stem-editor__master">
+        <q-btn
+          outline
+          rounded
+          dense
+          no-caps
+          size="sm"
+          color="grey-4"
+          class="!flex-none px-2 mr-1"
+          icon="tune"
+          :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
+          :disable="!ready"
+        >
+          <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
+          <q-menu dark anchor="bottom right" self="top right" class="bg-[#1c1c1c]">
+            <EffectsPanel
+              name="the master"
+              :readonly="readonly"
+              :model-value="master"
+              @update:model-value="setMasterEffects"
+              @param="setMasterEffectParams"
+              @commit="checkDirty"
+            />
+          </q-menu>
+        </q-btn>
         <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
         <q-icon :name="masterVolume ? ionVolumeHigh : ionVolumeMute" size="20px" class="!flex-none" />
         <q-slider
@@ -428,6 +452,8 @@ const props = defineProps<{
   timeSignature?: string;
   /** The saved master volume, 0 to 1 */
   mixVolume?: number;
+  /** The saved master effect chain, as JSON text */
+  masterEffects?: string;
 }>();
 
 const emit = defineEmits<{
@@ -526,6 +552,10 @@ let recordStartedAt = 0;
 let recordTimer: ReturnType<typeof setInterval> | undefined;
 let takes = 0;
 
+/** The master bus effect chain, and how it was last saved */
+const master = ref<StemEffect[]>(parseEffects(props.masterEffects));
+let masterSaved = serializeEffects(master.value);
+
 /** Track id in the editor → its effect chain */
 const effects = reactive(new Map<string, StemEffect[]>());
 
@@ -623,13 +653,14 @@ const checkDirty = () => {
     saved[id] ??= json;
     if (saved[id] !== json) dirty = true;
   }
-  emit('dirty', dirty);
+  emit('dirty', dirty || serializeEffects(master.value) !== masterSaved);
 };
 
 /** Call after saving, so the current state counts as saved. */
 const markSaved = () => {
   saved = Object.fromEntries(Object.entries(snapshot()).map(([id, meta]) => [id, JSON.stringify(meta)]));
   shared = { ...saved };
+  masterSaved = serializeEffects(master.value);
   emit('dirty', false);
 };
 
@@ -1232,6 +1263,30 @@ const setEffectParams = (trackId: string, index: number, params: Record<string, 
   if (live) ed.setTrackEffectParams(trackId, live.id, params);
 };
 
+/** Rebuild the master chain in the editor from `master`. */
+const applyMaster = async () => {
+  try {
+    await editor.value?.setEffectsState(
+      master.value.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
+    );
+  } catch (err) {
+    console.warn('[stem editor] master effects', err);
+  }
+};
+
+const setMasterEffects = (list: StemEffect[]) => {
+  master.value = list.map((e) => ({ ...e, params: { ...e.params } }));
+  void applyMaster().then(checkDirty);
+};
+
+const setMasterEffectParams = (index: number, params: Record<string, number>) => {
+  const effect = master.value[index];
+  const live = editor.value?.effects[index];
+  if (!effect || !live) return;
+  master.value[index] = { ...effect, params: { ...params } };
+  editor.value?.setEffectParams(live.id, params);
+};
+
 /** Give a track its colour, and show it on its controls and clips. */
 const colorTrack = (trackId: string, color: string) => {
   colors.set(trackId, color);
@@ -1639,6 +1694,7 @@ onMounted(async () => {
   engine.on('statechange', onState);
   scrollArea()?.addEventListener('scroll', onTimelineScroll, { passive: true });
   look = new TrackLook(ed, adapter, context, (level) => (masterLevel.value = level));
+  if (master.value.length) await applyMaster();
   engine.setMasterVolume(masterVolume.value / 100);
   applyTempo();
 
@@ -1687,6 +1743,7 @@ defineExpose({
   snapshot,
   markSaved,
   mixVolume: () => masterVolume.value / 100,
+  masterEffects: () => serializeEffects(master.value),
   stop,
   highlight,
   currentTime,

@@ -293,6 +293,7 @@
             :bpm="track.bpm"
             :time-signature="track.timeSignature"
             :mix-volume="track.mixVolume"
+            :master-effects="track.masterEffects"
             commentable
             @comment="messageAboutRegion"
             @ready="editorReady = true"
@@ -932,6 +933,7 @@ const save = async (withPreview = false) => {
       ...track.value,
       preview: undefined,
       mixVolume: ed.mixVolume(),
+      masterEffects: ed.masterEffects(),
       stems: Object.entries(metas).map(([id, meta]) => ({
         id,
         meta,
@@ -946,6 +948,7 @@ const save = async (withPreview = false) => {
       meta: metas[String(s.id)] ?? s.meta,
     }));
     track.value.mixVolume = form.mixVolume;
+    track.value.masterEffects = form.masterEffects;
     ed.markSaved();
     tempoDirty.value = false;
     if (render) onMix({ status: 'rendering' });
