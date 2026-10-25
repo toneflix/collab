@@ -18,6 +18,8 @@ const thirdParty = {
     "https://*.firebaseio.com",
     "https://*.firebasedatabase.app"
   ],
+  // Web Audio Module plugins offered in the studio's effects menu
+  plugins: ["https://www.webaudiomodules.com", "https://mainline.i3s.unice.fr"],
   styles: ["https://fonts.googleapis.com", "https://fonts.bunny.net"],
   fonts: ["https://fonts.gstatic.com", "https://fonts.bunny.net"],
   frames: [
@@ -77,7 +79,10 @@ export class ContentSecurityPolicy {
         nonce,
         // The MP3 encoder runs on WebAssembly
         "'wasm-unsafe-eval'",
-        ...thirdParty.scripts
+        // Studio plugins load their audio worklets from blob: URLs
+        "blob:",
+        ...thirdParty.scripts,
+        ...thirdParty.plugins
       ],
       "script-src-attr": ["'none'"],
       "style-src": ["'self'", "'unsafe-inline'", ...thirdParty.styles],
