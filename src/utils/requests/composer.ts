@@ -24,6 +24,8 @@ export type Song = {
   key: string | null;
   beat?: Sound | null;
   settings: SongSettings;
+  /** The project made from this song, when there is one */
+  project?: { id: number; slug: string; title: string; trackId: number } | null;
   /** Goes up with every save; saves send the one they started from */
   revision: number;
   lineCount: number;
@@ -156,3 +158,20 @@ export const suggestLyricsRequest = (
   id: string | number,
   data: { kind: SuggestionKind; line: number; body?: string; instruction?: string },
 ) => alova.Post<ResponseBody<LyricSuggestion>>(`creator/songs/${id}/suggestions`, data);
+
+export type SongProjectInput = {
+  title?: string;
+  privacy?: 'private' | 'public' | 'public_preview';
+  genre_id: number;
+  artist_id: number;
+  /** Have AI sing the lyrics onto the new track */
+  generate?: boolean;
+  /** The sound to make, when generating */
+  prompt?: string;
+};
+
+export const songProjectRequest = (id: string | number, data: SongProjectInput) =>
+  alova.Post<ResponseBody<Song> & { aiJob: { id: number } | null }>(`creator/songs/${id}/project`, data);
+
+export const syncSongLyricsRequest = (id: string | number) =>
+  alova.Post<ResponseBody<Song>>(`creator/songs/${id}/project/lyrics`);
