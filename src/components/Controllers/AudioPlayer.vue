@@ -193,19 +193,6 @@
           round
           size="md"
           class="!flex-none"
-          :class="{ 'text-toneflix': queueOpen && panelTab === 'lyrics' }"
-          :aria-label="queueOpen && panelTab === 'lyrics' ? 'Close lyrics' : 'Show lyrics'"
-          :icon="ionText"
-          :disable="!track.id"
-          @click="openPanel('lyrics', true)"
-        >
-          <q-tooltip>Lyrics</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          size="md"
-          class="!flex-none"
           :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
           :icon="queueOpen ? ionCaretDown : ionCaretUp"
           @click="queueOpen = !queueOpen"
@@ -255,12 +242,8 @@ const router = useRouter();
 const queueOpen = ref(false);
 const panelTab = ref<'next' | 'lyrics'>('next');
 
-/** Open the expanded player on a tab, or close it when that tab is showing and toggling. */
-const openPanel = (tab: 'next' | 'lyrics', toggle = false) => {
-  if (toggle && queueOpen.value && panelTab.value === tab) {
-    queueOpen.value = false;
-    return;
-  }
+/** Open the expanded player on a tab. */
+const openPanel = (tab: 'next' | 'lyrics') => {
   panelTab.value = tab;
   queueOpen.value = true;
 };
