@@ -175,6 +175,39 @@
           </div>
         </div>
 
+        <div class="section">
+          <div class="mb-1 font-bold">AI moderator</div>
+          <p class="mb-3 text-sm text-grey-5">
+            Reviews artist claims and releases waiting for approval. Admins can
+            send any of them from the moderation queue, and those always get a
+            decision. Items sent automatically are only decided when the
+            moderator is confident enough; the rest stay in the queue, flagged
+            for a person. It uses the Replicate token above.
+          </p>
+          <div class="flex flex-col gap-3">
+            <div class="toggle-card" :key="key" v-for="key in moderatorToggles">
+              <q-toggle color="toneflix" v-model="form[key]" />
+              <div class="min-w-0">
+                <div class="font-bold">{{ fields[key]?.title }}</div>
+                <div class="text-sm text-grey-5">{{ fields[key]?.hint }}</div>
+              </div>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="0"
+                max="100"
+                suffix="%"
+                :label="fields.ai_moderator_confidence?.title"
+                :hint="fields.ai_moderator_confidence?.hint"
+                v-model.number="form.ai_moderator_confidence"
+              />
+            </div>
+          </div>
+        </div>
+
         <div class="flex justify-end">
           <q-btn
             unelevated
@@ -222,7 +255,12 @@ const form = reactive({
   ai_lyrics_explicit_words: '',
   ai_lyrics_review_words: '',
   ai_tags_auto: true,
+  ai_moderator_claims_auto: false,
+  ai_moderator_releases_auto: false,
+  ai_moderator_confidence: 80 as number | string,
 });
+
+const moderatorToggles = ['ai_moderator_claims_auto', 'ai_moderator_releases_auto'] as const;
 let savedForm = '';
 
 const fields = computed(() => settings.value?.fields ?? {});
@@ -242,6 +280,9 @@ const fill = (data: AiAdminSettings) => {
   form.ai_lyrics_explicit_words = f.ai_lyrics_explicit_words?.value ?? '';
   form.ai_lyrics_review_words = f.ai_lyrics_review_words?.value ?? '';
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
+  form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
+  form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';
+  form.ai_moderator_confidence = Number(f.ai_moderator_confidence?.value ?? 80);
   savedForm = JSON.stringify(form);
 };
 

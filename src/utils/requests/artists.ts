@@ -1,5 +1,6 @@
 import { alova, axios } from 'src/boot/alova'
 import type { Artist, ResponseBody } from '../models'
+import type { AiReview } from './moderation'
 
 export type ArtistClaimRole = 'artist' | 'manager' | 'label' | 'other'
 
@@ -35,6 +36,7 @@ export type ArtistClaim = {
   };
   user?: { id: number; name: string; username: string; email: string; imageUrl: string } | null;
   reviewer?: string | null;
+  aiReview?: AiReview | null;
 }
 
 export type ArtistProfileForm = {
@@ -86,7 +88,7 @@ export const claimArtistRequest = (artist: string | number, form: ArtistClaimFor
 }
 
 export const loadArtistClaimsRequest = (params: { status?: string; search?: string; page?: number } = {}) =>
-  alova.Get<{ data: ArtistClaim[]; meta: { total: number; page: number; lastPage: number; claims?: number } }>(
+  alova.Get<{ data: ArtistClaim[]; meta: { total: number; page: number; lastPage: number; claims?: number; aiModerator?: boolean } }>(
     'admin/moderation/claims',
     { params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== '')), cacheFor: 0 },
   )
@@ -96,6 +98,9 @@ export const approveArtistClaimRequest = (id: number, note?: string) =>
 
 export const rejectArtistClaimRequest = (id: number, note: string) =>
   alova.Post<ResponseBody<{ id: number }>>(`admin/moderation/claims/${id}/reject`, { note })
+
+export const sendClaimToAiRequest = (id: number) =>
+  alova.Post<ResponseBody<AiReview>>(`admin/moderation/claims/${id}/ai-review`)
 
 export const downloadClaimDocumentRequest = (id: number) =>
   axios.Get<Blob>(`admin/moderation/claims/${id}/document`, { responseType: 'blob' })

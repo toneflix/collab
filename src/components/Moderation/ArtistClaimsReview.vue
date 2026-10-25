@@ -25,7 +25,15 @@
     <div class="flex flex-col gap-3" v-else>
       <q-card flat bordered class="bg-dark" :key="claim.id" v-for="claim in claims">
         <q-card-section class="flex flex-col gap-3">
-          <div class="flex items-start justify-between gap-3 flex-nowrap">
+          <div
+            role="button"
+            tabindex="0"
+            class="flex items-start justify-between gap-3 cursor-pointer select-none flex-nowrap"
+            :aria-expanded="!!expanded[claim.id]"
+            @click="toggle(claim.id)"
+            @keydown.enter.prevent="toggle(claim.id)"
+            @keydown.space.prevent="toggle(claim.id)"
+          >
             <div class="flex items-center gap-3 flex-nowrap min-w-0">
               <q-avatar size="48px" class="!flex-none">
                 <img :src="claim.artist?.imageUrl" :alt="claim.artist?.name" />
@@ -37,6 +45,7 @@
                     class="font-bold truncate hover:underline"
                     :to="{ name: 'artist', params: { artist_id: claim.artist.username } }"
                     v-if="claim.artist"
+                    @click.stop
                   >
                     {{ claim.artist.name }}
                   </router-link>
@@ -48,94 +57,117 @@
                 </div>
               </div>
             </div>
-            <div class="text-xs text-right text-grey-5 !flex-none">{{ timeAgoStamp(claim.createdAt) }}</div>
-          </div>
-
-          <div class="report flex flex-col gap-2">
-            <div class="text-xs text-grey-5">
-              <router-link class="underline" :to="{ name: 'admin.user', params: { id: claim.user.id } }" v-if="claim.user">
-                @{{ claim.user.username }}
-              </router-link>
-              · {{ claimRoleLabel(claim.role) }}
-            </div>
-            <div><b>{{ claim.name }}</b> · <a class="underline" :href="`mailto:${claim.email}`">{{ claim.email }}</a></div>
-            <div class="whitespace-pre-line">{{ claim.message }}</div>
-            <div class="flex flex-col gap-1">
-              <a
-                class="flex items-center gap-2 text-xs underline break-all flex-nowrap"
-                target="_blank"
-                rel="noopener noreferrer"
-                :href="link"
-                :key="link"
-                v-for="link in claim.links"
-              >
-                <q-icon name="fas fa-link" size="10px" class="!flex-none" /> {{ link }}
-              </a>
-            </div>
-            <div v-if="claim.hasDocument">
-              <q-btn
-                outline
-                rounded
-                no-caps
-                size="sm"
-                color="white"
-                icon="fas fa-paperclip"
-                label="Open supporting document"
-                class="!flex-none"
-                :loading="busy === `document:${claim.id}`"
-                @click="openDocument(claim)"
-              />
+            <div class="flex items-center gap-3 text-xs text-grey-5 !flex-none">
+              {{ timeAgoStamp(claim.createdAt) }}
+              <q-icon name="fas fa-chevron-down" size="12px" class="transition-transform" :class="{ 'rotate-180': expanded[claim.id] }" />
             </div>
           </div>
 
-          <div class="report" v-if="claim.status !== 'pending'">
-            <div class="mb-1 text-xs text-grey-5">
-              {{ claim.status === 'approved' ? 'Approved' : 'Declined' }}
-              <template v-if="claim.reviewer"> by {{ claim.reviewer }}</template>
-              {{ timeAgoStamp(claim.reviewedAt || claim.createdAt) }}
-            </div>
-            {{ claim.reviewNote || 'No note.' }}
-          </div>
+          <q-slide-transition>
+            <div class="flex flex-col gap-3" v-show="expanded[claim.id]">
+              <div class="report flex flex-col gap-2">
+                <div class="text-xs text-grey-5">
+                  <router-link class="underline" :to="{ name: 'admin.user', params: { id: claim.user.id } }" v-if="claim.user">
+                    @{{ claim.user.username }}
+                  </router-link>
+                  · {{ claimRoleLabel(claim.role) }}
+                </div>
+                <div><b>{{ claim.name }}</b> · <a class="underline" :href="`mailto:${claim.email}`">{{ claim.email }}</a></div>
+                <div class="whitespace-pre-line">{{ claim.message }}</div>
+                <div class="flex flex-col gap-1">
+                  <a
+                    class="flex items-center gap-2 text-xs underline break-all flex-nowrap"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :href="link"
+                    :key="link"
+                    v-for="link in claim.links"
+                  >
+                    <q-icon name="fas fa-link" size="10px" class="!flex-none" /> {{ link }}
+                  </a>
+                </div>
+                <div v-if="claim.hasDocument">
+                  <q-btn
+                    outline
+                    rounded
+                    no-caps
+                    size="sm"
+                    color="white"
+                    icon="fas fa-paperclip"
+                    label="Open supporting document"
+                    class="!flex-none"
+                    :loading="busy === `document:${claim.id}`"
+                    @click="openDocument(claim)"
+                  />
+                </div>
+              </div>
 
-          <template v-else>
-            <q-input
-              dark
-              filled
-              dense
-              autogrow
-              counter
-              maxlength="2000"
-              label="Note to the claimant (needed to decline)"
-              v-model="notes[claim.id]"
-            />
-            <div class="flex flex-wrap gap-2">
-              <q-btn
-                unelevated
-                rounded
-                no-caps
-                size="sm"
-                color="green-9"
-                icon="fas fa-check"
-                label="Approve and link artist"
-                class="!flex-none"
-                :loading="busy === `approve:${claim.id}`"
-                @click="review(claim, 'approve')"
-              />
-              <q-btn
-                outline
-                rounded
-                no-caps
-                size="sm"
-                color="white"
-                icon="fas fa-xmark"
-                label="Decline"
-                class="!flex-none"
-                :disable="!notes[claim.id]?.trim()"
-                :loading="busy === `reject:${claim.id}`"
-                @click="review(claim, 'reject')"
-              />
+              <AiReviewStatus :review="claim.aiReview" v-if="claim.aiReview" />
+
+              <div class="report" v-if="claim.status !== 'pending'">
+                <div class="mb-1 text-xs text-grey-5">
+                  {{ claim.status === 'approved' ? 'Approved' : 'Declined' }}
+                  <template v-if="claim.reviewer"> by {{ claim.reviewer }}</template>
+                  {{ timeAgoStamp(claim.reviewedAt || claim.createdAt) }}
+                </div>
+                {{ claim.reviewNote || 'No note.' }}
+              </div>
+
+              <template v-else>
+                <q-input
+                  dark
+                  filled
+                  dense
+                  autogrow
+                  counter
+                  maxlength="2000"
+                  label="Note to the claimant (needed to decline)"
+                  v-model="notes[claim.id]"
+                />
+                <div class="flex flex-wrap gap-2">
+                  <q-btn
+                    unelevated
+                    rounded
+                    no-caps
+                    size="sm"
+                    color="green-9"
+                    icon="fas fa-check"
+                    label="Approve and link artist"
+                    class="!flex-none"
+                    :loading="busy === `approve:${claim.id}`"
+                    @click="review(claim, 'approve')"
+                  />
+                  <q-btn
+                    outline
+                    rounded
+                    no-caps
+                    size="sm"
+                    color="white"
+                    icon="fas fa-xmark"
+                    label="Decline"
+                    class="!flex-none"
+                    :disable="!notes[claim.id]?.trim()"
+                    :loading="busy === `reject:${claim.id}`"
+                    @click="review(claim, 'reject')"
+                  />
+                  <q-btn
+                    outline
+                    rounded
+                    no-caps
+                    size="sm"
+                    color="purple-3"
+                    icon="fas fa-wand-magic-sparkles"
+                    label="Send to AI moderator"
+                    class="!flex-none"
+                    v-if="aiModerator"
+                    :disable="claim.aiReview?.status === 'queued'"
+                    :loading="busy === `ai:${claim.id}`"
+                    @click="sendToAi(claim)"
+                  />
+                </div>
+              </template>
             </div>
-          </template>
+          </q-slide-transition>
         </q-card-section>
       </q-card>
     </div>
@@ -150,17 +182,20 @@
 import { exportFile } from 'quasar';
 import { reactive, ref, watch } from 'vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
+import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
+import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
 import {
   approveArtistClaimRequest,
   claimRoleLabel,
   downloadClaimDocumentRequest,
   loadArtistClaimsRequest,
   rejectArtistClaimRequest,
+  sendClaimToAiRequest,
   type ArtistClaim,
 } from 'src/utils/requests/artists';
 
 const props = defineProps<{ search?: string | null }>();
-const emit = defineEmits<{ meta: [meta: Record<string, number>] }>();
+const emit = defineEmits<{ meta: [meta: Record<string, number | boolean | undefined>] }>();
 
 const statusOptions = [
   { label: 'Waiting', value: 'pending' },
@@ -171,9 +206,15 @@ const statusOptions = [
 const status = ref<ArtistClaim['status']>('pending');
 const claims = ref<ArtistClaim[]>([]);
 const notes = reactive<Record<number, string>>({});
+const expanded = reactive<Record<number, boolean>>({});
 const pages = ref({ page: 1, lastPage: 1 });
 const loading = ref(false);
 const busy = ref<string | null>(null);
+const aiModerator = ref(false);
+
+const toggle = (id: number) => {
+  expanded[id] = !expanded[id];
+};
 
 const load = async (page = 1) => {
   loading.value = true;
@@ -182,6 +223,7 @@ const load = async (page = 1) => {
     const response = await loadArtistClaimsRequest({ status: status.value, search: props.search || undefined, page }).send();
     claims.value = response.data;
     pages.value = { page: response.meta.page, lastPage: response.meta.lastPage };
+    aiModerator.value = !!response.meta.aiModerator;
     emit('meta', response.meta);
   } catch (error) {
     notify((error as Error).message, 'error');
@@ -206,6 +248,22 @@ const review = async (claim: ArtistClaim, action: 'approve' | 'reject') => {
     busy.value = null;
   }
 };
+
+const sendToAi = async (claim: ArtistClaim) => {
+  busy.value = `ai:${claim.id}`;
+
+  try {
+    const { message } = await sendClaimToAiRequest(claim.id).send();
+    notify(message, 'success');
+    await load(pages.value.page);
+  } catch (error) {
+    notify((error as Error).message, 'error');
+  } finally {
+    busy.value = null;
+  }
+};
+
+useAiReviewPolling(claims, () => load(pages.value.page));
 
 const openDocument = async (claim: ArtistClaim) => {
   busy.value = `document:${claim.id}`;
