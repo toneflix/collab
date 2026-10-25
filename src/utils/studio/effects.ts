@@ -1,9 +1,9 @@
 import type { EffectDefinition, EffectInstance } from '@dawcore/components';
 
 /**
- * Effects a stem can have. Each one runs live in the editor and again when
- * the mix is rendered, from the same definition, so the preview sounds like
- * the editor.
+ * Effects a stem can have. They run live in the editor, and the API renders
+ * the preview mix with FFmpeg filters matched to these definitions
+ * (App\Services\Studio\Mix\Effects), so keep the two in step.
  */
 export type EffectType = 'tf-eq' | 'tf-reverb' | 'native-delay' | 'native-compressor' | 'native-filter';
 
@@ -236,27 +236,3 @@ export const parseEffects = (value: unknown): StemEffect[] => {
 };
 
 export const serializeEffects = (effects: StemEffect[]) => (effects.length ? JSON.stringify(effects) : '');
-
-/**
- * Wire a stem's effects into an offline render: returns the node to send
- * the stem into, connected through every effect to `destination`.
- */
-export const connectEffects = (
-  ctx: BaseAudioContext,
-  effects: StemEffect[],
-  destination: AudioNode,
-  definitions: Map<string, EffectDefinition>,
-): AudioNode => {
-  let next: AudioNode = destination;
-  for (const effect of [...effects].reverse()) {
-    if (effect.bypassed) continue;
-    const definition = definitions.get(effect.type);
-    if (!definition) continue;
-    const params = { ...definition.defaults, ...effect.params };
-    const instance = definition.create(ctx, params);
-    instance.applyParams(params);
-    instance.output.connect(next);
-    next = instance.input;
-  }
-  return next;
-};
