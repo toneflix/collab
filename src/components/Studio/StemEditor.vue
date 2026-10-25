@@ -197,6 +197,7 @@
       </div>
 
       <div class="stem-editor__group stem-editor__master">
+        <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
         <q-icon :name="masterVolume ? ionVolumeHigh : ionVolumeMute" size="20px" class="!flex-none" />
         <q-slider
           dense
@@ -231,7 +232,10 @@
     <!-- Fades for the selected stem. Always shown, so the timeline doesn't jump. -->
     <div class="stem-editor__selected" v-if="!readonly">
       <template v-if="selected">
-        <div class="font-bold truncate !flex-none max-w-40">{{ selected.name }}</div>
+        <div class="flex items-center gap-2 !flex-none max-w-48">
+          <span class="stem-dot" :style="{ background: selectedColor }" />
+          <span class="font-bold truncate">{{ selected.name }}</span>
+        </div>
         <label class="stem-editor__fade">
           <span>Fade in</span>
           <q-slider dense color="toneflix" :min="0" :max="maxFade" :step="0.1" v-model="fade.in" @change="applyFades" />
@@ -253,7 +257,7 @@
           icon="tune"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
         >
-          <q-menu dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
+          <q-menu ref="effectsMenu" dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
             <EffectsPanel
               :name="selected.name"
               :model-value="selectedEffects"
@@ -263,6 +267,20 @@
             />
           </q-menu>
         </q-btn>
+        <div class="stem-colors" role="radiogroup" aria-label="Stem colour">
+          <button
+            type="button"
+            role="radio"
+            class="stem-colors__swatch"
+            :class="{ 'stem-colors__swatch--on': c === selectedColor }"
+            :style="{ background: c }"
+            :aria-checked="c === selectedColor"
+            :aria-label="`Colour ${i + 1}`"
+            :key="c"
+            v-for="(c, i) in STEM_COLORS"
+            @click="setColor(selected.id, c)"
+          />
+        </div>
         <q-btn
           outline
           rounded
@@ -277,7 +295,7 @@
           v-if="selectedPattern"
         />
       </template>
-      <div class="text-grey-5" v-else>Click a stem to fade it, or to add effects like EQ and reverb.</div>
+      <div class="text-grey-5" v-else>Click a stem to fade it, colour it, or add effects like EQ and reverb.</div>
     </div>
 
     <div class="stem-editor__recording" role="status" v-if="recording || countingIn">
@@ -368,7 +386,7 @@ import type { DawEditorElement } from '@dawcore/components';
 import type { NativePlayoutAdapter } from '@dawcore/transport';
 import type { ClipTrack } from '@waveform-playlist/core';
 import type { EngineState } from '@waveform-playlist/engine';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { LocalStorage } from 'quasar';
 import type { SnapTo } from '@waveform-playlist/core';
 import EffectsPanel from './EffectsPanel.vue';
@@ -377,6 +395,7 @@ import { stemAudio } from 'src/utils/studio/stem-audio';
 import { StemPlaceholders } from 'src/utils/studio/placeholders';
 import { parseEffects, registerStudioEffects, serializeEffects, type StemEffect } from 'src/utils/studio/effects';
 import { parsePattern } from 'src/utils/studio/instruments';
+import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';
@@ -438,6 +457,12 @@ const host = ref<HTMLElement>();
 const editor = shallowRef<DawEditorElement>();
 let adapter: NativePlayoutAdapter | null = null;
 let context: AudioContext | null = null;
+let look: TrackLook | null = null;
+const effectsMenu = ref<{ show: () => void }>();
+/** The master output level, 0 to 1 */
+const masterLevel = ref(0);
+/** Track id → its colour, mirrored from the track look so the page can show it */
+const colors = reactive(new Map<string, string>());
 
 const zoomLevels = [128, 256, 512, 1024, 2048, 4096, 8192];
 
@@ -524,6 +549,7 @@ const selected = computed(() => {
 });
 
 const selectedEffects = computed(() => (selected.value ? effects.get(selected.value.id) ?? [] : []));
+const selectedColor = computed(() => (selected.value ? colors.get(selected.value.id) : undefined));
 const selectedPattern = computed(() => {
   // Only stems in the editor's own list are reactive, so read through props.
   const id = selected.value?.id;
@@ -558,6 +584,7 @@ function withExtras(stem: Stem, trackId: string, meta: StemMeta, order = orderOf
   return {
     ...meta,
     ...(order >= 0 ? { order } : {}),
+    ...(colors.get(trackId) ? { color: colors.get(trackId) } : {}),
     ...(fx ? { effects: fx } : {}),
     ...(stem.meta?.instrument ? { instrument: stem.meta.instrument } : {}),
     ...(stem.meta?.sound ? { sound: stem.meta.sound } : {}),
@@ -682,11 +709,13 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
     const incomingFx = parseEffects(meta.effects ?? '');
     if (serializeEffects(incomingFx) !== serializeEffects(effects.get(trackId) ?? [])) {
       effects.set(trackId, incomingFx);
+      look?.set(trackId, { effects: incomingFx.length });
       void applyEffects(trackId);
     }
   }
 
   if (meta.order !== undefined && meta.order !== orderOf(trackId)) editor.value?.reorderTrack(trackId, meta.order);
+  if (meta.color && meta.color !== colors.get(trackId)) colorTrack(trackId, stemColor(meta.color, 0));
 
   stem.meta = { ...stem.meta, ...meta };
 
@@ -717,6 +746,7 @@ const applyRemoteAll = (changes: Record<string, StemMeta>, asSaved = false) =>
     .forEach(([id, meta]) => applyRemote(id, meta, asSaved));
 
 const onState = (state: EngineState) => {
+  colorNewTracks(state);
   canUndo.value = state.canUndo;
   canRedo.value = state.canRedo;
   duration.value = state.duration;
@@ -1189,6 +1219,7 @@ const applyEffects = async (trackId: string) => {
 
 const setEffects = (trackId: string, list: StemEffect[]) => {
   effects.set(trackId, list.map((e) => ({ ...e, params: { ...e.params } })));
+  look?.set(trackId, { effects: list.length });
   void applyEffects(trackId).then(checkDirty);
 };
 
@@ -1201,11 +1232,46 @@ const setEffectParams = (trackId: string, index: number, params: Record<string, 
   if (live) ed.setTrackEffectParams(trackId, live.id, params);
 };
 
+/** Give a track its colour, and show it on its controls and clips. */
+const colorTrack = (trackId: string, color: string) => {
+  colors.set(trackId, color);
+  look?.set(trackId, { color });
+};
+
+const setColor = (trackId: string, color: string) => {
+  colorTrack(trackId, color);
+  checkDirty();
+};
+
+/** Tracks the editor added on its own, like a recording, get the next colour. */
+const colorNewTracks = (state: EngineState) =>
+  state.tracks.forEach((t, i) => {
+    if (!colors.has(t.id)) colorTrack(t.id, stemColor(undefined, i));
+  });
+
+/** Select a stem from its controls, as clicking its row does. */
+const selectTrack = (trackId: string) => {
+  if (!tracks.has(trackId) || selectedTrackId.value === trackId) return;
+  editor.value?.engine?.selectTrack(trackId);
+  selectedTrackId.value = trackId;
+  look?.select(trackId);
+  syncFades();
+};
+
+/** Open a stem's effects from its controls. */
+const openEffects = async (e: Event) => {
+  const { trackId } = (e as CustomEvent<{ trackId: string }>).detail;
+  if (!trackId || !tracks.has(trackId)) return;
+  selectTrack(trackId);
+  await nextTick();
+  effectsMenu.value?.show();
+};
+
 /** Pick the closest zoom that shows the whole project. */
 const fit = () => {
   const ed = editor.value;
   if (!ed || !host.value) return;
-  const controls = $q.screen.lt.sm ? 110 : 180;
+  const controls = $q.screen.lt.sm ? 110 : 200;
   const width = Math.max(200, host.value.clientWidth - controls - 16);
   const needed = (duration.value * ed.sampleRate) / width;
   const index = zoomLevels.findIndex((spp) => spp >= needed);
@@ -1326,8 +1392,10 @@ const placeStem = async (stem: Stem): Promise<string | undefined> => {
   syncHistory();
   tracks.set(trackId, stem);
   placeholders.set(trackId, layoutOf(stem, engineTrack(trackId) ?? placed));
+  colorTrack(trackId, stemColor(stem.meta?.color, Math.max(0, orderOf(trackId))));
 
   const fx = parseEffects(stem.meta?.effects);
+  look?.set(trackId, { effects: fx.length });
   if (fx.length) {
     effects.set(trackId, fx);
     await applyEffects(trackId);
@@ -1416,6 +1484,8 @@ const removeStem = (stemId: string | number) => {
       editor.value?.removeTrack(trackId);
       tracks.delete(trackId);
       effects.delete(trackId);
+      colors.delete(trackId);
+      look?.forget(trackId);
       placeholders.delete(trackId);
       added.delete(String(stemId));
       if (selectedTrackId.value === trackId) selectedTrackId.value = null;
@@ -1465,12 +1535,17 @@ const listeners: [string, EventListener][] = [
   ['daw-play', () => {
     playing.value = true;
     scrolledByHand = false;
+    look?.start();
     // Only one thing plays at a time.
     usePlayerStore().pause();
   }],
-  ['daw-pause', () => (playing.value = false)],
+  ['daw-pause', () => {
+    playing.value = false;
+    look?.stop();
+  }],
   ['daw-stop', () => {
     playing.value = false;
+    look?.stop();
     time.value = editor.value?.currentTime ?? 0;
   }],
   ['daw-timeupdate', (e) => {
@@ -1492,6 +1567,7 @@ const listeners: [string, EventListener][] = [
   }],
   ['daw-track-select', (e) => {
     selectedTrackId.value = (e as CustomEvent<{ trackId: string }>).detail.trackId;
+    look?.select(selectedTrackId.value);
     syncFades();
   }],
   ['daw-track-control', () => setTimeout(checkDirty)],
@@ -1505,6 +1581,8 @@ const listeners: [string, EventListener][] = [
   ['daw-error', (e) => console.warn('[stem editor]', (e as CustomEvent).detail)],
   ['daw-recording-complete', (e) => void onRecordingComplete(e)],
   ['daw-recording-error', onRecordingError],
+  ['tf-track-effects', (e) => void openEffects(e)],
+  ['tf-track-select', (e) => selectTrack((e as CustomEvent<{ trackId: string }>).detail.trackId)],
 ];
 
 onMounted(async () => {
@@ -1512,11 +1590,12 @@ onMounted(async () => {
   props.stems.forEach((stem) => void fetchAudio(stem).catch(() => undefined));
 
   // The web components need the browser, so they load here and not during SSR.
-  const [{ registerEffect }, { NativePlayoutAdapter }] = await Promise.all([
+  const [{ registerEffect, DawTrackControlsElement }, { NativePlayoutAdapter }] = await Promise.all([
     import('@dawcore/components'),
     import('@dawcore/transport'),
   ]);
   registerStudioEffects(registerEffect);
+  patchTrackControls(DawTrackControlsElement);
 
   const ed = document.createElement('daw-editor');
   ed.setAttribute('eager-resume', 'document');
@@ -1559,6 +1638,7 @@ onMounted(async () => {
   const engine = await ed.ready();
   engine.on('statechange', onState);
   scrollArea()?.addEventListener('scroll', onTimelineScroll, { passive: true });
+  look = new TrackLook(ed, adapter, context, (level) => (masterLevel.value = level));
   engine.setMasterVolume(masterVolume.value / 100);
   applyTempo();
 
@@ -1588,6 +1668,7 @@ onBeforeUnmount(() => {
   const ed = editor.value;
   ed?.engine?.off('statechange', onState);
   scrollArea()?.removeEventListener('scroll', onTimelineScroll);
+  look?.dispose();
   ed?.stop();
   ed?.remove();
   host.value?.removeEventListener('daw-track-remove', onRemoveRequest, true);
@@ -1737,6 +1818,52 @@ defineExpose({
   }
 }
 
+.stem-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.stem-colors {
+  display: flex;
+  flex: none;
+  gap: 5px;
+
+  &__swatch {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    outline: none;
+
+    &:focus-visible,
+    &--on {
+      border-color: #fff;
+    }
+  }
+}
+
+.master-meter {
+  position: relative;
+  flex: none;
+  width: 6px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+
+  i {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, #2ed47a 0%, #2ed47a 70%, #ffc93c 85%, #ff5c5c 100%);
+    clip-path: inset(calc(100% - var(--level, 0) * 100%) 0 0 0);
+  }
+}
+
 .rec-dot {
   flex: none;
   width: 10px;
@@ -1813,7 +1940,7 @@ defineExpose({
   --daw-controls-text: #e0e0e0;
   --daw-clip-header-background: rgba(3, 191, 255, 0.22);
   --daw-clip-header-text: #ffffff;
-  --daw-controls-width: 180px;
+  --daw-controls-width: 200px;
   --daw-min-height: 0;
   flex: 1 1 auto;
   min-height: 0;

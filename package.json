@@ -39,6 +39,7 @@
     "cropperjs": "^1.6.2",
     "firebase": "^11.10.0",
     "javascript-time-ago": "^2.6.4",
+    "lit": "3.3.3",
     "pinia": "^4.1.0",
     "pinia-plugin-persistedstate": "^4.7.1",
     "pusher-js": "^8.4.0",

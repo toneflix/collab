@@ -48,6 +48,8 @@ export interface StemMeta {
   instrument?: string;
   /** The stem's place from the top of the editor */
   order?: number;
+  /** The stem's colour in the editor */
+  color?: string;
   /** Where a stem added from the sound library came from */
   sound?: { id?: number; source?: string; author?: string; license?: string; url?: string };
 }
