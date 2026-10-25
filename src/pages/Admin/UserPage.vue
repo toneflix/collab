@@ -139,15 +139,7 @@
           </div>
         </div>
 
-        <div class="section !p-0 overflow-hidden">
-          <q-tabs dense no-caps align="left" active-color="toneflix" class="px-2" v-model="tab">
-            <q-tab name="activity" label="Admin activity" />
-            <q-tab name="payments" label="Payments" />
-            <q-tab name="earnings" label="Earnings" />
-            <q-tab name="details" label="Details" />
-          </q-tabs>
-          <q-separator dark />
-
+        <SettingsSections :sections="sections" v-model="tab">
           <div class="p-4" v-if="tab === 'details'">
             <div class="row-item" :key="field.label" v-for="field in details">
               <span>{{ field.label }}</span><span>{{ field.value || '—' }}</span>
@@ -179,7 +171,7 @@
               <q-pagination class="!flex-none" v-model="listPage" :max="listPages" :max-pages="7" direction-links />
             </div>
           </template>
-        </div>
+        </SettingsSections>
       </div>
     </div>
 
@@ -201,6 +193,7 @@ import { useRoute } from 'vue-router';
 import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import TransactionItem from 'src/components/Payments/TransactionItem.vue';
+import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';
 import UserManageDialog, { type ManageMode } from 'src/components/Admin/UserManageDialog.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { formatBytes, notify } from 'src/utils/helpers';
@@ -227,7 +220,40 @@ const loading = ref(true);
 const error = ref('');
 const busy = ref<string>();
 const mode = ref<ManageMode | null>(null);
-const tab = ref<'activity' | 'payments' | 'earnings' | 'details'>('activity');
+type Tab = 'activity' | 'payments' | 'earnings' | 'details';
+
+const tab = ref<Tab>('activity');
+
+const sections: SettingsSection<Tab>[] = [
+  {
+    key: 'activity',
+    icon: 'fas fa-clock-rotate-left',
+    title: 'Admin activity',
+    caption: 'What admins changed on this account.',
+    flush: true,
+  },
+  {
+    key: 'payments',
+    icon: 'fas fa-receipt',
+    title: 'Payments',
+    caption: 'Plans, credits and tips they paid for.',
+    flush: true,
+  },
+  {
+    key: 'earnings',
+    icon: 'fas fa-sack-dollar',
+    title: 'Earnings',
+    caption: 'Money they earned and withdrew.',
+    flush: true,
+  },
+  {
+    key: 'details',
+    icon: 'fas fa-id-card',
+    title: 'Details',
+    caption: 'Account and profile fields.',
+    flush: true,
+  },
+];
 const listPage = ref(1);
 
 const id = computed(() => String(route.params.id));

@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-6xl mx-auto">
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">Payouts</h1>
         <p class="text-grey-5">
@@ -9,86 +9,81 @@
         </p>
       </div>
 
-      <q-tabs dense no-caps align="left" active-color="toneflix" class="mb-4" v-model="view" v-if="canConfigure">
-        <q-tab name="requests" label="Requests" />
-        <q-tab name="providers" label="Providers" />
-      </q-tabs>
+      <SettingsSections :sections="sections" v-model="view">
+        <template #providers>
+          <PayoutProviderSettings />
+        </template>
 
-      <PayoutProviderSettings v-if="view === 'providers'" />
+        <template #default>
+          <q-banner rounded dense class="mb-4 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
+            {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
+          </q-banner>
 
-      <template v-else>
-
-      <q-banner rounded dense class="mb-4 text-white bg-orange-10" v-if="summary.pendingCount">
-        {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
-      </q-banner>
-
-      <div class="flex flex-wrap items-center gap-3 mb-2">
-        <q-tabs dense no-caps align="left" active-color="toneflix" class="!flex-none" v-model="status">
-          <q-tab :key="option.value" :name="option.value" :label="option.label" v-for="option in statuses" />
-        </q-tabs>
-        <q-input
-          dark
-          dense
-          outlined
-          clearable
-          debounce="400"
-          placeholder="Search username, email or reference"
-          class="ml-auto min-w-56"
-          v-model="search"
-        >
-          <template #prepend><q-icon name="search" /></template>
-        </q-input>
-      </div>
-
-      <q-list separator v-if="list.length">
-        <PayoutItem :key="payout.id" :payout="payout" v-for="payout in list">
-          <template #actions v-if="payout.status === 'pending'">
-            <q-btn
-              flat
+          <div class="flex flex-wrap items-center gap-3 mb-2">
+            <q-input
+              dark
               dense
-              no-caps
-              size="sm"
-              color="red-4"
-              label="Reject"
-              :disable="!!busy"
-              @click="reject(payout)"
-            />
-            <q-btn
-              unelevated
-              dense
-              rounded
-              no-caps
-              size="sm"
-              padding="0 sm"
-              color="toneflix"
-              label="Approve"
-              :loading="busy === payout.id"
-              :disable="!!busy && busy !== payout.id"
-              @click="approve(payout)"
-            />
-          </template>
-          <template #actions v-else-if="payout.status === 'processing'">
-            <q-btn
-              flat
-              dense
-              no-caps
-              size="sm"
-              label="Check status"
-              :loading="busy === payout.id"
-              @click="sync(payout)"
-            />
-          </template>
-        </PayoutItem>
-      </q-list>
-      <div class="py-10 text-center" v-else-if="loading">
-        <q-spinner size="32px" />
-      </div>
-      <SimpleInfo v-else text="Nothing here." />
+              outlined
+              clearable
+              debounce="400"
+              placeholder="Search username, email or reference"
+              class="min-w-56"
+              v-model="search"
+            >
+              <template #prepend><q-icon name="search" /></template>
+            </q-input>
+          </div>
 
-      <div class="flex justify-center mt-4" v-if="pageCount > 1">
-        <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
-      </div>
-      </template>
+          <q-list separator v-if="list.length">
+            <PayoutItem :key="payout.id" :payout="payout" v-for="payout in list">
+              <template #actions v-if="payout.status === 'pending'">
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  size="sm"
+                  color="red-4"
+                  label="Reject"
+                  :disable="!!busy"
+                  @click="reject(payout)"
+                />
+                <q-btn
+                  unelevated
+                  dense
+                  rounded
+                  no-caps
+                  size="sm"
+                  padding="0 sm"
+                  color="toneflix"
+                  label="Approve"
+                  :loading="busy === payout.id"
+                  :disable="!!busy && busy !== payout.id"
+                  @click="approve(payout)"
+                />
+              </template>
+              <template #actions v-else-if="payout.status === 'processing'">
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  size="sm"
+                  label="Check status"
+                  :loading="busy === payout.id"
+                  @click="sync(payout)"
+                />
+              </template>
+            </PayoutItem>
+          </q-list>
+          <div class="py-10 text-center" v-else-if="loading">
+            <q-spinner size="32px" />
+          </div>
+          <SimpleInfo v-else text="Nothing here." />
+
+          <div class="flex justify-center mt-4" v-if="pageCount > 1">
+            <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
+          </div>
+        </template>
+      </SettingsSections>
     </div>
   </q-page>
 </template>
@@ -97,6 +92,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMeta, useQuasar } from 'quasar';
 import { useWatcher } from 'alova/client';
+import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
@@ -120,17 +116,12 @@ const boot = useBootstrapStore();
 const { price } = usePayments();
 
 const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
-const view = ref<'requests' | 'providers'>('requests');
+type View = PayoutStatus | 'all' | 'providers';
 
-const statuses: { value: PayoutStatus | ''; label: string }[] = [
-  { value: 'pending', label: 'Waiting' },
-  { value: 'processing', label: 'On its way' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'failed', label: 'Failed' },
-  { value: '', label: 'All' },
-];
-
-const status = ref<PayoutStatus | ''>('pending');
+const view = ref<View>('pending');
+const status = computed<PayoutStatus | ''>(() =>
+  view.value === 'all' || view.value === 'providers' ? '' : view.value,
+);
 const search = ref<string | null>('');
 const page = ref(1);
 const busy = ref<number>();
@@ -146,6 +137,39 @@ const { data, loading, send: reload } = useWatcher(
 const list = computed(() => data.value?.data || []);
 const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 const summary = computed(() => data.value?.summary || { pendingCount: 0, pendingAmount: 0 });
+
+const sections = computed(() => {
+  const list: SettingsSection<View>[] = [
+    {
+      key: 'pending',
+      icon: 'fas fa-hourglass-half',
+      title: 'Waiting',
+      caption: 'Withdrawals to approve or reject.',
+      count: summary.value.pendingCount,
+    },
+    {
+      key: 'processing',
+      icon: 'fas fa-paper-plane',
+      title: 'On its way',
+      caption: 'Sent and waiting for the provider.',
+    },
+    { key: 'paid', icon: 'fas fa-circle-check', title: 'Paid', caption: 'Money that reached the creator.' },
+    { key: 'failed', icon: 'fas fa-circle-exclamation', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
+    { key: 'all', icon: 'fas fa-list', title: 'All', caption: 'Every withdrawal request.' },
+  ];
+
+  return canConfigure.value
+    ? [
+        ...list,
+        {
+          key: 'providers',
+          icon: 'fas fa-building-columns',
+          title: 'Providers',
+          caption: 'Paystack, Flutterwave and Stripe Connect.',
+        },
+      ]
+    : list;
+});
 
 const act = async (payout: Payout, request: () => Promise<{ message: string }>, fallback: string) => {
   busy.value = payout.id;

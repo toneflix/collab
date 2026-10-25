@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-6xl mx-auto">
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">Configuration</h1>
         <p class="text-grey-5">
@@ -11,63 +11,73 @@
 
       <q-spinner v-if="loading" />
 
-      <q-form class="flex flex-col gap-4" @submit="save" v-else-if="settings">
-        <div class="section" :key="group.title" v-for="group in groups">
-          <div class="mb-3 font-bold">{{ group.title }}</div>
-
-          <div class="grid gap-3 sm:grid-cols-2">
-            <template v-for="key in group.keys" :key="key">
-              <template v-if="fields[key]">
-                <div class="toggle-card sm:col-span-2" v-if="fields[key].type === 'boolean'">
-                  <q-toggle color="toneflix" v-model="form[key]" />
-                  <div class="min-w-0">
-                    <div class="font-bold">{{ fields[key].title }}</div>
-                    <div class="text-sm text-grey-5">{{ fields[key].hint }}</div>
+      <q-form @submit="save" v-else-if="settings">
+        <SettingsSections :sections="groups" :marked="unsaved">
+          <template #[group.key] :key="group.key" v-for="group in groups">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <template v-for="key in group.keys" :key="key">
+                <template v-if="fields[key]">
+                  <div
+                    class="toggle-card sm:col-span-2"
+                    v-if="fields[key].type === 'boolean'"
+                  >
+                    <q-toggle color="toneflix" v-model="form[key]" />
+                    <div class="min-w-0">
+                      <div class="font-bold">{{ fields[key].title }}</div>
+                      <div class="text-sm text-grey-5">
+                        {{ fields[key].hint }}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <q-select
-                  dark
-                  outlined
-                  bottom-slots
-                  :options="fields[key].options"
-                  :label="fields[key].title"
-                  v-model="form[key]"
-                  v-else-if="fields[key].options"
-                >
-                  <template #hint>{{ fields[key].hint }}</template>
-                </q-select>
+                  <q-select
+                    dark
+                    outlined
+                    bottom-slots
+                    :options="fields[key].options"
+                    :label="fields[key].title"
+                    v-model="form[key]"
+                    v-else-if="fields[key].options"
+                  >
+                    <template #hint>{{ fields[key].hint }}</template>
+                  </q-select>
 
-                <q-input
-                  dark
-                  outlined
-                  bottom-slots
-                  :type="inputType(fields[key])"
-                  :prefix="moneyKeys.includes(key) ? currency : undefined"
-                  :label="fields[key].title"
-                  :model-value="textValue(key)"
-                  @update:model-value="(value) => (form[key] = value as ConfigurationValue)"
-                  v-else
-                >
-                  <template #hint>{{ fields[key].hint }}</template>
-                </q-input>
+                  <q-input
+                    dark
+                    outlined
+                    bottom-slots
+                    :type="inputType(fields[key])"
+                    :prefix="moneyKeys.includes(key) ? currency : undefined"
+                    :label="fields[key].title"
+                    :model-value="textValue(key)"
+                    @update:model-value="
+                      (value) => (form[key] = value as ConfigurationValue)
+                    "
+                    v-else
+                  >
+                    <template #hint>{{ fields[key].hint }}</template>
+                  </q-input>
+                </template>
               </template>
-            </template>
-          </div>
-        </div>
+            </div>
+          </template>
 
-        <div class="flex justify-end">
-          <q-btn
-            unelevated
-            no-caps
-            color="toneflix"
-            type="submit"
-            label="Save"
-            class="!flex-none"
-            :loading="saving"
-            :disable="!changed"
-          />
-        </div>
+          <template #footer>
+            <span class="text-sm text-grey-5" v-if="changed"
+              >Unsaved changes</span
+            >
+            <q-btn
+              unelevated
+              no-caps
+              color="toneflix"
+              type="submit"
+              label="Save"
+              class="!flex-none"
+              :loading="saving"
+              :disable="!changed"
+            />
+          </template>
+        </SettingsSections>
       </q-form>
     </div>
   </q-page>
@@ -76,6 +86,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useMeta } from 'quasar';
+import SettingsSections, {
+  type SettingsSection,
+} from 'src/components/Admin/SettingsSections.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import type { ResponseBody } from 'src/utils/models';
@@ -87,11 +100,41 @@ import {
   type ConfigurationValue,
 } from 'src/utils/requests/configuration';
 
-const groups = [
-  { title: 'App', keys: ['app_name', 'app_email', 'verify_email', 'verify_phone'] },
-  { title: 'Money', keys: ['app_currency', 'creator_share', 'min_tip_amount', 'reference_prefix'] },
-  { title: 'Withdrawals', keys: ['min_payout_amount', 'payout_hold_days', 'payout_auto_approve'] },
-  { title: 'Releases', keys: ['review_releases'] },
+/** The page's sections and the settings each one holds. */
+const groups: (SettingsSection & { keys: string[] })[] = [
+  {
+    key: 'app',
+    icon: 'fas fa-gear',
+    title: 'App',
+    caption: 'Name, contact email and sign-up checks.',
+    keys: ['app_name', 'app_email', 'verify_email', 'verify_phone'],
+  },
+  {
+    key: 'money',
+    icon: 'fas fa-coins',
+    title: 'Money',
+    caption: 'Currency, creator share and tips.',
+    keys: [
+      'app_currency',
+      'creator_share',
+      'min_tip_amount',
+      'reference_prefix',
+    ],
+  },
+  {
+    key: 'withdrawals',
+    icon: 'fas fa-money-bill-transfer',
+    title: 'Withdrawals',
+    caption: 'Minimums, hold time and approval.',
+    keys: ['min_payout_amount', 'payout_hold_days', 'payout_auto_approve'],
+  },
+  {
+    key: 'releases',
+    icon: 'fas fa-compact-disc',
+    title: 'Releases',
+    caption: 'Whether releases wait for a review.',
+    keys: ['review_releases'],
+  },
 ];
 const moneyKeys = ['min_tip_amount', 'min_payout_amount'];
 
@@ -100,14 +143,23 @@ const loading = ref(true);
 const saving = ref(false);
 const settings = ref<ConfigurationSettings>();
 const form = reactive<Record<string, ConfigurationValue>>({});
-let savedForm = '';
+const saved = ref<Record<string, ConfigurationValue>>({});
 
 const fields = computed(() => settings.value?.fields ?? {});
 const currency = computed(() => String(form.app_currency ?? ''));
-const changed = computed(() => JSON.stringify(form) !== savedForm);
+const differs = (key: string) =>
+  JSON.stringify(form[key]) !== JSON.stringify(saved.value[key]);
+const changed = computed(() => Object.keys(form).some(differs));
+const unsaved = computed(() =>
+  groups.filter((group) => group.keys.some(differs)).map((group) => group.key),
+);
 
 const inputType = (field: ConfigurationField) =>
-  field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : 'text';
+  field.type === 'number'
+    ? 'number'
+    : field.type === 'email'
+      ? 'email'
+      : 'text';
 
 const textValue = (key: string) => {
   const value = form[key];
@@ -119,7 +171,7 @@ const fill = (data: ConfigurationSettings) => {
   for (const [key, field] of Object.entries(data.fields)) {
     form[key] = field.type === 'boolean' ? !!field.value : field.value;
   }
-  savedForm = JSON.stringify(form);
+  saved.value = { ...form };
 };
 
 const errorText = (e: unknown, fallback: string) => {
@@ -179,11 +231,5 @@ useMeta(() => ({
   > .min-w-0 {
     flex: 1 1 auto;
   }
-}
-
-.section {
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
 }
 </style>
