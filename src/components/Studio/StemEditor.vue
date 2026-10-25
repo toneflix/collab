@@ -770,6 +770,20 @@ const toStart = () => {
   }
 };
 
+/** Move the playhead, carrying on playing from there if it was playing. */
+const seek = (seconds: number) => {
+  const ed = editor.value;
+  if (!ed) return;
+  const to = Math.max(0, seconds);
+  if (playing.value) {
+    ed.stop();
+    void ed.play(to);
+  } else {
+    ed.seekTo(to);
+    time.value = to;
+  }
+};
+
 const toggleLoop = () => {
   const engine = editor.value?.engine;
   if (!engine || !selection.value) return;
@@ -1537,6 +1551,7 @@ defineExpose({
   stop,
   highlight,
   currentTime,
+  seek,
   adoptStem,
   dropTrack,
 });

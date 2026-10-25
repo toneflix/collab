@@ -38,8 +38,8 @@ export type ModeratedItem = {
 
 export type Report = {
   id: number;
-  /** "report" from a person, "match" from the audio check */
-  type: 'report' | 'match';
+  /** "report" from a person, "match" from the audio check, "lyrics" from the lyrics check */
+  type: 'report' | 'match' | 'lyrics';
   reason: ReportReason;
   details?: string | null;
   claim?: {
@@ -52,6 +52,8 @@ export type Report = {
     match_link?: string;
     score?: number;
     kind?: 'exact' | 'acoustic';
+    /** Words the lyrics check found */
+    words?: string[];
   } | null;
   status: 'pending' | 'dismissed' | 'actioned';
   user?: { id: number; name: string; username?: string } | null;

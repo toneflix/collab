@@ -217,7 +217,7 @@
               </div>
               <div class="min-w-0">
                 <div class="text-sm truncate">
-                  {{ job.kind === 'music' ? job.prompt : 'Split into stems' }}
+                  {{ jobTitle(job) }}
                 </div>
                 <div class="text-xs text-grey-6">
                   {{ statusText(job) }} · {{ job.credits }} credits<template
@@ -317,11 +317,21 @@ const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 const day = (value: string) => date.formatDate(value, 'MMM D');
 
+const jobTitle = (job: AiJob) =>
+  ({
+    music: job.prompt,
+    stems: 'Split into stems',
+    lyrics: `Lyrics from ${job.title || 'a stem'}`,
+  })[job.kind];
+
 const statusText = (job: AiJob) =>
   ({
     queued: 'Waiting to start',
-    running: job.kind === 'music' ? 'Composing, about a minute' : 'Splitting',
-    succeeded: `Added ${job.stems.length} ${job.stems.length === 1 ? 'stem' : 'stems'}`,
+    running: { music: 'Composing, about a minute', stems: 'Splitting', lyrics: 'Listening' }[job.kind],
+    succeeded:
+      job.kind === 'lyrics'
+        ? `Wrote ${job.lines ?? 0} ${job.lines === 1 ? 'line' : 'lines'}`
+        : `Added ${job.stems.length} ${job.stems.length === 1 ? 'stem' : 'stems'}`,
     failed: 'Failed',
   })[job.status];
 
@@ -353,9 +363,11 @@ const onJob = (job: AiJob) => {
   if (at >= 0) jobs.value.splice(at, 1, job);
   else jobs.value.unshift(job);
 
+  // The lyric sheet tells people about its own jobs.
   if (
     (job.status === 'succeeded' || job.status === 'failed') &&
-    !handed.has(job.id)
+    !handed.has(job.id) &&
+    job.kind !== 'lyrics'
   ) {
     handed.add(job.id);
     if (job.status === 'succeeded') {

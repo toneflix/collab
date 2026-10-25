@@ -8,8 +8,8 @@ export type AiConfig = {
   enabled: boolean;
   creditPrice: number;
   packs: CreditPack[];
-  /** Credits per 10 seconds of music, and per split into stems */
-  costs: { music10s: number; stems: number };
+  /** Credits per 10 seconds of music, per split into stems, and per lyrics transcription */
+  costs: { music10s: number; stems: number; lyrics: number };
   musicMaxSeconds: number;
 };
 
@@ -43,12 +43,16 @@ export type AiJobStatus = 'queued' | 'running' | 'succeeded' | 'failed';
 
 export type AiJob = {
   id: number;
-  kind: 'music' | 'stems';
+  kind: 'music' | 'stems' | 'lyrics';
   status: AiJobStatus;
   trackId: number;
   prompt?: string | null;
   seconds?: number | null;
   split: boolean;
+  /** The stem a split or transcription worked on */
+  title?: string | null;
+  /** Lines of lyrics a transcription wrote */
+  lines?: number | null;
   credits: number;
   /** Ids of the stems it made */
   stems: number[];

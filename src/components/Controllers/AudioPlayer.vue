@@ -124,9 +124,13 @@
                   <q-item-section avatar><q-icon :name="ionLink" /></q-item-section>
                   <q-item-section>Copy link</q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="queueOpen = true">
+                <q-item clickable v-close-popup @click="openPanel('next')">
                   <q-item-section avatar><q-icon :name="ionList" /></q-item-section>
                   <q-item-section>Up next</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="openPanel('lyrics')">
+                  <q-item-section avatar><q-icon :name="ionText" /></q-item-section>
+                  <q-item-section>Lyrics</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -189,6 +193,19 @@
           round
           size="md"
           class="!flex-none"
+          :class="{ 'text-toneflix': queueOpen && panelTab === 'lyrics' }"
+          :aria-label="queueOpen && panelTab === 'lyrics' ? 'Close lyrics' : 'Show lyrics'"
+          :icon="ionText"
+          :disable="!track.id"
+          @click="openPanel('lyrics', true)"
+        >
+          <q-tooltip>Lyrics</q-tooltip>
+        </q-btn>
+        <q-btn
+          flat
+          round
+          size="md"
+          class="!flex-none"
           :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
           :icon="queueOpen ? ionCaretDown : ionCaretUp"
           @click="queueOpen = !queueOpen"
@@ -196,7 +213,7 @@
       </div>
     </div>
 
-    <NowPlayingDialog v-model="queueOpen" :offset="height" />
+    <NowPlayingDialog v-model="queueOpen" v-model:tab="panelTab" :offset="height" />
   </div>
 </template>
 
@@ -218,6 +235,7 @@ import {
   ionPlaySkipForward,
   ionRepeat,
   ionShuffle,
+  ionText,
   ionVolumeHigh,
   ionVolumeLow,
   ionVolumeMute,
@@ -235,6 +253,17 @@ import NowPlayingDialog from './NowPlayingDialog.vue';
 const player = usePlayerStore();
 const router = useRouter();
 const queueOpen = ref(false);
+const panelTab = ref<'next' | 'lyrics'>('next');
+
+/** Open the expanded player on a tab, or close it when that tab is showing and toggling. */
+const openPanel = (tab: 'next' | 'lyrics', toggle = false) => {
+  if (toggle && queueOpen.value && panelTab.value === tab) {
+    queueOpen.value = false;
+    return;
+  }
+  panelTab.value = tab;
+  queueOpen.value = true;
+};
 const root = ref<HTMLElement>();
 const height = ref(0);
 let resize: ResizeObserver | null = null;
