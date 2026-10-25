@@ -598,7 +598,7 @@ export interface ProjectTrack {
   /** The studio's master volume, 0 to 1 */
   mixVolume?: number;
   /** The Composer song the track was made from, for people who can edit it */
-  song?: { id: number; title: string; body: string | null };
+  song?: { id: number; title: string; body: string | null; bpm: number | null; key: string | null; mood: string | null };
   /** Where the server is with the newest preview mix */
   mix?: MixState | null;
   interaction?: Interaction;

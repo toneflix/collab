@@ -113,7 +113,7 @@
                 class="ai__idea"
                 :key="idea"
                 v-for="idea in ideas"
-                @click="form.prompt = idea"
+                @click="useIdea(idea)"
               >
                 {{ idea }}
               </button>
@@ -459,6 +459,7 @@ import {
 import { date, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
+import { pickStyles } from 'src/utils/ai/music-styles';
 import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
@@ -485,6 +486,8 @@ const props = defineProps<{
   stems: Stem[];
   /** Lyrics of the Composer song the track came from, to start from when it has no stems */
   songLyrics?: string | null;
+  /** What is known about the track's sound, to start the description from */
+  details?: { genre?: string | null; mood?: string | null; bpm?: number | null; key?: string | null };
   disabled?: boolean;
   /** CSS selector of the column the panel docks into on desktop. */
   dock?: string;
@@ -603,12 +606,25 @@ const shownJobs = computed(() =>
   tool.value ? jobs.value.filter((j) => j.kind === tool.value) : jobs.value,
 );
 
-const ideas = [
-  'Mellow afrobeats groove, 100 BPM, guitars and log drums',
-  'Lofi hip hop beat with vinyl crackle and soft keys',
-  'Amapiano loop with shakers and a deep log drum bass',
-  'Uplifting gospel choir with organ and claps',
-];
+/** Picked after mount so the server and browser render the same page */
+const ideas = ref<string[]>([]);
+
+/** What the track already says about its sound, like "Afrobeats, hopeful mood, 92 BPM, in A minor" */
+const detailsText = (withGenre: boolean) =>
+  [
+    withGenre ? props.details?.genre : null,
+    props.details?.mood ? `${props.details.mood} mood` : null,
+    props.details?.bpm ? `${Math.round(props.details.bpm)} BPM` : null,
+    props.details?.key ? `in ${props.details.key}` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+/** An idea keeps the track's tempo, key and mood */
+const useIdea = (idea: string) => {
+  const extra = detailsText(false);
+  form.prompt = extra ? `${idea}, ${extra}` : idea;
+};
 
 const cost = computed(() =>
   account.value ? musicCost(account.value, form.seconds, form.split) : 0,
@@ -625,12 +641,19 @@ const prefillLyrics = () => {
   if (!form.lyrics.trim() && !props.stems.length && props.songLyrics?.trim()) form.lyrics = props.songLyrics.trim();
 };
 
+/** An empty description starts from the track's genre, mood, tempo and key */
+const prefillPrompt = () => {
+  if (!form.prompt.trim()) form.prompt = detailsText(true);
+};
+
 const toggle = () => (open.value = !open.value);
 
 watch(
-  () => [open.value, props.songLyrics, props.stems.length] as const,
+  () => [open.value, props.songLyrics, props.stems.length, props.details] as const,
   ([isOpen]) => {
-    if (isOpen) prefillLyrics();
+    if (!isOpen) return;
+    prefillLyrics();
+    prefillPrompt();
   },
   { immediate: true },
 );
@@ -854,7 +877,10 @@ const choose = async (job: AiJob, version: SongVersion) => {
   }
 };
 
-onMounted(() => void loadJobs());
+onMounted(() => {
+  ideas.value = pickStyles();
+  void loadJobs();
+});
 onBeforeUnmount(() => {
   clearTimeout(timer);
   player?.pause();
