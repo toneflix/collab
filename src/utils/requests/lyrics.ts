@@ -37,9 +37,12 @@ export const activeLine = (lines: LyricLine[], time: number) => {
   return active;
 };
 
+/** A track with no lyrics yet comes back as an empty object */
+const lyricsOrNull = (e: ResponseBody<Lyrics | Record<string, never>>) => (e.data && 'lines' in e.data ? (e.data as Lyrics) : null);
+
 export const loadTrackLyricsRequest = (trackId: string | number) =>
   alova.Get(`tracks/${trackId}/lyrics`, {
-    transform: (e: ResponseBody<Lyrics | null>) => e.data,
+    transform: lyricsOrNull,
     cacheFor: 60 * 1000,
   });
 
@@ -48,7 +51,7 @@ export const loadLyricSheetRequest = (
   trackId: string | number,
 ) =>
   alova.Get(`${sheet(projectId, trackId)}/lyrics`, {
-    transform: (e: ResponseBody<Lyrics | null>) => e.data,
+    transform: lyricsOrNull,
     cacheFor: 0,
   });
 
@@ -57,8 +60,8 @@ export const saveLyricSheetRequest = (
   trackId: string | number,
   lines: LyricLine[],
 ) =>
-  alova.Put<ResponseBody<Lyrics | null>>(`${sheet(projectId, trackId)}/lyrics`, {
-    lines,
+  alova.Put(`${sheet(projectId, trackId)}/lyrics`, { lines }, {
+    transform: (e: ResponseBody<Lyrics>) => ({ ...e, data: lyricsOrNull(e) }),
   });
 
 export const transcribeStemRequest = (
@@ -74,6 +77,6 @@ export const saveTrackLyricsRequest = (
   trackId: string | number,
   lines: LyricLine[],
 ) =>
-  alova.Put<ResponseBody<Lyrics | null>>(`creator/tracks/${trackId}/lyrics`, {
-    lines,
+  alova.Put(`creator/tracks/${trackId}/lyrics`, { lines }, {
+    transform: (e: ResponseBody<Lyrics>) => ({ ...e, data: lyricsOrNull(e) }),
   });

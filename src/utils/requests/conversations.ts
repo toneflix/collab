@@ -79,13 +79,13 @@ export type Conversation = {
   canDeleteAny?: boolean;
 }
 
-type ListBody = ResponseBody<Conversation[]> & { meta: { unread: number } }
-type MessagesBody = ResponseBody<ChatMessage[]> & { meta: { hasMore: boolean } }
+type ListBody = ResponseBody<Conversation[]> & { unread: number }
+type MessagesBody = ResponseBody<ChatMessage[]> & { meta: { nextCursor: string | null } }
 
 /** The signed-in user's conversations, most recent first */
 export const loadConversationsRequest = () =>
   alova.Get('conversations', {
-    transform: (e: ListBody) => ({ list: e.data, unread: e.meta?.unread ?? 0 }),
+    transform: (e: ListBody) => ({ list: e.data, unread: e.unread ?? 0 }),
     cacheFor: 0,
   })
 
@@ -96,11 +96,11 @@ export const loadConversationRequest = (type: string, id: string | number) =>
     cacheFor: 0,
   })
 
-/** A page of messages, oldest first; `before` loads the page above that message */
-export const loadMessagesRequest = (type: string, id: string | number, before?: string | number) =>
+/** A page of messages, oldest first; pass the last page's `cursor` to load the page above it */
+export const loadMessagesRequest = (type: string, id: string | number, cursor?: string | null) =>
   alova.Get(`conversations/${type}/${id}/messages`, {
-    params: { limit: 30, ...(before ? { before } : {}) },
-    transform: (e: MessagesBody) => ({ messages: e.data, hasMore: !!e.meta?.hasMore }),
+    params: { limit: 30, ...(cursor ? { cursor } : {}) },
+    transform: (e: MessagesBody) => ({ messages: e.data, cursor: e.meta?.nextCursor ?? null }),
     cacheFor: 0,
   })
 

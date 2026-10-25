@@ -324,7 +324,7 @@ const list = async (more = false) => {
   try {
     const res = await loadAdminLibraryRequest({ search: search.value || undefined, page: page.value }).send();
     library.value = more ? [...library.value, ...res.data] : res.data;
-    hasMore.value = res.meta.page < res.meta.lastPage;
+    hasMore.value = res.meta.currentPage < res.meta.lastPage;
   } catch (e) {
     notify(errorText(e, 'The library couldn\'t be loaded.'), 'error');
   } finally {

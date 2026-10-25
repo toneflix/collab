@@ -79,7 +79,7 @@ const categories = reactive({
       title: 'Top Projects',
       slug: 'top-projects',
       id: 'top-projects',
-      data: data.value.top_projects,
+      data: data.value.topProjects,
     },
   ],
   top_creators: [
@@ -87,7 +87,7 @@ const categories = reactive({
       id: 'top-creators',
       slug: 'top-creators',
       title: 'Top Creators',
-      data: data.value.top_creators,
+      data: data.value.topCreators,
     },
   ],
   new_projects: [
@@ -95,7 +95,7 @@ const categories = reactive({
       id: 'new-projects',
       slug: 'new-projects',
       title: 'New Projects',
-      data: data.value.new_projects,
+      data: data.value.newProjects,
     },
   ],
   all_projects: [
@@ -103,7 +103,7 @@ const categories = reactive({
       id: 'all',
       slug: 'all',
       title: 'All Projects',
-      data: data.value.random_projects,
+      data: data.value.randomProjects,
       params: { filters: 'active,random' },
     },
   ],

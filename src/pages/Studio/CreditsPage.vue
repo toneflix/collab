@@ -192,7 +192,7 @@ const loadHistory = async (to = 1) => {
   try {
     const res = await loadCreditHistoryRequest(to).send();
     history.value = to === 1 ? res.data : [...history.value, ...res.data];
-    page.value = res.meta.page;
+    page.value = res.meta.currentPage;
     lastPage.value = res.meta.lastPage;
   } finally {
     loadingHistory.value = false;

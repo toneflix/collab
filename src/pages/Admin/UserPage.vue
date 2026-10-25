@@ -261,7 +261,7 @@ watch(tab, () => (listPage.value = 1));
 
 const entries = computed(() => (tab.value === 'activity' ? ((list.value?.data || []) as AdminAction[]) : []));
 const transactions = computed(() => (tab.value !== 'activity' ? ((list.value?.data || []) as Transaction[]) : []));
-const listPages = computed(() => list.value?.meta?.last_page || 1);
+const listPages = computed(() => list.value?.meta?.lastPage || 1);
 
 const storage = computed(() => {
   const s = stats.value?.storage;

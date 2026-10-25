@@ -142,7 +142,7 @@
               <q-icon name="fas fa-circle-check" color="green-5" class="!flex-none" v-else-if="resolved" />
               <q-icon name="fas fa-circle-exclamation" color="red-4" class="!flex-none" v-else />
               <span class="text-sm" :class="{ 'text-red-4': resolveError && !resolving }">
-                {{ resolving ? 'Checking the account…' : resolved?.account_name || resolveError }}
+                {{ resolving ? 'Checking the account…' : resolved?.accountName || resolveError }}
               </span>
             </div>
 

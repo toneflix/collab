@@ -1,5 +1,5 @@
 import { alova, axios } from 'src/boot/alova'
-import type { EnvKey, ResponseBody, SettingField } from '../models'
+import type { EnvKey, PageMeta, ResponseBody, SettingField } from '../models'
 import type { Stem } from '../daw'
 
 export type Sound = {
@@ -57,7 +57,7 @@ export type SoundsStatus = {
   categories: string[];
 }
 
-export type SoundList = { data: Sound[]; meta: { total: number; page: number; lastPage: number } }
+export type SoundList = ResponseBody<Sound[]> & { meta: PageMeta }
 
 type ListParams = { search?: string; category?: string; page?: number; limit?: number }
 
@@ -114,7 +114,7 @@ export const connectFreesoundRequest = (back?: string) =>
   })
 
 export const finishFreesoundRequest = (code: string, state: string) =>
-  alova.Post<ResponseBody<{ username?: string | null; return?: string | null }>>('sounds/freesound/callback', { code, state })
+  alova.Post<ResponseBody<{ connected: boolean; username?: string | null }> & { return?: string | null }>('sounds/freesound/callback', { code, state })
 
 export const disconnectFreesoundRequest = () => alova.Delete<ResponseBody<{ connected: boolean }>>('sounds/freesound/connect')
 

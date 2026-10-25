@@ -78,14 +78,14 @@ const categories = reactive({
   top: [
     {
       id: 'top-creators',
-      data: data.value.top_creators,
+      data: data.value.topCreators,
       slug: 'top-creators',
       title: 'Top Creators',
       params: { filters: 'creator,top' },
     },
     {
       id: 'new-creators',
-      data: data.value.new_creators,
+      data: data.value.newCreators,
       slug: 'new-creators',
       title: 'New Creators',
       params: { filters: 'creator,latest' },
@@ -94,7 +94,7 @@ const categories = reactive({
   next: [
     {
       id: 'all-creators',
-      data: data.value.random_creators,
+      data: data.value.randomCreators,
       slug: 'all-creators',
       title: 'All Creators',
       params: { filters: 'creator,random' },

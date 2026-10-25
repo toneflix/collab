@@ -47,7 +47,7 @@ onMounted(async () => {
   try {
     const res = await finishFreesoundRequest(code, token).send();
     username.value = res.data.username || '';
-    back.value = res.data.return || '/studio';
+    back.value = res.return || '/studio';
     state.value = 'done';
     // Straight back to the studio; the page above is for when that's slow.
     setTimeout(() => void router.replace(back.value), 1200);

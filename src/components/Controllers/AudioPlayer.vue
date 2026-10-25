@@ -261,7 +261,7 @@ const track = computed<Track>(() => (hydrated.value && player.current) || ({} as
 const trackLink = computed(() => ({
   name: 'artist.track',
   params: {
-    artist_id: track.value.artist?.username || track.value.artist_id || '-',
+    artist_id: track.value.artist?.username || track.value.artistId || '-',
     track_id: track.value.slug || '-',
   },
 }));

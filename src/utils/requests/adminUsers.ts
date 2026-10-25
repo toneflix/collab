@@ -76,8 +76,18 @@ export type AdminUsersResponse = ResponseBody<AdminUser[]> & { roles: string[] }
 export const loadAdminUsersRequest = (params: Record<string, string | number>) =>
   alova.Get<AdminUsersResponse>('admin/users', { cacheFor: 0, params });
 
+/** An account as the API sends it: the user as `data`, with what the admin may do beside it. */
+type UserBody = ResponseBody<AdminUser> & Omit<AdminUserDetail, 'user'>;
+
+type Detail = ResponseBody<AdminUserDetail>;
+
+const toDetail = ({ data, can, roles, stats, ...body }: UserBody): Detail => ({
+  ...body,
+  data: { user: data, can, roles, ...(stats ? { stats } : {}) },
+});
+
 export const loadAdminUserRequest = (id: number | string) =>
-  alova.Get<ResponseBody<AdminUserDetail>>(`admin/users/${id}`, { cacheFor: 0 });
+  alova.Get(`admin/users/${id}`, { cacheFor: 0, transform: toDetail });
 
 /** The user page's tabbed lists share one response type so one watcher can load either. */
 type UserListBody = ResponseBody<AdminAction[] | Transaction[]>;
@@ -88,36 +98,34 @@ export const loadUserActivityRequest = (id: number | string, page = 1) =>
 export const loadUserTransactionsRequest = (id: number | string, side: 'payments' | 'earnings', page = 1) =>
   alova.Get<UserListBody>(`admin/users/${id}/transactions`, { cacheFor: 0, params: { side, page } });
 
-type Detail = ResponseBody<AdminUserDetail>;
-
 export const updateAdminUserRequest = (id: number, body: Partial<AdminUser>) =>
-  alova.Put<Detail>(`admin/users/${id}`, body);
+  alova.Put(`admin/users/${id}`, body, { transform: toDetail });
 
 export const suspendUserRequest = (id: number, reason: string, days?: number | null) =>
-  alova.Post<Detail>(`admin/users/${id}/suspend`, { reason, days: days || null });
+  alova.Post(`admin/users/${id}/suspend`, { reason, days: days || null }, { transform: toDetail });
 
 export const unsuspendUserRequest = (id: number, reason?: string) =>
-  alova.Post<Detail>(`admin/users/${id}/unsuspend`, { reason });
+  alova.Post(`admin/users/${id}/unsuspend`, { reason }, { transform: toDetail });
 
 export const verifyUserRequest = (id: number, verified: boolean, email = false) =>
-  alova.Post<Detail>(`admin/users/${id}/verify`, { verified, email });
+  alova.Post(`admin/users/${id}/verify`, { verified, email }, { transform: toDetail });
 
 export const saveUserRolesRequest = (id: number, roles: string[]) =>
-  alova.Put<Detail>(`admin/users/${id}/roles`, { roles });
+  alova.Put(`admin/users/${id}/roles`, { roles }, { transform: toDetail });
 
 export const assignUserPlanRequest = (id: number, planId: number, cycles: number, reason?: string) =>
-  alova.Post<Detail>(`admin/users/${id}/plan`, { plan_id: planId, cycles, reason });
+  alova.Post(`admin/users/${id}/plan`, { plan_id: planId, cycles, reason }, { transform: toDetail });
 
 export const endUserPlanRequest = (id: number, reason?: string) =>
-  alova.Delete<Detail>(`admin/users/${id}/plan`, { reason });
+  alova.Delete(`admin/users/${id}/plan`, { reason }, { transform: toDetail });
 
 /** A negative amount takes from the balance. */
 export const adjustUserFundsRequest = (id: number, amount: number, reason: string) =>
-  alova.Post<Detail>(`admin/users/${id}/funds`, { amount, reason });
+  alova.Post(`admin/users/${id}/funds`, { amount, reason }, { transform: toDetail });
 
 /** A negative number takes credits back. */
 export const adjustUserCreditsRequest = (id: number, credits: number, reason: string) =>
-  alova.Post<Detail>(`admin/users/${id}/credits`, { credits, reason });
+  alova.Post(`admin/users/${id}/credits`, { credits, reason }, { transform: toDetail });
 
 /** Who made an audit entry. */
 export const actionActor = (entry: AdminAction) => {

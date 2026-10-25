@@ -4,7 +4,7 @@
     :to="{
       name: 'artist.track',
       params: {
-        artist_id: track.artist?.username || track.artist_id || '---',
+        artist_id: track.artist?.username || track.artistId || '---',
         track_id: track.slug,
       },
     }"

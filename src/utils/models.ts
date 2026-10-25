@@ -40,32 +40,16 @@ export interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
 }
 
-type PageLinks = {
-  first: string;
-  last: string;
-  next: string;
-  prev: string;
-};
-
 export type PageMeta = {
-  current_page: number;
-  last_page: number;
-  per_page: number;
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
   total: number;
-  links: {
-    active: boolean;
-    label: string;
-    url: string;
-  }[];
-  from: number;
-  path: string;
-  to: number;
 };
 
 export type ResponseBody<X = undefined, Y = Record<string, string>> = {
   data: X;
   meta?: PageMeta;
-  links?: PageLinks;
   token?: string;
   status: ResponseStatus;
   try_at?: string;
@@ -98,6 +82,13 @@ export type UploadData = {
   release_id?: string | number;
   description?: string;
   stems_price?: number;
+  /** Fields the release and track forms send, in the API's request names */
+  genre_id?: string | number;
+  artist_id?: string | number;
+  project_id?: string | number;
+  record_label?: string;
+  contains_music?: boolean | 0 | 1;
+  project_track_id?: string | number;
 };
 
 export type Initialize = {
@@ -190,8 +181,8 @@ export type PaymentPurpose =
 export type PaymentSession = {
   reference: string;
   amount: number;
-  access_code?: string;
-  authorization_url?: string;
+  accessCode?: string;
+  authorizationUrl?: string;
 };
 
 export type Transaction = {
@@ -342,28 +333,28 @@ export type ExploreItem<X> = {
 
 export interface ExploreData {
   trending: ExploreItem<Track>;
-  top_albums: ExploreItem<Release>;
-  top_creators: ExploreItem<User>;
-  new_creators: ExploreItem<User>;
-  top_projects: ExploreItem<Project>;
-  new_projects: ExploreItem<Project>;
-  liked_tracks: ExploreItem<Track>;
-  liked_albums: ExploreItem<Release>;
-  latest_tracks: ExploreItem<Track>;
-  random_albums: ExploreItem<Release>;
-  latest_albums: ExploreItem<Release>;
-  latest_artists: ExploreItem<Artist>;
-  random_artists: ExploreItem<Artist>;
-  recently_played: ExploreItem<Track>;
-  random_creators: ExploreItem<User>;
-  random_projects: ExploreItem<Project>;
-  active_projects: ExploreItem<Project>;
-  trending_artists: ExploreItem<Artist>;
-  own_collab_albums: ExploreItem<Release>;
-  own_collab_tracks: ExploreItem<Track>;
-  recommended_artists: ExploreItem<Artist>;
-  recently_played_albums: ExploreItem<Release>;
-  recently_played_artists: ExploreItem<Artist>;
+  topAlbums: ExploreItem<Release>;
+  topCreators: ExploreItem<User>;
+  newCreators: ExploreItem<User>;
+  topProjects: ExploreItem<Project>;
+  newProjects: ExploreItem<Project>;
+  likedTracks: ExploreItem<Track>;
+  likedAlbums: ExploreItem<Release>;
+  latestTracks: ExploreItem<Track>;
+  randomAlbums: ExploreItem<Release>;
+  latestAlbums: ExploreItem<Release>;
+  latestArtists: ExploreItem<Artist>;
+  randomArtists: ExploreItem<Artist>;
+  recentlyPlayed: ExploreItem<Track>;
+  randomCreators: ExploreItem<User>;
+  randomProjects: ExploreItem<Project>;
+  activeProjects: ExploreItem<Project>;
+  trendingArtists: ExploreItem<Artist>;
+  ownCollabAlbums: ExploreItem<Release>;
+  ownCollabTracks: ExploreItem<Track>;
+  recommendedArtists: ExploreItem<Artist>;
+  recentlyPlayedAlbums: ExploreItem<Release>;
+  recentlyPlayedArtists: ExploreItem<Artist>;
 }
 
 export interface Interaction {
@@ -442,9 +433,9 @@ export interface Collaber extends User {
   meta: GenericData;
   role: string;
   custom: string;
-  user_id: string | number;
+  userId: string | number;
   accepted: boolean;
-  project_id: string | number;
+  projectId: string | number;
 }
 
 export interface Track {
@@ -470,18 +461,18 @@ export interface Track {
   release?: Release;
   streams: number;
   explicit?: boolean | 0 | 1;
-  genre_id?: string | number;
+  genreId?: string | number;
   imageUrl: string;
   duration: number;
   hasError?: boolean;
-  artist_id?: string | number;
+  artistId?: string | number;
   streamUrl: string;
   interaction?: Interaction;
   description: string;
   audioMissing?: boolean;
-  contains_music?: boolean | 0 | 1;
+  containsMusic?: boolean | 0 | 1;
   commentsCount?: number; // number of comments
-  project_track_id?: string | number;
+  projectTrackId?: string | number;
   price?: number;
   locked?: boolean;
   stemsPrice?: number;
@@ -515,11 +506,11 @@ export interface Release extends Album {
   explicit?: boolean | 0 | 1;
   composer: string;
   publisher: string;
-  artist_id?: string | number;
-  project_id?: string | number;
-  record_label: string;
+  artistId?: string | number;
+  projectId?: string | number;
+  recordLabel: string;
   releaseDate: string;
-  contains_music?: boolean | 0 | 1;
+  containsMusic?: boolean | 0 | 1;
   price?: number;
   locked?: boolean;
   purchased?: boolean;
@@ -538,7 +529,7 @@ export type Album = {
   artist?: Artist;
   streams: number;
   imageUrl: string;
-  genre_id?: string | number;
+  genreId?: string | number;
   duration: number;
   commentsCount?: number; // number of comments
   interaction?: Interaction;
@@ -560,7 +551,7 @@ export type Project = {
   collaborators?: Collaber[];
   proped: boolean;
   isOwner: boolean;
-  user_id?: string | number;
+  userId?: string | number;
   privacy: 'private' | 'public' | 'public_preview';
   released: boolean;
   /** The owner's unpublished release of this project, if one is in progress */
@@ -590,12 +581,12 @@ export interface ProjectTrack {
   preview?: string | File;
   privacy: 'public' | 'private';
   artist?: Artist;
-  genre_id?: string | number;
+  genreId?: string | number;
   imageUrl: string;
   duration: number;
-  user_id?: string | number;
-  artist_id?: string | number;
-  project_id?: string | number;
+  userId?: string | number;
+  artistId?: string | number;
+  projectId?: string | number;
   stemsCount: number;
   description: string;
   /** The studio's tempo */

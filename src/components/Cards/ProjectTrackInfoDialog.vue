@@ -62,7 +62,7 @@
               :error="!!errors.genre_id || !!errors['release.genre_id']"
               :error-message="errors.genre_id || errors['release.genre_id']"
               :options="genres"
-              v-model="form.genre_id"
+              v-model="form.genreId"
             />
           </div>
           <div class="col-span-2">
@@ -83,7 +83,7 @@
               @selected="
                 (e) => {
                   form.artist = e;
-                  form.artist_id = e.id;
+                  form.artistId = e.id;
                 }
               "
             />

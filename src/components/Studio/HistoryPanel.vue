@@ -133,8 +133,8 @@ const load = async (to = 1) => {
     const res = await loadTrackVersionsRequest(props.projectId, props.trackId, to).send();
     versions.value = to === 1 ? res.data : [...versions.value, ...res.data.filter((v) => !versions.value.some((o) => o.id === v.id))];
     currentId.value = res.currentId;
-    page.value = res.meta.current_page;
-    lastPage.value = res.meta.last_page;
+    page.value = res.meta.currentPage;
+    lastPage.value = res.meta.lastPage;
   } catch (e) {
     notify(errorText(e, 'The history couldn\'t be loaded.'), 'error');
   } finally {

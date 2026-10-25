@@ -9,7 +9,7 @@
     <q-item-section>
       <q-item-label class="font-bold">{{ request.title }}</q-item-label>
       <q-item-label caption class="!text-grey-5">{{ request.message }}</q-item-label>
-      <q-item-label caption class="!text-grey-6 !mt-1">{{ timeAgoStamp(request.created_at) }}</q-item-label>
+      <q-item-label caption class="!text-grey-6 !mt-1">{{ timeAgoStamp(request.createdAt) }}</q-item-label>
       <div class="flex gap-2 mt-2">
         <q-btn
           rounded
@@ -55,7 +55,7 @@ const answer = async (accept: boolean) => {
   busy.value = accept ? 'accept' : 'decline';
   try {
     await store.answer(props.request, accept);
-    const invitation = props.request.custom_data?.action === 'invitation';
+    const invitation = props.request.customData?.action === 'invitation';
     notify(
       !accept ? 'Declined.' : invitation ? 'You joined the project. It\'s in your studio now.' : 'Approved. They\'re on the project now.',
       'success',

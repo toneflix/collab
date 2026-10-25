@@ -45,7 +45,7 @@ const slim = (track: Track): Track =>
     artist: track.artist
       ? { id: track.artist.id, name: track.artist.name, username: track.artist.username }
       : undefined,
-    artist_id: track.artist_id,
+    artistId: track.artistId,
     release: track.release
       ? { id: track.release.id, slug: track.release.slug, title: track.release.title, createdAt: track.release.createdAt }
       : undefined,

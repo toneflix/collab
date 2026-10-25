@@ -89,7 +89,12 @@ const start = (pay: () => void) => {
 const initialize = async () => {
   try {
     const { data } = await startPaymentRequest(props.body).send();
-    return data;
+    // Paystack's inline client takes its own snake_case names.
+    return {
+      reference: data.reference,
+      access_code: data.accessCode,
+      authorization_url: data.authorizationUrl,
+    };
   } catch (e) {
     const err = e as ResponseBody<unknown>;
     const first = err?.errors ? Object.values(err.errors)[0] : null;

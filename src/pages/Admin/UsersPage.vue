@@ -125,7 +125,7 @@ const { data, loading } = useWatcher(
 );
 
 const list = computed(() => data.value?.data || []);
-const pageCount = computed(() => data.value?.meta?.last_page || 1);
+const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 
 useMeta(() => ({
   title: 'Users',

@@ -125,10 +125,10 @@ export type PayoutSummary = {
 export type Bank = { name: string; code: string }
 
 export type ResolvedAccount = {
-  account_name: string;
-  account_number: string;
-  bank_code: string;
-  bank_name: string;
+  accountName: string;
+  accountNumber: string;
+  bankCode: string;
+  bankName: string;
 }
 
 export type PayoutsResponse = ResponseBody<Payout[]> & {
@@ -203,12 +203,21 @@ export const connectPayoutAccountRequest = (country: string, returnUrl: string) 
   return alova.Post<ResponseBody<{ url: string }>>('account/payouts/account/connect', { country, return_url: returnUrl })
 }
 
+/**
+ * The creator's payout account. The API sends empty data when there is none, read here as null.
+ */
 export const loadPayoutAccountRequest = () => {
-  return alova.Get<ResponseBody<PayoutAccount | null>>('account/payouts/account', { cacheFor: 0 })
+  return alova.Get('account/payouts/account', {
+    cacheFor: 0,
+    transform: (e: ResponseBody<PayoutAccount | []>) => ({
+      ...e,
+      data: Array.isArray(e.data) ? null : e.data,
+    }),
+  })
 }
 
 export const removePayoutAccountRequest = () => {
-  return alova.Delete<ResponseBody<null>>('account/payouts/account')
+  return alova.Delete<ResponseBody<{ removed: boolean }>>('account/payouts/account')
 }
 
 /**

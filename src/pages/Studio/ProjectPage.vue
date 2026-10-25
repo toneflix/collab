@@ -194,7 +194,7 @@
               :links="[
                 {
                   show:
-                    (!!track.user_id && track.user_id === user.id) ||
+                    (!!track.userId && track.userId === user.id) ||
                     project.isOwner,
                   icon: 'fas fa-trash',
                   label: 'Delete Track',

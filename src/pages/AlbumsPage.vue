@@ -101,7 +101,7 @@ const categories = reactive({
     {
       id: 'top-albums',
       slug: 'top-albums',
-      data: data.value.top_albums,
+      data: data.value.topAlbums,
       title: 'Top Albums',
       params: { filters: 'album,top' },
     },
@@ -109,7 +109,7 @@ const categories = reactive({
   next: [
     {
       id: 'new-albums',
-      data: data.value.latest_albums,
+      data: data.value.latestAlbums,
       slug: 'new-albums',
       title: 'New Albums',
       params: { filters: 'album,latest' },
@@ -118,7 +118,7 @@ const categories = reactive({
   last: [
     {
       id: 'all',
-      data: data.value.random_albums,
+      data: data.value.randomAlbums,
       slug: 'all',
       title: 'All Albums',
       params: { filters: 'album,random' },
@@ -127,7 +127,7 @@ const categories = reactive({
   artists: [
     {
       id: 'top-artists',
-      data: data.value.trending_artists,
+      data: data.value.trendingArtists,
       slug: 'top-artists',
       title: 'Top Artists',
       params: { filters: 'trending' },

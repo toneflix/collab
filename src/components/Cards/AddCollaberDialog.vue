@@ -56,7 +56,7 @@
               v-model="temp"
               @selected="
                 (e) => {
-                  form.user_id = e.id;
+                  form.userId = e.id;
                 }
               "
             />

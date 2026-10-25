@@ -102,10 +102,8 @@ export type AiReview = {
   createdAt: string;
 }
 
-export type ModerationMeta = {
-  total: number;
-  page: number;
-  lastPage: number;
+/** Counts shown on the moderation tabs, sent with every moderation list */
+export type ModerationStats = {
   pending: number;
   appeals: number;
   /** Releases waiting for approval */
@@ -137,11 +135,13 @@ type QueueParams = { type?: string; reason?: string; source?: string; search?: s
 export const reportContentRequest = (form: ReportForm) =>
   alova.Post<ResponseBody<Report>>('safety/reports', form)
 
+export type ModerationList<X> = ResponseBody<X[]> & { stats: ModerationStats }
+
 export const loadModerationQueueRequest = (params: QueueParams = {}) =>
-  alova.Get<{ data: QueueItem[]; meta: ModerationMeta }>('admin/moderation/queue', { params: clean(params), cacheFor: 0 })
+  alova.Get<ModerationList<QueueItem>>('admin/moderation/queue', { params: clean(params), cacheFor: 0 })
 
 export const loadAdminTakedownsRequest = (params: { status?: string; search?: string; page?: number } = {}) =>
-  alova.Get<{ data: Takedown[]; meta: ModerationMeta }>('admin/moderation/takedowns', { params: clean(params), cacheFor: 0 })
+  alova.Get<ModerationList<Takedown>>('admin/moderation/takedowns', { params: clean(params), cacheFor: 0 })
 
 export const takeDownRequest = (type: ReportableType, id: number, form: { reason: string; note?: string }) =>
   alova.Post<ResponseBody<Takedown>>(`admin/moderation/items/${type}/${id}/takedown`, form)
@@ -159,7 +159,7 @@ export const upholdTakedownRequest = (id: number, resolution?: string) =>
   alova.Post<ResponseBody<Takedown>>(`admin/moderation/takedowns/${id}/uphold`, { resolution })
 
 export const loadReleaseReviewsRequest = (params: { search?: string; page?: number } = {}) =>
-  alova.Get<{ data: ReleaseReview[]; meta: ModerationMeta }>('admin/moderation/releases', {
+  alova.Get<ModerationList<ReleaseReview>>('admin/moderation/releases', {
     params: clean({ ...params, with: 'artist' }),
     cacheFor: 0,
   })
@@ -174,7 +174,7 @@ export const sendReleaseToAiRequest = (id: number | string) =>
   alova.Post<ResponseBody<AiReview>>(`admin/moderation/releases/${id}/ai-review`)
 
 export const loadMyTakedownsRequest = (page = 1) =>
-  alova.Get<{ data: Takedown[]; meta: { total: number; page: number; lastPage: number } }>('account/takedowns', { params: { page }, cacheFor: 0 })
+  alova.Get<ResponseBody<Takedown[]>>('account/takedowns', { params: { page }, cacheFor: 0 })
 
 export const appealTakedownRequest = (id: number, message: string) =>
   alova.Post<ResponseBody<Takedown>>(`account/takedowns/${id}/appeal`, { message })

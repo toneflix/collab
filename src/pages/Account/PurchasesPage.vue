@@ -72,7 +72,7 @@ const { data, loading } = useWatcher(
 watch(purpose, () => (page.value = 1));
 
 const purchases = computed(() => data.value?.data || []);
-const pageCount = computed(() => data.value?.meta?.last_page || 1);
+const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 
 useMeta(() => ({
   title: 'Purchases',
