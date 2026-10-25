@@ -345,7 +345,7 @@ const list = async (more = false) => {
     const res = await (tab.value === 'library' ? loadLibrarySoundsRequest(params) : loadMySoundsRequest(params)).send();
     const found = res.data.map((s) => fromSound(s, tab.value as 'library' | 'mine'));
     items.value = more ? [...items.value, ...found] : found;
-    hasMore.value = res.meta.page < res.meta.lastPage;
+    hasMore.value = res.meta.current_page < res.meta.last_page;
   } catch (e) {
     if (!more) items.value = [];
     notify(errorText(e, 'The sounds couldn\'t be loaded.'), 'error');
