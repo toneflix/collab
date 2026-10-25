@@ -9,7 +9,6 @@
         </div>
       </div>
     </div>
-    <q-btn icon="person" @click="refreshUser($router)" />
   </q-page>
 </template>
 
@@ -17,7 +16,6 @@
 import { useMeta } from 'quasar';
 import IconCard from 'src/components/Cards/IconCard.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { refreshUser } from 'src/utils/proccessor';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
