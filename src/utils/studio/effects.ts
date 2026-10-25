@@ -24,13 +24,18 @@ export type EffectType =
   | 'tf-chorus'
   | 'tf-flanger'
   | 'tf-phaser'
-  | `faust-${string}`;
+  | `faust-${string}`
+  | 'wam';
 
 /** One effect on a stem, as saved in the stem's `meta.effects`. */
 export interface StemEffect {
   type: EffectType;
   params: Record<string, number>;
   bypassed?: boolean;
+  /** A plugin's module link, name and saved settings (type `wam`) */
+  url?: string;
+  name?: string;
+  state?: unknown;
 }
 
 export interface EffectParam {
@@ -273,6 +278,32 @@ export const effectInfo = (type: string) => allEffects().find((e) => e.type === 
 
 export const isFaust = (type: string) => type.startsWith('faust-');
 
+/** A Web Audio Module plugin loaded from a link, which the server can't run. */
+export const isPlugin = (effect: StemEffect) => effect.type === 'wam';
+
+/** Whether a chain needs printing to audio for the server's mix. */
+export const needsPrint = (list: StemEffect[]) => list.some((e) => isPlugin(e) && !e.bypassed);
+
+/** A plugin's name, or the folder of its link. */
+export const pluginName = (effect: StemEffect) => {
+  if (effect.name) return effect.name;
+  try {
+    const parts = new URL(effect.url ?? '').pathname.split('/').filter((p) => p && !/^(index\.js|dist|src|build)$/.test(p));
+    return parts[parts.length - 1] ?? 'Plugin';
+  } catch {
+    return 'Plugin';
+  }
+};
+
+const pluginUrl = (value: unknown) => {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === 'https:' || url.hostname === 'localhost' ? url.href : null;
+  } catch {
+    return null;
+  }
+};
+
 /** A Faust effect's settings keyed by its plugin's parameter ids. */
 export const faustState = (info: EffectInfo, params: Record<string, number>) =>
   Object.fromEntries(
@@ -429,12 +460,24 @@ export const parseEffects = (value: unknown): StemEffect[] => {
       (e): e is StemEffect =>
         !!e &&
         typeof e === 'object' &&
-        (!!effectInfo((e as StemEffect).type) || isFaust(String((e as StemEffect).type))),
+        (!!effectInfo((e as StemEffect).type) ||
+          isFaust(String((e as StemEffect).type)) ||
+          (isPlugin(e as StemEffect) && !!pluginUrl((e as StemEffect).url))),
     )
     .slice(0, 8)
-    .map((e) => {
+    .map((e): StemEffect => {
       const info = effectInfo(e.type);
       const bypassed = e.bypassed === true || String(e.bypassed) === 'true';
+      if (isPlugin(e)) {
+        return {
+          type: 'wam',
+          url: pluginUrl(e.url)!,
+          ...(typeof e.name === 'string' ? { name: e.name.slice(0, 80) } : {}),
+          ...(e.state !== undefined ? { state: e.state } : {}),
+          params: {},
+          bypassed,
+        };
+      }
       // A Faust effect from before the list loaded keeps its settings as saved.
       if (!info) {
         const kept = Object.entries(e.params ?? {}).filter(([, v]) => Number.isFinite(Number(v)));

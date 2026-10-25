@@ -531,6 +531,35 @@ export const duplicateProjectTrackStemRequest = (id: string | number, p: Project
 }
 
 /**
+ * Save a stem as heard through its plugins, for the server's mix to use
+ *
+ * @param id The stem's ID
+ * @param p The project object
+ * @param t The track object that owns the stem
+ * @param wav The printed audio
+ * @param start Where the audio starts on the timeline, in seconds
+ * @param key A fingerprint of the clips and effects it was printed from
+ */
+export const printProjectTrackStemRequest = (
+  id: string | number,
+  p: Project,
+  t: ProjectTrack,
+  wav: Blob,
+  start: number,
+  key: string,
+) => {
+  const form = new FormData();
+  form.append('audio', wav, 'print.wav');
+  form.append('start', String(start));
+  form.append('key', key);
+
+  const request = axios.Post<ResponseBody<Stem>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}/print`, form);
+  request.config.headers['Content-Type'] = 'multipart/form-data';
+
+  return request;
+};
+
+/**
  * Delete a track stem belonging to a project track
  *
  * @param id The ID of the track stem to delete

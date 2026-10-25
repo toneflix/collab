@@ -344,7 +344,7 @@ import {
   ionSparkles,
   ionTime,
 } from '@quasar/extras/ionicons-v8';
-import { LocalStorage, useQuasar } from 'quasar';
+import { LocalStorage, useQuasar, type QNotifyUpdateOptions } from 'quasar';
 import {
   computed,
   onBeforeUnmount,
@@ -401,6 +401,7 @@ import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
   duplicateProjectTrackStemRequest,
+  printProjectTrackStemRequest,
   loadProjectRequest,
   loadProjectTrackRequest,
   loadProjectTrackStemRequest,
@@ -957,6 +958,9 @@ const save = async (withPreview = false) => {
   saving.value = true;
 
   try {
+    await printPlugins(ed).catch((e) =>
+      notify(errorMessage(e, "A stem couldn't be recorded through its plugins, so the preview may sound different."), 'warning'),
+    );
     const metas = ed.snapshot();
     const render = (withPreview || conf.value.previews_on_save) && stems.value.length > 0;
     const form = {
@@ -988,6 +992,31 @@ const save = async (withPreview = false) => {
     notify(errorMessage(e, "The track couldn't be saved."), 'error');
   } finally {
     saving.value = false;
+  }
+};
+
+/**
+ * Record stems with plugins through them, so the server's mix sounds like the
+ * studio. Only stems whose clips or effects changed are recorded again.
+ */
+const printPlugins = async (ed: NonNullable<typeof editor.value>) => {
+  let progress: ((props?: QNotifyUpdateOptions) => void) | undefined;
+  try {
+    await ed.printPlugins(
+      async (stem, wav, start, key) => {
+        const { data } = await printProjectTrackStemRequest(stem.id, project.value, track.value, wav, start, key).send();
+        stems.value = stems.value.map((s) => (s.id === stem.id ? { ...s, meta: { ...s.meta, print: data.meta?.print } } : s));
+
+        return data;
+      },
+      (stem) => {
+        const message = `Recording ${stem.title || 'a stem'} through its plugins…`;
+        if (progress) progress({ message });
+        else progress = $q.notify({ message, spinner: true, timeout: 0, group: false });
+      },
+    );
+  } finally {
+    progress?.();
   }
 };
 
