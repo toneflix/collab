@@ -1,5 +1,5 @@
 import { alova } from 'src/boot/alova';
-import type { PageMeta, ResponseBody } from '../models';
+import type { PageMeta, Project, ResponseBody } from '../models';
 import type { Sound } from './sounds';
 
 /** Editor settings a writer keeps per song */
@@ -160,6 +160,8 @@ export const suggestLyricsRequest = (
 ) => alova.Post<ResponseBody<LyricSuggestion>>(`creator/songs/${id}/suggestions`, data);
 
 export type SongProjectInput = {
+  /** Add the track to this project instead of making a new one */
+  project_id?: number;
   title?: string;
   privacy?: 'private' | 'public' | 'public_preview';
   genre_id: number;
@@ -169,6 +171,13 @@ export type SongProjectInput = {
   /** The sound to make, when generating */
   prompt?: string;
 };
+
+/** Projects the writer owns or collaborates on, newest first, matching `search` by title */
+export const songProjectOptionsRequest = (search = '') =>
+  alova.Get<ResponseBody<Project[]>>('creator/projects', {
+    params: { search: search || undefined, filters: 'latest', limit: 20 },
+    cacheFor: 0,
+  });
 
 export const songProjectRequest = (id: string | number, data: SongProjectInput) =>
   alova.Post<ResponseBody<Song> & { aiJob: { id: number } | null }>(`creator/songs/${id}/project`, data);

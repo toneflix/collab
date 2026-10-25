@@ -78,7 +78,7 @@
           @click="panels.write = !panels.write"
         />
         <ActionButton
-          :label="song.project ? 'Open the project' : 'Make a project'"
+          :label="song.project ? 'Open the project' : 'Add to a project'"
           :icon="ionAlbums"
           :expanded="showLabels"
           @click="song.project ? openProject() : (projectDialog = true)"
