@@ -21,7 +21,6 @@
           <div class="mt-4 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
             <div class="truncate text-grey-5">{{ track.artist?.name }}</div>
-            <AudioTagChips class="justify-center mt-2" :tags="track.tags" />
           </div>
         </div>
 
@@ -82,7 +81,6 @@
 </template>
 
 <script setup lang="ts">
-import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import { ionChevronDown, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { computed, nextTick, ref, watch } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
