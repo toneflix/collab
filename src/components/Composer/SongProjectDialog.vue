@@ -3,21 +3,71 @@
     <q-card dark class="project-dialog !flex-none" style="width: 480px; max-width: 100vw">
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
-          <div class="text-lg font-bold">Make a project from this song</div>
-          <div class="text-xs text-grey-5">
-            You get a project with one track, and the lyrics go on its lyric sheet.
-          </div>
+          <div class="text-lg font-bold">Add this song to a project</div>
+          <div class="text-xs text-grey-5">The song becomes a track, and the lyrics go on its lyric sheet.</div>
         </div>
         <q-btn flat round dense icon="close" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
 
       <q-form class="flex flex-col gap-3 px-4 pb-2" @submit.prevent="submit">
+        <div>
+          <q-btn-toggle
+            dark
+            spread
+            no-caps
+            rounded
+            unelevated
+            toggle-color="toneflix"
+            toggle-text-color="dark"
+            color="transparent"
+            dense
+            class="target-toggle w-full"
+            :options="targetOptions"
+            v-model="target"
+          />
+        </div>
+        <q-select
+          dark
+          filled
+          dense
+          use-input
+          hide-selected
+          fill-input
+          input-debounce="300"
+          option-value="id"
+          option-label="title"
+          label="Project"
+          :options="projects"
+          :loading="searching"
+          :error="!!errors.project_id"
+          :error-message="errors.project_id"
+          @filter="findProjects"
+          v-model="project"
+          v-if="target === 'existing'"
+        >
+          <template #option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label>{{ scope.opt.title }}</q-item-label>
+                <q-item-label caption>
+                  {{ scope.opt.isOwner ? 'Yours' : 'You collaborate' }} ·
+                  {{ scope.opt.tracksCount }} {{ scope.opt.tracksCount === 1 ? 'track' : 'tracks' }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+          <template #no-option>
+            <q-item>
+              <q-item-section class="text-grey-6">No projects you can add to match that.</q-item-section>
+            </q-item>
+          </template>
+        </q-select>
         <q-input
           dark
           filled
           dense
           maxlength="150"
-          label="Project name"
+          :label="target === 'existing' ? 'Track name' : 'Project name'"
           :error="!!errors.title"
           :error-message="errors.title"
           v-model="form.title"
@@ -57,6 +107,7 @@
           label="Who can see the project"
           :options="privacyOptions"
           v-model="form.privacy"
+          v-if="target === 'new'"
         />
 
         <div class="ai-box" v-if="ai?.enabled">
@@ -103,9 +154,9 @@
             color="toneflix"
             text-color="dark"
             class="!flex-none"
-            label="Make project"
+            :label="target === 'existing' ? 'Add track' : 'Make project'"
             :loading="saving"
-            :disable="!form.genreId || !form.artistId || (form.generate && !form.prompt.trim())"
+            :disable="!form.genreId || !form.artistId || (target === 'existing' && !project) || (form.generate && !form.prompt.trim())"
           />
         </div>
       </q-form>
@@ -120,9 +171,9 @@ import { useGenres } from 'src/composables/useGenres';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notifyError } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
-import type { BaseOption, User } from 'src/utils/models';
+import type { BaseOption, Project, User } from 'src/utils/models';
 import type { AiAccount } from 'src/utils/requests/ai';
-import { songProjectRequest, type Song } from 'src/utils/requests/composer';
+import { songProjectOptionsRequest, songProjectRequest, type Song } from 'src/utils/requests/composer';
 
 const props = defineProps<{
   song: Song;
@@ -144,6 +195,28 @@ const privacyOptions = [
   { label: 'Everyone, as a preview', value: 'public_preview' },
   { label: 'Everyone', value: 'public' },
 ];
+
+const targetOptions = [
+  { label: 'New project', value: 'new' },
+  { label: 'Existing project', value: 'existing' },
+];
+const target = ref<'new' | 'existing'>('new');
+const project = ref<Project | null>(null);
+const projects = ref<Project[]>([]);
+const searching = ref(false);
+
+/** Loads the projects the writer can add a track to, filtered by what they type */
+const findProjects = (search: string, done: (fn: () => void) => void) => {
+  searching.value = true;
+  songProjectOptionsRequest(search.trim())
+    .send()
+    .then((res) => done(() => (projects.value = res.data.filter((p) => p.isOwner || p.isCollaber))))
+    .catch((e) => {
+      done(() => (projects.value = []));
+      notifyError(e, "Your projects couldn't be loaded.");
+    })
+    .finally(() => (searching.value = false));
+};
 
 const form = reactive({
   title: '',
@@ -169,9 +242,11 @@ const submit = async () => {
   errors.value = {};
   try {
     await props.flush();
+    const existing = target.value === 'existing' ? project.value : null;
     const res = await songProjectRequest(props.song.id, {
+      project_id: existing ? Number(existing.id) : undefined,
       title: form.title.trim() || undefined,
-      privacy: form.privacy,
+      privacy: existing ? undefined : form.privacy,
       genre_id: form.genreId,
       artist_id: form.artistId,
       generate: form.generate || undefined,
@@ -185,7 +260,7 @@ const submit = async () => {
     errors.value = Object.fromEntries(
       Object.entries(err.errors ?? {}).map(([key, value]) => [key, Array.isArray(value) ? (value[0] ?? '') : value]),
     );
-    if (!Object.keys(errors.value).length) notifyError(e, "The project couldn't be made.");
+    if (!Object.keys(errors.value).length) notifyError(e, "The song couldn't be added to a project.");
   } finally {
     saving.value = false;
   }
@@ -197,6 +272,10 @@ const submit = async () => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   background: #15171c;
+}
+
+.target-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ai-box {

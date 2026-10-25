@@ -64,7 +64,7 @@
       <div class="help__label">Notes, beat and projects</div>
       <ul>
         <li>Notes holds the BPM, key, a beat to write to and a scratchpad. With a BPM set, the top line shows how long the song runs.</li>
-        <li>Make a project turns the song into a project track with its lyric sheet, and AI can sing it. After that, every save that changes the lyrics updates the sheet too.</li>
+        <li>Add to a project turns the song into a track with its lyric sheet, on a new project or one you own or collaborate on, and AI can sing it. After that, every save that changes the lyrics updates the sheet too.</li>
       </ul>
     </section>
 
