@@ -12,3 +12,9 @@
 .q-icon * {
   font-family: inherit;
 }
+
+// Something sets ".row { flex: 1 1 auto }", which stretches field icons and
+// pushes input text to the middle. Quasar's field marginals never grow.
+.q-field__marginal {
+  flex: none;
+}
