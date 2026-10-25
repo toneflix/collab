@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { autocompletion, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { EditorState, RangeSetBuilder, StateEffect } from '@codemirror/state';
+import { EditorState, Prec, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import {
   Decoration,
   type DecorationSet,
@@ -16,6 +16,7 @@ import {
   placeholder,
   ViewPlugin,
   type ViewUpdate,
+  WidgetType,
 } from '@codemirror/view';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { isSectionLine, RHYME_FAMILIES, rhymeFamilies, tokensOf, type WordSounds } from 'src/utils/composer';
@@ -36,6 +37,8 @@ const emit = defineEmits<{
   cursor: [info: { line: string; number: number; word: string }];
   /** A word the writer clicked */
   word: [word: string];
+  /** The writer took a suggested line */
+  accepted: [line: string];
 }>();
 
 const text = defineModel<string>({ default: '' });
@@ -116,6 +119,95 @@ const decorations = ViewPlugin.fromClass(
   { decorations: (plugin) => plugin.decorations },
 );
 
+/* ---------- Ghost text: a suggested line shown in grey until Tab takes it ---------- */
+
+type Ghost = { line: number; options: string[]; index: number; below: boolean };
+
+const setGhost = StateEffect.define<Ghost | null>();
+
+class GhostWidget extends WidgetType {
+  constructor(
+    readonly text: string,
+    readonly hint: string,
+    readonly below: boolean,
+  ) {
+    super();
+  }
+
+  override eq(other: GhostWidget) {
+    return other.text === this.text && other.hint === this.hint && other.below === this.below;
+  }
+
+  override toDOM() {
+    const el = document.createElement(this.below ? 'div' : 'span');
+    el.className = this.below ? 'cm-ghost cm-ghost--below' : 'cm-ghost';
+    const text = document.createElement('span');
+    text.textContent = this.text;
+    const hint = document.createElement('span');
+    hint.className = 'cm-ghost__hint';
+    hint.textContent = this.hint;
+    el.append(text, hint);
+    return el;
+  }
+
+  override ignoreEvent() {
+    return false;
+  }
+}
+
+const ghostField = StateField.define<Ghost | null>({
+  create: () => null,
+  update(ghost, tr) {
+    for (const effect of tr.effects) if (effect.is(setGhost)) return effect.value;
+    if (!ghost) return null;
+    if (tr.docChanged) return null;
+    if (tr.selection && tr.state.doc.lineAt(tr.state.selection.main.head).number !== ghost.line) return null;
+    return ghost;
+  },
+  provide: (field) =>
+    // Block widgets have to come straight from the state, not from a function of the view.
+    EditorView.decorations.compute([field], (state) => {
+      const ghost = state.field(field);
+      if (!ghost || ghost.line > state.doc.lines) return Decoration.none;
+      const line = state.doc.line(ghost.line);
+      const more = ghost.options.length > 1 ? `${ghost.index + 1}/${ghost.options.length} · Alt+] next · ` : '';
+      const widget = new GhostWidget(ghost.options[ghost.index] ?? '', `${more}Tab to add · Esc`, ghost.below);
+      return Decoration.set([Decoration.widget({ widget, side: 1, block: ghost.below }).range(line.to)]);
+    }),
+});
+
+const acceptGhost = (v: EditorView) => {
+  const ghost = v.state.field(ghostField);
+  if (!ghost) return false;
+  const line = v.state.doc.line(ghost.line);
+  const text = ghost.options[ghost.index] ?? '';
+  const insert = (ghost.below ? '\n' : '') + text;
+  v.dispatch({ changes: { from: line.to, insert }, selection: { anchor: line.to + insert.length }, effects: setGhost.of(null) });
+  emit('accepted', text);
+  return true;
+};
+
+const dismissGhost = (v: EditorView) => {
+  if (!v.state.field(ghostField)) return false;
+  v.dispatch({ effects: setGhost.of(null) });
+  return true;
+};
+
+const nextGhost = (v: EditorView) => {
+  const ghost = v.state.field(ghostField);
+  if (!ghost || ghost.options.length < 2) return false;
+  v.dispatch({ effects: setGhost.of({ ...ghost, index: (ghost.index + 1) % ghost.options.length }) });
+  return true;
+};
+
+const ghostKeys = Prec.highest(
+  keymap.of([
+    { key: 'Tab', run: acceptGhost },
+    { key: 'Escape', run: dismissGhost },
+    { key: 'Alt-]', run: nextGhost },
+  ]),
+);
+
 const wordAt = (state: EditorState, pos: number) => {
   const line = state.doc.lineAt(pos);
   const offset = pos - line.from;
@@ -147,6 +239,9 @@ const theme = EditorView.theme(
     '.cm-section-line': { color: 'rgba(255,255,255,0.6)', fontWeight: '700', letterSpacing: '0.02em' },
     '&.cm-focused': { outline: 'none' },
     '.cm-placeholder': { color: 'rgba(255,255,255,0.35)' },
+    '.cm-ghost': { color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' },
+    '.cm-ghost--below': { padding: '0 16px' },
+    '.cm-ghost__hint': { marginLeft: '10px', fontSize: '11px', fontStyle: 'normal', color: 'rgba(255,255,255,0.3)' },
   },
   { dark: true },
 );
@@ -158,6 +253,8 @@ onMounted(() => {
       doc: text.value,
       extensions: [
         history(),
+        ghostField,
+        ghostKeys,
         keymap.of([...defaultKeymap, ...historyKeymap]),
         EditorView.lineWrapping,
         placeholder(props.placeholderText),
@@ -220,19 +317,49 @@ const insertWord = (word: string) => {
   view.focus();
 };
 
-/** Puts lines after the cursor's line */
-const insertLines = (lines: string) => {
+/** Puts lines after a line (the cursor's by default), or in it when it is empty */
+const insertLines = (lines: string, number?: number) => {
   if (!view) return;
-  const line = view.state.doc.lineAt(view.state.selection.main.head);
+  const line =
+    number && number <= view.state.doc.lines ? view.state.doc.line(number) : view.state.doc.lineAt(view.state.selection.main.head);
   const insert = (line.text.trim() ? '\n' : '') + lines;
   const at = line.text.trim() ? line.to : line.from;
   view.dispatch({ changes: { from: at, to: line.text.trim() ? at : line.to, insert }, selection: { anchor: at + insert.length } });
   view.focus();
 };
 
+/** Replaces a line's text, keeping the cursor at its end */
+const replaceLine = (number: number, text: string) => {
+  if (!view || number > view.state.doc.lines) return;
+  const line = view.state.doc.line(number);
+  view.dispatch({ changes: { from: line.from, to: line.to, insert: text }, selection: { anchor: line.from + text.length } });
+  view.focus();
+};
+
+/**
+ * Shows suggested lines in grey at a line: filling it when it is empty, or
+ * below it when it has words. Nothing shows when the cursor has left the line.
+ */
+const showGhost = (number: number, options: string[]) => {
+  if (!view || !options.length || number > view.state.doc.lines) return false;
+  if (view.state.doc.lineAt(view.state.selection.main.head).number !== number) return false;
+  const below = view.state.doc.line(number).text.trim() !== '';
+  view.dispatch({ effects: setGhost.of({ line: number, options, index: 0, below }) });
+  return true;
+};
+
+const clearGhost = () => view && dismissGhost(view);
+
+/** The cursor's line, counted from 1, and its text */
+const cursorLine = () => {
+  if (!view) return { number: 1, text: '' };
+  const line = view.state.doc.lineAt(view.state.selection.main.head);
+  return { number: line.number, text: line.text };
+};
+
 const focus = () => view?.focus();
 
-defineExpose({ insertWord, insertLines, focus });
+defineExpose({ insertWord, insertLines, replaceLine, showGhost, clearGhost, cursorLine, focus });
 </script>
 
 <style lang="scss" scoped>

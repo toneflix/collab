@@ -95,7 +95,7 @@ import { ionAdd, ionCreateOutline, ionSearch, ionTrashOutline } from '@quasar/ex
 import { date, useQuasar } from 'quasar';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { notify } from 'src/utils/helpers';
+import { notifyError } from 'src/utils/composer';
 import { createSongRequest, deleteSongRequest, loadSongsRequest, type Song } from 'src/utils/requests/composer';
 
 defineOptions({ name: 'ComposerPage' });
@@ -111,7 +111,6 @@ const loading = ref(false);
 const creating = ref(false);
 let ticket = 0;
 
-const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
 
 const load = async (reset = false) => {
   if (reset) {
@@ -126,7 +125,7 @@ const load = async (reset = false) => {
     songs.value = reset ? res.data : [...songs.value, ...res.data];
     lastPage.value = res.meta?.lastPage ?? 1;
   } catch (e) {
-    notify(errorText(e, "Your songs couldn't be loaded."), 'error');
+    notifyError(e, "Your songs couldn't be loaded.");
   } finally {
     if (mine === ticket) loading.value = false;
   }
@@ -145,7 +144,7 @@ const newSong = async () => {
     const res = await createSongRequest().send();
     await router.push({ name: 'studio.composer.song', params: { song_id: res.data.id } });
   } catch (e) {
-    notify(errorText(e, "A new song couldn't be started."), 'error');
+    notifyError(e, "A new song couldn't be started.");
   } finally {
     creating.value = false;
   }
@@ -163,7 +162,7 @@ const remove = (song: Song, i: number) => {
       await deleteSongRequest(song.id).send();
       songs.value.splice(i, 1);
     } catch (e) {
-      notify(errorText(e, "The song couldn't be deleted."), 'error');
+      notifyError(e, "The song couldn't be deleted.");
     }
   });
 };

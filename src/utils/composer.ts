@@ -1,4 +1,16 @@
+import { notify } from './helpers';
 import { wordSoundsRequest, type WordSound } from './requests/composer';
+
+/** The HTTP status of a failed request: the API puts it in `status_code` */
+export const requestStatus = (e: unknown) => Number((e as { status_code?: number })?.status_code) || 0;
+
+/** Whether the request layer already showed this error; it shows all but 401, 403 and 422 */
+export const errorShown = (e: unknown) => requestStatus(e) >= 400 && ![401, 403, 422].includes(requestStatus(e));
+
+/** Shows a failed request's message, unless the request layer already did */
+export const notifyError = (e: unknown, fallback: string) => {
+  if (!errorShown(e)) notify((e as { message?: string })?.message || fallback, 'error');
+};
 
 /** A line that only names a section, like "[Verse 1]" or "[Hook x2]" */
 export const isSectionLine = (line: string) => /^\s*\[[^\]]*\]\s*$/.test(line);

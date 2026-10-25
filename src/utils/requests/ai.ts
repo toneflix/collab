@@ -40,8 +40,8 @@ export type AiConfig = {
   enabled: boolean;
   creditPrice: number;
   packs: CreditPack[];
-  /** Credits per split into stems and per lyrics transcription */
-  costs: { stems: number; lyrics: number };
+  /** Credits per split into stems, per lyrics transcription and per Composer suggestion */
+  costs: { stems: number; lyrics: number; composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number> };
   /** The model music is generated with */
   music: MusicModel;
   /** The engine stems are split on */

@@ -53,8 +53,7 @@
 import { date, useQuasar } from 'quasar';
 import { ref } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';
-import { notify } from 'src/utils/helpers';
-import { isSectionLine } from 'src/utils/composer';
+import { isSectionLine, notifyError } from 'src/utils/composer';
 import {
   loadSongVersionsRequest,
   nameSongVersionRequest,
@@ -85,7 +84,6 @@ const name = ref('');
 const naming = ref(false);
 const restoring = ref<number | null>(null);
 
-const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
 
 const kindLabel = (kind: SongVersionKind) =>
   ({ autosave: 'Autosaved', named: 'Named version', before_restore: 'Before a restore', before_ai: 'Before an AI insert' })[kind];
@@ -103,7 +101,7 @@ const load = async (to = 1) => {
     page.value = res.meta.currentPage;
     lastPage.value = res.meta.lastPage;
   } catch (e) {
-    notify(errorText(e, "The versions couldn't be loaded."), 'error');
+    notifyError(e, "The versions couldn't be loaded.");
   } finally {
     loading.value = false;
     loaded.value = true;
@@ -118,7 +116,7 @@ const nameVersion = async () => {
     name.value = '';
     await load(1);
   } catch (e) {
-    notify(errorText(e, "The version couldn't be saved."), 'error');
+    notifyError(e, "The version couldn't be saved.");
   } finally {
     naming.value = false;
   }
@@ -142,7 +140,7 @@ const restore = async (v: SongVersion) => {
     emit('restored', res.data);
     await load(1);
   } catch (e) {
-    notify(errorText(e, "The version couldn't be restored."), 'error');
+    notifyError(e, "The version couldn't be restored.");
   } finally {
     restoring.value = null;
   }
