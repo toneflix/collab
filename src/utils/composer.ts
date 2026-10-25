@@ -58,7 +58,7 @@ export class WordSounds {
   protected timer: ReturnType<typeof setTimeout> | null = null;
   protected listeners = new Set<() => void>();
 
-  constructor(protected delay = 350) {}
+  constructor(protected delay = 1200) {}
 
   onChange(listener: () => void) {
     this.listeners.add(listener);
@@ -81,14 +81,15 @@ export class WordSounds {
     return wordsOf(line).reduce((sum, word) => sum + this.syllables(word), 0);
   }
 
-  /** Asks for every word in the text the API hasn't answered yet */
+  /** Asks for every word in the text the API hasn't answered yet, once the writer pauses */
   want(text: string) {
     text.split('\n').forEach((line) =>
       wordsOf(line).forEach((word) => {
         if (!this.sounds.has(word) && !this.asked.has(word)) this.pending.add(word);
       }),
     );
-    if (this.pending.size && !this.timer) this.timer = setTimeout(() => void this.flush(), this.delay);
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = this.pending.size ? setTimeout(() => void this.flush(), this.delay) : null;
   }
 
   protected async flush() {
