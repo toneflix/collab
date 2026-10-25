@@ -19,7 +19,7 @@
               clickable
               v-close-popup
               :key="e.type"
-              v-for="e in EFFECTS.filter((x) => x.group === group)"
+              v-for="e in allEffects().filter((x) => x.group === group)"
               @click="add(e.type)"
             >
               <q-item-section>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { EFFECT_GROUPS, EFFECTS, effectInfo, type EffectType, type StemEffect } from 'src/utils/studio/effects';
+import { allEffects, EFFECT_GROUPS, effectInfo, type EffectType, type StemEffect } from 'src/utils/studio/effects';
 
 /**
  * The effect chain of one stem: add, reorder, switch off and adjust effects.

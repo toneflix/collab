@@ -423,7 +423,7 @@ import {
   ionVolumeHigh,
   ionVolumeMute,
 } from '@quasar/extras/ionicons-v8';
-import type { DawEditorElement } from '@dawcore/components';
+import type { DawEditorElement, SerializedEffectEntry } from '@dawcore/components';
 import type { NativePlayoutAdapter } from '@dawcore/transport';
 import type { ClipTrack } from '@waveform-playlist/core';
 import type { EngineState } from '@waveform-playlist/engine';
@@ -434,7 +434,17 @@ import EffectsPanel from './EffectsPanel.vue';
 import StemActivity, { type StemActivityItem } from './StemActivity.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import { StemPlaceholders } from 'src/utils/studio/placeholders';
-import { parseEffects, registerStudioEffects, serializeEffects, type StemEffect } from 'src/utils/studio/effects';
+import {
+  addFaustEffects,
+  effectInfo,
+  faustState,
+  isFaust,
+  parseEffects,
+  registerStudioEffects,
+  serializeEffects,
+  type StemEffect,
+} from 'src/utils/studio/effects';
+import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
 import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
@@ -1252,19 +1262,84 @@ const dropTrack = (trackId: string) => {
   if (!tracks.has(trackId)) editor.value?.removeTrack(trackId);
 };
 
+/**
+ * The editor's form of a chain. Faust effects compile in the browser, which
+ * needs their source from the server and running audio, so until then they
+ * are left out. `applied` lists which entries of `list` made it in.
+ */
+const chainOf = (list: StemEffect[]) => {
+  const ready = context?.state === 'running';
+  const applied: number[] = [];
+  const entries = list.flatMap((e, i): SerializedEffectEntry[] => {
+    if (!isFaust(e.type)) {
+      applied.push(i);
+
+      return [{ kind: 'native', type: e.type, params: e.params, bypassed: !!e.bypassed }];
+    }
+    const info = effectInfo(e.type);
+    if (!info?.faust || !ready) return [];
+    applied.push(i);
+
+    return [
+      {
+        kind: 'wam',
+        faustDsp: info.faust.source,
+        faustName: info.faust.name,
+        bypassed: !!e.bypassed,
+        state: faustState(info, e.params),
+      },
+    ];
+  });
+
+  return { entries, applied, complete: applied.length === list.length };
+};
+
+/** Effect index in `effects` → index in the editor's chain, per track ('' is the master). */
+const liveIndex = new Map<string, number[]>();
+/** Chains still missing Faust effects, applied again once they can load. */
+const pendingFaust = new Set<string>();
+let faustLoaded = false;
+
+/** The params the editor takes for an effect: Faust ones by plugin address. */
+const liveParams = (effect: StemEffect, params: Record<string, number>) => {
+  const info = isFaust(effect.type) ? effectInfo(effect.type) : undefined;
+
+  return info?.faust ? faustState(info, params) : params;
+};
+
 /** Rebuild a track's effect chain in the editor from `effects`. */
 const applyEffects = async (trackId: string) => {
   const ed = editor.value;
   if (!ed) return;
-  const list = effects.get(trackId) ?? [];
+  const chain = chainOf(effects.get(trackId) ?? []);
+  liveIndex.set(trackId, chain.applied);
+  if (chain.complete) pendingFaust.delete(trackId);
+  else pendingFaust.add(trackId);
   try {
-    await ed.setTrackEffectsState(
-      trackId,
-      list.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
-    );
+    await ed.setTrackEffectsState(trackId, chain.entries);
   } catch (err) {
     console.warn('[stem editor] effects', err);
   }
+};
+
+/** Apply chains that were waiting on Faust effects. */
+const applyPendingFaust = () => {
+  if (context?.state !== 'running' || !faustLoaded) return;
+  const waiting = [...pendingFaust];
+  pendingFaust.clear();
+  waiting.forEach((id) => void (id === '' ? applyMaster() : applyEffects(id)));
+};
+
+/** Load the server's Faust effects so the add menu offers them and saved ones can play. */
+const loadFaust = async () => {
+  try {
+    const { data } = await loadFaustEffectsRequest().send();
+    addFaustEffects(data ?? []);
+  } catch (err) {
+    console.warn('[stem editor] faust effects', err);
+  }
+  faustLoaded = true;
+  applyPendingFaust();
 };
 
 const setEffects = (trackId: string, list: StemEffect[]) => {
@@ -1278,16 +1353,18 @@ const setEffectParams = (trackId: string, index: number, params: Record<string, 
   const ed = editor.value;
   if (!list?.[index] || !ed) return;
   list[index] = { ...list[index], params: { ...params } };
-  const live = ed.trackEffects(trackId)[index];
-  if (live) ed.setTrackEffectParams(trackId, live.id, params);
+  const live = ed.trackEffects(trackId)[liveIndex.get(trackId)?.indexOf(index) ?? -1];
+  if (live) ed.setTrackEffectParams(trackId, live.id, liveParams(list[index], params));
 };
 
 /** Rebuild the master chain in the editor from `master`. */
 const applyMaster = async () => {
+  const chain = chainOf(master.value);
+  liveIndex.set('', chain.applied);
+  if (chain.complete) pendingFaust.delete('');
+  else pendingFaust.add('');
   try {
-    await editor.value?.setEffectsState(
-      master.value.map((e) => ({ kind: 'native' as const, type: e.type, params: e.params, bypassed: !!e.bypassed })),
-    );
+    await editor.value?.setEffectsState(chain.entries);
   } catch (err) {
     console.warn('[stem editor] master effects', err);
   }
@@ -1300,10 +1377,10 @@ const setMasterEffects = (list: StemEffect[]) => {
 
 const setMasterEffectParams = (index: number, params: Record<string, number>) => {
   const effect = master.value[index];
-  const live = editor.value?.effects[index];
-  if (!effect || !live) return;
+  const live = editor.value?.effects[liveIndex.get('')?.indexOf(index) ?? -1];
+  if (!effect) return;
   master.value[index] = { ...effect, params: { ...params } };
-  editor.value?.setEffectParams(live.id, params);
+  if (live) editor.value?.setEffectParams(live.id, liveParams(effect, params));
 };
 
 /** Ask the parent to copy a stem, placed just below it. */
@@ -1751,6 +1828,8 @@ onMounted(async () => {
   ed.appendChild(shortcuts);
 
   context = new AudioContext();
+  context.addEventListener('statechange', applyPendingFaust);
+  void loadFaust();
   adapter = new NativePlayoutAdapter(context);
   ed.adapter = adapter;
   adapter.transport.on('countIn', ({ beat }: { beat: number }) => {
