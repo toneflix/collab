@@ -3,10 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick } from 'process';
 import tippy, { Instance, Props } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
-import { onMounted, getCurrentInstance, PropType, ref, watch, h } from 'vue';
+import { onMounted, getCurrentInstance, PropType, ref, watch, h, nextTick } from 'vue';
 
 const props = defineProps({
   tag: {
