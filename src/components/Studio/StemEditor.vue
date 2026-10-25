@@ -246,6 +246,9 @@
               <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes.</li>
               <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
               <li v-if="!readonly">Drag a stem's grip, or use its arrows, to move it up or down.</li>
+              <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
+              <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
+              <li><b>+ −</b> zoom, <b>0</b> fits, <b>L</b> loops the selection, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
               <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
             </ul>
           </q-menu>
@@ -302,7 +305,7 @@
           aria-label="Duplicate stem"
           @click="duplicate(selected.id)"
         >
-          <q-tooltip>Duplicate this stem</q-tooltip>
+          <q-tooltip>Duplicate this stem (Ctrl+D)</q-tooltip>
         </q-btn>
         <div class="stem-colors" role="radiogroup" aria-label="Stem colour">
           <button
@@ -1353,6 +1356,50 @@ const openEffects = async (e: Event) => {
   effectsMenu.value?.show();
 };
 
+const typing = (target: EventTarget | null) =>
+  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
+/** Keyboard shortcuts for the selected stem and the view. Space, S and undo are dawcore's own. */
+const onKey = (e: KeyboardEvent) => {
+  const ed = editor.value;
+  if (!ed || !ready.value || typing(e.target) || e.composedPath().some((el) => typing(el))) return;
+  if (document.querySelector('.q-dialog')) return;
+
+  const order = ed.engine?.getState().tracks.map((t) => t.id) ?? [];
+  const current = selectedTrackId.value;
+  const index = current ? order.indexOf(current) : -1;
+  const track = engineTrack(current);
+  const key = e.key.toLowerCase();
+  const mod = e.ctrlKey || e.metaKey;
+  let handled = true;
+
+  if (mod && key === 'd' && current) duplicate(current);
+  else if (mod) handled = false;
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    const by = e.key === 'ArrowUp' ? -1 : 1;
+    if (e.altKey && current && !props.readonly) {
+      ed.reorderTrack(current, Math.max(0, index + by));
+      setTimeout(checkDirty);
+    } else {
+      const next = order[Math.max(0, Math.min(order.length - 1, index + by))];
+      if (next) selectTrack(next);
+    }
+  } else if (key === 'm' && track) ed.updateTrack(track.id, { muted: !track.muted });
+  else if (key === 's' && e.shiftKey && track) ed.updateTrack(track.id, { soloed: !track.soloed });
+  else if (e.key === '+' || e.key === '=') setZoom(zoom.value - 1);
+  else if (e.key === '-' || e.key === '_') setZoom(zoom.value + 1);
+  else if (e.key === '0') fit();
+  else if (key === 'l' && hasSelection.value) toggleLoop();
+  else if (key === 'f') setFollow(!follow.value);
+  else if (e.key === 'Home') toStart();
+  else handled = false;
+
+  if (handled) {
+    e.preventDefault();
+    if (key === 'm' || key === 's') setTimeout(checkDirty);
+  }
+};
+
 /** Pick the closest zoom that shows the whole project. */
 const fit = () => {
   const ed = editor.value;
@@ -1726,6 +1773,7 @@ onMounted(async () => {
   scrollArea()?.addEventListener('scroll', onTimelineScroll, { passive: true });
   look = new TrackLook(ed, adapter, context, (level) => (masterLevel.value = level));
   if (master.value.length) await applyMaster();
+  document.addEventListener('keydown', onKey);
   engine.setMasterVolume(masterVolume.value / 100);
   applyTempo();
 
@@ -1756,6 +1804,7 @@ onBeforeUnmount(() => {
   ed?.engine?.off('statechange', onState);
   scrollArea()?.removeEventListener('scroll', onTimelineScroll);
   look?.dispose();
+  document.removeEventListener('keydown', onKey);
   ed?.stop();
   ed?.remove();
   host.value?.removeEventListener('daw-track-remove', onRemoveRequest, true);
