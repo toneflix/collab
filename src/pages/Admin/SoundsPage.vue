@@ -57,6 +57,14 @@
               Each search adds CC0 sounds to the library, once a day and when you press Sync now. Sounds already in the
               library are skipped.
             </p>
+            <q-checkbox
+              dark
+              color="toneflix"
+              class="mb-3"
+              :label="fields.freesound_sync_paused?.title || 'Pause library sync'"
+              v-model="form.freesound_sync_paused"
+            />
+            <div class="mb-4 -mt-2 text-sm text-grey-5" v-if="fields.freesound_sync_paused?.hint">{{ fields.freesound_sync_paused.hint }}</div>
             <q-input
               dark
               outlined
@@ -119,13 +127,14 @@
                   :label="settings.syncing ? 'Syncing…' : 'Sync now'"
                   class="!flex-none"
                   :loading="syncing"
-                  :disable="!settings.configured || changed || settings.syncing"
+                  :disable="!settings.configured || changed || settings.syncing || syncPaused"
                   @click="sync"
                 >
                   <q-tooltip v-if="changed">Save first</q-tooltip>
+                  <q-tooltip v-else-if="syncPaused">Library sync is paused</q-tooltip>
                 </q-btn>
                 <span class="text-sm text-grey-5" v-if="settings.lastSync">
-                  Last sync {{ when(settings.lastSync.at) }}: {{ settings.lastSync.added }} added, {{ settings.lastSync.skipped }} skipped<template v-if="settings.lastSync.failed">, {{ settings.lastSync.failed }} failed</template>.
+                  Last sync {{ when(settings.lastSync.at) }}: {{ settings.lastSync.added }} added, {{ settings.lastSync.skipped }} skipped<template v-if="settings.lastSync.failed">, {{ settings.lastSync.failed }} failed</template><template v-if="settings.lastSync.paused">, paused before it finished</template>.
                 </span>
               </div>
               <q-banner rounded dense class="mt-4 text-white bg-orange-10" v-if="settings.lastSync?.errors.length">
@@ -220,6 +229,7 @@ const settings = ref<SoundAdminSettings>();
 const form = reactive({
   sounds_library_enabled: false,
   freesound_enabled: false,
+  freesound_sync_paused: false,
   freesound_sync_queries: '',
   freesound_sync_limit: 25 as number | string,
   freesound_sync_max_duration: 30 as number | string,
@@ -250,7 +260,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     icon: 'fas fa-rotate',
     title: 'Library sync',
     caption: 'The searches that fill the library each day.',
-    fields: ['freesound_sync_queries', 'freesound_sync_limit', 'freesound_sync_max_duration'],
+    fields: ['freesound_sync_paused', 'freesound_sync_queries', 'freesound_sync_limit', 'freesound_sync_max_duration'],
   },
   {
     key: 'library',
@@ -271,12 +281,14 @@ const unsaved = computed(() =>
 const callbackUrl = computed(() => (typeof window !== 'undefined' ? `${window.location.origin}/freesound/callback` : '/freesound/callback'));
 
 const on = (v?: string | null) => v === '1' || v === 'true';
+const syncPaused = computed(() => on(fields.value.freesound_sync_paused?.value));
 
 const fill = (data: SoundAdminSettings) => {
   settings.value = data;
   const f = data.fields;
   form.sounds_library_enabled = on(f.sounds_library_enabled?.value);
   form.freesound_enabled = on(f.freesound_enabled?.value);
+  form.freesound_sync_paused = on(f.freesound_sync_paused?.value);
   form.freesound_sync_queries = f.freesound_sync_queries?.value ?? '';
   form.freesound_sync_limit = Number(f.freesound_sync_limit?.value ?? 25);
   form.freesound_sync_max_duration = Number(f.freesound_sync_max_duration?.value ?? 30);
