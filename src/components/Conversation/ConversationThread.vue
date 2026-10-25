@@ -271,7 +271,8 @@ const boot = useBootstrapStore();
 const store = useConversationStore();
 
 const messages = ref<ChatMessage[]>([]);
-const hasMore = ref(false);
+const cursor = ref<string | null>(null);
+const hasMore = computed(() => !!cursor.value);
 const loaded = ref(false);
 const loadingOlder = ref(false);
 const draft = ref('');
@@ -365,11 +366,12 @@ const grow = () => {
 const load = async () => {
   loaded.value = false;
   messages.value = [];
+  cursor.value = null;
   newBelow.value = 0;
   try {
     const page = await loadMessagesRequest(props.type, props.id).send();
     messages.value = page.messages;
-    hasMore.value = page.hasMore;
+    cursor.value = page.cursor;
   } catch (e) {
     notify((e as ResponseBody)?.message || 'The conversation couldn\'t be loaded.', 'error');
   } finally {
@@ -385,10 +387,10 @@ const loadOlder = async () => {
   const el = scroller.value;
   const before = el?.scrollHeight ?? 0;
   try {
-    const page = await loadMessagesRequest(props.type, props.id, messages.value[0]!.id).send();
+    const page = await loadMessagesRequest(props.type, props.id, cursor.value).send();
     const known = new Set(messages.value.map((m) => String(m.id)));
     messages.value = [...page.messages.filter((m) => !known.has(String(m.id))), ...messages.value];
-    hasMore.value = page.hasMore;
+    cursor.value = page.cursor;
     await nextTick();
     if (el) el.scrollTop += el.scrollHeight - before;
   } catch {
