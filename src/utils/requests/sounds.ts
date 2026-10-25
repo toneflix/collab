@@ -114,7 +114,7 @@ export const connectFreesoundRequest = (back?: string) =>
   })
 
 export const finishFreesoundRequest = (code: string, state: string) =>
-  alova.Post<ResponseBody<{ username?: string | null; return?: string | null }>>('sounds/freesound/callback', { code, state })
+  alova.Post<ResponseBody<{ connected: boolean; username?: string | null }> & { return?: string | null }>('sounds/freesound/callback', { code, state })
 
 export const disconnectFreesoundRequest = () => alova.Delete<ResponseBody<{ connected: boolean }>>('sounds/freesound/connect')
 
