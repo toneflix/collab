@@ -272,6 +272,50 @@
       <template v-else>Recording {{ formatClock(recordedFor) }}. Press stop when you're done.</template>
     </div>
 
+    <div class="stem-editor__missing" v-if="missing.length">
+      <div class="stem-editor__missing-row" :key="stem.id" v-for="stem in missing">
+        <q-icon :name="ionAlertCircle" size="18px" class="text-amber-5 !flex-none" />
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-bold truncate">{{ stem.title || stem.name }}</div>
+          <div class="text-xs text-grey-5">
+            Its audio couldn't be loaded.<template v-if="!readonly"> Upload the file again or remove the stem.</template>
+          </div>
+        </div>
+        <template v-if="!readonly">
+          <q-btn
+            outline
+            rounded
+            dense
+            no-caps
+            size="sm"
+            color="grey-4"
+            class="!flex-none px-3"
+            :icon="ionCloudUpload"
+            label="Replace audio"
+            @click="pickReplacement(stem)"
+          />
+          <q-btn
+            flat
+            round
+            dense
+            size="sm"
+            color="grey-5"
+            class="!flex-none"
+            :icon="ionTrash"
+            aria-label="Remove stem"
+            @click="emit('remove', stem)"
+          />
+        </template>
+      </div>
+      <input
+        ref="replaceInput"
+        type="file"
+        class="hidden"
+        :accept="allowedAudioExts.join(', ')"
+        @change="onReplacementPicked"
+      />
+    </div>
+
     <div ref="host" class="stem-editor__host" />
 
     <div class="stem-editor__dropzone" v-if="dropping">
@@ -284,6 +328,7 @@
 <script setup lang="ts">
 import {
   ionAdd,
+  ionAlertCircle,
   ionChatbubbleEllipses,
   ionArrowRedo,
   ionArrowUndo,
@@ -298,6 +343,7 @@ import {
   ionRepeat,
   ionScan,
   ionStop,
+  ionTrash,
   ionVolumeHigh,
   ionVolumeMute,
 } from '@quasar/extras/ionicons-v8';
@@ -351,6 +397,8 @@ const emit = defineEmits<{
   recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string }];
   /** Open the instrument editor for a stem made from a pattern */
   'edit-instrument': [stem: Stem];
+  /** New audio was picked for a stem whose audio couldn't be loaded */
+  replace: [stem: Stem, file: File];
   ready: [];
 }>();
 
@@ -1073,12 +1121,36 @@ const setMasterVolume = (value: number | null) => {
 /** Stem ids already in the editor, so a stem is never added twice */
 const added = new Set<string>();
 
+/** Stems whose audio couldn't be loaded, shown so they can be fixed or removed */
+const missing = ref<Stem[]>([]);
+const replaceInput = ref<HTMLInputElement>();
+let replacing: Stem | null = null;
+
+const pickReplacement = (stem: Stem) => {
+  replacing = stem;
+  replaceInput.value?.click();
+};
+
+const onReplacementPicked = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (file && replacing) emit('replace', replacing, file);
+  replacing = null;
+};
+
 const addStem = async (stem: Stem) => {
   const ed = editor.value;
   // Before the editor is up, stems come in through the `stems` prop.
   if (!ed || added.has(String(stem.id))) return;
   added.add(String(stem.id));
-  const el = await ed.addTrack(stemToTrack(stem));
+  let el: Awaited<ReturnType<DawEditorElement['addTrack']>>;
+  try {
+    el = await ed.addTrack(stemToTrack(stem));
+  } catch {
+    missing.value = [...missing.value.filter((s) => String(s.id) !== String(stem.id)), stem];
+    return;
+  }
   tracks.set(el.trackId, stem);
   const fx = parseEffects(stem.meta?.effects);
   if (fx.length) {
@@ -1092,6 +1164,8 @@ const addStem = async (stem: Stem) => {
 };
 
 const removeStem = (stemId: string | number) => {
+  missing.value = missing.value.filter((s) => String(s.id) !== String(stemId));
+  added.delete(String(stemId));
   for (const [trackId, stem] of tracks) {
     if (String(stem.id) === String(stemId)) {
       editor.value?.removeTrack(trackId);
@@ -1193,8 +1267,8 @@ const listeners: [string, EventListener][] = [
   ['daw-track-error', (e) => {
     const { trackId, reason } = (e as CustomEvent<{ trackId: string; reason?: string }>).detail;
     if (reason) return;
-    const stem = tracks.get(trackId);
-    notify(`"${stem?.title || stem?.name || 'A stem'}" couldn't be loaded.`, 'error');
+    // The failed track has no audio, so it goes; the stem is listed under the toolbar instead.
+    setTimeout(() => editor.value?.removeTrack(trackId));
   }],
   ['daw-error', (e) => console.warn('[stem editor]', (e as CustomEvent).detail)],
   ['daw-recording-complete', (e) => void onRecordingComplete(e)],
@@ -1300,6 +1374,20 @@ defineExpose({
   border-radius: 12px;
   overflow: hidden;
   background: #121212;
+
+  &__missing {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  &__missing-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
   &__toolbar {
     display: flex;
