@@ -1,5 +1,5 @@
 import { alova } from 'src/boot/alova'
-import type { ResponseBody } from '../models'
+import type { Release, ResponseBody } from '../models'
 
 export type ReportableType = 'release' | 'track' | 'sound' | 'comment' | 'user'
 
@@ -86,7 +86,22 @@ export type QueueItem = {
   takedown: Takedown | null;
 }
 
-export type ModerationMeta = { total: number; page: number; lastPage: number; pending: number; appeals: number }
+export type ModerationMeta = {
+  total: number;
+  page: number;
+  lastPage: number;
+  pending: number;
+  appeals: number;
+  /** Releases waiting for approval */
+  releases?: number;
+}
+
+export type ReleaseReview = Release & {
+  owner: { id: number; name: string; username?: string } | null;
+  /** Title of the project this release is a version of */
+  versionOf?: string | null;
+  submittedAt: string;
+}
 
 export type ReportForm = {
   type: ReportableType;
@@ -121,6 +136,18 @@ export const restoreTakedownRequest = (id: number, resolution?: string) =>
 
 export const upholdTakedownRequest = (id: number, resolution?: string) =>
   alova.Post<ResponseBody<Takedown>>(`admin/moderation/takedowns/${id}/uphold`, { resolution })
+
+export const loadReleaseReviewsRequest = (page = 1) =>
+  alova.Get<{ data: ReleaseReview[]; meta: ModerationMeta }>('admin/moderation/releases', {
+    params: { page, with: 'artist' },
+    cacheFor: 0,
+  })
+
+export const approveReleaseRequest = (id: number | string) =>
+  alova.Post<ResponseBody<{ id: number }>>(`admin/moderation/releases/${id}/approve`)
+
+export const rejectReleaseRequest = (id: number | string, note: string) =>
+  alova.Post<ResponseBody<{ id: number }>>(`admin/moderation/releases/${id}/reject`, { note })
 
 export const loadMyTakedownsRequest = (page = 1) =>
   alova.Get<{ data: Takedown[]; meta: { total: number; page: number; lastPage: number } }>('account/takedowns', { params: { page }, cacheFor: 0 })

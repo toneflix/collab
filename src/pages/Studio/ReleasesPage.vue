@@ -58,10 +58,26 @@
               </span>
               <q-badge
                 rounded
+                color="red-9"
+                label="Changes needed"
+                class="!flex-none"
+                v-if="release.draft && release.reviewStatus === 'rejected'"
+              >
+                <q-tooltip max-width="280px" v-if="release.reviewNote">{{ release.reviewNote }}</q-tooltip>
+              </q-badge>
+              <q-badge
+                rounded
                 color="grey-7"
                 label="Draft"
                 class="!flex-none"
-                v-if="release.draft"
+                v-else-if="release.draft"
+              />
+              <q-badge
+                rounded
+                color="orange-9"
+                label="In review"
+                class="!flex-none"
+                v-else-if="release.reviewStatus === 'pending'"
               />
               <q-badge
                 rounded
@@ -70,10 +86,10 @@
                 class="!flex-none"
                 v-else-if="release.retired"
               />
-              <span class="!flex-none" v-if="!release.draft && !release.retired">•</span>
+              <span class="!flex-none" v-if="isLive(release)">•</span>
               <span
                 class="!flex-none flex items-center gap-1"
-                v-if="!release.draft && !release.retired"
+                v-if="isLive(release)"
               >
                 <q-icon
                   name="fas fa-check-circle"
@@ -107,7 +123,7 @@
                   },
                 },
                 {
-                  show: !release.draft,
+                  show: !release.draft && release.reviewStatus !== 'pending',
                   label: release.retired ? 'Restore Release' : 'Retire Release',
                   icon: release.retired ? 'fas fa-rotate-left' : 'fas fa-box-archive',
                   click: () => toggleRetired(release),
@@ -155,6 +171,9 @@ defineOptions({
 });
 
 const releases = reactive(useBootstrapStore().pageData.current as Release[]);
+
+const isLive = (release: Release) =>
+  !release.draft && !release.retired && release.reviewStatus !== 'pending';
 
 const toggleRetired = (release: Release) => {
   retireReleaseRequest(release.id, !release.retired)

@@ -213,6 +213,15 @@
             <q-tab-panel name="publish">
               <q-banner
                 rounded
+                class="p-2 m-3 text-red-900 border border-red-800 border-solid bg-red-50 rounded-xl"
+                v-if="form.reviewStatus === 'rejected' && form.draft"
+              >
+                <div class="mb-1 text-lg font-semibold">An admin sent this release back</div>
+                <div class="whitespace-pre-line">{{ form.reviewNote || 'No note was left.' }}</div>
+                <div class="mt-2 text-sm">Make the changes, then submit it again.</div>
+              </q-banner>
+              <q-banner
+                rounded
                 class="p-2 m-3 text-orange-900 border border-orange-800 border-solid bg-orange-50 rounded-xl"
                 v-if="missing.length"
               >
@@ -236,8 +245,15 @@
                 v-else-if="form.draft"
               >
                 <span class="text-lg">
-                  Once your release is published, it will become available to
-                  everyone, by publishing this release you acknowledge that you
+                  <template v-if="reviewsOn">
+                    An admin reviews every release before it goes live. Once
+                    approved, it will become available to everyone.
+                  </template>
+                  <template v-else>
+                    Once your release is published, it will become available to
+                    everyone.
+                  </template>
+                  By publishing this release you acknowledge that you
                   have read and accepted our
                   <router-link :to="{ name: 'home' }">
                     <span class="text-info">Terms of Service</span>
@@ -271,6 +287,10 @@
                   </div>
                 </template>
               </q-banner>
+              <div class="m-3 text-center text-lg" v-else-if="form.reviewStatus === 'pending'">
+                This release is waiting for an admin to approve it. It goes live
+                once approved.
+              </div>
               <div class="m-3 text-center text-lg" v-else>
                 This release is published. Saving updates it for everyone.
               </div>
@@ -300,7 +320,7 @@
                   color="primary"
                   class="text-xl rounded-lg !flex-none"
                   icon="fas fa-check-circle"
-                  label="Publish Now"
+                  :label="reviewsOn ? 'Submit for Review' : 'Publish Now'"
                   :loading="saving && !!form.publish"
                   @click="saveRelease(true)"
                   v-else
@@ -501,7 +521,11 @@ const { data: projectReleases } = useWatcher(
 
 const otherVersions = computed(() =>
   (projectReleases.value?.data ?? []).filter(
-    (release) => !release.draft && !release.retired && release.id !== form.value.id,
+    (release) =>
+      !release.draft &&
+      !release.retired &&
+      release.reviewStatus !== 'pending' &&
+      release.id !== form.value.id,
   ),
 );
 
@@ -567,6 +591,9 @@ onError(({ error }) => {
   });
 });
 
+const boot = useBootstrapStore();
+const reviewsOn = computed(() => !!boot.configuration.review_releases);
+
 // The release that was just published, which swaps the form for a success screen.
 const published = ref<Release>();
 
@@ -577,6 +604,8 @@ onSuccess(({ data }) => {
 
   form.value.id = data.data.id;
   form.value.draft = data.data?.draft ? 1 : 0;
+  form.value.reviewStatus = data.data?.reviewStatus;
+  form.value.reviewNote = data.data?.reviewNote;
   form.value.publish = 0;
   form.value.retire = [];
   retire.value = [];

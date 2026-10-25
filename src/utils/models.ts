@@ -179,6 +179,8 @@ export type Configuration = {
   min_payout_amount: number;
   payout_hold_days: number;
   payout_auto_approve: boolean;
+  /** Hold published releases until an admin approves them */
+  review_releases: boolean;
 };
 
 export type PaymentPurpose =
@@ -493,6 +495,10 @@ export interface Release extends Album {
   version?: string | null;
   retired?: boolean;
   retiredAt?: string | null;
+  /** Set when release reviews are on: waiting for an admin, approved, or sent back */
+  reviewStatus?: 'pending' | 'approved' | 'rejected' | null;
+  /** The admin's note when a release was sent back. Only its owner gets it. */
+  reviewNote?: string | null;
   /** Ids of the project's other releases to retire when this one is published */
   retire?: (string | number)[];
   project?: Project;
