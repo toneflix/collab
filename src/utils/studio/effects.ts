@@ -1,11 +1,27 @@
 import type { EffectDefinition, EffectInstance } from '@dawcore/components';
+import { EFFECT_NODES } from './effect-nodes';
 
 /**
  * Effects a stem can have. They run live in the editor, and the API renders
  * the preview mix with FFmpeg filters matched to these definitions
  * (App\Services\Studio\Mix\Effects), so keep the two in step.
  */
-export type EffectType = 'tf-eq' | 'tf-reverb' | 'native-delay' | 'native-compressor' | 'native-filter';
+export type EffectType =
+  | 'tf-eq'
+  | 'tf-reverb'
+  | 'native-delay'
+  | 'native-compressor'
+  | 'native-filter'
+  | 'tf-highpass'
+  | 'tf-width'
+  | 'tf-saturation'
+  | 'tf-crusher'
+  | 'tf-tremolo'
+  | 'tf-autopan'
+  | 'tf-limiter'
+  | 'tf-chorus'
+  | 'tf-flanger'
+  | 'tf-phaser';
 
 /** One effect on a stem, as saved in the stem's `meta.effects`. */
 export interface StemEffect {
@@ -26,6 +42,8 @@ export interface EffectParam {
 export interface EffectInfo {
   type: EffectType;
   label: string;
+  /** Where it's listed in the add menu */
+  group: 'Tone' | 'Space' | 'Dynamics' | 'Colour' | 'Movement';
   description: string;
   defaults: Record<string, number>;
   params: EffectParam[];
@@ -35,6 +53,7 @@ export interface EffectInfo {
 export const EFFECTS: EffectInfo[] = [
   {
     type: 'tf-eq',
+    group: 'Tone',
     label: 'EQ',
     description: 'Boost or cut the lows, mids and highs.',
     defaults: { low: 0, mid: 0, midFrequency: 1000, high: 0 },
@@ -47,6 +66,7 @@ export const EFFECTS: EffectInfo[] = [
   },
   {
     type: 'tf-reverb',
+    group: 'Space',
     label: 'Reverb',
     description: 'Put the sound in a room or hall.',
     defaults: { size: 2.5, decay: 3, wet: 0.3 },
@@ -58,6 +78,7 @@ export const EFFECTS: EffectInfo[] = [
   },
   {
     type: 'native-delay',
+    group: 'Space',
     label: 'Delay',
     description: 'Echoes that repeat and fade.',
     defaults: { delayTime: 0.25, feedback: 0.4, wet: 0.35 },
@@ -69,6 +90,7 @@ export const EFFECTS: EffectInfo[] = [
   },
   {
     type: 'native-compressor',
+    group: 'Dynamics',
     label: 'Compressor',
     description: 'Even out loud and quiet parts.',
     defaults: { threshold: -24, knee: 30, ratio: 4, attack: 0.003, release: 0.25 },
@@ -82,6 +104,7 @@ export const EFFECTS: EffectInfo[] = [
   },
   {
     type: 'native-filter',
+    group: 'Tone',
     label: 'Low-pass filter',
     description: 'Roll off the highs for a darker, muffled sound.',
     defaults: { frequency: 8000, q: 1 },
@@ -90,7 +113,122 @@ export const EFFECTS: EffectInfo[] = [
       { key: 'q', label: 'Resonance', min: 0.1, max: 20, step: 0.1 },
     ],
   },
+  {
+    type: 'tf-highpass',
+    group: 'Tone',
+    label: 'High-pass filter',
+    description: 'Clear out rumble and low end.',
+    defaults: { frequency: 120, q: 0 },
+    params: [
+      { key: 'frequency', label: 'Cutoff', min: 20, max: 5000, step: 1, unit: 'Hz' },
+      { key: 'q', label: 'Resonance', min: 0, max: 20, step: 0.5, unit: 'dB' },
+    ],
+  },
+  {
+    type: 'tf-limiter',
+    group: 'Dynamics',
+    label: 'Limiter',
+    description: 'Keep peaks under a ceiling.',
+    defaults: { ceiling: -1, release: 0.1 },
+    params: [
+      { key: 'ceiling', label: 'Ceiling', min: -24, max: 0, step: 0.5, unit: 'dB' },
+      { key: 'release', label: 'Release', min: 0.01, max: 1, step: 0.01, unit: 's' },
+    ],
+  },
+  {
+    type: 'tf-saturation',
+    group: 'Colour',
+    label: 'Saturation',
+    description: 'Warm, driven, tape-like grit.',
+    defaults: { drive: 12, mix: 1 },
+    params: [
+      { key: 'drive', label: 'Drive', min: 0, max: 30, step: 0.5, unit: 'dB' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-crusher',
+    group: 'Colour',
+    label: 'Bitcrusher',
+    description: 'Lo-fi, crunchy digital sound.',
+    defaults: { bits: 6, mix: 1 },
+    params: [
+      { key: 'bits', label: 'Bits', min: 1, max: 16, step: 1, unit: 'bits' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-width',
+    group: 'Space',
+    label: 'Stereo width',
+    description: 'Make the sound wider or narrower.',
+    defaults: { width: 1.5 },
+    params: [{ key: 'width', label: 'Width', min: 0, max: 2, step: 0.01, unit: '%' }],
+  },
+  {
+    type: 'tf-chorus',
+    group: 'Movement',
+    label: 'Chorus',
+    description: 'Thicken the sound with detuned copies.',
+    defaults: { rate: 0.8, depth: 0.5, mix: 0.5 },
+    params: [
+      { key: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.05, unit: 'Hz' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01 },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-flanger',
+    group: 'Movement',
+    label: 'Flanger',
+    description: 'A sweeping, jet-like whoosh.',
+    defaults: { rate: 0.25, depth: 0.7, feedback: 0.5, mix: 0.5 },
+    params: [
+      { key: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.05, unit: 'Hz' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01 },
+      { key: 'feedback', label: 'Feedback', min: 0, max: 0.9, step: 0.01 },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-phaser',
+    group: 'Movement',
+    label: 'Phaser',
+    description: 'A swirling, shifting tone.',
+    defaults: { rate: 0.5, depth: 0.6, feedback: 0.4, mix: 0.5 },
+    params: [
+      { key: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.05, unit: 'Hz' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01 },
+      { key: 'feedback', label: 'Feedback', min: 0, max: 0.9, step: 0.01 },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-tremolo',
+    group: 'Movement',
+    label: 'Tremolo',
+    description: 'Volume that pulses up and down.',
+    defaults: { rate: 5, depth: 0.5 },
+    params: [
+      { key: 'rate', label: 'Rate', min: 0.1, max: 20, step: 0.1, unit: 'Hz' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
+    type: 'tf-autopan',
+    group: 'Movement',
+    label: 'Auto-pan',
+    description: 'Swing the sound between left and right.',
+    defaults: { rate: 0.5, depth: 0.8 },
+    params: [
+      { key: 'rate', label: 'Rate', min: 0.05, max: 10, step: 0.05, unit: 'Hz' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01 },
+    ],
+  },
 ];
+
+/** The groups of the add menu, in order. */
+export const EFFECT_GROUPS = ['Tone', 'Dynamics', 'Colour', 'Space', 'Movement'] as const;
 
 export const effectInfo = (type: string) => EFFECTS.find((e) => e.type === type);
 
@@ -204,6 +342,22 @@ export const registerStudioEffects = (register: (type: string, definition: Effec
   registered = true;
   register('tf-eq', eq);
   register('tf-reverb', reverb);
+  for (const [type, create] of Object.entries(EFFECT_NODES)) {
+    const info = effectInfo(type)!;
+    register(type, {
+      label: info.label,
+      category: info.group.toLowerCase(),
+      defaults: info.defaults,
+      params: Object.fromEntries(info.params.map((p) => [p.key, { min: p.min, max: p.max, step: p.step, unit: p.unit }])),
+      ...(info.params.some((p) => p.key === 'mix') ? { wetParam: 'mix' } : {}),
+      create: (ctx, params) => {
+        const instance = create(ctx);
+        instance.applyParams({ ...info.defaults, ...params });
+
+        return instance;
+      },
+    });
+  }
 };
 
 /**

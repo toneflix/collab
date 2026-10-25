@@ -12,19 +12,28 @@
         :disable="readonly || modelValue.length >= 8"
         dropdown-icon="expand_more"
       >
-        <q-list dark dense class="min-w-56">
-          <q-item clickable v-close-popup :key="e.type" v-for="e in EFFECTS" @click="add(e.type)">
-            <q-item-section>
-              <q-item-label>{{ e.label }}</q-item-label>
-              <q-item-label caption>{{ e.description }}</q-item-label>
-            </q-item-section>
-          </q-item>
+        <q-list dark dense class="min-w-64 max-h-[60vh]">
+          <template :key="group" v-for="group in EFFECT_GROUPS">
+            <q-item-label header class="!py-2 !text-xs uppercase tracking-wider">{{ group }}</q-item-label>
+            <q-item
+              clickable
+              v-close-popup
+              :key="e.type"
+              v-for="e in EFFECTS.filter((x) => x.group === group)"
+              @click="add(e.type)"
+            >
+              <q-item-section>
+                <q-item-label>{{ e.label }}</q-item-label>
+                <q-item-label caption>{{ e.description }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </q-btn-dropdown>
     </div>
 
     <div class="py-6 text-sm text-center text-grey-5" v-if="!modelValue.length">
-      No effects yet. Add EQ, reverb, delay, compression or a filter.
+      No effects yet. Add EQ, reverb, saturation, chorus and more.
     </div>
 
     <div class="fx__item" :class="{ 'fx__item--off': effect.bypassed }" :key="i" v-for="(effect, i) in modelValue">
@@ -64,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { EFFECTS, effectInfo, type EffectType, type StemEffect } from 'src/utils/studio/effects';
+import { EFFECT_GROUPS, EFFECTS, effectInfo, type EffectType, type StemEffect } from 'src/utils/studio/effects';
 
 /**
  * The effect chain of one stem: add, reorder, switch off and adjust effects.
@@ -84,7 +93,12 @@ const emit = defineEmits<{
 const label = (e: StemEffect) => effectInfo(e.type)?.label ?? e.type;
 
 const format = (value: number, unit?: string) => {
-  if (unit === 'Hz') return value >= 1000 ? `${(value / 1000).toFixed(1)} kHz` : `${Math.round(value)} Hz`;
+  if (unit === 'Hz') {
+    if (value >= 1000) return `${(value / 1000).toFixed(1)} kHz`;
+    return value < 10 ? `${value.toFixed(2)} Hz` : `${Math.round(value)} Hz`;
+  }
+  if (unit === '%') return `${Math.round(value * 100)}%`;
+  if (unit === 'bits') return `${Math.round(value)} bits`;
   if (unit === 's') return value < 0.1 ? `${Math.round(value * 1000)} ms` : `${value.toFixed(2)} s`;
   if (unit === 'dB') return `${value > 0 ? '+' : ''}${value.toFixed(1)} dB`;
   return Math.abs(value) <= 1 ? `${Math.round(value * 100)}%` : value.toFixed(1);
