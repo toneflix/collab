@@ -556,6 +556,14 @@ const helpers = {
 
     return num as unknown as string;
   },
+  /**
+   * A count with its noun, short like intStr and singular for one.
+   *
+   * @example countStr(1, 'Track') // 1 Track
+   */
+  countStr (n: number | undefined, singular: string, plural = singular + 's') {
+    return `${helpers.intStr(n)} ${n === 1 ? singular : plural}`;
+  },
   intStr (n?: number) {
     if (!n) {
       return 0
@@ -641,6 +649,7 @@ export const chunk = helpers.chunk
 export const doter = helpers.doter
 export const money = helpers.money
 export const intStr = helpers.intStr
+export const countStr = helpers.countStr
 export const notify = helpers.notify
 export const subString = helpers.subString
 export const currentUrl = helpers.currentUrl
