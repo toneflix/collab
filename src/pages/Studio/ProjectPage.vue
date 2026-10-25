@@ -347,12 +347,8 @@ import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { Project, Collaber, ProjectTrack } from 'src/utils/models';
-import {
-  loadProjectCollaboratorsRequest,
-  loadProjectRequest,
-  loadProjectTracksRequest,
-} from 'src/utils/requests/requests';
-import { computed, ref } from 'vue';
+import { loadProjectRequest } from 'src/utils/requests/requests';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
 import {
@@ -367,25 +363,12 @@ const trackInfoDialogRef = ref();
 defineOptions({
   async preFetch({ currentRoute, store }) {
     const boot = useBootstrapStore(store);
-    const id = String(currentRoute.params.project_id);
 
     if (currentRoute.params.project_id) {
-      // Load project
-      const project = await loadProjectRequest(id, { with: 'tracks' }).send();
-
-      // Load Tracks
-      const tracks = await loadProjectTracksRequest(project, {
-        with: 'genre,artist',
-      }).send();
-
-      // Collabers
-      const collaborators = await loadProjectCollaboratorsRequest(project);
-
-      // Build Data
       boot.pageData.current = {
-        tracks,
-        project,
-        collaborators,
+        project: await loadProjectRequest(String(currentRoute.params.project_id), {
+          with: 'tracks,collaborators,genre,artist',
+        }).send(),
       };
     }
   },
@@ -394,21 +377,17 @@ defineOptions({
 const collaberDialogRef = ref();
 const route = useRoute();
 const user = computed(() => useBootstrapStore().user);
-const curr = useBootstrapStore().pageData.current as {
-  tracks: ProjectTrack[];
-  project: Project;
-  collaborators: Collaber[];
-};
+const curr = useBootstrapStore().pageData.current as { project?: Project };
 
 const { data: project, loading } = useWatcher(
   () =>
     loadProjectRequest(route.params.project_id as string, {
-      with: 'tracks,collabers',
+      with: 'tracks,collaborators,genre,artist',
     }),
   [() => route.params.project_id],
   {
     middleware: (_, next) => (route.params.project_id ? next() : undefined),
-    immediate: true,
+    immediate: !curr.project?.id,
     initialData: {
       ...curr.project,
       collaboratorsCount: curr.project?.collaboratorsCount || 0,
@@ -417,24 +396,16 @@ const { data: project, loading } = useWatcher(
   },
 );
 
-const { data: trackList } = useWatcher(
-  () => loadProjectTracksRequest(project.value, { with: 'genre,artist' }),
-  [project],
-  {
-    middleware: (_, next) => (project.value.id ? next() : undefined),
-    immediate: true,
-    initialData: curr.tracks,
-  },
-);
+const trackList = ref<ProjectTrack[]>([]);
+const collaborators = ref<Collaber[]>([]);
 
-const { data: collaborators } = useWatcher(
-  () => loadProjectCollaboratorsRequest(project.value),
-  [project],
-  {
-    middleware: (_, next) => (project.value.id ? next() : undefined),
-    immediate: true,
-    initialData: curr.collaborators,
+watch(
+  project,
+  (p) => {
+    trackList.value = p?.tracks ?? [];
+    collaborators.value = p?.collaborators ?? [];
   },
+  { immediate: true },
 );
 
 const releaseBlocker = computed(() => projectReleaseBlocker(project.value));
