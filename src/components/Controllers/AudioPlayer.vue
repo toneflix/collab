@@ -268,7 +268,12 @@ const root = ref<HTMLElement>();
 const height = ref(0);
 let resize: ResizeObserver | null = null;
 
-const track = computed<Track>(() => player.current || ({} as Track));
+/**
+ * The queue is restored from browser storage, which the server never sees, so
+ * the track waits for mount to keep hydration in line with the server render.
+ */
+const hydrated = ref(false);
+const track = computed<Track>(() => (hydrated.value && player.current) || ({} as Track));
 
 const trackLink = computed(() => ({
   name: 'artist.track',
@@ -313,6 +318,7 @@ const copyLink = async () => {
 };
 
 onMounted(() => {
+  hydrated.value = true;
   player.attach();
   player.ensureQueue();
 
