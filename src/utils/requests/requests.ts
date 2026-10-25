@@ -536,7 +536,7 @@ export const duplicateProjectTrackStemRequest = (id: string | number, p: Project
  * @param id The stem's ID
  * @param p The project object
  * @param t The track object that owns the stem
- * @param wav The printed audio
+ * @param audio The printed audio, as FLAC
  * @param start Where the audio starts on the timeline, in seconds
  * @param key A fingerprint of the clips and effects it was printed from
  */
@@ -544,12 +544,12 @@ export const printProjectTrackStemRequest = (
   id: string | number,
   p: Project,
   t: ProjectTrack,
-  wav: Blob,
+  audio: Blob,
   start: number,
   key: string,
 ) => {
   const form = new FormData();
-  form.append('audio', wav, 'print.wav');
+  form.append('audio', audio, 'print.flac');
   form.append('start', String(start));
   form.append('key', key);
 

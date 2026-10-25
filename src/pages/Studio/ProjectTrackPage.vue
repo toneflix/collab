@@ -1003,8 +1003,8 @@ const printPlugins = async (ed: NonNullable<typeof editor.value>) => {
   let progress: ((props?: QNotifyUpdateOptions) => void) | undefined;
   try {
     await ed.printPlugins(
-      async (stem, wav, start, key) => {
-        const { data } = await printProjectTrackStemRequest(stem.id, project.value, track.value, wav, start, key).send();
+      async (stem, audio, start, key) => {
+        const { data } = await printProjectTrackStemRequest(stem.id, project.value, track.value, audio, start, key).send();
         stems.value = stems.value.map((s) => (s.id === stem.id ? { ...s, meta: { ...s.meta, print: data.meta?.print } } : s));
 
         return data;

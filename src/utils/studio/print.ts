@@ -1,4 +1,5 @@
 import { createEffectInstance, type SerializedEffectEntry } from '@dawcore/components';
+import { encodeFlac } from './flac';
 
 /** One clip as the engine keeps it. */
 export interface PrintClip {
@@ -135,39 +136,12 @@ export const printStem = async (clips: PrintClip[], chain: SerializedEffectEntry
   }
 };
 
-/** 16-bit stereo WAV of an AudioBuffer. */
-export const wavOf = (audio: AudioBuffer) => {
-  const channels = Math.min(2, audio.numberOfChannels);
-  const frames = audio.length;
-  const data = new DataView(new ArrayBuffer(44 + frames * channels * 2));
-  const text = (at: number, s: string) => [...s].forEach((c, i) => data.setUint8(at + i, c.charCodeAt(0)));
-
-  text(0, 'RIFF');
-  data.setUint32(4, 36 + frames * channels * 2, true);
-  text(8, 'WAVE');
-  text(12, 'fmt ');
-  data.setUint32(16, 16, true);
-  data.setUint16(20, 1, true);
-  data.setUint16(22, channels, true);
-  data.setUint32(24, audio.sampleRate, true);
-  data.setUint32(28, audio.sampleRate * channels * 2, true);
-  data.setUint16(32, channels * 2, true);
-  data.setUint16(34, 16, true);
-  text(36, 'data');
-  data.setUint32(40, frames * channels * 2, true);
-
-  const samples = Array.from({ length: channels }, (_, c) => audio.getChannelData(c));
-  let at = 44;
-  for (let i = 0; i < frames; i++) {
-    for (const channel of samples) {
-      const s = Math.max(-1, Math.min(1, channel[i]!));
-      data.setInt16(at, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-      at += 2;
-    }
-  }
-
-  return new Blob([data.buffer], { type: 'audio/wav' });
-};
+/** The printed audio as 16-bit FLAC, about half the size of WAV. */
+export const flacOf = (audio: AudioBuffer) =>
+  encodeFlac(
+    Array.from({ length: Math.min(2, audio.numberOfChannels) }, (_, c) => audio.getChannelData(c)),
+    audio.sampleRate,
+  );
 
 /** A short fingerprint of what a print was made from. */
 export const printKey = async (value: unknown) => {

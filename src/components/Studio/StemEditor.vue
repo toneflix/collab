@@ -461,7 +461,7 @@ import {
   type StemEffect,
 } from 'src/utils/studio/effects';
 import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
-import { printKey, printStem, wavOf } from 'src/utils/studio/print';
+import { flacOf, printKey, printStem } from 'src/utils/studio/print';
 import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
@@ -1403,7 +1403,7 @@ const closePlugin = () => {
  * back into the stem's effects first, so they're saved too.
  */
 const printPlugins = async (
-  upload: (stem: Stem, wav: Blob, start: number, key: string) => Promise<Stem>,
+  upload: (stem: Stem, audio: Blob, start: number, key: string) => Promise<Stem>,
   onRecord?: (stem: Stem) => void,
 ) => {
   const ed = editor.value;
@@ -1438,7 +1438,7 @@ const printPlugins = async (
     const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
     const printed = await printStem(clips, live, { bpm: tempo.value, beats, unit });
     if (!printed) continue;
-    const saved = await upload(stem, wavOf(printed.audio), printed.start, key);
+    const saved = await upload(stem, flacOf(printed.audio), printed.start, key);
     stem.meta = { ...stem.meta, print: saved.meta?.print };
   }
 };
