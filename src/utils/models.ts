@@ -484,6 +484,12 @@ export interface Release extends Album {
   iswc: string;
   pline: string;
   draft?: boolean | 0 | 1;
+  /** A label for this version of a project's release, like "Radio Edit" */
+  version?: string | null;
+  retired?: boolean;
+  retiredAt?: string | null;
+  /** Ids of the project's other releases to retire when this one is published */
+  retire?: (string | number)[];
   project?: Project;
   explicit?: boolean | 0 | 1;
   composer: string;
@@ -535,6 +541,8 @@ export type Project = {
   user_id?: string | number;
   privacy: 'private' | 'public' | 'public_preview';
   released: boolean;
+  /** The owner's unpublished release of this project, if one is in progress */
+  draftReleaseId?: string | number | null;
   imageUrl: string;
   createdAt: string;
   updatedAt: string;

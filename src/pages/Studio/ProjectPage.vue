@@ -66,25 +66,28 @@
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
           </span>
-          <span class="!flex-none" v-if="project.ready">•</span>
-          <span class="!flex-none flex items-center gap-1">
-            <q-btn
-              dense
-              no-caps
-              rounded
-              icon="fas fa-compact-disc"
-              size="sm"
-              color="white"
-              padding="xs sm"
-              text-color="dark"
-              :disable="project.tracksCount < 1"
-              :to="{ name: 'studio.release.create', query: $route.params }"
-              v-if="project.ready"
-            >
-              <span class="ml-2 text-base">
-                {{ project.released ? 'Update Release' : 'Release Project' }}
-              </span>
-            </q-btn>
+        </q-no-ssr>
+        <q-no-ssr class="flex items-center gap-2 mt-3 !flex-none" v-if="project.isOwner">
+          <q-btn
+            no-caps
+            rounded
+            unelevated
+            color="primary"
+            class="!flex-none"
+            icon="fas fa-compact-disc"
+            :label="projectReleaseLabel(project)"
+            :disable="!!releaseBlocker"
+            :to="projectReleaseLink(project)"
+          />
+          <q-badge
+            rounded
+            color="positive"
+            label="Released"
+            class="!flex-none"
+            v-if="project.released"
+          />
+          <span class="text-sm text-grey-6 !flex-none" v-else-if="releaseBlocker">
+            {{ releaseBlocker }}
           </span>
         </q-no-ssr>
       </div>
@@ -121,7 +124,6 @@
               class="!flex-none"
               color="white"
               text-color="dark"
-              :disable="project.released"
               @click="toggle()"
             />
           </template>
@@ -229,7 +231,6 @@
               class="!flex-none"
               color="white"
               text-color="dark"
-              :disable="project.released"
               @click="toggle"
             />
           </template>
@@ -354,6 +355,11 @@ import {
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
+import {
+  projectReleaseBlocker,
+  projectReleaseLabel,
+  projectReleaseLink,
+} from 'src/utils/navigations';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import { requestFlagContent } from 'src/utils/requests/content';
 
@@ -430,6 +436,8 @@ const { data: collaborators } = useWatcher(
     initialData: curr.collaborators,
   },
 );
+
+const releaseBlocker = computed(() => projectReleaseBlocker(project.value));
 
 const reporting = ref(false);
 const flag = (id: string | number, index: number) => {

@@ -38,7 +38,12 @@
           </q-item-section>
 
           <q-item-section>
-            <q-item-label>{{ release.title }}</q-item-label>
+            <q-item-label>
+              {{ release.title }}
+              <span class="text-grey-6" v-if="release.version">
+                · {{ release.version }}
+              </span>
+            </q-item-label>
             <q-item-label
               class="flex !flex-none flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
             >
@@ -51,10 +56,24 @@
                 <q-icon name="fas fa-compact-disc" size=".7rem" />
                 {{ intStr(release.tracksCount) }}
               </span>
-              <span class="!flex-none" v-if="!release.draft">•</span>
+              <q-badge
+                rounded
+                color="grey-7"
+                label="Draft"
+                class="!flex-none"
+                v-if="release.draft"
+              />
+              <q-badge
+                rounded
+                color="orange"
+                label="Retired"
+                class="!flex-none"
+                v-else-if="release.retired"
+              />
+              <span class="!flex-none" v-if="!release.draft && !release.retired">•</span>
               <span
                 class="!flex-none flex items-center gap-1"
-                v-if="!release.draft"
+                v-if="!release.draft && !release.retired"
               >
                 <q-icon
                   name="fas fa-check-circle"
@@ -88,6 +107,12 @@
                   },
                 },
                 {
+                  show: !release.draft,
+                  label: release.retired ? 'Restore Release' : 'Retire Release',
+                  icon: release.retired ? 'fas fa-rotate-left' : 'fas fa-box-archive',
+                  click: () => toggleRetired(release),
+                },
+                {
                   label: 'Delete Release',
                   icon: 'fas fa-trash',
                   color: 'red',
@@ -109,15 +134,19 @@
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { date } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { intStr } from 'src/utils/helpers';
+import { intStr, notify } from 'src/utils/helpers';
 import { Release } from 'src/utils/models';
-import { loadReleasesRequest } from 'src/utils/requests/requests';
+import {
+  loadCreatorReleasesRequest,
+  retireReleaseRequest,
+} from 'src/utils/requests/requests';
+import { reactive } from 'vue';
 
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
 
-    await loadReleasesRequest({ user_id: boot.user.id as string })
+    await loadCreatorReleasesRequest({ limit: 50 })
       .send()
       .then(({ data }) => {
         boot.pageData.current = data;
@@ -125,5 +154,14 @@ defineOptions({
   },
 });
 
-const releases = useBootstrapStore().pageData.current as Release[];
+const releases = reactive(useBootstrapStore().pageData.current as Release[]);
+
+const toggleRetired = (release: Release) => {
+  retireReleaseRequest(release.id, !release.retired)
+    .send()
+    .then(({ data, message }) => {
+      release.retired = data.retired;
+      notify(message, 'success');
+    });
+};
 </script>

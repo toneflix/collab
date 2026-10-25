@@ -16,12 +16,13 @@
         <div class="text-sm truncate text-grey-5">
           {{ project.title }} • {{ stems.length }}
           {{ stems.length === 1 ? 'stem' : 'stems' }}
-          <template v-if="project.released"> • Released, view only</template>
+          <template v-if="project.released"> • Released</template>
+          <template v-if="viewOnly"> • View only</template>
         </div>
       </div>
       <div
         class="flex items-center gap-2 ml-auto !flex-none no-wrap"
-        v-if="!project.released"
+        v-if="!viewOnly"
       >
         <q-badge
           rounded
@@ -79,7 +80,7 @@
         :icon="ionAddCircle"
         :expanded="expanded"
         :loading="uploading > 0"
-        :disable="project.released"
+        :disable="viewOnly"
         @click="fileInput?.click()"
       />
       <SoundsPanel
@@ -90,7 +91,7 @@
         :disabled="!editorReady"
         dock="#studio-dock"
         @added="addStemFromSound"
-        v-if="!project.released"
+        v-if="!viewOnly"
       >
         <template #default="{ toggle, open }">
           <ActionButton
@@ -111,7 +112,7 @@
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"
-        v-if="!project.released"
+        v-if="!viewOnly"
       >
         <template #default="{ toggle, open }">
           <ActionButton
@@ -128,7 +129,7 @@
         :project-id="project.id"
         :track-id="track.id"
         :stems="stems"
-        :readonly="project.released"
+        :readonly="viewOnly"
         :disabled="!editorReady"
         :playhead="() => editor?.currentTime() ?? 0"
         :seek="(s: number) => editor?.seek(s)"
@@ -150,17 +151,17 @@
         :expanded="expanded"
         :disable="!editorReady"
         @click="newInstrument"
-        v-if="!project.released"
+        v-if="!viewOnly"
       />
       <HistoryPanel
         ref="historyPanel"
         :project-id="project.id"
         :track-id="track.id"
-        :readonly="project.released"
+        :readonly="viewOnly"
         :dirty="dirty || tempoDirty"
         dock="#studio-dock"
         @restored="onRestored"
-        v-if="!project.released"
+        v-if="!viewOnly"
       >
         <template #default="{ toggle, open }">
           <ActionButton
@@ -175,7 +176,7 @@
       <AssetsDialog
         :track="track"
         :stems="stems"
-        :released="project.released"
+        :readonly="viewOnly"
         @stem-updated="renameStem"
       >
         <template #default="{ toggle }">
@@ -211,6 +212,14 @@
           />
         </template>
       </ProjectTrackInfoDialog>
+      <ActionButton
+        :label="projectReleaseLabel(project)"
+        :icon="ionDisc"
+        :expanded="expanded"
+        :disable="!!releaseBlocker"
+        @click="router.push(projectReleaseLink(project))"
+        v-if="project.isOwner"
+      />
       <q-btn
         flat
         round
@@ -232,7 +241,7 @@
         <div class="studio-main">
           <div
             class="mb-3 text-sm empty-hint"
-            v-if="loaded && !stems.length && !project.released"
+            v-if="loaded && !stems.length && !viewOnly"
           >
             No stems yet. Upload the parts of this track, press record, add a
             sound, or make a beat with an instrument.
@@ -240,13 +249,13 @@
           <SimpleInfo
             class="mt-4"
             text="This track has no stems."
-            v-if="loaded && !stems.length && project.released"
+            v-if="loaded && !stems.length && viewOnly"
           />
 
           <StemEditor
             ref="editor"
             :stems="stems"
-            :readonly="project.released"
+            :readonly="viewOnly"
             :bpm="track.bpm"
             :time-signature="track.timeSignature"
             commentable
@@ -260,7 +269,7 @@
             @tempo="onTempo"
             @recorded="onRecorded"
             @edit-instrument="editInstrument"
-            v-if="loaded && (stems.length || !project.released)"
+            v-if="loaded && (stems.length || !viewOnly)"
           />
         </div>
         <div id="studio-dock" class="studio-dock" />
@@ -273,7 +282,7 @@
         :saving="instrument.saving"
         v-model="instrument.open"
         @save="saveInstrument"
-        v-if="!project.released"
+        v-if="!viewOnly"
       />
     </q-no-ssr>
 
@@ -288,6 +297,7 @@ import {
   ionChatbubbles,
   ionChevronForward,
   ionCloudUpload,
+  ionDisc,
   ionDocumentText,
   ionFolderOpen,
   ionGrid,
@@ -340,6 +350,11 @@ import {
   UploadData,
 } from 'src/utils/models';
 import { allowedAudioExts } from 'src/utils/presets';
+import {
+  projectReleaseBlocker,
+  projectReleaseLabel,
+  projectReleaseLink,
+} from 'src/utils/navigations';
 import { Stem, StemMeta } from 'src/utils/daw';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
@@ -382,10 +397,24 @@ const current = boot.pageData.current as {
 
 const track = ref<ProjectTrack>(current.track);
 const project = ref<Project>(current.project);
+
+/** Only the owner and collaborators can change the track. */
+const viewOnly = computed(
+  () => !project.value.isOwner && !project.value.isCollaber,
+);
 const stems = ref<Stem[]>([]);
 const loaded = ref(false);
 const editorReady = ref(false);
 const dirty = ref(false);
+
+// Saved stems on this track also make the project ready to release.
+const releaseBlocker = computed(() =>
+  projectReleaseBlocker({
+    ...project.value,
+    ready: project.value.ready || (stems.value.length > 0 && !dirty.value),
+  }),
+);
+
 /** The tempo or meter changed since the last save */
 const tempoDirty = ref(false);
 const saving = ref(false);
