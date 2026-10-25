@@ -1,6 +1,6 @@
 import { alova, axios } from 'src/boot/alova'
 import type { Artist, ResponseBody } from '../models'
-import type { AiReview } from './moderation'
+import type { AiReview, ModerationList } from './moderation'
 
 export type ArtistClaimRole = 'artist' | 'manager' | 'label' | 'other'
 
@@ -88,7 +88,7 @@ export const claimArtistRequest = (artist: string | number, form: ArtistClaimFor
 }
 
 export const loadArtistClaimsRequest = (params: { status?: string; search?: string; page?: number } = {}) =>
-  alova.Get<{ data: ArtistClaim[]; meta: { total: number; page: number; lastPage: number; claims?: number; aiModerator?: boolean } }>(
+  alova.Get<ModerationList<ArtistClaim>>(
     'admin/moderation/claims',
     { params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== '')), cacheFor: 0 },
   )

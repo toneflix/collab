@@ -193,9 +193,10 @@ import {
   sendClaimToAiRequest,
   type ArtistClaim,
 } from 'src/utils/requests/artists';
+import type { ModerationStats } from 'src/utils/requests/moderation';
 
 const props = defineProps<{ search?: string | null }>();
-const emit = defineEmits<{ meta: [meta: Record<string, number | boolean | undefined>] }>();
+const emit = defineEmits<{ stats: [stats: ModerationStats] }>();
 
 const statusOptions = [
   { label: 'Waiting', value: 'pending' },
@@ -222,9 +223,9 @@ const load = async (page = 1) => {
   try {
     const response = await loadArtistClaimsRequest({ status: status.value, search: props.search || undefined, page }).send();
     claims.value = response.data;
-    pages.value = { page: response.meta.page, lastPage: response.meta.lastPage };
-    aiModerator.value = !!response.meta.aiModerator;
-    emit('meta', response.meta);
+    pages.value = { page: response.meta?.current_page ?? 1, lastPage: response.meta?.last_page ?? 1 };
+    aiModerator.value = !!response.stats.aiModerator;
+    emit('stats', response.stats);
   } catch (error) {
     notify((error as Error).message, 'error');
   } finally {

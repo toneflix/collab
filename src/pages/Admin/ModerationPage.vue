@@ -12,22 +12,22 @@
       <q-tabs dense no-caps align="left" class="mb-4" active-color="toneflix" v-model="tab">
         <q-tab name="queue">
           <div class="flex items-center gap-2 flex-nowrap">
-            Queue <q-badge rounded color="toneflix" :label="meta.pending" v-if="meta.pending" />
+            Queue <q-badge rounded color="toneflix" :label="stats.pending" v-if="stats.pending" />
           </div>
         </q-tab>
-        <q-tab name="releases" v-if="boot.configuration.review_releases || meta.releases">
+        <q-tab name="releases" v-if="boot.configuration.review_releases || stats.releases">
           <div class="flex items-center gap-2 flex-nowrap">
-            Releases <q-badge rounded color="toneflix" :label="meta.releases" v-if="meta.releases" />
+            Releases <q-badge rounded color="toneflix" :label="stats.releases" v-if="stats.releases" />
           </div>
         </q-tab>
         <q-tab name="claims">
           <div class="flex items-center gap-2 flex-nowrap">
-            Artist claims <q-badge rounded color="toneflix" :label="meta.claims" v-if="meta.claims" />
+            Artist claims <q-badge rounded color="toneflix" :label="stats.claims" v-if="stats.claims" />
           </div>
         </q-tab>
         <q-tab name="appealed">
           <div class="flex items-center gap-2 flex-nowrap">
-            Appeals <q-badge rounded color="orange-9" :label="meta.appeals" v-if="meta.appeals" />
+            Appeals <q-badge rounded color="orange-9" :label="stats.appeals" v-if="stats.appeals" />
           </div>
         </q-tab>
         <q-tab name="active" label="Taken down" />
@@ -196,7 +196,7 @@
         </div>
       </template>
 
-      <ArtistClaimsReview :search="search" @meta="(e) => (meta = { ...meta, ...e })" v-else-if="tab === 'claims'" />
+      <ArtistClaimsReview :search="search" @stats="(e) => (stats = e)" v-else-if="tab === 'claims'" />
 
       <template v-else-if="tab === 'releases'">
         <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
@@ -279,7 +279,7 @@
                   icon="fas fa-wand-magic-sparkles"
                   label="Send to AI moderator"
                   class="!flex-none"
-                  v-if="meta.aiModerator"
+                  v-if="stats.aiModerator"
                   :disable="release.aiReview?.status === 'queued'"
                   :loading="busy === `ai:${release.id}`"
                   @click="run(`ai:${release.id}`, () => sendReleaseToAiRequest(release.id).send())"
@@ -400,6 +400,7 @@ import ArtistClaimsReview from 'src/components/Moderation/ArtistClaimsReview.vue
 import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
 import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import type { PageMeta } from 'src/utils/models';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import {
   approveReleaseRequest,
@@ -416,7 +417,7 @@ import {
   restoreTakedownRequest,
   takeDownRequest,
   upholdTakedownRequest,
-  type ModerationMeta,
+  type ModerationStats,
   type QueueItem,
   type ReleaseReview,
   type ReportReason,
@@ -447,7 +448,7 @@ const queue = ref<QueueItem[]>([]);
 const takedowns = ref<Takedown[]>([]);
 const reviews = ref<ReleaseReview[]>([]);
 const reviewNotes = reactive<Record<string | number, string>>({});
-const meta = ref<ModerationMeta>({ total: 0, page: 1, lastPage: 1, pending: 0, appeals: 0 });
+const stats = ref<ModerationStats>({ pending: 0, appeals: 0 });
 const pages = ref({ page: 1, lastPage: 1 });
 const loading = ref(false);
 const busy = ref<string | null>(null);
@@ -462,6 +463,10 @@ const searchHint = computed(() => ({
   claims: 'Search by artist, claimant or email',
 }[tab.value as string] || 'Search by title, name or username'));
 
+const setPages = (meta?: PageMeta) => {
+  pages.value = { page: meta?.current_page ?? 1, lastPage: meta?.last_page ?? 1 };
+};
+
 const load = async (page = 1) => {
   if (tab.value === 'claims') return;
 
@@ -471,18 +476,19 @@ const load = async (page = 1) => {
     if (tab.value === 'queue') {
       const response = await loadModerationQueueRequest({ ...filters, search: search.value || undefined, page }).send();
       queue.value = response.data;
-      meta.value = response.meta;
+      stats.value = response.stats;
+      setPages(response.meta);
     } else if (tab.value === 'releases') {
       const response = await loadReleaseReviewsRequest({ search: search.value || undefined, page }).send();
       reviews.value = response.data;
-      meta.value = response.meta;
+      stats.value = response.stats;
+      setPages(response.meta);
     } else {
       const response = await loadAdminTakedownsRequest({ status: tab.value, search: search.value || undefined, page }).send();
       takedowns.value = response.data;
-      meta.value = response.meta;
+      stats.value = response.stats;
+      setPages(response.meta);
     }
-
-    pages.value = { page: meta.value.page, lastPage: meta.value.lastPage };
   } catch (error) {
     notify((error as Error).message, 'error');
   } finally {

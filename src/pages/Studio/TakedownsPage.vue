@@ -127,7 +127,7 @@ const statusColor: Record<Takedown['status'], string> = {
 };
 
 const takedowns = ref<Takedown[]>([]);
-const meta = ref({ total: 0, page: 1, lastPage: 1 });
+const meta = ref({ page: 1, lastPage: 1 });
 const loading = ref(false);
 const sending = ref(false);
 const appealing = ref<number | null>(null);
@@ -139,7 +139,7 @@ const load = async (page = 1) => {
   try {
     const response = await loadMyTakedownsRequest(page).send();
     takedowns.value = response.data;
-    meta.value = response.meta;
+    meta.value = { page: response.meta?.current_page ?? 1, lastPage: response.meta?.last_page ?? 1 };
   } catch (error) {
     notify((error as Error).message, 'error');
   } finally {
