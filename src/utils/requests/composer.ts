@@ -138,3 +138,21 @@ export const definitionsRequest = (w: string) =>
 
 export const wordSoundsRequest = (words: string[]) =>
   alova.Post<{ data: WordSound[] }>('words/syllables', { words });
+
+export type SuggestionKind = 'line' | 'block' | 'verse' | 'rewrite';
+
+/** Options from Composer's AI for a spot in the lyrics, with what they cost */
+export type LyricSuggestion = {
+  kind: SuggestionKind;
+  /** The line the options are for, counted from 1 */
+  line: number;
+  options: { lines: string[] }[];
+  credits: number;
+  /** Credits left after this ask */
+  balance: number;
+};
+
+export const suggestLyricsRequest = (
+  id: string | number,
+  data: { kind: SuggestionKind; line: number; body?: string; instruction?: string },
+) => alova.Post<ResponseBody<LyricSuggestion>>(`creator/songs/${id}/suggestions`, data);

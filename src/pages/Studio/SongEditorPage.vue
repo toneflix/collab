@@ -46,6 +46,13 @@
           :active="song.settings.rhymeColours"
           @click="toggleColours"
         />
+        <ActionButton
+          label="Write with AI"
+          :icon="ionSparkles"
+          :expanded="expanded"
+          :active="panels.write"
+          @click="panels.write = !panels.write"
+        />
         <ActionButton label="Lookup" :icon="ionSearch" :expanded="expanded" :active="panels.lookup" @click="toggleLookup" />
         <ActionButton label="Notes" :icon="ionDocumentText" :expanded="expanded" :active="panels.notes" @click="panels.notes = !panels.notes" />
         <ActionButton label="Versions" :icon="ionTime" :expanded="expanded" :active="panels.versions" @click="panels.versions = !panels.versions" />
@@ -92,6 +99,7 @@
               :complete="complete"
               @cursor="onCursor"
               @word="onWordClick"
+              @accepted="ghostAsked = null"
               v-model="body"
               v-if="song"
             />
@@ -103,6 +111,18 @@
     </q-no-ssr>
 
     <template v-if="song">
+      <WritePanel
+        dock="#composer-dock"
+        :account="ai"
+        :result="suggestion"
+        :asking="asking"
+        :auto-suggest="song.settings.autoSuggest"
+        :cursor-text="cursorText"
+        @ask="(kind, instruction) => ask(kind, { instruction })"
+        @insert="insertSuggestion"
+        @auto="setAutoSuggest"
+        v-model="panels.write"
+      />
       <LookupPanel dock="#composer-dock" v-model="panels.lookup" v-model:word="lookupWord" @insert="editor?.insertWord($event)" />
       <NotesPanel dock="#composer-dock" :song="song" v-model="panels.notes" @change="onNotesChange" />
       <VersionsPanel dock="#composer-dock" :song-id="song.id" :flush="flush" v-model="panels.versions" @restored="onRestored" />
@@ -120,6 +140,7 @@ import {
   ionPause,
   ionPlay,
   ionSearch,
+  ionSparkles,
   ionTime,
 } from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar } from 'quasar';
@@ -129,18 +150,23 @@ import LookupPanel from 'src/components/Composer/LookupPanel.vue';
 import LyricsEditor from 'src/components/Composer/LyricsEditor.vue';
 import NotesPanel from 'src/components/Composer/NotesPanel.vue';
 import VersionsPanel from 'src/components/Composer/VersionsPanel.vue';
+import WritePanel from 'src/components/Composer/WritePanel.vue';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
 import { useFitToScreen } from 'src/composables/useFitToScreen';
 import { isSectionLine, lastWordOf, WordSounds } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
+import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import {
   completeWordRequest,
   loadSongRequest,
   nameSongVersionRequest,
   rhymesRequest,
   saveSongRequest,
+  suggestLyricsRequest,
+  type LyricSuggestion,
   type Song,
   type SongInput,
+  type SuggestionKind,
   type WordHit,
 } from 'src/utils/requests/composer';
 
@@ -156,7 +182,7 @@ const editor = ref<InstanceType<typeof LyricsEditor>>();
 const beat = ref<HTMLAudioElement | null>(null);
 const beatPlaying = ref(false);
 const sounds = new WordSounds();
-const panels = reactive({ lookup: false, notes: false, versions: false });
+const panels = reactive({ write: false, lookup: false, notes: false, versions: false });
 const lookupWord = ref('');
 
 const bodyEl = ref<HTMLElement>();
@@ -348,6 +374,9 @@ const loadStrip = async (word: string) => {
 let stripTimer: ReturnType<typeof setTimeout> | null = null;
 
 const onCursor = ({ line, number }: { line: string; number: number }) => {
+  cursorText.value = line;
+  cursorNumber.value = number;
+  maybeAutoSuggest();
   const lines = body.value.split('\n');
   // On an empty line, rhyme with the line above.
   const source = line.trim() || isSectionLine(line) ? line : lines[number - 2] ?? '';
@@ -371,6 +400,92 @@ const toggleLookup = () => {
 const openLookup = (word: string) => {
   lookupWord.value = word;
   panels.lookup = true;
+};
+
+/* ---------- AI suggestions ---------- */
+
+const ai = ref<AiAccount | null>(null);
+const suggestion = ref<LyricSuggestion | null>(null);
+const asking = ref<SuggestionKind | null>(null);
+const cursorText = ref('');
+const cursorNumber = ref(1);
+/** The line an automatic suggestion was last asked for, so each new line asks once */
+const ghostAsked = ref<number | null>(null);
+let autoTimer: ReturnType<typeof setTimeout> | null = null;
+
+const loadAi = async () => {
+  try {
+    ai.value = await loadAiAccountRequest().send();
+  } catch {
+    ai.value = null;
+  }
+};
+
+/**
+ * Asks the AI for a kind of suggestion at the cursor. Next-line ideas show in
+ * grey in the editor; the rest, and lines the cursor has moved away from, go
+ * to the Write panel.
+ */
+const ask = async (kind: SuggestionKind, { instruction = '', auto = false } = {}) => {
+  if (!song.value || !editor.value || asking.value) return;
+  const cursor = editor.value.cursorLine();
+  asking.value = kind;
+  try {
+    await flush();
+    const res = await suggestLyricsRequest(song.value.id, {
+      kind,
+      line: cursor.number,
+      body: body.value,
+      instruction: instruction || undefined,
+    }).send();
+    const result = res.data;
+    if (ai.value) ai.value.balance.total = result.balance;
+
+    const shown = kind === 'line' && editor.value?.showGhost(result.line, result.options.map((o) => o.lines.join(' ')));
+    if (!shown && !auto) {
+      suggestion.value = result;
+      panels.write = true;
+    }
+  } catch (e) {
+    if (auto) {
+      setAutoSuggest(false);
+      notify(`${errorText(e, 'Suggestions stopped.')} Automatic suggestions are off for now.`, 'error');
+    } else {
+      notify(errorText(e, 'No suggestion this time.'), 'error');
+    }
+  } finally {
+    asking.value = null;
+  }
+};
+
+const insertSuggestion = (result: LyricSuggestion, lines: string[]) => {
+  if (!editor.value) return;
+  if (result.kind === 'rewrite') editor.value.replaceLine(result.line, lines[0] ?? '');
+  else {
+    // A new section starts after a blank line.
+    const gap = isSectionLine(lines[0] ?? '') ? '\n' : '';
+    editor.value.insertLines(gap + lines.join('\n'), result.line);
+  }
+};
+
+const setAutoSuggest = (on: boolean) => {
+  if (!song.value) return;
+  song.value.settings.autoSuggest = on;
+  queue({ settings: { auto_suggest: on } });
+};
+
+/** With auto-suggest on, a fresh empty line under a written one asks for the next line once */
+const maybeAutoSuggest = () => {
+  if (autoTimer) clearTimeout(autoTimer);
+  if (!song.value?.settings.autoSuggest || !ai.value?.access || cursorText.value.trim()) return;
+  const number = cursorNumber.value;
+  const above = body.value.split('\n')[number - 2] ?? '';
+  if (!above.trim() || isSectionLine(above) || ghostAsked.value === number) return;
+  autoTimer = setTimeout(() => {
+    if (cursorNumber.value !== number || cursorText.value.trim()) return;
+    ghostAsked.value = number;
+    void ask('line', { auto: true });
+  }, 700);
 };
 
 /* ---------- Layout ---------- */
@@ -400,6 +515,7 @@ onMounted(() => {
   }
   window.addEventListener('beforeunload', beforeUnload);
   void load();
+  void loadAi();
 });
 
 onBeforeRouteLeave(async () => {
@@ -408,6 +524,7 @@ onBeforeRouteLeave(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', beforeUnload);
+  if (autoTimer) clearTimeout(autoTimer);
   beat.value?.pause();
 });
 </script>
