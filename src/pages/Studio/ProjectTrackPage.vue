@@ -1,7 +1,7 @@
 <template>
   <q-page class="p-3 md:p-4">
     <!-- Track header and actions -->
-    <div class="flex items-center gap-3 mb-3 no-wrap">
+    <div class="flex items-center gap-2 mb-2 no-wrap">
       <q-btn
         flat
         round
@@ -11,34 +11,36 @@
         :icon="ionArrowBack"
         :to="{ name: 'studio.project', params: { project_id: project.id } }"
       />
-      <div class="min-w-0">
-        <div class="text-xl font-bold truncate">{{ track.title }}</div>
-        <div class="text-sm truncate text-grey-5">
-          {{ project.title }} • {{ stems.length }}
-          {{ stems.length === 1 ? 'stem' : 'stems' }}
+      <div class="studio-title">
+        <h1 class="studio-title__name" :title="track.title">{{ track.title }}</h1>
+        <div class="studio-title__meta">
+          <router-link
+            class="hover:underline"
+            :to="{ name: 'studio.project', params: { project_id: project.id } }"
+            >{{ project.title }}</router-link
+          >
+          • {{ stems.length }} {{ stems.length === 1 ? 'stem' : 'stems' }}
           <template v-if="project.released"> • Released</template>
           <template v-if="viewOnly"> • View only</template>
         </div>
-        <div class="flex items-center gap-2 mt-1">
-          <AudioTagChips
-            class="!flex-none"
-            :tags="track.tags"
-            :editable="!viewOnly"
-            :target="{ projectId: project.id, trackId: track.id }"
-            @update:tags="track.tags = $event"
-          />
-          <q-btn
-            flat
-            dense
-            no-caps
-            size="sm"
-            class="!flex-none text-grey-4"
-            :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
-            title="Set the studio tempo to the detected tempo"
-            @click="useTagTempo"
-            v-if="tagTempoDiffers"
-          />
-        </div>
+        <AudioTagChips
+          class="studio-title__tags"
+          :tags="track.tags"
+          :editable="!viewOnly"
+          :target="{ projectId: project.id, trackId: track.id }"
+          @update:tags="track.tags = $event"
+        />
+        <q-btn
+          flat
+          dense
+          no-caps
+          size="sm"
+          class="!flex-none text-grey-4 max-sm:!hidden"
+          :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
+          title="Set the studio tempo to the detected tempo"
+          @click="useTagTempo"
+          v-if="tagTempoDiffers"
+        />
       </div>
       <div
         class="flex items-center gap-2 ml-auto !flex-none no-wrap"
@@ -291,12 +293,14 @@
             :bpm="track.bpm"
             :time-signature="track.timeSignature"
             :mix-volume="track.mixVolume"
+            :master-effects="track.masterEffects"
             commentable
             @comment="messageAboutRegion"
             @ready="editorReady = true"
             @dirty="dirty = $event"
             @remove="removeStem"
             @replace="replaceAudio"
+            @duplicate="duplicateStem"
             @files="upload"
             @change="shareChanges"
             @tempo="onTempo"
@@ -351,6 +355,7 @@ import {
 } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConversationStore } from 'src/stores/conversation-store';
+import { usePlayerStore } from 'src/stores/player-store';
 import { useFitToScreen } from 'src/composables/useFitToScreen';
 import type { ChatRegion } from 'src/utils/requests/conversations';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
@@ -395,6 +400,7 @@ import { Stem, StemMeta } from 'src/utils/daw';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
+  duplicateProjectTrackStemRequest,
   loadProjectRequest,
   loadProjectTrackRequest,
   loadProjectTrackStemRequest,
@@ -574,9 +580,16 @@ const loadStems = async (fresh = false) => {
       project.value,
       track.value,
     ).send(fresh)) as unknown as Stem[];
-    // Oldest first, so stems keep their place after one is saved.
+    // In the order they were arranged, then oldest first.
+    const place = (s: Stem) => {
+      const order = Number(s.meta?.order);
+
+      return Number.isFinite(order) && s.meta?.order !== undefined ? order : Infinity;
+    };
+
     stems.value = [...list].sort(
       (a, b) =>
+        place(a) - place(b) ||
         String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? '')) ||
         String(a.id).localeCompare(String(b.id), undefined, { numeric: true }),
     );
@@ -653,6 +666,33 @@ const replaceAudio = async (stem: Stem, file: File) => {
     historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
+  } finally {
+    uploading.value--;
+  }
+};
+
+/** Copy a stem onto the track, just below the original. Its audio is reused from this device. */
+const duplicateStem = async (stem: Stem, meta: StemMeta) => {
+  uploading.value++;
+  try {
+    const { data } = await duplicateProjectTrackStemRequest(
+      stem.id,
+      project.value,
+      track.value,
+      meta,
+    ).send();
+    const copy = data as unknown as Stem;
+    try {
+      await stemAudio.put(copy, await stemAudio.get(stem));
+    } catch {
+      // It downloads like any other stem instead.
+    }
+    stems.value.push(copy);
+    await editor.value?.addStem(copy);
+    if (meta.order !== undefined) editor.value?.moveStem(copy.id, meta.order);
+    historyPanel.value?.refresh();
+  } catch (e) {
+    notify(errorMessage(e, "The stem couldn't be duplicated."), 'error');
   } finally {
     uploading.value--;
   }
@@ -923,6 +963,7 @@ const save = async (withPreview = false) => {
       ...track.value,
       preview: undefined,
       mixVolume: ed.mixVolume(),
+      masterEffects: ed.masterEffects(),
       stems: Object.entries(metas).map(([id, meta]) => ({
         id,
         meta,
@@ -937,6 +978,7 @@ const save = async (withPreview = false) => {
       meta: metas[String(s.id)] ?? s.meta,
     }));
     track.value.mixVolume = form.mixVolume;
+    track.value.masterEffects = form.masterEffects;
     ed.markSaved();
     tempoDirty.value = false;
     if (render) onMix({ status: 'rendering' });
@@ -1050,8 +1092,7 @@ useRealtimeChannel(
     'stems.updated': (
       e: RealtimeMeta & { stems: Record<string, StemMeta> },
     ) => {
-      for (const [id, meta] of Object.entries(e.stems || {}))
-        editor.value?.applyRemote(id, meta);
+      editor.value?.applyRemoteAll(e.stems || {});
     },
     'stem.added': async (e: RealtimeMeta & { stem_id: string | number }) => {
       if (findStem(e.stem_id)) return;
@@ -1116,8 +1157,8 @@ useRealtimeChannel(
       if (e.title) track.value.title = e.title;
       if (e.bpm) track.value.bpm = e.bpm;
       if (e.timeSignature) track.value.timeSignature = e.timeSignature;
+      editor.value?.applyRemoteAll(e.stems || {}, true);
       for (const [id, meta] of Object.entries(e.stems || {})) {
-        editor.value?.applyRemote(id, meta, true);
         const stem = findStem(id);
         if (stem) stem.meta = { ...stem.meta, ...meta };
       }
@@ -1157,6 +1198,10 @@ onBeforeRouteLeave(() => {
 });
 
 onMounted(() => {
+  // Only the studio plays here: stop the player and any other audio on the page.
+  usePlayerStore().pause();
+  document.querySelectorAll<HTMLMediaElement>('audio, video').forEach((media) => media.pause());
+
   try {
     expanded.value =
       LocalStorage.getItem<boolean>('studio.actions.expanded') === true;
@@ -1175,6 +1220,55 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+/* Title, project, stem count and tags on one line; the title gives way first. */
+.studio-title {
+  display: flex;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+
+  &__name {
+    flex: 0 1 auto;
+    min-width: 4em;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: normal;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    flex: 0 1000 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: #9ea3ab;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__tags {
+    flex: none;
+    flex-wrap: nowrap;
+    align-self: center;
+  }
+
+  > * {
+    flex-grow: 0;
+  }
+
+  @media (max-width: 599px) {
+    &__meta {
+      display: none;
+    }
+  }
+}
+
 .empty-hint {
   padding: 10px 14px;
   color: #b8bcc4;

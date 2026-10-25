@@ -517,6 +517,20 @@ export const saveProjectTrackStemRequest = (
 }
 
 /**
+ * Copy a stem, audio included, onto its track
+ *
+ * @param id The ID of the stem to copy
+ * @param p The project object
+ * @param t The track object that owns the stem
+ * @param meta Settings for the copy, over the original's
+ */
+export const duplicateProjectTrackStemRequest = (id: string | number, p: Project, t: ProjectTrack, meta: Partial<StemMeta>) => {
+  return alova.Post<ResponseBody<Stem>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}/duplicate`, { meta }, {
+    name: 'duplicate-project-track-stem',
+  })
+}
+
+/**
  * Delete a track stem belonging to a project track
  *
  * @param id The ID of the track stem to delete
