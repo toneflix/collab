@@ -1087,6 +1087,7 @@ onBeforeUnmount(() =>
 
 .studio-dock {
   flex: 0 0 380px !important;
+  min-width: 0;
 
   &:empty {
     display: none;

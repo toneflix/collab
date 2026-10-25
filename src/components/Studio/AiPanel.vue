@@ -1,10 +1,22 @@
 <template>
   <slot :toggle="toggle" :open="open" />
-  <StudioSheet :dock="dock" v-model="open" @show="refresh">
+  <StudioSheet :dock="dock" v-model="open" @show="refresh" @hide="tool = null">
     <q-card dark class="ai" :class="{ 'ai--mobile': $q.screen.lt.sm }">
       <header class="ai__head">
-        <div class="min-w-0">
-          <div class="text-lg font-bold">AI tools</div>
+        <q-btn
+          flat
+          round
+          dense
+          icon="arrow_back"
+          aria-label="Back to AI tools"
+          class="!flex-none"
+          v-if="current"
+          @click="tool = null"
+        />
+        <div class="ai__title min-w-0">
+          <div class="text-lg font-bold">
+            {{ current?.title ?? 'AI tools' }}
+          </div>
           <div class="text-xs text-grey-5" v-if="account?.access">
             <b class="text-white">{{
               account.balance.total.toLocaleString()
@@ -55,8 +67,26 @@
         </template>
 
         <template v-else-if="account">
-          <q-form class="ai__section" @submit="generate">
-            <div class="ai__label">Generate music</div>
+          <div class="ai__grid" v-if="!current">
+            <button
+              type="button"
+              class="tool"
+              :key="item.key"
+              v-for="item in tools"
+              @click="tool = item.key"
+            >
+              <q-icon :name="item.icon" size="22px" class="tool__icon" />
+              <div class="tool__title">{{ item.title }}</div>
+              <div class="tool__text">{{ item.text }}</div>
+              <div class="tool__cost">{{ item.cost }}</div>
+            </button>
+          </div>
+
+          <q-form
+            class="ai__section"
+            v-else-if="tool === 'music'"
+            @submit="generate"
+          >
             <q-input
               dark
               filled
@@ -143,8 +173,7 @@
             </div>
           </q-form>
 
-          <div class="ai__section">
-            <div class="ai__label">Split a stem</div>
+          <div class="ai__section" v-else-if="tool === 'stems'">
             <div class="mb-2 text-xs text-grey-6">
               Pull vocals, drums, bass and other out of a full mix. Uses
               {{ account.costs.stems }} credits.
@@ -190,14 +219,14 @@
                 >Credits and history</router-link
               >
             </div>
-            <div class="text-sm text-grey-6" v-if="!jobs.length">
+            <div class="text-sm text-grey-6" v-if="!shownJobs.length">
               Nothing yet. What you generate shows up here and on the track.
             </div>
             <div
               class="job"
               :class="`job--${job.status}`"
               :key="job.id"
-              v-for="job in jobs"
+              v-for="job in shownJobs"
             >
               <div class="job__icon">
                 <q-spinner-audio
@@ -251,6 +280,8 @@
 import {
   ionAlertCircle,
   ionCheckmarkCircle,
+  ionGitBranch,
+  ionMusicalNotes,
   ionSparkles,
 } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
@@ -294,6 +325,36 @@ const form = reactive({
   split: false,
 });
 
+const tool = ref<'music' | 'stems' | null>(null);
+
+const tools = computed(() => {
+  const acc = account.value;
+
+  return [
+    {
+      key: 'music' as const,
+      title: 'Generate music',
+      text: 'Turn a prompt into a loop or a full track, with or without vocals.',
+      icon: ionMusicalNotes,
+      cost: acc ? `From ${musicCost(acc, 5, false)} credits` : '',
+    },
+    {
+      key: 'stems' as const,
+      title: 'Split a stem',
+      text: 'Pull vocals, drums, bass and other out of a full mix.',
+      icon: ionGitBranch,
+      cost: acc ? `${acc.costs.stems} credits` : '',
+    },
+  ];
+});
+
+const current = computed(() => tools.value.find((t) => t.key === tool.value));
+
+/** Every job on the grid, only the open tool's jobs inside a tool. */
+const shownJobs = computed(() =>
+  tool.value ? jobs.value.filter((j) => j.kind === tool.value) : jobs.value,
+);
+
 const ideas = [
   'Mellow afrobeats groove, 100 BPM, guitars and log drums',
   'Lofi hip hop beat with vinyl crackle and soft keys',
@@ -327,7 +388,11 @@ const jobTitle = (job: AiJob) =>
 const statusText = (job: AiJob) =>
   ({
     queued: 'Waiting to start',
-    running: { music: 'Composing, about a minute', stems: 'Splitting', lyrics: 'Listening' }[job.kind],
+    running: {
+      music: 'Composing, about a minute',
+      stems: 'Splitting',
+      lyrics: 'Listening',
+    }[job.kind],
     succeeded:
       job.kind === 'lyrics'
         ? `Wrote ${job.lines ?? 0} ${job.lines === 1 ? 'line' : 'lines'}`
@@ -498,6 +563,18 @@ defineExpose({ toggle, onJob });
     overflow-y: auto;
   }
 
+  &__title {
+    flex: 1 1 auto;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
   &__section {
     padding: 14px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -581,6 +658,56 @@ defineExpose({ toggle, onJob });
   a {
     color: #03bfff;
     text-decoration: none;
+  }
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(3, 191, 255, 0.5);
+    background: rgba(3, 191, 255, 0.06);
+    outline: none;
+  }
+
+  &__icon {
+    margin-bottom: 6px;
+    padding: 8px;
+    color: #03bfff;
+    border-radius: 10px;
+    background: rgba(3, 191, 255, 0.12);
+  }
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__text {
+    flex: 1 1 auto;
+    color: #9aa0aa;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  &__cost {
+    margin-top: 6px;
+    color: #c9ccd2;
+    font-size: 11px;
   }
 }
 
