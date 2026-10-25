@@ -8,14 +8,24 @@
         :error-src="placeholder"
         class="rounded-xl"
       />
-      <q-icon name="fas fa-circle-check" size="44px" color="positive" class="release-art__badge" />
+      <q-icon
+        size="44px"
+        class="release-art__badge"
+        :name="inReview ? 'fas fa-clock' : 'fas fa-circle-check'"
+        :color="inReview ? 'orange' : 'positive'"
+      />
     </div>
 
     <div class="!flex-none">
-      <div class="text-3xl font-bold">Your release is live</div>
+      <div class="text-3xl font-bold">
+        {{ inReview ? 'Submitted for review' : 'Your release is live' }}
+      </div>
       <div class="mt-2 text-lg text-grey-5">
         {{ release.title }}<template v-if="release.version"> · {{ release.version }}</template>
-        is out for everyone to hear.
+        <template v-if="inReview">
+          goes live once an admin approves it. We'll let you know.
+        </template>
+        <template v-else>is out for everyone to hear.</template>
       </div>
     </div>
 
@@ -26,7 +36,7 @@
         rounded
         color="primary"
         icon="fas fa-play"
-        label="View Release"
+        :label="inReview ? 'Preview Release' : 'View Release'"
         class="!flex-none"
         :to="{
           name: 'artist.album',
@@ -43,7 +53,7 @@
         label="Copy Link"
         class="!flex-none"
         @click="copyLink"
-        v-if="release.artist?.username"
+        v-if="release.artist?.username && !inReview"
       />
       <q-btn
         no-caps
@@ -69,6 +79,7 @@
 
 <script setup lang="ts">
 import { copyToClipboard } from 'quasar';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import placeholder from 'src/assets/placeholder.svg';
 import { frontUrl } from 'src/utils/env';
@@ -78,6 +89,7 @@ import type { Release } from 'src/utils/models';
 const props = defineProps<{ release: Release }>();
 const emit = defineEmits<{ edit: [] }>();
 const router = useRouter();
+const inReview = computed(() => props.release.reviewStatus === 'pending');
 
 const copyLink = () => {
   const path = router.resolve({

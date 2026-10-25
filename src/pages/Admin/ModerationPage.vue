@@ -15,6 +15,11 @@
             Queue <q-badge rounded color="toneflix" :label="meta.pending" v-if="meta.pending" />
           </div>
         </q-tab>
+        <q-tab name="releases" v-if="boot.configuration.review_releases || meta.releases">
+          <div class="flex items-center gap-2 flex-nowrap">
+            Releases <q-badge rounded color="toneflix" :label="meta.releases" v-if="meta.releases" />
+          </div>
+        </q-tab>
         <q-tab name="appealed">
           <div class="flex items-center gap-2 flex-nowrap">
             Appeals <q-badge rounded color="orange-9" :label="meta.appeals" v-if="meta.appeals" />
@@ -171,6 +176,82 @@
         </div>
       </template>
 
+      <template v-else-if="tab === 'releases'">
+        <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
+        <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
+          <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
+          <div>No releases waiting for approval.</div>
+        </div>
+
+        <div class="flex flex-col gap-3" v-else>
+          <q-card flat bordered class="bg-dark" :key="release.id" v-for="release in reviews">
+            <q-card-section class="flex flex-col gap-3">
+              <div class="flex items-start gap-3 flex-nowrap">
+                <q-img no-spinner :ratio="1" :src="release.imageUrl" class="w-16 rounded-lg !flex-none" />
+                <div class="min-w-0">
+                  <router-link
+                    class="font-bold hover:underline"
+                    :to="{ name: 'artist.album', params: { artist_id: release.artist?.username, album_id: release.slug } }"
+                    v-if="release.artist?.username"
+                  >
+                    {{ release.title }}<template v-if="release.version"> · {{ release.version }}</template>
+                  </router-link>
+                  <div class="font-bold" v-else>{{ release.title }}</div>
+                  <div class="text-sm text-grey-5">
+                    {{ release.artist?.name || 'Unknown artist' }} · {{ release.tracksCount || 0 }}
+                    {{ release.tracksCount === 1 ? 'track' : 'tracks' }}
+                    <template v-if="release.explicit"> · Explicit</template>
+                  </div>
+                  <div class="text-xs text-grey-5">
+                    By {{ release.owner?.name || 'a deleted account' }}
+                    <template v-if="release.versionOf"> · from the project “{{ release.versionOf }}”</template>
+                    · submitted {{ timeAgoStamp(release.submittedAt) }}
+                  </div>
+                </div>
+              </div>
+
+              <q-input
+                dark
+                filled
+                dense
+                autogrow
+                counter
+                maxlength="2000"
+                label="What needs to change (needed to send it back)"
+                v-model="reviewNotes[release.id]"
+              />
+              <div class="flex flex-wrap gap-2">
+                <q-btn
+                  unelevated
+                  rounded
+                  no-caps
+                  size="sm"
+                  color="green-9"
+                  icon="fas fa-check"
+                  label="Approve"
+                  class="!flex-none"
+                  :loading="busy === `approve:${release.id}`"
+                  @click="review(release, 'approve')"
+                />
+                <q-btn
+                  outline
+                  rounded
+                  no-caps
+                  size="sm"
+                  color="white"
+                  icon="fas fa-rotate-left"
+                  label="Send back"
+                  class="!flex-none"
+                  :disable="!reviewNotes[release.id]?.trim()"
+                  :loading="busy === `reject:${release.id}`"
+                  @click="review(release, 'reject')"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </template>
+
       <template v-else>
         <div class="py-10 text-center" v-if="loading && !takedowns.length"><q-spinner size="md" /></div>
         <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
@@ -277,13 +358,17 @@
 import { useMeta } from 'quasar';
 import { reactive, ref, watch } from 'vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import {
+  approveReleaseRequest,
   dismissReportsRequest,
   isCopyrightReason,
   loadAdminTakedownsRequest,
   loadModerationQueueRequest,
+  loadReleaseReviewsRequest,
   reasonLabel,
+  rejectReleaseRequest,
   reportReasons,
   resolveReportsRequest,
   restoreTakedownRequest,
@@ -291,6 +376,7 @@ import {
   upholdTakedownRequest,
   type ModerationMeta,
   type QueueItem,
+  type ReleaseReview,
   type ReportReason,
   type Takedown,
 } from 'src/utils/requests/moderation';
@@ -311,10 +397,13 @@ const sourceOptions = [
   { label: 'Lyrics check', value: 'lyrics' },
 ];
 
-const tab = ref<'queue' | Takedown['status']>('queue');
+const boot = useBootstrapStore();
+const tab = ref<'queue' | 'releases' | Takedown['status']>('queue');
 const filters = reactive({ type: '', source: '' });
 const queue = ref<QueueItem[]>([]);
 const takedowns = ref<Takedown[]>([]);
+const reviews = ref<ReleaseReview[]>([]);
+const reviewNotes = reactive<Record<string | number, string>>({});
 const meta = ref<ModerationMeta>({ total: 0, page: 1, lastPage: 1, pending: 0, appeals: 0 });
 const pages = ref({ page: 1, lastPage: 1 });
 const loading = ref(false);
@@ -332,6 +421,10 @@ const load = async (page = 1) => {
     if (tab.value === 'queue') {
       const response = await loadModerationQueueRequest({ ...filters, page }).send();
       queue.value = response.data;
+      meta.value = response.meta;
+    } else if (tab.value === 'releases') {
+      const response = await loadReleaseReviewsRequest(page).send();
+      reviews.value = response.data;
       meta.value = response.meta;
     } else {
       const response = await loadAdminTakedownsRequest({ status: tab.value, page }).send();
@@ -389,6 +482,14 @@ const close = (row: QueueItem, action: 'dismiss' | 'resolve') => {
 const decide = (takedown: Takedown, action: 'restore' | 'uphold') => {
   const request = action === 'restore' ? restoreTakedownRequest : upholdTakedownRequest;
   run(`${action}:${takedown.id}`, () => request(takedown.id, resolutions[takedown.id] || undefined).send());
+};
+
+const review = (release: ReleaseReview, action: 'approve' | 'reject') => {
+  run(`${action}:${release.id}`, () =>
+    action === 'approve'
+      ? approveReleaseRequest(release.id).send()
+      : rejectReleaseRequest(release.id, reviewNotes[release.id] || '').send(),
+  );
 };
 
 watch([tab, () => filters.type, () => filters.source], () => load(), { immediate: true });

@@ -91,6 +91,7 @@ const groups = [
   { title: 'App', keys: ['app_name', 'app_email', 'verify_email', 'verify_phone'] },
   { title: 'Money', keys: ['app_currency', 'creator_share', 'min_tip_amount', 'reference_prefix'] },
   { title: 'Withdrawals', keys: ['min_payout_amount', 'payout_hold_days', 'payout_auto_approve'] },
+  { title: 'Releases', keys: ['review_releases'] },
 ];
 const moneyKeys = ['min_tip_amount', 'min_payout_amount'];
 
