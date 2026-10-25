@@ -87,6 +87,13 @@
         <ActionButton label="Lookup" :icon="ionSearch" :expanded="expanded" :active="panels.lookup" @click="toggleLookup" />
         <ActionButton label="Notes" :icon="ionDocumentText" :expanded="expanded" :active="panels.notes" @click="panels.notes = !panels.notes" />
         <ActionButton label="Versions" :icon="ionTime" :expanded="expanded" :active="panels.versions" @click="panels.versions = !panels.versions" />
+        <ActionButton
+          label="How it works"
+          :icon="ionInformationCircleOutline"
+          :expanded="expanded"
+          :active="panels.help"
+          @click="panels.help = !panels.help"
+        />
         <q-btn
           flat
           round
@@ -157,6 +164,7 @@
       />
       <LookupPanel dock="#composer-dock" v-model="panels.lookup" v-model:word="lookupWord" @insert="editor?.insertWord($event)" />
       <NotesPanel dock="#composer-dock" :song="song" v-model="panels.notes" @change="onNotesChange" />
+      <HelpPanel dock="#composer-dock" v-model="panels.help" @section="insertSection" />
       <VersionsPanel dock="#composer-dock" :song-id="song.id" :flush="flush" v-model="panels.versions" @restored="onRestored" />
       <q-dialog persistent v-model="leaving">
         <q-card dark class="!flex-none leave-card">
@@ -185,6 +193,7 @@ import {
   ionChevronForward,
   ionColorPalette,
   ionDocumentText,
+  ionInformationCircleOutline,
   ionPause,
   ionPlay,
   ionSaveOutline,
@@ -197,6 +206,7 @@ import {
 import { date, LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import HelpPanel from 'src/components/Composer/HelpPanel.vue';
 import LookupPanel from 'src/components/Composer/LookupPanel.vue';
 import LyricsEditor from 'src/components/Composer/LyricsEditor.vue';
 import NotesPanel from 'src/components/Composer/NotesPanel.vue';
@@ -237,7 +247,7 @@ const editor = ref<InstanceType<typeof LyricsEditor>>();
 const beat = ref<HTMLAudioElement | null>(null);
 const beatPlaying = ref(false);
 const sounds = new WordSounds();
-const panels = reactive({ write: false, lookup: false, notes: false, versions: false });
+const panels = reactive({ write: false, lookup: false, notes: false, versions: false, help: false });
 const lookupWord = ref('');
 
 const bodyEl = ref<HTMLElement>();
@@ -493,6 +503,11 @@ const onCursor = ({ line, number }: { line: string; number: number }) => {
   stripHits.value = [];
   if (stripTimer) clearTimeout(stripTimer);
   if (word) stripTimer = setTimeout(() => void loadStrip(word), 800);
+};
+
+/** Starts a section under the line the cursor is on, with a blank line before it when needed */
+const insertSection = (tag: string) => {
+  editor.value?.insertLines(`${cursorText.value.trim() ? '\n' : ''}${tag}\n`);
 };
 
 const onWordClick = (word: string) => {
