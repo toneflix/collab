@@ -122,6 +122,13 @@
                 <ReportDialog type="track" label="track" :id="track.id" />
               </span>
             </div>
+            <AudioTagChips
+              class="mt-3"
+              :tags="track.tags"
+              :editable="track.owned"
+              :target="{ trackId: track.id }"
+              @update:tags="track.tags = $event"
+            />
             <q-banner dense rounded class="mt-4 text-white bg-red-10 max-w-96" v-if="track.takenDown">
               <template #avatar><q-icon name="fas fa-ban" /></template>
               This track was taken down, so only you can see it.
@@ -167,6 +174,7 @@
 </template>
 
 <script setup lang="ts">
+import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { computed, ref } from 'vue';
 import {

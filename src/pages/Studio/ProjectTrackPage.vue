@@ -19,6 +19,26 @@
           <template v-if="project.released"> • Released</template>
           <template v-if="viewOnly"> • View only</template>
         </div>
+        <div class="flex items-center gap-2 mt-1">
+          <AudioTagChips
+            class="!flex-none"
+            :tags="track.tags"
+            :editable="!viewOnly"
+            :target="{ projectId: project.id, trackId: track.id }"
+            @update:tags="track.tags = $event"
+          />
+          <q-btn
+            flat
+            dense
+            no-caps
+            size="sm"
+            class="!flex-none text-grey-4"
+            :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
+            title="Set the studio tempo to the detected tempo"
+            @click="useTagTempo"
+            v-if="tagTempoDiffers"
+          />
+        </div>
       </div>
       <div
         class="flex items-center gap-2 ml-auto !flex-none no-wrap"
@@ -324,6 +344,8 @@ import ActionButton from 'src/components/Studio/ActionButton.vue';
 import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
+import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
+import type { AudioTags } from 'src/utils/requests/tags';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
 import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
@@ -651,6 +673,20 @@ const onAiFinished = async (job: AiJob) => {
     );
   historyPanel.value?.refresh();
 };
+
+/** Whether the tagged tempo is off from the beat grid's tempo */
+const tagTempoDiffers = computed(
+  () =>
+    !viewOnly.value &&
+    !!track.value.tags?.bpm &&
+    Math.abs(track.value.tags.bpm - (track.value.bpm || 120)) >= 0.5,
+);
+
+const useTagTempo = () =>
+  onTempo({
+    bpm: track.value.tags?.bpm || 120,
+    timeSignature: track.value.timeSignature || '4/4',
+  });
 
 const onTempo = ({
   bpm,
@@ -1033,6 +1069,9 @@ useRealtimeChannel(
       }
       notify(`${who(e)} saved the track.`, 'info');
       historyPanel.value?.refresh();
+    },
+    'tags.updated': (e: RealtimeMeta & { tags: AudioTags }) => {
+      track.value.tags = e.tags;
     },
     'track.restored': async (e: RealtimeMeta) => {
       await reloadTrack();

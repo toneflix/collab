@@ -42,6 +42,7 @@ const slim = (track: Track): Track =>
     liked: track.liked,
     likes: track.likes,
     locked: track.locked,
+    tags: track.tags,
   }) as Track;
 
 /**

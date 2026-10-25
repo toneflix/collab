@@ -1,5 +1,6 @@
 import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
+import type { AudioTags } from './requests/tags';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc';
 export type PriviPerm =
@@ -475,6 +476,10 @@ export interface Track {
   stemsForSale?: boolean;
   stemsUnlocked?: boolean;
   takenDown?: boolean;
+  /** Tempo and key */
+  tags?: AudioTags;
+  /** Whether the signed in user released this track */
+  owned?: boolean;
   updatedAt: string;
   createdAt: string;
 }
@@ -578,6 +583,8 @@ export interface ProjectTrack {
   bpm?: number;
   /** The studio's meter, like "4/4" */
   timeSignature?: string;
+  /** Tempo and key detected in the preview mix, or set by a collaborator */
+  tags?: AudioTags;
   interaction?: Interaction;
   updatedAt: string;
   createdAt: string;

@@ -158,6 +158,23 @@
           </div>
         </div>
 
+        <div class="section">
+          <div class="mb-1 font-bold">Tempo and key</div>
+          <p class="mb-3 text-sm text-grey-5">
+            New tracks and studio mixes are tagged with their BPM and key, which
+            show in the player, on track pages and in the studio, and can be
+            searched. Creators can correct them. Run
+            <code>php artisan tags:detect</code> once to tag older tracks.
+          </p>
+          <div class="toggle-card">
+            <q-toggle color="toneflix" v-model="form.ai_tags_auto" />
+            <div class="min-w-0">
+              <div class="font-bold">{{ fields.ai_tags_auto?.title }}</div>
+              <div class="text-sm text-grey-5">{{ fields.ai_tags_auto?.hint }}</div>
+            </div>
+          </div>
+        </div>
+
         <div class="flex justify-end">
           <q-btn
             unelevated
@@ -204,6 +221,7 @@ const form = reactive({
   ai_lyrics_credits: 2 as number | string,
   ai_lyrics_explicit_words: '',
   ai_lyrics_review_words: '',
+  ai_tags_auto: true,
 });
 let savedForm = '';
 
@@ -223,6 +241,7 @@ const fill = (data: AiAdminSettings) => {
   form.ai_lyrics_credits = Number(f.ai_lyrics_credits?.value ?? 2);
   form.ai_lyrics_explicit_words = f.ai_lyrics_explicit_words?.value ?? '';
   form.ai_lyrics_review_words = f.ai_lyrics_review_words?.value ?? '';
+  form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   savedForm = JSON.stringify(form);
 };
 
