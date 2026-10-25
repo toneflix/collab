@@ -26,7 +26,7 @@
             <template v-if="length"> · about {{ length }} at {{ song.bpm }} BPM</template>
             ·
           </template>
-          <span :class="{ 'text-orange': status === 'error' }">{{ statusText }}</span>
+          <span :class="{ 'text-orange': status === 'error' || status === 'pending' }">{{ statusText }}</span>
           <template v-if="song?.project">
             ·
             <router-link
@@ -40,6 +40,21 @@
       </div>
 
       <div class="flex items-center gap-2 ml-auto !flex-none no-wrap" v-if="song">
+        <q-btn
+          unelevated
+          rounded
+          no-caps
+          dense
+          :color="dirty ? 'toneflix' : 'grey-8'"
+          :text-color="dirty ? 'dark' : 'grey-5'"
+          label="Save"
+          class="!flex-none px-3"
+          title="Save (Ctrl+S)"
+          :icon="ionSaveOutline"
+          :loading="status === 'saving'"
+          :disable="!dirty"
+          @click="save"
+        />
         <ActionButton
           :label="beatPlaying ? 'Pause beat' : 'Play beat'"
           :icon="beatPlaying ? ionPause : ionPlay"
@@ -143,6 +158,22 @@
       <LookupPanel dock="#composer-dock" v-model="panels.lookup" v-model:word="lookupWord" @insert="editor?.insertWord($event)" />
       <NotesPanel dock="#composer-dock" :song="song" v-model="panels.notes" @change="onNotesChange" />
       <VersionsPanel dock="#composer-dock" :song-id="song.id" :flush="flush" v-model="panels.versions" @restored="onRestored" />
+      <q-dialog persistent v-model="leaving">
+        <q-card dark class="!flex-none leave-card">
+          <q-card-section>
+            <div class="text-base font-semibold">Save your changes?</div>
+            <div class="mt-1 text-sm text-grey-5">
+              This song has changes that aren't saved yet. If you leave without saving, they stay on this device and
+              you can restore them next time.
+            </div>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat rounded no-caps label="Stay" @click="chooseLeave('stay')" />
+            <q-btn flat rounded no-caps label="Leave without saving" @click="chooseLeave('leave')" />
+            <q-btn unelevated rounded no-caps color="toneflix" text-color="dark" label="Save and leave" @click="chooseLeave('save')" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
       <audio ref="beat" loop preload="none" :src="song.beat?.url" @play="beatPlaying = true" @pause="beatPlaying = false" />
     </template>
   </q-page>
@@ -156,13 +187,14 @@ import {
   ionDocumentText,
   ionPause,
   ionPlay,
+  ionSaveOutline,
   ionAlbums,
   ionSearch,
   ionSparkles,
   ionSync,
   ionTime,
 } from '@quasar/extras/ionicons-v8';
-import { LocalStorage, useQuasar } from 'quasar';
+import { date, LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import LookupPanel from 'src/components/Composer/LookupPanel.vue';
@@ -173,6 +205,7 @@ import VersionsPanel from 'src/components/Composer/VersionsPanel.vue';
 import WritePanel from 'src/components/Composer/WritePanel.vue';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
 import { useFitToScreen } from 'src/composables/useFitToScreen';
+import { useComposerStore } from 'src/stores/composer-store';
 import { errorShown, isSectionLine, lastWordOf, notifyError, requestStatus, WordSounds } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
 import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
@@ -196,6 +229,7 @@ defineOptions({ name: 'SongEditorPage' });
 const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
+const composer = useComposerStore();
 
 const song = ref<Song | null>(null);
 const body = ref('');
@@ -209,52 +243,70 @@ const lookupWord = ref('');
 const bodyEl = ref<HTMLElement>();
 const { style: fit, measure: fitBody } = useFitToScreen(bodyEl);
 
-/* ---------- Autosave ---------- */
+/* ---------- Drafts and saving ---------- */
 
 type Status = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 const status = ref<Status>('idle');
 const pending = ref<SongInput>({});
-/** Milliseconds of quiet before changes save */
-const SAVE_DELAY = 2500;
+/** The unsaved changes in the shape the page shows, for restoring a draft */
+const patch = ref<Partial<Song>>({});
+/** Milliseconds of quiet before the draft is written to the browser */
+const DRAFT_DELAY = 400;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let saving: Promise<void> | null = null;
+
+const dirty = computed(() => Object.keys(pending.value).length > 0);
 
 const statusText = computed(
   () =>
     ({
       idle: 'All changes saved',
-      pending: 'Editing…',
+      pending: 'Unsaved changes',
       saving: 'Saving…',
       saved: 'All changes saved',
-      error: "Couldn't save. Retrying when you type again.",
+      error: "Couldn't save. Try again.",
     })[status.value],
 );
 
-const queue = (input: SongInput) => {
+/** Writes the unsaved changes to the browser's draft for this song */
+const keepDraft = () => {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  if (!song.value) return;
+  if (dirty.value) {
+    composer.keep(song.value.id, { input: pending.value, patch: patch.value, revision: song.value.revision });
+  } else {
+    composer.discard(song.value.id);
+  }
+};
+
+const queue = (input: SongInput, shown: Partial<Song>) => {
   pending.value = {
     ...pending.value,
     ...input,
     settings: input.settings ? { ...pending.value.settings, ...input.settings } : pending.value.settings,
   };
   if (!pending.value.settings) delete pending.value.settings;
+  patch.value = { ...patch.value, ...shown };
   status.value = 'pending';
   if (timer) clearTimeout(timer);
-  timer = setTimeout(() => void flush(), SAVE_DELAY);
+  timer = setTimeout(keepDraft, DRAFT_DELAY);
 };
 
 const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
 
-/** Saves whatever is waiting now; resolves once the server has it */
+/** Saves the unsaved changes to the server; resolves once it has them */
 const flush = async (): Promise<void> => {
-  if (timer) {
-    clearTimeout(timer);
-    timer = null;
-  }
+  keepDraft();
   if (saving) await saving;
-  if (!song.value || !Object.keys(pending.value).length) return;
+  if (!song.value || !dirty.value) return;
 
   const sending = pending.value;
+  const sendingPatch = patch.value;
   pending.value = {};
+  patch.value = {};
   status.value = 'saving';
 
   saving = (async () => {
@@ -262,24 +314,23 @@ const flush = async (): Promise<void> => {
       const res = await saveSongRequest(song.value!.id, song.value!.revision, sending).send();
       const saved = res.data;
       song.value = { ...song.value!, revision: saved.revision, lineCount: saved.lineCount, wordCount: saved.wordCount, updatedAt: saved.updatedAt, beat: saved.beat ?? null };
-      status.value = Object.keys(pending.value).length ? 'pending' : 'saved';
+      status.value = dirty.value ? 'pending' : 'saved';
     } catch (e) {
       pending.value = { ...sending, ...pending.value };
-      if (requestStatus(e) === 409) {
-        status.value = 'error';
-        conflict();
-      } else {
-        status.value = 'error';
-        notifyError(e, "Your changes couldn't be saved.");
-      }
+      patch.value = { ...sendingPatch, ...patch.value };
+      status.value = 'error';
+      if (requestStatus(e) === 409) conflict();
+      else notifyError(e, "Your changes couldn't be saved.");
     } finally {
       saving = null;
+      keepDraft();
     }
   })();
 
   await saving;
-  if (Object.keys(pending.value).length && (status.value as Status) === 'pending') timer = setTimeout(() => void flush(), SAVE_DELAY);
 };
+
+const save = () => void flush();
 
 /** Another window saved first: load theirs, or keep theirs as a version and save ours over it */
 const conflict = () => {
@@ -292,7 +343,10 @@ const conflict = () => {
     cancel: { label: 'Load the newer copy', flat: true, noCaps: true, rounded: true },
   })
     .onOk(() => void keepMine())
-    .onCancel(() => void load());
+    .onCancel(() => {
+      if (song.value) composer.discard(song.value.id);
+      void load({ offerDraft: false });
+    });
 };
 
 const keepMine = async () => {
@@ -300,56 +354,87 @@ const keepMine = async () => {
   const latest = (await loadSongRequest(song.value.id).send()).data;
   await nameSongVersionRequest(song.value.id, 'Saved from another window').send();
   song.value = { ...song.value, revision: latest.revision };
-  queue({ title: song.value.title, body: body.value });
+  queue({ title: song.value.title, body: body.value }, { title: song.value.title, body: body.value });
   await flush();
 };
 
 /* ---------- Loading ---------- */
 
-const load = async () => {
+const load = async ({ offerDraft = true } = {}) => {
   pending.value = {};
+  patch.value = {};
   try {
     const res = await loadSongRequest(String(route.params.song_id)).send();
     song.value = res.data;
     body.value = res.data.body ?? '';
     status.value = 'idle';
     fitBody();
+    if (offerDraft) offerRestore();
   } catch (e) {
     notifyError(e, "This song couldn't be opened.");
     void router.replace({ name: 'studio.composer' });
   }
 };
 
+/** A draft left from an earlier visit: offer to put it back */
+const offerRestore = () => {
+  const draft = song.value ? composer.draft(song.value.id) : null;
+  if (!song.value || !draft || !Object.keys(draft.input).length) return;
+  const id = song.value.id;
+  const at = date.formatDate(draft.updatedAt, 'D MMM YYYY [at] h:mm A');
+
+  $q.dialog({
+    dark: true,
+    title: 'Restore your unsaved changes?',
+    message: `This song has changes from ${at} that weren't saved. Restore them to keep working on them, or discard them.`,
+    persistent: true,
+    ok: { label: 'Restore', color: 'toneflix', textColor: 'dark', noCaps: true, unelevated: true, rounded: true },
+    cancel: { label: 'Discard', flat: true, noCaps: true, rounded: true },
+  })
+    .onOk(() => {
+      if (song.value?.id !== id) return;
+      const { settings, ...rest } = draft.patch;
+      song.value = { ...song.value, ...rest, settings: { ...song.value.settings, ...settings } };
+      body.value = song.value.body ?? '';
+      pending.value = draft.input;
+      patch.value = draft.patch;
+      status.value = 'pending';
+    })
+    .onCancel(() => composer.discard(id));
+};
+
 watch(body, (value, old) => {
   if (song.value && old !== undefined && value !== (song.value.body ?? '') && value !== old) {
     song.value.body = value;
-    queue({ body: value });
+    queue({ body: value }, { body: value });
   }
 });
 
 const setTitle = (title: string) => {
   if (!song.value) return;
   song.value.title = title;
-  if (title.trim()) queue({ title: title.trim() });
+  if (title.trim()) queue({ title: title.trim() }, { title: title.trim() });
 };
 
 const toggleColours = () => {
   if (!song.value) return;
   song.value.settings.rhymeColours = !song.value.settings.rhymeColours;
-  queue({ settings: { rhyme_colours: song.value.settings.rhymeColours } });
+  queue({ settings: { rhyme_colours: song.value.settings.rhymeColours } }, { settings: { ...song.value.settings } });
 };
 
-const onNotesChange = (input: SongInput, patch: Partial<Song>) => {
+const onNotesChange = (input: SongInput, shown: Partial<Song>) => {
   if (!song.value) return;
-  Object.assign(song.value, patch);
-  queue(input);
+  Object.assign(song.value, shown);
+  queue(input, shown);
 };
 
 const onRestored = (restored: Song) => {
   pending.value = {};
+  patch.value = {};
   song.value = restored;
   body.value = restored.body ?? '';
   status.value = 'saved';
+  keepDraft();
 };
 
 const toggleBeat = () => {
@@ -453,7 +538,6 @@ const ask = async (kind: SuggestionKind, { instruction = '', auto = false } = {}
   const cursor = editor.value.cursorLine();
   asking.value = kind;
   try {
-    await flush();
     const res = await suggestLyricsRequest(song.value.id, {
       kind,
       line: cursor.number,
@@ -464,9 +548,10 @@ const ask = async (kind: SuggestionKind, { instruction = '', auto = false } = {}
     if (ai.value) ai.value.balance.total = result.balance;
 
     const shown = kind === 'line' && editor.value?.showGhost(result.line, result.options.map((o) => o.lines.join(' ')));
-    if (!shown && !auto) {
+    // Asks from the panel always list their options there too.
+    if (!auto || !shown) {
       suggestion.value = result;
-      panels.write = true;
+      if (!auto) panels.write = true;
     }
   } catch (e) {
     if (auto) {
@@ -496,7 +581,7 @@ const insertSuggestion = (result: LyricSuggestion, lines: string[]) => {
 const setAutoSuggest = (on: boolean) => {
   if (!song.value) return;
   song.value.settings.autoSuggest = on;
-  queue({ settings: { auto_suggest: on } });
+  queue({ settings: { auto_suggest: on } }, { settings: { ...song.value.settings } });
 };
 
 /** With auto-suggest on, a fresh empty line under a written one asks for the next line once */
@@ -554,11 +639,37 @@ const toggleExpanded = () => {
   }
 };
 
+/** Closing the tab keeps the draft and lets the browser ask to stay */
 const beforeUnload = (event: BeforeUnloadEvent) => {
-  if (Object.keys(pending.value).length || saving) {
-    void flush();
+  if (dirty.value || saving) {
+    keepDraft();
     event.preventDefault();
   }
+};
+
+const onKeydown = (event: KeyboardEvent) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+    event.preventDefault();
+    save();
+  }
+};
+
+/* ---------- Leaving with unsaved changes ---------- */
+
+type LeaveChoice = 'save' | 'leave' | 'stay';
+const leaving = ref(false);
+let answerLeave: ((choice: LeaveChoice) => void) | null = null;
+
+const askToLeave = () =>
+  new Promise<LeaveChoice>((resolve) => {
+    answerLeave = resolve;
+    leaving.value = true;
+  });
+
+const chooseLeave = (choice: LeaveChoice) => {
+  leaving.value = false;
+  answerLeave?.(choice);
+  answerLeave = null;
 };
 
 onMounted(() => {
@@ -568,22 +679,40 @@ onMounted(() => {
     expanded.value = false;
   }
   window.addEventListener('beforeunload', beforeUnload);
+  window.addEventListener('keydown', onKeydown);
   void load();
   void loadAi();
 });
 
 onBeforeRouteLeave(async () => {
+  if (saving) await saving;
+  if (!dirty.value) return true;
+
+  const choice = await askToLeave();
+  if (choice === 'stay') return false;
+  if (choice === 'leave') {
+    keepDraft();
+    return true;
+  }
   await flush();
+  return !dirty.value;
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', beforeUnload);
+  window.removeEventListener('keydown', onKeydown);
+  keepDraft();
   if (autoTimer) clearTimeout(autoTimer);
   beat.value?.pause();
 });
 </script>
 
 <style lang="scss" scoped>
+.leave-card {
+  width: 440px;
+  max-width: calc(100vw - 32px);
+}
+
 .song-title {
   width: 100%;
   padding: 0;
