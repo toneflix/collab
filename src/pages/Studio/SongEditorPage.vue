@@ -214,6 +214,8 @@ const { style: fit, measure: fitBody } = useFitToScreen(bodyEl);
 type Status = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 const status = ref<Status>('idle');
 const pending = ref<SongInput>({});
+/** Milliseconds of quiet before changes save */
+const SAVE_DELAY = 2500;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let saving: Promise<void> | null = null;
 
@@ -237,7 +239,7 @@ const queue = (input: SongInput) => {
   if (!pending.value.settings) delete pending.value.settings;
   status.value = 'pending';
   if (timer) clearTimeout(timer);
-  timer = setTimeout(() => void flush(), 1500);
+  timer = setTimeout(() => void flush(), SAVE_DELAY);
 };
 
 const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
@@ -276,7 +278,7 @@ const flush = async (): Promise<void> => {
   })();
 
   await saving;
-  if (Object.keys(pending.value).length && (status.value as Status) === 'pending') timer = setTimeout(() => void flush(), 1500);
+  if (Object.keys(pending.value).length && (status.value as Status) === 'pending') timer = setTimeout(() => void flush(), SAVE_DELAY);
 };
 
 /** Another window saved first: load theirs, or keep theirs as a version and save ours over it */
@@ -405,7 +407,7 @@ const onCursor = ({ line, number }: { line: string; number: number }) => {
   stripWord.value = word;
   stripHits.value = [];
   if (stripTimer) clearTimeout(stripTimer);
-  if (word) stripTimer = setTimeout(() => void loadStrip(word), 300);
+  if (word) stripTimer = setTimeout(() => void loadStrip(word), 800);
 };
 
 const onWordClick = (word: string) => {

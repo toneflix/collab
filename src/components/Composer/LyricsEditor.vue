@@ -260,7 +260,7 @@ onMounted(() => {
         placeholder(props.placeholderText),
         syllableGutter,
         decorations,
-        autocompletion({ override: [completeWords], activateOnTypingDelay: 250, icons: false }),
+        autocompletion({ override: [completeWords], activateOnTypingDelay: 400, icons: false }),
         theme,
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
