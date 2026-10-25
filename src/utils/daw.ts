@@ -46,6 +46,8 @@ export interface StemMeta {
   effects?: string;
   /** The pattern an instrument stem was rendered from, as JSON text */
   instrument?: string;
+  /** The stem's place from the top of the editor */
+  order?: number;
   /** Where a stem added from the sound library came from */
   sound?: { id?: number; source?: string; author?: string; license?: string; url?: string };
 }

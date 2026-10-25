@@ -576,9 +576,16 @@ const loadStems = async (fresh = false) => {
       project.value,
       track.value,
     ).send(fresh)) as unknown as Stem[];
-    // Oldest first, so stems keep their place after one is saved.
+    // In the order they were arranged, then oldest first.
+    const place = (s: Stem) => {
+      const order = Number(s.meta?.order);
+
+      return Number.isFinite(order) && s.meta?.order !== undefined ? order : Infinity;
+    };
+
     stems.value = [...list].sort(
       (a, b) =>
+        place(a) - place(b) ||
         String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? '')) ||
         String(a.id).localeCompare(String(b.id), undefined, { numeric: true }),
     );
@@ -1052,8 +1059,7 @@ useRealtimeChannel(
     'stems.updated': (
       e: RealtimeMeta & { stems: Record<string, StemMeta> },
     ) => {
-      for (const [id, meta] of Object.entries(e.stems || {}))
-        editor.value?.applyRemote(id, meta);
+      editor.value?.applyRemoteAll(e.stems || {});
     },
     'stem.added': async (e: RealtimeMeta & { stem_id: string | number }) => {
       if (findStem(e.stem_id)) return;
@@ -1118,8 +1124,8 @@ useRealtimeChannel(
       if (e.title) track.value.title = e.title;
       if (e.bpm) track.value.bpm = e.bpm;
       if (e.timeSignature) track.value.timeSignature = e.timeSignature;
+      editor.value?.applyRemoteAll(e.stems || {}, true);
       for (const [id, meta] of Object.entries(e.stems || {})) {
-        editor.value?.applyRemote(id, meta, true);
         const stem = findStem(id);
         if (stem) stem.meta = { ...stem.meta, ...meta };
       }

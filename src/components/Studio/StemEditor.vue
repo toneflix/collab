@@ -181,6 +181,19 @@
         <q-btn flat round dense :icon="ionAdd" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
           <q-tooltip>Zoom in</q-tooltip>
         </q-btn>
+        <q-btn
+          flat
+          round
+          dense
+          :icon="ionLocateOutline"
+          :class="{ 'text-toneflix': follow }"
+          :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
+          :aria-pressed="follow"
+          :disable="!ready"
+          @click="setFollow(!follow)"
+        >
+          <q-tooltip>{{ follow ? 'Following the playhead while it plays' : 'Follow the playhead while it plays' }}</q-tooltip>
+        </q-btn>
       </div>
 
       <div class="stem-editor__group stem-editor__master">
@@ -207,6 +220,7 @@
               <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
               <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes.</li>
               <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
+              <li v-if="!readonly">Drag a stem's grip, or use its arrows, to move it up or down.</li>
               <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
             </ul>
           </q-menu>
@@ -337,6 +351,7 @@ import {
   ionCloudUpload,
   ionCut,
   ionHelpCircleOutline,
+  ionLocateOutline,
   ionPause,
   ionPlay,
   ionPlaySkipBack,
@@ -470,6 +485,7 @@ const grid = ref(pref('grid', false));
 const snap = ref<SnapTo>(pref<SnapTo>('snap', 'beat'));
 const metronome = ref(false);
 const countIn = ref(pref('countIn', true));
+const follow = ref(pref('follow', true));
 
 // Recording
 const canRecord =
@@ -528,19 +544,20 @@ const snapshot = (): Record<string, StemMeta> => {
   const state = editor.value?.engine?.getState();
   if (!state) return out;
 
-  for (const track of state.tracks) {
+  state.tracks.forEach((track, order) => {
     const stem = tracks.get(track.id);
     // A stem still waiting for audio keeps the arrangement it was saved with.
-    if (stem && !placeholders.has(track.id)) out[String(stem.id)] = withExtras(stem, track.id, trackToMeta(stem, track));
-  }
+    if (stem && !placeholders.has(track.id)) out[String(stem.id)] = withExtras(stem, track.id, trackToMeta(stem, track), order);
+  });
   return out;
 };
 
-/** Add what the engine doesn't keep: the effects, and an instrument stem's pattern. */
-function withExtras(stem: Stem, trackId: string, meta: StemMeta): StemMeta {
+/** Add what the engine doesn't keep: the stem's place, its effects, and an instrument stem's pattern. */
+function withExtras(stem: Stem, trackId: string, meta: StemMeta, order = orderOf(trackId)): StemMeta {
   const fx = serializeEffects(effects.get(trackId) ?? []);
   return {
     ...meta,
+    ...(order >= 0 ? { order } : {}),
     ...(fx ? { effects: fx } : {}),
     ...(stem.meta?.instrument ? { instrument: stem.meta.instrument } : {}),
     ...(stem.meta?.sound ? { sound: stem.meta.sound } : {}),
@@ -588,6 +605,9 @@ const markSaved = () => {
   shared = { ...saved };
   emit('dirty', false);
 };
+
+/** A track's place from the top of the editor, or -1. */
+const orderOf = (trackId: string) => editor.value?.engine?.getState().tracks.findIndex((t) => t.id === trackId) ?? -1;
 
 const trackIdOf = (stemId: string | number) => {
   for (const [trackId, stem] of tracks) if (String(stem.id) === String(stemId)) return trackId;
@@ -666,6 +686,8 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
     }
   }
 
+  if (meta.order !== undefined && meta.order !== orderOf(trackId)) editor.value?.reorderTrack(trackId, meta.order);
+
   stem.meta = { ...stem.meta, ...meta };
 
   // The track controls hand changes to the engine a moment later, so work
@@ -678,7 +700,7 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
     muted: mixer.muted ?? track.muted,
     soloed: mixer.soloed ?? track.soloed,
   };
-  const after = JSON.stringify(withExtras(stem, trackId, trackToMeta(stem, next)));
+  const after = JSON.stringify(withExtras(stem, trackId, trackToMeta(stem, next), meta.order ?? orderOf(trackId)));
   // Someone else's change to a stem still loading isn't an edit made here.
   if (placeholders.has(trackId)) placeholders.set(trackId, layoutOf(stem, next));
   // Already seen by everyone, so not shared again.
@@ -687,6 +709,12 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
   if (selectedTrackId.value === trackId) syncFades();
   checkDirty();
 };
+
+/** Show changes to several stems, moving stems top first so each lands where it was put. */
+const applyRemoteAll = (changes: Record<string, StemMeta>, asSaved = false) =>
+  Object.entries(changes)
+    .sort(([, a], [, b]) => (a.order ?? Infinity) - (b.order ?? Infinity))
+    .forEach(([id, meta]) => applyRemote(id, meta, asSaved));
 
 const onState = (state: EngineState) => {
   canUndo.value = state.canUndo;
@@ -818,6 +846,51 @@ const messageAboutSelection = () => {
   });
 };
 
+/** Pixels per second on the timeline at the current zoom. */
+const pixelsPerSecond = () => {
+  const ed = editor.value;
+  if (!ed) return 0;
+  const rate = ed.effectiveSampleRate || ed.sampleRate;
+  // On the beat grid the drawn scale differs from samplesPerPixel.
+  const spp = (ed as unknown as { renderSamplesPerPixel?: number }).renderSamplesPerPixel || ed.samplesPerPixel;
+  return rate / spp;
+};
+
+const scrollArea = () => editor.value?.shadowRoot?.querySelector<HTMLElement>('.scroll-area') ?? null;
+
+/** Set while the timeline is scrolled by the editor, so it isn't taken as the person scrolling. */
+let autoScrolling = false;
+/** The person scrolled the timeline during this playback, so it stops following. */
+let scrolledByHand = false;
+
+/**
+ * Keep the playhead on screen while it plays, a page at a time: when it nears
+ * the right edge, the view jumps so it starts near the left again.
+ */
+const followPlayhead = (seconds: number) => {
+  const area = scrollArea();
+  if (!follow.value || !playing.value || scrolledByHand || !area) return;
+
+  const x = seconds * pixelsPerSecond();
+  const view = area.clientWidth;
+  if (x >= area.scrollLeft + view * 0.9 || x < area.scrollLeft) {
+    autoScrolling = true;
+    area.scrollLeft = Math.max(0, x - view * 0.1);
+    requestAnimationFrame(() => (autoScrolling = false));
+  }
+};
+
+const onTimelineScroll = () => {
+  if (!autoScrolling && playing.value) scrolledByHand = true;
+};
+
+const setFollow = (on: boolean) => {
+  follow.value = on;
+  scrolledByHand = false;
+  remember('follow', on);
+  if (on) followPlayhead(time.value);
+};
+
 /**
  * Show a part of the track: select it, move the playhead to its start,
  * scroll it into view and flash a colour over it that fades away. With a
@@ -837,16 +910,14 @@ const highlight = (region: { start: number; end: number; stemId?: string | numbe
     time.value = start;
   }
 
-  const rate = ed.effectiveSampleRate || ed.sampleRate;
-  // On the beat grid the drawn scale differs from samplesPerPixel.
-  const spp = (ed as unknown as { renderSamplesPerPixel?: number }).renderSamplesPerPixel || ed.samplesPerPixel;
-  const left = (start * rate) / spp;
-  const width = Math.max(4, ((end - start) * rate) / spp);
+  const pps = pixelsPerSecond();
+  const left = start * pps;
+  const width = Math.max(4, (end - start) * pps);
 
   const trackId = region.stemId ? trackIdOf(region.stemId) : null;
   const row = trackId ? root.querySelector<HTMLElement>(`.track-row[data-track-id="${trackId}"]`) : null;
   const target = row ?? root.querySelector<HTMLElement>('.timeline');
-  const area = root.querySelector<HTMLElement>('.scroll-area');
+  const area = scrollArea();
   if (!target) return false;
 
   if (area) {
@@ -1393,6 +1464,7 @@ const onRemoveRequest = (e: Event) => {
 const listeners: [string, EventListener][] = [
   ['daw-play', () => {
     playing.value = true;
+    scrolledByHand = false;
     // Only one thing plays at a time.
     usePlayerStore().pause();
   }],
@@ -1401,7 +1473,10 @@ const listeners: [string, EventListener][] = [
     playing.value = false;
     time.value = editor.value?.currentTime ?? 0;
   }],
-  ['daw-timeupdate', (e) => (time.value = (e as CustomEvent<{ time: number }>).detail.time)],
+  ['daw-timeupdate', (e) => {
+    time.value = (e as CustomEvent<{ time: number }>).detail.time;
+    followPlayhead(time.value);
+  }],
   ['daw-seek', (e) => (time.value = (e as CustomEvent<{ time: number }>).detail.time)],
   ['daw-selection', (e) => {
     const { start, end } = (e as CustomEvent<{ start: number; end: number }>).detail;
@@ -1420,6 +1495,7 @@ const listeners: [string, EventListener][] = [
     syncFades();
   }],
   ['daw-track-control', () => setTimeout(checkDirty)],
+  ['daw-track-reorder', () => setTimeout(checkDirty)],
   ['daw-track-error', (e) => {
     const { trackId, reason } = (e as CustomEvent<{ trackId: string; reason?: string }>).detail;
     if (reason) return;
@@ -1450,6 +1526,7 @@ onMounted(async () => {
   ed.timescale = true;
   ed.clipHeaders = true;
   ed.interactiveClips = !props.readonly;
+  ed.trackReordering = !props.readonly;
   // Rows and ruler run the full width, even when the track is shorter than the view.
   ed.fillViewport = true;
 
@@ -1481,6 +1558,7 @@ onMounted(async () => {
 
   const engine = await ed.ready();
   engine.on('statechange', onState);
+  scrollArea()?.addEventListener('scroll', onTimelineScroll, { passive: true });
   engine.setMasterVolume(masterVolume.value / 100);
   applyTempo();
 
@@ -1509,6 +1587,7 @@ onBeforeUnmount(() => {
   cleanupRecording();
   const ed = editor.value;
   ed?.engine?.off('statechange', onState);
+  scrollArea()?.removeEventListener('scroll', onTimelineScroll);
   ed?.stop();
   ed?.remove();
   host.value?.removeEventListener('daw-track-remove', onRemoveRequest, true);
@@ -1523,6 +1602,7 @@ defineExpose({
   removeStem,
   renameStem,
   applyRemote,
+  applyRemoteAll,
   snapshot,
   markSaved,
   mixVolume: () => masterVolume.value / 100,
