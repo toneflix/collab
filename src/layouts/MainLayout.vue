@@ -25,7 +25,10 @@
         </VaButton>
 
         <VaInput
-          placeholder="Search Tracks, Albums, Projects and Creators"
+          placeholder="Search songs, lyrics and creators"
+          aria-label="Search"
+          v-model="searchText"
+          @keyup.enter="search"
           preset="solid"
           color="textPrimary"
           class="placeholder-white"
@@ -286,6 +289,7 @@ defineOptions({
 const $q = useQuasar();
 const boot = useBootstrapStore();
 const showSearch = ref($q.screen.gt.xs);
+const searchText = ref('');
 const leftDrawerOpen = ref(false);
 
 /** Below this width the menu slides over the page instead of sitting beside it. */
@@ -303,6 +307,20 @@ const cache = boot.pageData.cache as unknown as {
 
 const route = useRoute();
 const router = useRouter();
+
+const search = () => {
+  const q = searchText.value.trim();
+  if (q) void router.push({ name: 'search', query: { q } });
+};
+
+// Show what was searched for while on the results.
+watch(
+  () => route.query.q,
+  (q) => {
+    if (route.name === 'search') searchText.value = String(q ?? '');
+  },
+  { immediate: true },
+);
 const conversations = useConversationStore();
 const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
 

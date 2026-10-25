@@ -123,6 +123,27 @@
           />
         </template>
       </AiPanel>
+      <LyricsPanel
+        ref="lyricsPanel"
+        :project-id="project.id"
+        :track-id="track.id"
+        :stems="stems"
+        :readonly="project.released"
+        :disabled="!editorReady"
+        :playhead="() => editor?.currentTime() ?? 0"
+        :seek="(s: number) => editor?.seek(s)"
+        dock="#studio-dock"
+      >
+        <template #default="{ toggle, open }">
+          <ActionButton
+            label="Lyrics"
+            :icon="ionDocumentText"
+            :expanded="expanded"
+            :active="open"
+            @click="toggle"
+          />
+        </template>
+      </LyricsPanel>
       <ActionButton
         label="Instrument"
         :icon="ionGrid"
@@ -267,6 +288,7 @@ import {
   ionChatbubbles,
   ionChevronForward,
   ionCloudUpload,
+  ionDocumentText,
   ionFolderOpen,
   ionGrid,
   ionInformationCircle,
@@ -297,6 +319,8 @@ import StemEditor from 'src/components/Studio/StemEditor.vue';
 import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
 import HistoryPanel from 'src/components/Studio/HistoryPanel.vue';
 import AiPanel from 'src/components/Studio/AiPanel.vue';
+import LyricsPanel from 'src/components/Studio/LyricsPanel.vue';
+import type { Lyrics } from 'src/utils/requests/lyrics';
 import type { AiJob } from 'src/utils/requests/ai';
 import InstrumentDialog from 'src/components/Studio/InstrumentDialog.vue';
 import {
@@ -376,6 +400,7 @@ const { style: fit, measure: fitBody } = useFitToScreen(studioBody);
 // The body only appears once the track has loaded.
 watch(loaded, () => fitBody());
 const aiPanel = ref<InstanceType<typeof AiPanel>>();
+const lyricsPanel = ref<InstanceType<typeof LyricsPanel>>();
 const route = useRoute();
 const router = useRouter();
 const conversations = useConversationStore();
@@ -926,7 +951,12 @@ useRealtimeChannel(
         // It may have been removed already.
       }
     },
-    'ai.job': (e: RealtimeMeta & AiJob) => aiPanel.value?.onJob(e),
+    'ai.job': (e: RealtimeMeta & AiJob) => {
+      aiPanel.value?.onJob(e);
+      lyricsPanel.value?.onJob(e);
+    },
+    'lyrics.updated': (e: RealtimeMeta & { lyrics: Lyrics | null }) =>
+      lyricsPanel.value?.onRemote(e.lyrics, who(e)),
     'stem.updated': (
       e: RealtimeMeta & {
         stem_id: string | number;

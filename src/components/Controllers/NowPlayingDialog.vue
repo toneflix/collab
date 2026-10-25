@@ -24,13 +24,28 @@
           </div>
         </div>
 
-        <!-- Up next -->
+        <!-- Up next and lyrics -->
         <div class="now-playing__queue">
-          <div class="flex items-center justify-between px-2 pb-2 no-wrap">
-            <div class="text-lg font-bold">Up next</div>
+          <div class="flex items-center justify-between pb-2 no-wrap">
+            <q-tabs
+              dense
+              no-caps
+              inline-label
+              align="left"
+              active-color="white"
+              indicator-color="toneflix"
+              class="text-grey-5 !flex-none"
+              v-model="tab"
+            >
+              <q-tab name="next" label="Up next" class="now-playing__tab" />
+              <q-tab name="lyrics" label="Lyrics" class="now-playing__tab" />
+            </q-tabs>
             <q-btn flat round dense :icon="ionChevronDown" aria-label="Close" class="!flex-none" @click="open = false" />
           </div>
-          <q-scroll-area class="now-playing__list">
+          <q-scroll-area class="now-playing__list" v-if="tab === 'lyrics'">
+            <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />
+          </q-scroll-area>
+          <q-scroll-area class="now-playing__list" v-else>
             <q-list dark>
               <q-item
                 clickable
@@ -71,12 +86,15 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
+import SyncedLyrics from './SyncedLyrics.vue';
 
 /**
- * The expanded player: large artwork and the queue, like YouTube Music's
- * "Up next" panel. Picking a track plays it.
+ * The expanded player: large artwork beside the queue or the lyrics, like
+ * YouTube Music's "Up next" and "Lyrics" tabs. Picking a track plays it.
  */
 const open = defineModel<boolean>({ default: false });
+/** Which list shows beside the artwork */
+const tab = defineModel<'next' | 'lyrics'>('tab', { default: 'next' });
 
 defineProps({
   /** Height of the player bar, so the panel opens above it and the bar stays usable */
@@ -88,8 +106,8 @@ const track = computed<Track>(() => player.current || ({} as Track));
 const currentItem = ref<{ $el: HTMLElement } | null>(null);
 
 // Bring the playing track into view when the panel opens.
-watch(open, async (on) => {
-  if (!on) return;
+watch([open, tab], async ([on, current]) => {
+  if (!on || current !== 'next') return;
   await nextTick();
   currentItem.value?.$el?.scrollIntoView({ block: 'center' });
 });
@@ -128,6 +146,12 @@ watch(open, async (on) => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.now-playing__tab {
+  padding: 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .now-playing__list {

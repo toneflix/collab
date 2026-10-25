@@ -4,8 +4,8 @@
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">AI tools</h1>
         <p class="text-grey-5">
-          Music generation with ElevenLabs Music and stem splitting with Demucs,
-          both run on Replicate. Plans choose who gets the tools and how many
+          Music generation with ElevenLabs Music, stem splitting with Demucs and
+          lyrics with Whisper, all run on Replicate. Plans choose who gets the tools and how many
           credits come each month. Everyone with the tools can buy more credits.
         </p>
       </div>
@@ -113,6 +113,51 @@
           </div>
         </div>
 
+        <div class="section">
+          <div class="mb-1 font-bold">Lyrics</div>
+          <p class="mb-3 text-sm text-grey-5">
+            Whisper writes out lyrics for about $0.001 a track. Released tracks
+            show synced lyrics in the player and can be found by their words.
+            Explicit words mark a track explicit, and words to review send it to
+            the moderation queue.
+          </p>
+          <div class="toggle-card mb-3">
+            <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
+            <div class="min-w-0">
+              <div class="font-bold">{{ fields.ai_lyrics_auto?.title }}</div>
+              <div class="text-sm text-grey-5">{{ fields.ai_lyrics_auto?.hint }}</div>
+            </div>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_lyrics_credits?.title"
+              :hint="fields.ai_lyrics_credits?.hint"
+              v-model.number="form.ai_lyrics_credits"
+            />
+            <div class="max-sm:!hidden" />
+            <q-input
+              dark
+              outlined
+              autogrow
+              :label="fields.ai_lyrics_explicit_words?.title"
+              :hint="fields.ai_lyrics_explicit_words?.hint"
+              v-model="form.ai_lyrics_explicit_words"
+            />
+            <q-input
+              dark
+              outlined
+              autogrow
+              :label="fields.ai_lyrics_review_words?.title"
+              :hint="fields.ai_lyrics_review_words?.hint"
+              v-model="form.ai_lyrics_review_words"
+            />
+          </div>
+        </div>
+
         <div class="flex justify-end">
           <q-btn
             unelevated
@@ -155,6 +200,10 @@ const form = reactive({
   ai_music_credits: 5 as number | string,
   ai_stems_credits: 5 as number | string,
   ai_music_max_seconds: 300 as number | string,
+  ai_lyrics_auto: true,
+  ai_lyrics_credits: 2 as number | string,
+  ai_lyrics_explicit_words: '',
+  ai_lyrics_review_words: '',
 });
 let savedForm = '';
 
@@ -170,6 +219,10 @@ const fill = (data: AiAdminSettings) => {
   form.ai_music_credits = Number(f.ai_music_credits?.value ?? 5);
   form.ai_stems_credits = Number(f.ai_stems_credits?.value ?? 5);
   form.ai_music_max_seconds = Number(f.ai_music_max_seconds?.value ?? 300);
+  form.ai_lyrics_auto = f.ai_lyrics_auto?.value === '1';
+  form.ai_lyrics_credits = Number(f.ai_lyrics_credits?.value ?? 2);
+  form.ai_lyrics_explicit_words = f.ai_lyrics_explicit_words?.value ?? '';
+  form.ai_lyrics_review_words = f.ai_lyrics_review_words?.value ?? '';
   savedForm = JSON.stringify(form);
 };
 

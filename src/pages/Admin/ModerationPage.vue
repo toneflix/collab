@@ -4,7 +4,7 @@
       <div class="py-4">
         <h1 class="text-3xl font-circlular-std">Moderation</h1>
         <p class="text-grey-5">
-          Reported content and tracks the audio check flagged as copies. Taking something down hides it from everyone
+          Reported content, tracks the audio check flagged as copies, and tracks whose lyrics need a look. Taking something down hides it from everyone
           but its owner, and tells the owner and the people who reported it.
         </p>
       </div>
@@ -98,6 +98,14 @@
                     </router-link>
                     <b v-else>{{ report.claim?.match_title }}</b>
                     by {{ report.claim?.match_artist || 'another creator' }}, uploaded earlier.
+                  </template>
+                  <template v-else-if="report.type === 'lyrics'">
+                    <div class="flex items-center gap-2 mb-1 text-xs text-grey-5">
+                      <q-icon name="fas fa-align-left" color="orange-6" class="!flex-none" />
+                      <span>Lyrics check · {{ timeAgoStamp(report.createdAt) }}</span>
+                    </div>
+                    The lyrics use words to review:
+                    <b>{{ (report.claim?.words || []).join(', ') }}</b>
                   </template>
                   <template v-else>
                     <div class="mb-1 text-xs text-grey-5">
@@ -300,6 +308,7 @@ const sourceOptions = [
   { label: 'Reports and checks', value: '' },
   { label: 'People\'s reports', value: 'report' },
   { label: 'Audio check', value: 'match' },
+  { label: 'Lyrics check', value: 'lyrics' },
 ];
 
 const tab = ref<'queue' | Takedown['status']>('queue');
