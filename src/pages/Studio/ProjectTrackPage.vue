@@ -355,6 +355,7 @@ import {
 } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConversationStore } from 'src/stores/conversation-store';
+import { usePlayerStore } from 'src/stores/player-store';
 import { useFitToScreen } from 'src/composables/useFitToScreen';
 import type { ChatRegion } from 'src/utils/requests/conversations';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
@@ -1197,6 +1198,10 @@ onBeforeRouteLeave(() => {
 });
 
 onMounted(() => {
+  // Only the studio plays here: stop the player and any other audio on the page.
+  usePlayerStore().pause();
+  document.querySelectorAll<HTMLMediaElement>('audio, video').forEach((media) => media.pause());
+
   try {
     expanded.value =
       LocalStorage.getItem<boolean>('studio.actions.expanded') === true;
