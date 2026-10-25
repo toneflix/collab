@@ -20,6 +20,11 @@
             Releases <q-badge rounded color="toneflix" :label="meta.releases" v-if="meta.releases" />
           </div>
         </q-tab>
+        <q-tab name="claims">
+          <div class="flex items-center gap-2 flex-nowrap">
+            Artist claims <q-badge rounded color="toneflix" :label="meta.claims" v-if="meta.claims" />
+          </div>
+        </q-tab>
         <q-tab name="appealed">
           <div class="flex items-center gap-2 flex-nowrap">
             Appeals <q-badge rounded color="orange-9" :label="meta.appeals" v-if="meta.appeals" />
@@ -37,7 +42,7 @@
           clearable
           debounce="400"
           class="min-w-56 grow"
-          :placeholder="tab === 'releases' ? 'Search by title or creator' : 'Search by title, name or username'"
+          :placeholder="searchHint"
           v-model="search"
         >
           <template #prepend><q-icon name="fas fa-magnifying-glass" size="xs" /></template>
@@ -191,6 +196,8 @@
         </div>
       </template>
 
+      <ArtistClaimsReview :search="search" @meta="(e) => (meta = { ...meta, ...e })" v-else-if="tab === 'claims'" />
+
       <template v-else-if="tab === 'releases'">
         <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
         <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
@@ -334,7 +341,7 @@
         </div>
       </template>
 
-      <div class="flex justify-center mt-4" v-if="pages.lastPage > 1">
+      <div class="flex justify-center mt-4" v-if="tab !== 'claims' && pages.lastPage > 1">
         <q-pagination dark color="toneflix" :max="pages.lastPage" :model-value="pages.page" @update:model-value="load" />
       </div>
     </div>
@@ -371,8 +378,9 @@
 
 <script setup lang="ts">
 import { useMeta } from 'quasar';
-import { reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
+import ArtistClaimsReview from 'src/components/Moderation/ArtistClaimsReview.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import {
@@ -413,7 +421,7 @@ const sourceOptions = [
 ];
 
 const boot = useBootstrapStore();
-const tab = ref<'queue' | 'releases' | Takedown['status']>('queue');
+const tab = ref<'queue' | 'releases' | 'claims' | Takedown['status']>('queue');
 const filters = reactive({ type: '', source: '' });
 const search = ref<string | null>('');
 const queue = ref<QueueItem[]>([]);
@@ -430,7 +438,14 @@ const takedownDialog = ref(false);
 const selected = ref<QueueItem | null>(null);
 const takedownForm = reactive({ reason: 'copyright' as ReportReason, note: '' });
 
+const searchHint = computed(() => ({
+  releases: 'Search by title or creator',
+  claims: 'Search by artist, claimant or email',
+}[tab.value as string] || 'Search by title, name or username'));
+
 const load = async (page = 1) => {
+  if (tab.value === 'claims') return;
+
   loading.value = true;
 
   try {
