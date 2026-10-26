@@ -22,6 +22,11 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Studio/EarningsPage.vue'),
       },
       {
+        path: 'agent',
+        name: 'studio.agent',
+        component: () => import('pages/Studio/AgentPage.vue'),
+      },
+      {
         path: 'credits',
         name: 'studio.credits',
         component: () => import('pages/Studio/CreditsPage.vue'),

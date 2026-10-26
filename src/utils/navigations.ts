@@ -39,6 +39,13 @@ export const mainNavigationLinks: NavigationLink[] = [
     requiresAuth: true,
   },
   {
+    to: { name: 'studio.agent' },
+    icon: 'lucide-bot',
+    title: 'Content agent',
+    requiresAuth: true,
+    requiresAgent: true,
+  },
+  {
     to: '',
     icon: '',
     title: 's1',
@@ -130,6 +137,13 @@ export const adminNavigationLinks: AdminLink[] = [
     icon: 'lucide-shield-half',
     title: 'Moderation',
     caption: 'Reports, copied audio, takedowns and appeals',
+    permission: 'manage-content',
+  },
+  {
+    to: { name: 'admin.agent' },
+    icon: 'lucide-bot',
+    title: 'Content agent',
+    caption: 'Queued prompts that build artists, albums and songs',
     permission: 'manage-content',
   },
   {
