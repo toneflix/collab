@@ -7,8 +7,8 @@
         <template v-else>Search</template>
       </h1>
       <p class="mb-6 text-sm text-grey-5">
-        Find songs by their title or a line of their lyrics, and creators by
-        name. Narrow songs down by tempo and key.
+        Find songs by their title or a line of their lyrics, published lyrics,
+        and creators by name. Narrow songs down by tempo and key.
       </p>
 
       <div class="filters">
@@ -82,6 +82,26 @@
               </q-avatar>
               <span class="font-bold truncate">{{ artist.name }}</span>
             </router-link>
+          </div>
+        </section>
+
+        <section class="mb-8" v-if="q && lyrics.length">
+          <div class="flex items-center justify-between gap-3 mb-4 no-wrap">
+            <h2 class="text-lg font-bold">Lyrics</h2>
+            <q-btn
+              flat
+              rounded
+              no-caps
+              dense
+              label="See all"
+              icon-right="lucide-arrow-right"
+              class="!flex-none px-3"
+              :to="{ name: 'songs', query: { search: q } }"
+              v-if="lyricsMore"
+            />
+          </div>
+          <div class="lyrics-grid">
+            <PublicSongCard :key="song.id" :song="song" v-for="song in lyrics" />
           </div>
         </section>
 
@@ -164,6 +184,8 @@ import { formatSeconds } from 'src/utils/helpers';
 import type { Artist, Track } from 'src/utils/models';
 import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
+import PublicSongCard from 'src/components/Songs/PublicSongCard.vue';
+import { loadPublicSongsRequest, type PublicSong } from 'src/utils/requests/composer';
 
 type SearchTrack = Track & { lyricMatch?: string | null };
 
@@ -256,11 +278,31 @@ watch(
   { immediate: true },
 );
 
+const lyrics = ref<PublicSong[]>([]);
+const lyricsMore = ref(false);
+
+/** Published Composer songs whose title or lyrics match */
+const loadLyrics = async () => {
+  const term = q.value;
+  try {
+    const res = await loadPublicSongsRequest({ search: term, limit: 6 }).send();
+    if (term !== q.value) return;
+    lyrics.value = res.data;
+    lyricsMore.value = (res.meta?.lastPage ?? 1) > 1;
+  } catch {
+    lyrics.value = [];
+  }
+};
+
 watch(
   q,
   (term) => {
     artists.value = [];
-    if (term) void loadArtists();
+    lyrics.value = [];
+    if (term) {
+      void loadArtists();
+      void loadLyrics();
+    }
   },
   { immediate: true },
 );
@@ -286,6 +328,12 @@ useMeta(() => ({
   .filters__key {
     flex: 0 0 200px;
   }
+}
+
+.lyrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
 }
 
 .songs {

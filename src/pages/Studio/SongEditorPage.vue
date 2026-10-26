@@ -24,6 +24,17 @@
             ·
           </template>
           <span :class="{ 'text-orange': status === 'error' || status === 'pending' }">{{ statusText }}</span>
+          <template v-if="song?.forkedFrom">
+            ·
+            <router-link
+              class="text-toneflix"
+              :to="{ name: 'song', params: { slug: song.forkedFrom.slug } }"
+              v-if="song.forkedFrom.slug"
+            >
+              Forked from {{ song.forkedFrom.title }}
+            </router-link>
+            <span v-else>Forked from {{ song.forkedFrom.title }}</span>
+          </template>
           <template v-if="song?.project">
             ·
             <router-link
@@ -73,6 +84,13 @@
           :expanded="showLabels"
           :active="panels.write"
           @click="panels.write = !panels.write"
+        />
+        <ActionButton
+          :label="song.publishedAt ? 'Published' : 'Artwork and publishing'"
+          icon="lucide-globe"
+          :expanded="showLabels"
+          :active="!!song.publishedAt"
+          @click="publishDialog = true"
         />
         <ActionButton
           :label="song.project ? 'Open the project' : 'Add to a project'"
@@ -144,6 +162,7 @@
 
     <template v-if="song">
       <SongProjectDialog :song="song" :ai="ai" :flush="flush" v-model="projectDialog" @created="onProjectCreated" />
+      <SongPublishDialog :song="song" :flush="flush" v-model="publishDialog" @updated="onPublishingUpdated" />
       <WritePanel
         dock="#composer-dock"
         :account="ai"
@@ -190,6 +209,7 @@ import LookupPanel from 'src/components/Composer/LookupPanel.vue';
 import LyricsEditor from 'src/components/Composer/LyricsEditor.vue';
 import NotesPanel from 'src/components/Composer/NotesPanel.vue';
 import SongProjectDialog from 'src/components/Composer/SongProjectDialog.vue';
+import SongPublishDialog from 'src/components/Composer/SongPublishDialog.vue';
 import VersionsPanel from 'src/components/Composer/VersionsPanel.vue';
 import WritePanel from 'src/components/Composer/WritePanel.vue';
 import ActionButton from 'src/components/Studio/ActionButton.vue';
@@ -208,6 +228,7 @@ import {
   type LyricSuggestion,
   type Song,
   type SongInput,
+  type SongProjectRef,
   type SuggestionKind,
   type WordHit,
 } from 'src/utils/requests/composer';
@@ -592,16 +613,27 @@ const maybeAutoSuggest = () => {
   }, 700);
 };
 
+/* ---------- Artwork and publishing ---------- */
+
+const publishDialog = ref(false);
+
+/** Takes the saved artwork and publishing settings, leaving unsaved edits alone */
+const onPublishingUpdated = (saved: Song) => {
+  if (!song.value) return;
+  const { slug, imageUrl, hasArtwork, publishedAt, allowForks, allowProjects } = saved;
+  song.value = { ...song.value, slug, imageUrl, hasArtwork, publishedAt, allowForks, allowProjects };
+};
+
 /* ---------- Project ---------- */
 
 const projectDialog = ref(false);
 
-const onProjectCreated = (made: Song) => {
-  if (!song.value || !made.project) return;
-  song.value.project = made.project;
+const onProjectCreated = (_made: unknown, project: SongProjectRef) => {
+  if (!song.value) return;
+  song.value.project = project;
   void router.push({
     name: 'studio.project.track',
-    params: { project_id: made.project.slug, track_id: made.project.trackId },
+    params: { project_id: project.slug, track_id: project.trackId },
   });
 };
 

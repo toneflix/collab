@@ -3,8 +3,10 @@
     <q-card dark class="project-dialog !flex-none" style="width: 480px; max-width: 100vw">
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
-          <div class="text-lg font-bold">Add this song to a project</div>
-          <div class="text-xs text-grey-5">The song becomes a track, and the lyrics go on its lyric sheet.</div>
+          <div class="text-lg font-bold">{{ own ? 'Add this song to a project' : 'Start a project with this song' }}</div>
+          <div class="text-xs text-grey-5">
+            {{ own ? 'The song becomes a track, and the lyrics go on its lyric sheet.' : 'The lyrics go on a new track\'s lyric sheet, credited to the writer.' }}
+          </div>
         </div>
         <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
@@ -173,16 +175,26 @@ import { notifyError } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
 import type { BaseOption, Project, User } from 'src/utils/models';
 import type { AiAccount } from 'src/utils/requests/ai';
-import { songProjectOptionsRequest, songProjectRequest, type Song } from 'src/utils/requests/composer';
+import {
+  songProjectOptionsRequest,
+  songProjectRequest,
+  type PublicSong,
+  type Song,
+  type SongProjectRef,
+} from 'src/utils/requests/composer';
 
 const props = defineProps<{
-  song: Song;
+  /** The writer's own song, or someone else's published song */
+  song: Song | PublicSong;
   ai?: AiAccount | null;
   /** Saves anything waiting first, so the newest lyrics go on the sheet */
-  flush: () => Promise<void>;
+  flush?: () => Promise<void>;
 }>();
 
-const emit = defineEmits<{ created: [song: Song] }>();
+const emit = defineEmits<{ created: [song: Song | PublicSong, project: SongProjectRef] }>();
+
+const own = computed(() => 'settings' in props.song);
+const mood = computed(() => ('settings' in props.song ? props.song.settings.mood : props.song.mood));
 
 const open = defineModel<boolean>({ default: false });
 
@@ -232,7 +244,7 @@ const saving = ref(false);
 
 const reset = () => {
   form.title = props.song.title;
-  form.prompt = form.prompt || [props.song.settings.mood, props.song.bpm ? `${props.song.bpm} BPM` : ''].filter(Boolean).join(', ');
+  form.prompt = form.prompt || [mood.value, props.song.bpm ? `${props.song.bpm} BPM` : ''].filter(Boolean).join(', ');
   errors.value = {};
 };
 
@@ -241,7 +253,7 @@ const submit = async () => {
   saving.value = true;
   errors.value = {};
   try {
-    await props.flush();
+    await props.flush?.();
     const existing = target.value === 'existing' ? project.value : null;
     const res = await songProjectRequest(props.song.id, {
       project_id: existing ? Number(existing.id) : undefined,
@@ -254,7 +266,7 @@ const submit = async () => {
     }).send();
     notify(res.message, 'success');
     open.value = false;
-    emit('created', res.data);
+    emit('created', res.data, res.project);
   } catch (e) {
     const err = e as { errors?: Record<string, string | string[]>; message?: string };
     errors.value = Object.fromEntries(
