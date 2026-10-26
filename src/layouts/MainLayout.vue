@@ -216,6 +216,13 @@
       <div class="absolute-bottom bg-dark" v-if="adminMenu">
         <q-separator />
         <q-list padding class="menu-list">
+          <q-item dense clickable v-ripple :href="docsUrl" target="_blank" rel="noopener" v-if="docsUrl">
+            <q-item-section avatar>
+              <q-icon name="lucide-book-open" />
+            </q-item-section>
+            <q-item-section>Setup docs</q-item-section>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Setup docs</q-tooltip>
+          </q-item>
           <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
             <q-item-section avatar>
               <q-icon name="lucide-arrow-left" />
@@ -256,6 +263,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
 import { alova } from 'src/boot/alova';
+import { docsUrl } from 'src/utils/env';
 
 defineOptions({
   async preFetch({ store }) {

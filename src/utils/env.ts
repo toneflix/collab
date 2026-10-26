@@ -47,6 +47,11 @@ export const apiUrl = `${baseUrl}/api/`;
  */
 export const frontUrl = trimSlash(import.meta.env.VITE_FRONT_URL) || (typeof window !== 'undefined' ? window.location.origin : '');
 
+/**
+ * The setup docs, linked from the admin menu. Empty hides the link.
+ */
+export const docsUrl = (import.meta.env.VITE_DOCS_URL || '').trim();
+
 export const debug = ['true', '1', 'yes'].includes(String(import.meta.env.VITE_DEBUG || '').toLowerCase());
 
 export const logLevel = import.meta.env.VITE_LOG_LEVEL || 'error';
