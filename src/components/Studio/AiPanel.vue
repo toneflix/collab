@@ -506,6 +506,7 @@
 import { date, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
+import { useFallbackPoll } from 'src/composables/useFallbackPoll';
 import { pickStyles } from 'src/utils/ai/music-styles';
 import { notify } from 'src/utils/helpers';
 import { formatClock, stemTitle, type SectionSelection, type Stem } from 'src/utils/daw';
@@ -540,6 +541,8 @@ const props = defineProps<{
   disabled?: boolean;
   /** CSS selector of the column the panel docks into on desktop. */
   dock?: string;
+  /** Whether job updates arrive over realtime; polling stands in when not. */
+  live?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -817,8 +820,6 @@ const onJob = (job: AiJob) => {
       );
     void loadAccount();
   }
-
-  schedulePoll();
 };
 
 const loadJobs = async () => {
@@ -831,17 +832,11 @@ const loadJobs = async () => {
     }
     [...list].reverse().forEach(onJob);
   } catch {
-    // Try again with the next poll.
+    // Realtime or the next check brings the jobs in.
   }
 };
 
-let timer: ReturnType<typeof setTimeout> | undefined;
-
-/** Check on unfinished jobs, in case realtime updates don't arrive. */
-const schedulePoll = () => {
-  clearTimeout(timer);
-  if (unfinished.value) timer = setTimeout(() => void loadJobs(), 5000);
-};
+useFallbackPoll({ live: () => !!props.live, active: unfinished, check: loadJobs });
 
 const refresh = () => {
   void loadAccount();
@@ -1002,7 +997,6 @@ onMounted(() => {
   void loadJobs();
 });
 onBeforeUnmount(() => {
-  clearTimeout(timer);
   player?.pause();
   player?.removeAttribute('src');
 });

@@ -160,20 +160,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { useQuasar } from 'quasar';
+import { computed, ref, watch } from 'vue';
+import { debounce, useQuasar } from 'quasar';
 import type { RouteLocationRaw } from 'vue-router';
 import StepState from './AgentStepState.vue';
 import { countStr, notify } from 'src/utils/helpers';
 import { notifyError } from 'src/utils/composer';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { useFallbackPoll } from 'src/composables/useFallbackPoll';
+import { useRealtimeChannel } from 'src/utils/realtime';
 import {
+  agentRunChannel,
   cancelAgentRunRequest,
   isActiveRun,
   loadAgentRunRequest,
   retryAgentRunRequest,
   runStatusLabels,
   type AgentRun,
+  type AgentRunEvent,
   type AgentScope,
   type AgentStep,
 } from 'src/utils/requests/agent';
@@ -187,7 +191,6 @@ const boot = useBootstrapStore();
 const run = ref<AgentRun | null>(null);
 const loading = ref(false);
 const busy = ref(false);
-let timer: ReturnType<typeof setTimeout> | undefined;
 
 const active = computed(() => !!run.value && isActiveRun(run.value));
 const canRetry = computed(() => !!run.value && ['failed', 'cancelled'].includes(run.value.status));
@@ -288,7 +291,6 @@ const songs = computed(() =>
 const load = async () => {
   if (!props.runId) return;
 
-  clearTimeout(timer);
   loading.value = !run.value;
 
   try {
@@ -301,9 +303,21 @@ const load = async () => {
   } finally {
     loading.value = false;
   }
-
-  if (run.value && isActiveRun(run.value)) timer = setTimeout(() => void load(), 5000);
 };
+
+/** Steps can finish in quick runs, so their announcements load the run once. */
+const loadSoon = debounce(() => void load(), 500);
+
+const { live } = useRealtimeChannel(
+  () => (props.runId ? agentRunChannel(props.scope, boot.user?.id) : null),
+  {
+    'agent.run': (e: AgentRunEvent) => {
+      if (e.id === props.runId) loadSoon();
+    },
+  },
+);
+
+useFallbackPoll({ live, active, check: load });
 
 const act = async (request: () => Promise<{ message: string; data: AgentRun }>) => {
   busy.value = true;
@@ -336,14 +350,11 @@ const retry = () => void act(() => retryAgentRunRequest(props.scope, run.value!.
 watch(
   () => props.runId,
   () => {
-    clearTimeout(timer);
     run.value = null;
     void load();
   },
   { immediate: true },
 );
-
-onBeforeUnmount(() => clearTimeout(timer));
 </script>
 
 <style lang="scss" scoped>

@@ -122,6 +122,13 @@ export const runStatusLabels: Record<AgentRunStatus, { label: string; color: str
 /** Admins reach every agent account's runs; users of an agent account reach their own */
 export type AgentScope = 'admin' | 'creator';
 
+/** What the API sends on `agent.run` when a run moves on. */
+export type AgentRunEvent = { id: number; status: AgentRun['status'] };
+
+/** The realtime channel that announces run changes: every run for admins, the account's own for creators. */
+export const agentRunChannel = (scope: AgentScope, userId?: number | string | null) =>
+  scope === 'admin' ? 'admin.content' : userId ? `user.${userId}` : null;
+
 export const loadAgentRunsRequest = (scope: AgentScope, params: { status?: AgentRunView; page?: number }) =>
   alova.Get<AgentRunsResponse>(`${scope}/agent/runs`, { cacheFor: 0, params });
 

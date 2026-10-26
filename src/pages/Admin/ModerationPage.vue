@@ -376,7 +376,7 @@ import SettingsSections, { type SettingsSection } from 'src/components/Admin/Set
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
 import ArtistClaimsReview from 'src/components/Moderation/ArtistClaimsReview.vue';
 import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
-import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
+import { useAiReviewUpdates } from 'src/composables/useAiReviewUpdates';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import type { PageMeta } from 'src/utils/models';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
@@ -580,7 +580,7 @@ const review = (release: ReleaseReview, action: 'approve' | 'reject') => {
   );
 };
 
-useAiReviewPolling(reviews, () => load(pages.value.page));
+useAiReviewUpdates(reviews, () => load(pages.value.page));
 
 watch([tab, search, () => filters.type, () => filters.source], () => load(), { immediate: true });
 

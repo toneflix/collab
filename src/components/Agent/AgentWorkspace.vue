@@ -25,8 +25,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { debounce } from 'quasar';
 import { useWatcher } from 'alova/client';
+import { useFallbackPoll } from 'src/composables/useFallbackPoll';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { useRealtimeChannel } from 'src/utils/realtime';
 import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';
 import AgentAccounts from './AgentAccounts.vue';
 import AgentRunForm from './AgentRunForm.vue';
@@ -35,6 +39,7 @@ import AgentRunDialog from './AgentRunDialog.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import {
+  agentRunChannel,
   isActiveRun,
   loadAgentRunsRequest,
   type AgentRun,
@@ -49,7 +54,7 @@ type View = AgentRunView | 'new' | 'accounts';
 const view = ref<View>('new');
 const page = ref(1);
 const openRun = ref<number | null>(null);
-let timer: ReturnType<typeof setInterval> | undefined;
+const boot = useBootstrapStore();
 
 /** The form needs the agent's limits, so a list always loads; the queue stands in on the other sections */
 const status = computed<AgentRunView>(() => (view.value === 'new' || view.value === 'accounts' ? 'open' : view.value));
@@ -82,13 +87,20 @@ const queued = (run: AgentRun) => {
   openRun.value = run.id;
 };
 
-// Keep the queue fresh while something in it is moving.
-watch(list, (runs) => {
-  clearInterval(timer);
-  if (view.value === 'open' && runs.some(isActiveRun)) timer = setInterval(() => void reload(), 10000);
+/** Runs announce every step, so a burst of them reloads the list once. */
+const reloadSoon = debounce(() => void reload(), 1000);
+
+const { live } = useRealtimeChannel(() => agentRunChannel(props.scope, boot.user?.id), {
+  'agent.run': () => reloadSoon(),
 });
 
-onBeforeUnmount(() => clearInterval(timer));
+// Keep the queue fresh while something in it is moving.
+useFallbackPoll({
+  live,
+  active: () => view.value === 'open' && list.value.some(isActiveRun),
+  check: () => reload(),
+  every: 10000,
+});
 </script>
 
 <style lang="scss" scoped>
