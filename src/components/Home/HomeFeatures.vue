@@ -41,8 +41,8 @@ interface Feature {
 
 const features: Feature[] = [
   {
-    title: 'A studio in your browser',
-    text: 'Arrange stems on a multitrack editor, record takes, program drums and notes, and add effects. No installs.',
+    title: 'A studio that goes with you',
+    text: 'Arrange stems on a multitrack editor, record takes, program drums and notes, and add effects.',
     icon: 'lucide-sliders-horizontal',
     color: '#03bfff',
     action: 'Open the studio',
