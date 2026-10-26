@@ -68,9 +68,12 @@ export const transcribeStemRequest = (
   projectId: string | number,
   trackId: string | number,
   stemId: string | number,
+  /** `sync` keeps the sheet's words and only takes the times */
+  mode: 'replace' | 'sync' = 'replace',
 ) =>
   alova.Post<ResponseBody<AiJob>>(
     `${sheet(projectId, trackId)}/stems/${stemId}/lyrics`,
+    { mode },
   );
 
 export const saveTrackLyricsRequest = (
