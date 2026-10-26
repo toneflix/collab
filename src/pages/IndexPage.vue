@@ -31,7 +31,7 @@
       <section class="min-w-0" v-if="songs.length">
         <HomeShelfHeader
           title="Fresh lyrics"
-          subtitle="Songs writers published from Composer. Read them, fork them or start a project with them."
+          subtitle="New songs from Composer writers."
           :to="{ name: 'songs' }"
         />
         <SongShelf :songs="songs" />

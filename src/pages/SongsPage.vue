@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-[1400px]">
       <h1 class="mb-1 text-2xl font-bold">Songs</h1>
       <p class="mb-6 text-sm text-grey-5">
-        Lyrics writers published from Composer. Read them, and fork or start a project with the ones whose writers allow it.
+        Songs published from Composer.
       </p>
 
       <div class="flex flex-wrap items-center gap-3 mb-6">

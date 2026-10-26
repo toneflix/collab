@@ -4,8 +4,7 @@
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">Artwork and sharing</div>
-          <div class="text-xs text-grey-5">Publish the lyrics on a page of their own, and choose what others can do with them.</div>
-        </div>
+                  </div>
         <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
 
@@ -59,21 +58,21 @@
           <q-toggle dark color="toneflix" class="!flex-none" v-model="form.published" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Publish this song</div>
-            <div class="text-xs text-grey-5">Anyone can read the lyrics and find the song. Notes and the scratchpad stay private.</div>
+            <div class="text-xs text-grey-5">Your notes stay private.</div>
           </div>
         </div>
         <div class="option" :class="{ 'option--off': !form.published }">
           <q-toggle dark color="toneflix" class="!flex-none" :disable="!form.published" v-model="form.allowForks" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Let others fork it</div>
-            <div class="text-xs text-grey-5">They get their own copy in Composer to rework, credited to you.</div>
+            <div class="text-xs text-grey-5">Others get their own copy to edit.</div>
           </div>
         </div>
         <div class="option" :class="{ 'option--off': !form.published }">
           <q-toggle dark color="toneflix" class="!flex-none" :disable="!form.published" v-model="form.allowProjects" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Let others start a project with it</div>
-            <div class="text-xs text-grey-5">The lyrics go on their track's lyric sheet, credited to you.</div>
+            <div class="text-xs text-grey-5">Others can use the lyrics in a project.</div>
           </div>
         </div>
 
