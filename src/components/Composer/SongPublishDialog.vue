@@ -4,7 +4,7 @@
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">Artwork and sharing</div>
-                  </div>
+        </div>
         <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
 
@@ -21,7 +21,7 @@
           <div class="flex flex-col gap-2 min-w-0">
             <div class="text-sm font-semibold">Artwork</div>
             <div class="text-xs text-grey-5">A square image, PNG, JPG or WebP up to 5 MB.</div>
-            <div class="flex gap-2 no-wrap">
+            <div class="flex flex-wrap gap-2">
               <ImageCropper :aspect-ratio="1" :buttons="{ cancel: 'Cancel', crop: 'Use this' }" @result="upload">
                 <template #default="{ open: pick }">
                   <q-btn
@@ -37,6 +37,16 @@
                   />
                 </template>
               </ImageCropper>
+              <AiArtworkButton
+                outline
+                class="px-3 !flex-none"
+                kind="song"
+                label="AI"
+                :title="song.title"
+                :genre="song.settings.mood"
+                :disable="uploading"
+                @pick="upload"
+              />
               <q-btn
                 flat
                 rounded
@@ -108,6 +118,7 @@
 import { copyToClipboard } from 'quasar';
 import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import { notifyError } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
