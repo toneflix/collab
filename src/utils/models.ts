@@ -175,6 +175,8 @@ export type Configuration = {
   review_releases: boolean;
   /** Let people add Web Audio Module plugins to stems */
   studio_plugins?: boolean;
+  /** Let plans with downloads save tracks whose creator allowed it */
+  track_downloads?: boolean;
 };
 
 export type PaymentPurpose =
@@ -480,6 +482,8 @@ export interface Track {
   stemsPrice?: number;
   stemsForSale?: boolean;
   stemsUnlocked?: boolean;
+  /** Whether the signed in user could download it: owned, bought, or offered to plans with downloads */
+  downloadable?: boolean;
   takenDown?: boolean;
   /** Tempo and key */
   tags?: AudioTags;
@@ -514,6 +518,8 @@ export interface Release extends Album {
   releaseDate: string;
   containsMusic?: boolean | 0 | 1;
   price?: number;
+  /** The creator lets listeners with downloads in their plan save the tracks */
+  downloadable?: boolean | 0 | 1;
   locked?: boolean;
   purchased?: boolean;
   takenDown?: boolean;

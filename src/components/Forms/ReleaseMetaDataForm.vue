@@ -216,7 +216,7 @@
         v-model.number="form.price"
       />
     </div>
-    <div class="col-span-2 md:col-span-1">
+    <div class="flex flex-col items-start col-span-2 gap-1 md:col-span-1">
       <q-checkbox
         label="Contains explicit content"
         :true-value="1"
@@ -229,6 +229,24 @@
       >
         {{ errors.privacy || errors['release.explicit'] }}
       </p>
+      <q-checkbox
+        label="Allow downloads"
+        :true-value="1"
+        :false-value="0"
+        v-model="form.downloadable"
+      />
+      <p class="pl-10 text-xs text-grey-6">
+        Listeners whose plan includes downloads can save these tracks.
+        <template v-if="Number(form.price) > 0">
+          Buyers can always download a paid release.
+        </template>
+        <template v-if="downloadsOff">
+          Downloads are turned off on Toneflix right now.
+        </template>
+      </p>
+      <p class="text-sm text-negative" v-if="errors['release.downloadable']">
+        {{ errors['release.downloadable'] }}
+      </p>
     </div>
   </div>
 </template>
@@ -237,8 +255,14 @@
 import HoverCard from 'src/components/Cards/HoverCard.vue';
 import { Release, UploadData } from 'src/utils/models';
 import { usePayments } from 'src/composables/usePayments';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { computed } from 'vue';
 
 const { symbol } = usePayments();
+const boot = useBootstrapStore();
+const downloadsOff = computed(
+  () => boot.configuration.track_downloads === false,
+);
 
 const form = defineModel<Release & UploadData>('form', {
   required: true,

@@ -10,6 +10,7 @@ export const releaseFormFields = (release: Release): Release & UploadData => {
     project_id: release.projectId,
     record_label: release.recordLabel,
     contains_music: release.containsMusic ? 1 : 0,
+    downloadable: release.downloadable ? 1 : 0,
   } as UploadData);
 };
 

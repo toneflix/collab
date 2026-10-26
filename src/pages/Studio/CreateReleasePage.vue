@@ -496,6 +496,7 @@ const {
     pline: curr.release.pline || '',
     privacy: curr.release.privacy || 'public',
     explicit: curr.release.explicit ? 1 : 0,
+    downloadable: curr.release.downloadable ? 1 : 0,
     genre_id: curr.release.genre_id || genres.value[0]?.id,
     contains_music: curr.release.contains_music,
   } as unknown as Release & UploadData,
