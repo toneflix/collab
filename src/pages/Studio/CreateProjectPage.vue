@@ -18,7 +18,7 @@
                     fit="cover"
                     class="w-full h-full card-avatar"
                     :ratio="1 / 1"
-                    :src="dataURL || form.imageUrl || placeholder"
+                    :src="picked || dataURL || form.imageUrl || placeholder"
                     :alt="form.title"
                   />
 
@@ -38,6 +38,14 @@
                 </q-avatar>
               </template>
             </ImageCropper>
+            <AiArtworkButton
+              outline
+              color="toneflix"
+              class="mt-3"
+              kind="project"
+              :title="form.title"
+              @pick="pickArtwork"
+            />
           </div>
           <div class="text-white col-12 col-md-8">
             <div class="grid gap-y-4 md:grid-cols-2 md:gap-x-4">
@@ -118,10 +126,12 @@
 
 <script setup lang="ts">
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
+import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
+import type { ArtworkPick } from 'src/components/Artwork/AiArtworkDialog.vue';
 import placeholder from 'src/assets/placeholder.svg';
 import { privacyOptionsExtended } from 'src/utils/presets';
 import { Project, ResponseBody, UploadData } from 'src/utils/models';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useForm } from 'alova/client';
 import {
   createProjectRequest,
@@ -198,7 +208,16 @@ onSuccess(({ data }) => {
   });
 });
 
+/** An image drawn with AI, shown until another one is uploaded */
+const picked = ref('');
+
 const uploadArtwork = ({ file }: { file: File }) => {
+  picked.value = '';
+  form.value.image = file;
+};
+
+const pickArtwork = ({ file, url }: ArtworkPick) => {
+  picked.value = url;
   form.value.image = file;
 };
 </script>

@@ -417,6 +417,55 @@
             </div>
           </template>
 
+          <template #artwork>
+            <p class="mb-4 text-sm text-grey-5">
+              Project, release, track and artist forms can draw their artwork
+              from a prompt. FLUX.1 [schnell] draws each image for about
+              $0.003, on Replicate or Cloudflare Workers AI, and people pick
+              the one they like.
+            </p>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.ai_artwork_engine?.title"
+                :hint="fields.ai_artwork_engine?.hint"
+                :options="engineOptions('ai_artwork_engine')"
+                v-model="form.ai_artwork_engine"
+              >
+                <template #append>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    label="Needs its key"
+                    v-if="needsKey(form.ai_artwork_engine)"
+                  />
+                </template>
+              </q-select>
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="1"
+                :label="fields.ai_artwork_credits?.title"
+                :hint="fields.ai_artwork_credits?.hint"
+                v-model.number="form.ai_artwork_credits"
+              />
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="1"
+                max="4"
+                :label="fields.ai_artwork_images?.title"
+                :hint="fields.ai_artwork_images?.hint"
+                v-model.number="form.ai_artwork_images"
+              />
+            </div>
+          </template>
+
           <template #tags>
             <p class="mb-4 text-sm text-grey-5">
               New tracks and studio mixes are tagged with their BPM and key,
@@ -637,6 +686,9 @@ const form = reactive({
   ai_lyrics_credits: 2 as number | string,
   ai_lyrics_explicit_words: '',
   ai_lyrics_review_words: '',
+  ai_artwork_engine: 'replicate' as AiEngine,
+  ai_artwork_credits: 3 as number | string,
+  ai_artwork_images: 4 as number | string,
   ai_tags_auto: true,
   ai_moderator_claims_auto: false,
   ai_moderator_releases_auto: false,
@@ -734,6 +786,13 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
       'ai_lyrics_explicit_words',
       'ai_lyrics_review_words',
     ],
+  },
+  {
+    key: 'artwork',
+    icon: 'lucide-image',
+    title: 'Artwork',
+    caption: 'Covers and artist photos drawn from a prompt.',
+    fields: ['ai_artwork_engine', 'ai_artwork_credits', 'ai_artwork_images'],
   },
   {
     key: 'tags',
@@ -840,6 +899,10 @@ const fill = (data: AiAdminSettings) => {
   form.ai_lyrics_credits = Number(f.ai_lyrics_credits?.value ?? 2);
   form.ai_lyrics_explicit_words = f.ai_lyrics_explicit_words?.value ?? '';
   form.ai_lyrics_review_words = f.ai_lyrics_review_words?.value ?? '';
+  form.ai_artwork_engine = (f.ai_artwork_engine?.value ??
+    'replicate') as AiEngine;
+  form.ai_artwork_credits = Number(f.ai_artwork_credits?.value ?? 3);
+  form.ai_artwork_images = Number(f.ai_artwork_images?.value ?? 4);
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
   form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';

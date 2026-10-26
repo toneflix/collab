@@ -28,6 +28,13 @@
                   :label="preview.cover ? 'Change cover' : 'Add cover photo'"
                   @click="open"
                 />
+                <AiArtworkButton
+                  size="sm"
+                  kind="artist_cover"
+                  class="absolute right-2 top-2"
+                  :artist="form.name"
+                  @pick="(e: ArtworkPick) => pickAi('cover', e)"
+                />
               </div>
             </template>
           </ImageCropper>
@@ -52,6 +59,16 @@
               Square photo for the profile, and a wide cover photo for the top of the page.
             </div>
           </div>
+          <AiArtworkButton
+            outline
+            size="sm"
+            color="toneflix"
+            class="mt-3 ml-4"
+            kind="artist"
+            label="Generate photo with AI"
+            :artist="form.name"
+            @pick="(e: ArtworkPick) => pickAi('image', e)"
+          />
         </q-card-section>
 
         <q-card-section class="flex flex-col gap-3 pt-0">
@@ -103,6 +120,8 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
+import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
+import type { ArtworkPick } from 'src/components/Artwork/AiArtworkDialog.vue';
 import { notify } from 'src/utils/helpers';
 import type { Artist } from 'src/utils/models';
 import { updateArtistProfileRequest } from 'src/utils/requests/artists';
@@ -133,6 +152,11 @@ const pick = (field: 'image' | 'cover', result: CropResult) => {
   const type = result.blob.type || 'image/png';
   files[field] = new File([result.blob], `${field}.${type.split('/')[1] || 'png'}`, { type });
   preview[field] = result.base64;
+};
+
+const pickAi = (field: 'image' | 'cover', { file, url }: ArtworkPick) => {
+  files[field] = file;
+  preview[field] = url;
 };
 
 const save = async () => {
