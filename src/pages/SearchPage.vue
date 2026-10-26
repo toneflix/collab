@@ -146,7 +146,7 @@
               @click="loadTracks(page + 1)"
             />
           </div>
-          <q-inner-loading dark :showing="loading && !tracks.length" />
+          <ListSkeleton avatar="square" :rows="6" v-if="loading && !tracks.length" />
         </section>
       </template>
     </div>
@@ -163,6 +163,7 @@ import { usePlayerStore } from 'src/stores/player-store';
 import { formatSeconds } from 'src/utils/helpers';
 import type { Artist, Track } from 'src/utils/models';
 import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 type SearchTrack = Track & { lyricMatch?: string | null };
 

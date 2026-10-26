@@ -138,18 +138,14 @@
             />
           </q-item-section>
         </q-item>
-        <q-item
-          class="flex justify-center col-span-2"
-          v-if="fetching || loading"
-        >
-          <q-spinner size="xl" />
-        </q-item>
+        <ListSkeleton class="col-span-2" avatar="square" :rows="4" v-if="fetching || loading" />
       </q-list>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { usePagination } from 'alova/client';
 import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';

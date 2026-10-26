@@ -46,9 +46,7 @@
             v-for="n in store.list"
           />
         </q-list>
-        <div class="py-10 text-center" v-else-if="store.loading">
-          <q-spinner size="32px" />
-        </div>
+        <ListSkeleton v-else-if="store.loading" />
         <SimpleInfo
           text="Nothing yet. Collab invitations, messages you missed and sales show up here."
           v-else
@@ -77,6 +75,7 @@ import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import NotificationItem from 'src/components/Notifications/NotificationItem.vue';
 import CollabRequestItem from 'src/components/Notifications/CollabRequestItem.vue';
 import { useNotificationStore } from 'src/stores/notification-store';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const route = useRoute();
 const router = useRouter();

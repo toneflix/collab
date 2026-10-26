@@ -35,7 +35,7 @@
       </header>
 
       <div class="ai__body">
-        <q-inner-loading dark :showing="!account" />
+        <BlockSkeleton variant="stats" :count="4" v-if="!account" />
 
         <template v-if="account && !account.enabled">
           <div class="ai__notice">
@@ -452,6 +452,7 @@ import {
   type ReferenceKind,
   type SongVersion,
 } from 'src/utils/requests/ai';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const props = defineProps<{
   projectId: string | number;

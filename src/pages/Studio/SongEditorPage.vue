@@ -135,7 +135,7 @@
               v-model="body"
               v-if="song"
             />
-            <q-inner-loading dark :showing="!song" />
+            <BlockSkeleton :count="10" class="p-5" v-if="!song" />
           </div>
         </div>
         <div id="composer-dock" class="composer-dock" />
@@ -211,6 +211,7 @@ import {
   type SuggestionKind,
   type WordHit,
 } from 'src/utils/requests/composer';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 defineOptions({ name: 'SongEditorPage' });
 

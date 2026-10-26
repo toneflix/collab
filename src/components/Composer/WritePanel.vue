@@ -1,7 +1,7 @@
 <template>
   <ComposerSheet title="Write with AI" caption="Ideas for your next lines. You pick what stays." :dock="dock" v-model="open">
     <div class="write__section" v-if="!account">
-      <q-inner-loading dark showing />
+      <BlockSkeleton :count="3" />
     </div>
 
     <div class="write__section text-sm text-grey-5" v-else-if="!account.enabled">
@@ -100,6 +100,7 @@ import { computed, ref } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';
 import type { AiAccount } from 'src/utils/requests/ai';
 import type { LyricSuggestion, SuggestionKind } from 'src/utils/requests/composer';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const props = defineProps<{
   dock?: string;

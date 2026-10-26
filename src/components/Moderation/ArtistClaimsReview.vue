@@ -14,7 +14,7 @@
       />
     </div>
 
-    <div class="py-10 text-center" v-if="loading && !claims.length"><q-spinner size="md" /></div>
+    <ListSkeleton :rows="3" v-if="loading && !claims.length" />
     <div class="py-12 text-center text-grey-5" v-else-if="!claims.length">
       <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" v-if="status === 'pending'" />
       <div>
@@ -194,6 +194,7 @@ import {
   type ArtistClaim,
 } from 'src/utils/requests/artists';
 import type { ModerationStats } from 'src/utils/requests/moderation';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const props = defineProps<{ search?: string | null }>();
 const emit = defineEmits<{ stats: [stats: ModerationStats] }>();

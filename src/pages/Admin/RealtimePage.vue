@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <q-spinner v-if="loading" />
+      <BlockSkeleton variant="form" v-if="loading" />
 
       <q-form class="flex flex-col gap-6" @submit="save" v-else-if="settings">
         <div class="grid gap-3 sm:grid-cols-2">
@@ -106,6 +106,7 @@ import {
   saveRealtimeSettingsRequest,
   testRealtimeRequest,
 } from 'src/utils/requests/realtime';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const boot = useBootstrapStore();
 

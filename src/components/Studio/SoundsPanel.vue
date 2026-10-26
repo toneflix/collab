@@ -101,9 +101,7 @@
       </div>
 
       <q-list dark separator class="sounds__list" role="list">
-        <div class="flex justify-center py-8" v-if="loading">
-          <q-spinner size="24px" color="grey-6" />
-        </div>
+        <ListSkeleton dense avatar="square" :rows="6" v-if="loading" />
         <div class="px-6 py-10 text-sm text-center text-grey-5" v-else-if="!items.length">
           {{ emptyText }}
         </div>
@@ -208,6 +206,7 @@ import {
   type Sound,
   type SoundsStatus,
 } from 'src/utils/requests/sounds';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 /**
  * Sounds to drop into a track: the shared library (only when it's on and

@@ -14,12 +14,12 @@
         @scroll-end="loadMore"
         v-for="(creator, i) in category.data.list"
       />
-      <div
-        class="flex items-center justify-center w-32 mx-auto md:w-44"
-        v-if="loading"
-      >
-        <q-spinner size="xl" />
-      </div>
+      <template v-if="loading">
+        <div class="creator-skeleton w-32 md:w-44" :key="i" v-for="i in 3">
+          <q-skeleton dark type="QAvatar" class="creator-skeleton__avatar" />
+          <q-skeleton dark type="text" width="70%" />
+        </div>
+      </template>
     </div>
   </q-scroll-area>
   <div
@@ -37,12 +37,12 @@
       @scroll-end="loadMore"
       v-for="(creator, i) in category.data.list"
     />
-    <div
-      class="flex items-center justify-center mx-auto w-28 md:w-44"
-      v-if="loading"
-    >
-      <q-spinner size="xl" />
-    </div>
+    <template v-if="loading">
+      <div class="creator-skeleton" :key="i" v-for="i in 5">
+        <q-skeleton dark type="QAvatar" class="creator-skeleton__avatar" />
+        <q-skeleton dark type="text" width="70%" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -127,3 +127,22 @@ const loadMore = () => {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.creator-skeleton {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 4px;
+  padding: 12px;
+
+  &__avatar {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+</style>

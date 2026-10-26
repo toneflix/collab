@@ -17,9 +17,7 @@
           <div class="text-sm text-grey-6">Say hello. Everyone on this {{ noun }} will see it.</div>
         </div>
 
-        <div class="thread__status" v-if="!loaded">
-          <q-spinner size="24px" color="grey-6" />
-        </div>
+        <ListSkeleton :rows="4" v-if="!loaded" />
 
         <template :key="row.message.id" v-for="row in rows">
           <div class="thread__day" v-if="row.day">
@@ -245,6 +243,7 @@ import {
   type OutgoingMessage,
 } from 'src/utils/requests/conversations';
 import type { ResponseBody } from 'src/utils/models';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 /**
  * One conversation as a chat: messages oldest to newest, grouped by sender,

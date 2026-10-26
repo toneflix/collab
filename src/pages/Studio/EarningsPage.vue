@@ -135,9 +135,7 @@
             </template>
           </PayoutItem>
         </q-list>
-        <div class="py-10 text-center" v-else-if="payoutsLoading">
-          <q-spinner size="32px" />
-        </div>
+        <ListSkeleton side :rows="4" v-else-if="payoutsLoading" />
         <SimpleInfo v-else text="No withdrawals yet. When you withdraw, it shows up here with its status." />
 
         <div class="flex justify-center mt-8" v-if="payoutPages > 1">
@@ -153,9 +151,7 @@
             v-for="transaction in earnings"
           />
         </q-list>
-        <div class="py-10 text-center" v-else-if="loading">
-          <q-spinner size="32px" />
-        </div>
+        <ListSkeleton side :rows="4" v-else-if="loading" />
         <SimpleInfo
           v-else
           text="No earnings yet. Set a price on a release or its stems in your releases, and fans can tip you from your profile."
@@ -206,6 +202,7 @@ import {
   PayoutSummary,
   providerNames,
 } from 'src/utils/requests/payouts';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const { price } = usePayments();
 const boot = useBootstrapStore();

@@ -336,6 +336,7 @@
     <div class="stem-editor__stage">
       <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
       <div ref="host" class="stem-editor__host" />
+      <DawSkeleton class="stem-editor__skeleton" :lanes="Math.min(Math.max(stems.length, 2), 6)" v-if="!ready" />
     </div>
 
     <q-dialog v-model="effectsOpen">
@@ -423,6 +424,7 @@ import { LocalStorage } from 'quasar';
 import type { SnapTo } from '@waveform-playlist/core';
 import EffectsPanel from './EffectsPanel.vue';
 import StemActivity, { type StemActivityItem } from './StemActivity.vue';
+import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import { StemPlaceholders } from 'src/utils/studio/placeholders';
 import {
@@ -2125,6 +2127,12 @@ defineExpose({
     flex: 1 1 auto;
     flex-direction: column;
     min-height: 0;
+  }
+
+  &__skeleton {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
   }
 
   /* Fills what's left of the editor; the timeline scrolls its stems. */

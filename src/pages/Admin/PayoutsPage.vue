@@ -74,9 +74,7 @@
               </template>
             </PayoutItem>
           </q-list>
-          <div class="py-10 text-center" v-else-if="loading">
-            <q-spinner size="32px" />
-          </div>
+          <ListSkeleton side v-else-if="loading" />
           <SimpleInfo v-else text="Nothing here." />
 
           <div class="flex justify-center mt-8" v-if="pageCount > 1">
@@ -110,6 +108,7 @@ import {
   rejectPayoutRequest,
   syncPayoutRequest,
 } from 'src/utils/requests/payouts';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const $q = useQuasar();
 const boot = useBootstrapStore();

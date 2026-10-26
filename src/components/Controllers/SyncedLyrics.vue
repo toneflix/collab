@@ -1,7 +1,7 @@
 <template>
   <div class="lyrics" ref="root">
     <div class="lyrics__state" v-if="loading">
-      <q-spinner-dots size="28px" color="grey-5" />
+      <BlockSkeleton :count="6" class="w-full" />
     </div>
     <div class="lyrics__state" v-else-if="!lyrics?.lines.length">
       <q-icon name="lucide-type" size="28px" class="mb-2" />
@@ -38,6 +38,7 @@ import {
   loadTrackLyricsRequest,
   type Lyrics,
 } from 'src/utils/requests/lyrics';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 /**
  * A song's lyrics, following along with the line being sung when they're

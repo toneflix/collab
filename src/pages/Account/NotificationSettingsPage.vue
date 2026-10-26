@@ -14,9 +14,7 @@
         You won't get emails about {{ unsubscribed.title.toLowerCase() }} anymore. You can turn them back on below.
       </q-banner>
 
-      <div class="py-10 text-center" v-if="loading && !settings">
-        <q-spinner size="32px" />
-      </div>
+      <ListSkeleton :avatar="false" :rows="6" side v-if="loading && !settings" />
 
       <template v-else-if="settings">
         <section class="push-card">
@@ -93,6 +91,7 @@ import {
   type NotificationCategorySetting,
   type NotificationSettings,
 } from 'src/utils/requests/notifications';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const route = useRoute();
 

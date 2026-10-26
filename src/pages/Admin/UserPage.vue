@@ -5,8 +5,9 @@
         <q-btn flat dense no-caps icon="lucide-arrow-left" label="Users" class="!flex-none" :to="{ name: 'admin.users' }" />
       </div>
 
-      <div class="py-10 text-center" v-if="loading && !detail">
-        <q-spinner size="32px" />
+      <div class="flex flex-col gap-4" v-if="loading && !detail">
+        <ListSkeleton :rows="1" />
+        <BlockSkeleton variant="stats" :count="4" />
       </div>
       <SimpleInfo :text="error" v-else-if="!detail" />
 
@@ -162,9 +163,7 @@
             <q-list separator v-else-if="tab !== 'activity' && transactions.length">
               <TransactionItem :key="transaction.id" :transaction="transaction" v-for="transaction in transactions" />
             </q-list>
-            <div class="py-8 text-center" v-else-if="listLoading">
-              <q-spinner size="24px" />
-            </div>
+            <ListSkeleton dense side :rows="4" v-else-if="listLoading" />
             <div class="py-8 text-center text-grey-5" v-else>Nothing here yet.</div>
 
             <div class="flex justify-center py-4" v-if="listPages > 1">
@@ -210,6 +209,8 @@ import {
   type AdminAction,
   type AdminUserDetail,
 } from 'src/utils/requests/adminUsers';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const $q = useQuasar();
 const route = useRoute();

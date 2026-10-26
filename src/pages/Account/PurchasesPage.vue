@@ -37,9 +37,7 @@
           v-for="transaction in purchases"
         />
       </q-list>
-      <div class="py-10 text-center" v-else-if="loading">
-        <q-spinner size="32px" />
-      </div>
+      <ListSkeleton side v-else-if="loading" />
       <SimpleInfo
         v-else
         text="Nothing here yet. Releases, stems, tips and Premium you pay for show up here."
@@ -59,6 +57,7 @@ import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import TransactionItem from 'src/components/Payments/TransactionItem.vue';
 import { loadPurchasesRequest } from 'src/utils/requests/payments';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const purpose = ref('');
 const page = ref(1);

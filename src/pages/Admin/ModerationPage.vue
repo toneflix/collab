@@ -51,7 +51,7 @@
 
         <template v-if="tab === 'queue'">
 
-          <div class="py-10 text-center" v-if="loading && !queue.length"><q-spinner size="md" /></div>
+          <ListSkeleton :rows="4" v-if="loading && !queue.length" />
           <div class="py-12 text-center text-grey-5" v-else-if="!queue.length">
             <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'Nothing matches your search.' : 'Nothing waiting for review.' }}</div>
@@ -175,7 +175,7 @@
         <ArtistClaimsReview :search="search" @stats="(e) => (stats = e)" v-else-if="tab === 'claims'" />
 
         <template v-else-if="tab === 'releases'">
-          <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
+          <ListSkeleton avatar="square" :rows="4" v-if="loading && !reviews.length" />
           <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
             <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'No releases match your search.' : 'No releases waiting for approval.' }}</div>
@@ -267,7 +267,7 @@
         </template>
 
         <template v-else>
-          <div class="py-10 text-center" v-if="loading && !takedowns.length"><q-spinner size="md" /></div>
+          <ListSkeleton :rows="4" v-if="loading && !takedowns.length" />
           <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
             {{ search ? 'Nothing matches your search.' : tab === 'appealed' ? 'No appeals waiting.' : 'Nothing here yet.' }}
           </div>
@@ -401,6 +401,7 @@ import {
   type ReportReason,
   type Takedown,
 } from 'src/utils/requests/moderation';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const typeOptions = [
   { label: 'Everything', value: '' },
