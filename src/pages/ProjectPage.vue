@@ -204,25 +204,25 @@ defineOptions({
     const boot = useBootstrapStore(store);
     const id = currentRoute.params.project_id as string;
 
-    const project = await loadProjectRequest(
-      id,
-      { with: 'comments_count,pending_data' },
-      true,
-    ).send();
-
-    const { data: comments, meta: commentsMeta } = await loadCommentsRequest(
-      id,
-      undefined,
-      {
-        with: 'user',
-      },
-    ).send();
-
-    const { data: creators, meta: creatorMeta } = await loadUsersRequest({
-      project_id: id,
-      filters: 'creator',
-      limit: 30,
-    }).send();
+    const [project, { data: comments, meta: commentsMeta }, { data: creators, meta: creatorMeta }] = await Promise.all([
+      loadProjectRequest(
+        id,
+        { with: 'comments_count,pending_data' },
+        true,
+      ).send(),
+      loadCommentsRequest(
+        id,
+        undefined,
+        {
+          with: 'user',
+        },
+      ).send(),
+      loadUsersRequest({
+        project_id: id,
+        filters: 'creator',
+        limit: 30,
+      }).send(),
+    ]);
 
     boot.pageData.current = {
       project,

@@ -17,6 +17,9 @@ import { requestPinia } from 'src/utils/request-context';
 
 const baseURL = apiUrl;
 
+/** Requests give up after this long, so a stuck API call can't hold a page change forever. */
+const timeout = 30000;
+
 /** The browser's router, set once the app boots there. */
 let clientRouter: Router | undefined;
 
@@ -108,6 +111,7 @@ const responded = async (
 // 1. Create an alova instance
 const alova = createAlova({
   baseURL,
+  timeout,
   responded,
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
@@ -116,6 +120,7 @@ const alova = createAlova({
 // 2. Create an alova instance for axios
 const axios = createAlova({
   baseURL,
+  timeout,
   statesHook: VueHook,
   requestAdapter: axiosRequestAdapter(),
   responded: {

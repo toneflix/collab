@@ -216,23 +216,22 @@ defineOptions({
     const id = String(currentRoute.params.track_id);
     const aid = String(currentRoute.params.artist_id);
 
-    const artist = await loadArtistRequest(aid, {}, true).send();
-
-    const track = await loadTrackRequest(id, {
-      artist_id: artist.id,
-      with: 'comments_count,artist,release,stems',
-    }).send();
-
-    const { data: related, meta: relatedMeta } = await loadTracksRequest({
-      artist_id: artist.id,
-      limit: 8,
-    }).send();
-
-    const { data: releases, meta: releaseMeta } = await loadReleasesRequest({
-      artist_id: artist.id,
-      limit: 30,
-      with: 'artist',
-    }).send();
+    const [artist, track, { data: related, meta: relatedMeta }, { data: releases, meta: releaseMeta }] = await Promise.all([
+      loadArtistRequest(aid, {}, true).send(),
+      loadTrackRequest(id, {
+        artist_id: aid,
+        with: 'comments_count,artist,release,stems',
+      }).send(),
+      loadTracksRequest({
+        artist_id: aid,
+        limit: 8,
+      }).send(),
+      loadReleasesRequest({
+        artist_id: aid,
+        limit: 30,
+        with: 'artist',
+      }).send(),
+    ]);
 
     boot.pageData.current = {
       track,

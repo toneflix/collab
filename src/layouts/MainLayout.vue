@@ -263,6 +263,14 @@ import { alova } from 'src/boot/alova';
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
+    const loaded = boot.pageData.cache as unknown as { mainLayoutUser?: number | null };
+    const userId = boot.user?.id ?? null;
+
+    // Pages with route params run this again on each visit; in the browser the
+    // settings and menu only need loading again when the signed-in account changes.
+    if (!import.meta.env.SSR && boot.ready && loaded.mainLayoutUser === userId) {
+      return;
+    }
 
     await reboot().then(({ init }) => {
       boot.configuration = init.configuration;
@@ -271,18 +279,20 @@ defineOptions({
     const data = {} as Record<string, GenericData>;
     const groups = mainNavigationLinks.filter((e) => !!e.group && (!e.requiresAuth || boot.user?.id));
 
-    for (const group of groups) {
-      if (group.group) {
-        data[group.group] = await alova
-          .Get(group.group, {
-            params: group.params,
-            transform: (e: ResponseBody<GenericData>) => e.data,
-          })
-          .send();
-      }
-    }
+    await Promise.all(
+      groups.map(async ({ group, params }) => {
+        if (group) {
+          data[group] = await alova
+            .Get(group, {
+              params,
+              transform: (e: ResponseBody<GenericData>) => e.data,
+            })
+            .send();
+        }
+      }),
+    );
 
-    boot.setCache({ mainLayoutGroups: data } as unknown as GenericData);
+    boot.setCache({ mainLayoutGroups: data, mainLayoutUser: boot.user?.id ?? null } as unknown as GenericData);
   },
 });
 
