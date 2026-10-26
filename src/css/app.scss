@@ -39,6 +39,11 @@
   }
 }
 
+// Collapsed rail: items fill the width left beside their margins
+.q-drawer-container .q-drawer--mini .menu-list .q-item {
+  width: auto;
+}
+
 .header-avatar {
   height: 25px;
   width: auto;
