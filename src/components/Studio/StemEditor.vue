@@ -260,7 +260,13 @@
     <div class="stem-editor__selected" v-if="!readonly">
       <template v-if="selected">
         <div class="flex items-center gap-2 !flex-none max-w-48">
-          <span class="stem-dot" :style="{ background: selectedColor }" />
+          <button
+            type="button"
+            class="stem-dot"
+            :style="{ background: selectedColor }"
+            aria-label="Change colour"
+            @click="colorsOpen = true"
+          />
           <span class="font-bold truncate">{{ selected.name }}</span>
         </div>
         <label class="stem-editor__fade">
@@ -309,20 +315,6 @@
         >
           <q-tooltip>Duplicate this stem (Ctrl+D)</q-tooltip>
         </q-btn>
-        <div class="stem-colors" role="radiogroup" aria-label="Stem colour">
-          <button
-            type="button"
-            role="radio"
-            class="stem-colors__swatch"
-            :class="{ 'stem-colors__swatch--on': c === selectedColor }"
-            :style="{ background: c }"
-            :aria-checked="c === selectedColor"
-            :aria-label="`Colour ${i + 1}`"
-            :key="c"
-            v-for="(c, i) in STEM_COLORS"
-            @click="setColor(selected.id, c)"
-          />
-        </div>
         <q-btn
           outline
           rounded
@@ -393,6 +385,31 @@
     <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
 
     <div ref="host" class="stem-editor__host" />
+
+    <q-dialog v-model="colorsOpen">
+      <q-card dark class="bg-[#1c1c1c]">
+        <q-card-section class="py-3">
+          <div class="font-bold">Colour of {{ selected?.name }}</div>
+        </q-card-section>
+        <q-card-section class="pt-0">
+          <div class="stem-colors" role="radiogroup" aria-label="Stem colour" v-if="selected">
+            <button
+              type="button"
+              role="radio"
+              class="stem-colors__swatch"
+              :class="{ 'stem-colors__swatch--on': c === selectedColor }"
+              :style="{ background: c }"
+              :aria-checked="c === selectedColor"
+              :aria-label="`Colour ${i + 1}`"
+              :key="c"
+              v-for="(c, i) in STEM_COLORS"
+              v-close-popup
+              @click="setColor(selected.id, c)"
+            />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <q-dialog v-model="pluginOpen" @hide="closePlugin">
       <q-card dark class="bg-[#1c1c1c] max-w-[95vw]">
@@ -1554,6 +1571,16 @@ const openEffects = async (e: Event) => {
   effectsMenu.value?.show();
 };
 
+const colorsOpen = ref(false);
+
+/** Open the colour choices for the stem whose colour button was pressed. */
+const openColors = (e: Event) => {
+  const { trackId } = (e as CustomEvent<{ trackId: string }>).detail;
+  if (!trackId || !tracks.has(trackId)) return;
+  selectTrack(trackId);
+  colorsOpen.value = true;
+};
+
 const typing = (target: EventTarget | null) =>
   target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
@@ -1913,6 +1940,7 @@ const listeners: [string, EventListener][] = [
   ['daw-recording-complete', (e) => void onRecordingComplete(e)],
   ['daw-recording-error', onRecordingError],
   ['tf-track-effects', (e) => void openEffects(e)],
+  ['tf-track-color', openColors],
   ['tf-track-select', (e) => selectTrack((e as CustomEvent<{ trackId: string }>).detail.trackId)],
 ];
 
@@ -2166,20 +2194,24 @@ defineExpose({
 
 .stem-dot {
   flex: none;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  cursor: pointer;
+  border: none;
   border-radius: 50%;
 }
 
 .stem-colors {
   display: flex;
   flex: none;
-  gap: 5px;
+  flex-wrap: wrap;
+  gap: 10px;
 
   &__swatch {
     flex: none;
-    width: 16px;
-    height: 16px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     cursor: pointer;
     border: 2px solid transparent;
