@@ -5,7 +5,7 @@ export type AgentRunStatus = 'queued' | 'planning' | 'running' | 'succeeded' | '
 
 export type AgentRunView = 'open' | 'succeeded' | 'failed';
 
-export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'release';
+export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'artwork' | 'release';
 
 export type AgentStepStatus = 'pending' | 'waiting' | 'done' | 'failed' | 'skipped';
 
@@ -27,6 +27,8 @@ export type AgentStep = {
     releaseId?: number;
   };
   published: boolean | null;
+  /** Why the step went on without its work, like artwork that couldn't be drawn */
+  notice: string | null;
   error: string | null;
   startedAt: string | null;
   finishedAt: string | null;
@@ -58,7 +60,7 @@ export type AgentRun = {
   id: number;
   prompt: string;
   status: AgentRunStatus;
-  options: { publish: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
+  options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
   plan: AgentPlan | null;
   counts: { artists: number; albums: number; tracks: number; songs: number } | null;
   progress: { done: number; total: number } | null;
@@ -90,6 +92,7 @@ export type AgentSettings = {
   maxSeconds: number;
   vocals: boolean;
   instrumentals: boolean;
+  artwork: boolean;
 };
 
 export type AgentRunsResponse = ResponseBody<AgentRun[]> & { agent: AgentSettings };
@@ -98,6 +101,7 @@ export type AgentRunForm = {
   prompt: string;
   owner_id: number | null;
   publish: boolean;
+  artwork: boolean;
   max_tracks: number;
   seconds: number;
   label: string;

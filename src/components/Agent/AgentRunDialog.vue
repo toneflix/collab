@@ -27,6 +27,7 @@
             <template v-if="run.queuedBy">queued by {{ run.queuedBy.name }} · </template>
             {{ run.credits }} credits used
             · {{ run.options.publish ? 'publishes albums' : 'albums stay drafts' }}
+            <template v-if="run.options.artwork"> · draws artwork</template>
           </div>
           <q-linear-progress
             rounded
@@ -71,6 +72,9 @@
             <div class="min-w-0">
               <div class="font-bold">{{ album.title }}</div>
               <div class="text-sm text-grey-5">{{ album.artist }} · {{ countStr(album.tracks.length, 'track') }}</div>
+              <div class="text-xs" :class="album.cover.color" :title="album.cover.title" v-if="album.cover">
+                {{ album.cover.label }}
+              </div>
             </div>
             <q-space />
             <StepState class="!flex-none" :step="album.release" />
@@ -223,6 +227,17 @@ const trackState = (key: string, instrumental: boolean) => {
   return { state: labels[next.kind] || 'Working', color: 'text-blue-4', error: null };
 };
 
+/** How an album's cover is coming along */
+const coverState = (step?: AgentStep) => {
+  if (!step) return null;
+  if (step.status === 'done' && step.notice) return { label: 'Cover art skipped', color: 'text-orange-4', title: step.notice };
+  if (step.status === 'done') return { label: 'Cover art ready', color: 'text-green-4', title: undefined };
+  if (step.status === 'failed' || step.status === 'skipped') return { label: 'No cover art', color: 'text-grey-6', title: step.error || undefined };
+  if (step.status === 'waiting') return { label: 'Drawing cover art', color: 'text-blue-4', title: undefined };
+
+  return { label: 'Cover art waiting', color: 'text-grey-6', title: undefined };
+};
+
 const albums = computed(() =>
   (run.value?.plan?.albums || []).map((album) => {
     const release = steps.value.get(`release:${album.key}`);
@@ -251,6 +266,7 @@ const albums = computed(() =>
       title: album.title,
       artist: run.value?.plan?.artists.find((a) => a.key === album.artist)?.name || '',
       release,
+      cover: coverState(steps.value.get(`cover:${album.key}`)),
       links,
       tracks: album.tracks.map((track) => ({ ...track, ...trackState(track.key, track.instrumental) })),
     };
