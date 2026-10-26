@@ -84,6 +84,65 @@
           </div>
         </q-card-section>
 
+        <q-card-section
+          class="flex flex-col gap-3 pt-0"
+          v-if="textable && picked !== null && !busy"
+        >
+          <q-toggle
+            dark
+            color="toneflix"
+            label="Put the title on the cover"
+            v-model="lettering"
+          />
+          <template v-if="lettering">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <q-input
+                dark
+                filled
+                dense
+                maxlength="80"
+                label="Title"
+                v-model="text.title"
+              />
+              <q-input
+                dark
+                filled
+                dense
+                maxlength="60"
+                label="Artist"
+                v-model="text.artist"
+              />
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <q-btn-toggle
+                dense
+                no-caps
+                rounded
+                unelevated
+                toggle-color="toneflix"
+                color="grey-9"
+                class="!flex-none"
+                padding="xs md"
+                :options="coverTextPositions"
+                v-model="text.position"
+              />
+              <q-btn-toggle
+                dense
+                no-caps
+                rounded
+                unelevated
+                toggle-color="toneflix"
+                color="grey-9"
+                class="!flex-none"
+                padding="xs md"
+                :options="coverTextStyles"
+                v-model="text.style"
+              />
+            </div>
+            <canvas ref="preview" class="cover-preview" />
+          </template>
+        </q-card-section>
+
         <q-card-actions align="right" v-if="images.length && !busy">
           <q-btn flat no-caps label="Cancel" v-close-popup />
           <q-btn
@@ -103,8 +162,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { notify } from 'src/utils/helpers';
+import {
+  coverTextPositions,
+  coverTextStyles,
+  drawCoverText,
+  loadImage,
+  type CoverText,
+} from 'src/utils/cover-text';
 import type { ResponseBody } from 'src/utils/models';
 import {
   generateArtworkRequest,
@@ -152,6 +218,56 @@ const gridClass = computed(() =>
   props.kind === 'artist_cover' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2',
 );
 
+/** Kinds that are covers, which can carry their title */
+const textable = computed(() =>
+  ['project', 'release', 'track', 'song'].includes(props.kind),
+);
+const lettering = ref(!!props.title);
+const text = reactive<CoverText>({
+  title: props.title ?? '',
+  artist: props.artist ?? '',
+  position: 'bottom',
+  style: 'bold',
+});
+const preview = ref<HTMLCanvasElement>();
+
+/** Downloaded images by their link, so the preview and the pick share one fetch */
+const blobs = new Map<string, Promise<Blob>>();
+
+const blobFor = (url: string) => {
+  if (!blobs.has(url)) {
+    blobs.set(
+      url,
+      fetch(url).then((response) => {
+        if (!response.ok) throw new Error();
+        return response.blob();
+      }),
+    );
+  }
+
+  return blobs.get(url)!;
+};
+
+const pickedImage = computed(() =>
+  images.value.find((i) => i.index === picked.value),
+);
+
+/** Draw the picked image with its title onto the preview. */
+const drawPreview = async () => {
+  await nextTick();
+  const image = pickedImage.value;
+  if (!lettering.value || !image || !preview.value) return;
+
+  try {
+    const loaded = await loadImage(await blobFor(image.url));
+    if (preview.value) drawCoverText(loaded, text, preview.value);
+  } catch {
+    blobs.delete(image.url);
+  }
+};
+
+watch([pickedImage, lettering, text, preview], drawPreview);
+
 const errorText = (e: unknown, fallback: string) => {
   const err = e as ResponseBody;
   const first = err?.errors ? Object.values(err.errors)[0] : undefined;
@@ -182,6 +298,12 @@ const poll = () => {
 
 /** Pick up the last artwork drawn for this kind, while its images last. */
 const resume = async () => {
+  if (!text.title) {
+    text.title = props.title ?? '';
+    lettering.value = !!text.title;
+  }
+  if (!text.artist) text.artist = props.artist ?? '';
+
   if (job.value) return poll();
 
   try {
@@ -222,15 +344,20 @@ const generate = async () => {
 };
 
 const use = async () => {
-  const image = images.value.find((i) => i.index === picked.value);
+  const image = pickedImage.value;
   if (!image) return;
 
   using.value = true;
   try {
-    const response = await fetch(image.url);
-    if (!response.ok) throw new Error();
+    let blob = await blobFor(image.url);
 
-    const blob = await response.blob();
+    if (textable.value && lettering.value && text.title.trim()) {
+      const canvas = drawCoverText(await loadImage(blob), text);
+      blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject()), 'image/jpeg', 0.92),
+      );
+    }
+
     const file = new File([blob], `artwork-${props.kind}.jpg`, {
       type: 'image/jpeg',
     });
@@ -266,5 +393,13 @@ onBeforeUnmount(stop);
   &--active:hover {
     border-color: var(--q-toneflix);
   }
+}
+
+.cover-preview {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  border-radius: 6px;
+  align-self: center;
 }
 </style>
