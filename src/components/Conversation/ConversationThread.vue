@@ -229,7 +229,7 @@ import { conversationKey, useConversationStore } from 'src/stores/conversation-s
 import { avatarFallback } from 'src/utils/imageFallback';
 import { notify } from 'src/utils/helpers';
 import { useRealtimeChannel } from 'src/utils/realtime';
-import { MAX_RECORDING, useVoiceRecorder } from 'src/utils/voiceRecorder';
+import { useVoiceRecorder } from 'src/utils/voiceRecorder';
 import VoiceNote from './VoiceNote.vue';
 import {
   deleteMessageRequest,
@@ -461,7 +461,7 @@ const startRecording = async () => {
   if (readonly.value || recorder.recording.value) return;
   starting.value = true;
   const ok = await recorder.start(() => {
-    notify(`Voice note limit reached. Sending.`, 'info');
+    notify('Voice note limit reached. Sending.', 'info');
     void sendVoice();
   });
   starting.value = false;
