@@ -83,8 +83,7 @@
           >
             <div class="ai__model">
               <q-icon name="lucide-sparkles" size="14px" class="!flex-none" />
-              <span class="min-w-0 truncate">{{ account.music.name }}</span>
-              <span class="!flex-none text-grey-6">· {{ musicPrice(account.music) }}</span>
+              <span>{{ musicPrice(account.music) }}</span>
             </div>
             <q-input
               dark
@@ -130,7 +129,7 @@
                 :hint="
                   account.music.lyricsRequired
                     ? 'Mark parts with [verse], [chorus], [bridge] and [outro].'
-                    : `Mark parts with [verse], [chorus] and [bridge]. Leave it empty and ${account.music.name} writes the lyrics.`
+                    : `Mark parts with [verse], [chorus] and [bridge]. Leave it empty and AI writes the lyrics.`
                 "
                 :disable="disabled"
                 v-model="form.lyrics"
@@ -150,12 +149,12 @@
                 v-model="form.seconds"
               />
               <div class="text-xs text-grey-6" v-if="lengthIgnored">
-                {{ account.music.name }} follows the length when you write lyrics or ask for an
-                instrumental. Otherwise it picks one.
+                The length is followed when you write lyrics or ask for an
+                instrumental. Otherwise AI picks one.
               </div>
             </template>
             <div class="mt-4 text-xs text-grey-6" v-else>
-              {{ account.music.name }} picks the length from the lyrics.
+              The length comes from the lyrics.
             </div>
 
             <div class="mt-4" v-if="account.music.references.length">
@@ -218,13 +217,13 @@
               <div class="mt-1 text-xs text-grey-6">
                 MP3 or WAV longer than {{ account.music.referenceMinSeconds }} seconds. The new song
                 follows its {{ referenceHint }}<template v-if="!account.music.lyricsRequired"
-                  >, and {{ account.music.name }} writes the lyrics</template
+                  >, and AI writes the lyrics</template
                 >.
               </div>
             </div>
 
             <div class="mt-4 text-xs text-grey-6" v-if="account.music.instrumentalOnly">
-              {{ account.music.name }} makes instrumentals, with no vocals.
+              Music is made as instrumentals, with no vocals.
             </div>
             <q-toggle
               dark
