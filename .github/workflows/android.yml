@@ -1,6 +1,8 @@
 name: Android
 
 # A push to the playstore branch builds a signed app bundle and sends it to Google Play.
+# A manual run builds the same signed bundle and APK and keeps them as run artifacts;
+# it uploads to Google Play only when "deploy" is ticked.
 # Pull requests that touch the app only check that the Android project builds.
 on:
   push:
@@ -13,6 +15,11 @@ on:
       - quasar.config.ts
       - .github/workflows/android.yml
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: Upload the bundle to Google Play
+        type: boolean
+        default: false
 
 concurrency:
   group: android-${{ github.ref }}
@@ -27,6 +34,7 @@ jobs:
       VITE_APP_ENVIRONMENT: production
       VITE_API_ENVIRONMENT: production
       RELEASE: ${{ github.event_name != 'pull_request' }}
+      DEPLOY: ${{ github.event_name == 'push' || inputs.deploy == true }}
 
     steps:
       - uses: actions/checkout@v4
@@ -105,18 +113,21 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew bundleRelease --no-daemon
+        run: ./gradlew bundleRelease assembleRelease --no-daemon
 
-      - name: Keep the bundle
+      # The bundle is what Google Play takes; the APK installs directly on a phone
+      - name: Keep the bundle and APK
         if: env.RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: toneflix-music-${{ env.ANDROID_VERSION_CODE }}
-          path: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
+          path: |
+            src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
+            src-capacitor/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       - name: Upload to Google Play
-        if: env.RELEASE == 'true'
+        if: env.DEPLOY == 'true'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
