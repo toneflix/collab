@@ -315,6 +315,87 @@
             </div>
           </div>
 
+          <q-form
+            class="ai__section"
+            v-else-if="tool === 'edit'"
+            @submit="startEdit"
+          >
+            <div class="ai__model">
+              <q-icon name="lucide-wand-sparkles" size="14px" class="!flex-none" />
+              <span class="min-w-0 truncate">{{ editEngine }}</span>
+              <span class="!flex-none text-grey-6">· {{ account.costs.edit }} credits per edit</span>
+            </div>
+            <div class="ai__notice mb-3" v-if="!editEngineReady">
+              Section edits run on {{ editEngine }}, which isn't set up yet.
+            </div>
+            <div class="ai__part" v-if="section">
+              <q-icon name="lucide-audio-lines" size="18px" class="!flex-none text-toneflix" />
+              <div class="min-w-0">
+                <div class="text-sm truncate">{{ stemTitle(section.stem) }}</div>
+                <div class="text-xs text-grey-6">
+                  {{ formatClock(section.at) }} to {{ formatClock(section.until) }} ·
+                  {{ (section.until - section.at).toFixed(1) }} s
+                </div>
+              </div>
+            </div>
+            <div class="text-sm text-grey-6" v-else>
+              Drag across a stem on the timeline to select the part to change,
+              then press the wand button above the tracks.
+            </div>
+            <div class="mt-2 text-xs text-grey-6" v-if="editShort">
+              {{ editEngine }} rewrites at least
+              {{ account.edit?.minSeconds }} seconds, so the audio around your
+              selection is rewritten with it and only your selection is kept.
+            </div>
+
+            <q-input
+              dark
+              filled
+              autogrow
+              counter
+              class="mt-4"
+              maxlength="500"
+              input-class="ai__prompt"
+              placeholder="Describe the change, like &quot;Busier hi-hats with a snare roll at the end&quot;"
+              :disable="disabled"
+              v-model="editForm.prompt"
+            />
+            <div class="mt-2 ai__label">
+              Lyrics <span class="normal-case">(optional)</span>
+            </div>
+            <q-input
+              dark
+              filled
+              autogrow
+              maxlength="3000"
+              placeholder="What's sung in this part. Leave it empty for no vocals."
+              :disable="disabled"
+              v-model="editForm.lyrics"
+            />
+            <div class="mt-3 text-xs text-grey-6">
+              The edit goes on a new stem in the same place, and the original
+              is muted.
+            </div>
+            <q-btn
+              unelevated
+              rounded
+              no-caps
+              color="toneflix"
+              type="submit"
+              class="mt-4 full-width"
+              label="Edit section"
+              :loading="starting === 'edit'"
+              :disable="
+                disabled ||
+                !section ||
+                !editEngineReady ||
+                editForm.prompt.trim().length < 3 ||
+                (account.costs.edit ?? 0) > account.balance.total ||
+                !!starting
+              "
+            />
+          </q-form>
+
           <div class="ai__section">
             <div class="flex items-center justify-between">
               <div class="ai__label">On this track</div>
@@ -434,11 +515,12 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { pickStyles } from 'src/utils/ai/music-styles';
 import { notify } from 'src/utils/helpers';
-import { stemTitle, type Stem } from 'src/utils/daw';
+import { formatClock, stemTitle, type SectionSelection, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
 import {
   awaitingPick,
   chooseVersionRequest,
+  editSectionRequest,
   generateMusicRequest,
   jobDone,
   loadAiAccountRequest,
@@ -447,6 +529,7 @@ import {
   musicPrice,
   splitStemRequest,
   type AiAccount,
+  type AiEngine,
   type AiJob,
   type MusicForm,
   type ReferenceKind,
@@ -478,7 +561,7 @@ const $q = useQuasar();
 const open = ref(false);
 const account = ref<AiAccount>();
 const jobs = ref<AiJob[]>([]);
-const starting = ref<'music' | 'stems' | null>(null);
+const starting = ref<'music' | 'stems' | 'edit' | null>(null);
 const splitId = ref<string | number | null>(null);
 const form = reactive({
   prompt: '',
@@ -544,7 +627,7 @@ const partsText = computed(() =>
     : 'vocals, drums, bass and other',
 );
 
-const tool = ref<'music' | 'stems' | null>(null);
+const tool = ref<'music' | 'stems' | 'edit' | null>(null);
 
 const tools = computed(() => {
   const acc = account.value;
@@ -574,6 +657,17 @@ const tools = computed(() => {
       icon: 'lucide-git-branch',
       cost: acc ? `${acc.costs.stems} credits` : '',
     },
+    ...(acc?.costs.edit
+      ? [
+          {
+            key: 'edit' as const,
+            title: 'Edit a section',
+            text: 'Select part of a stem and describe how it should change.',
+            icon: 'lucide-wand-sparkles',
+            cost: `${acc.costs.edit} credits`,
+          },
+        ]
+      : []),
   ];
 });
 
@@ -651,6 +745,7 @@ const jobTitle = (job: AiJob) =>
     music: job.prompt,
     stems: 'Split into stems',
     lyrics: `Lyrics from ${job.title || 'a stem'}`,
+    edit: `${job.title || 'Stem'}: ${job.prompt}`,
   })[job.kind];
 
 const statusText = (job: AiJob) =>
@@ -660,6 +755,7 @@ const statusText = (job: AiJob) =>
       music: 'Composing, about a minute',
       stems: 'Splitting',
       lyrics: 'Listening',
+      edit: 'Rewriting the section',
     }[job.kind],
     succeeded:
       job.kind === 'lyrics'
@@ -798,6 +894,63 @@ const generate = async () => {
   }
 };
 
+/** The part of a stem picked in the DAW for a section edit */
+const section = ref<SectionSelection | null>(null);
+const editForm = reactive({ prompt: '', lyrics: '' });
+
+const engineNames: Record<AiEngine, string> = {
+  replicate: 'Replicate',
+  suno: 'Suno',
+  cloudflare: 'Cloudflare Workers AI',
+};
+const editEngine = computed(() => engineNames[account.value?.edit?.engine ?? 'suno']);
+const editEngineReady = computed(() => {
+  const engine = account.value?.edit?.engine;
+  return !!engine && !!account.value?.engines[engine];
+});
+/** Whether the selection is shorter than the engine rewrites */
+const editShort = computed(
+  () =>
+    !!section.value &&
+    !!account.value?.edit &&
+    section.value.end - section.value.start < account.value.edit.minSeconds,
+);
+
+/** Open the section edit tool on a part of a stem selected in the DAW. */
+const editSection = (region: SectionSelection) => {
+  section.value = region;
+  tool.value = 'edit';
+  open.value = true;
+};
+
+const startEdit = async () => {
+  if (!section.value) return;
+  starting.value = 'edit';
+  try {
+    const { data, message } = await editSectionRequest(
+      props.projectId,
+      props.trackId,
+      section.value.stem.id,
+      {
+        prompt: editForm.prompt.trim(),
+        lyrics: editForm.lyrics.trim() || undefined,
+        start: section.value.start,
+        end: section.value.end,
+      },
+    ).send();
+    notify(message, 'success');
+    onJob(data);
+    section.value = null;
+    editForm.prompt = '';
+    editForm.lyrics = '';
+    void loadAccount();
+  } catch (e) {
+    notify(errorText(e, "The edit couldn't be started."), 'error');
+  } finally {
+    starting.value = null;
+  }
+};
+
 const split = async () => {
   if (!splitId.value) return;
   starting.value = 'stems';
@@ -873,7 +1026,7 @@ onBeforeUnmount(() => {
   player?.removeAttribute('src');
 });
 
-defineExpose({ toggle, onJob });
+defineExpose({ toggle, onJob, editSection });
 </script>
 
 <style lang="scss" scoped>
@@ -967,6 +1120,16 @@ defineExpose({ toggle, onJob });
   :deep(.ai__lyrics) {
     min-height: 120px;
     line-height: 1.45;
+  }
+
+  &__part {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
   }
 
   &__model {

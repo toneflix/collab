@@ -321,6 +321,15 @@
                 :hint="fields.ai_music_max_seconds?.hint"
                 v-model.number="form.ai_music_max_seconds"
               />
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="1"
+                :label="fields.ai_edit_credits?.title"
+                :hint="fields.ai_edit_credits?.hint"
+                v-model.number="form.ai_edit_credits"
+              />
             </div>
 
             <div class="mt-8 text-sm" v-if="settings.client.packs.length">
@@ -622,6 +631,7 @@ const form = reactive({
   ai_stems_suno_type: 'split_stem',
   ai_stems_suno_credits: 50 as number | string,
   ai_music_max_seconds: 300 as number | string,
+  ai_edit_credits: 5 as number | string,
   ai_lyrics_engine: 'replicate' as AiEngine,
   ai_lyrics_auto: true,
   ai_lyrics_credits: 2 as number | string,
@@ -704,8 +714,13 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     key: 'credits',
     icon: 'lucide-coins',
     title: 'Credits',
-    caption: 'Credit price, packs and the longest song.',
-    fields: ['ai_credit_price', 'ai_credit_packs', 'ai_music_max_seconds'],
+    caption: 'Credit price, packs, the longest song and section edits.',
+    fields: [
+      'ai_credit_price',
+      'ai_credit_packs',
+      'ai_music_max_seconds',
+      'ai_edit_credits',
+    ],
   },
   {
     key: 'lyrics',
@@ -818,6 +833,7 @@ const fill = (data: AiAdminSettings) => {
   form.ai_stems_suno_type = f.ai_stems_suno_type?.value ?? 'split_stem';
   form.ai_stems_suno_credits = Number(f.ai_stems_suno_credits?.value ?? 50);
   form.ai_music_max_seconds = Number(f.ai_music_max_seconds?.value ?? 300);
+  form.ai_edit_credits = Number(f.ai_edit_credits?.value ?? 5);
   form.ai_lyrics_engine = (f.ai_lyrics_engine?.value ??
     'replicate') as AiEngine;
   form.ai_lyrics_auto = f.ai_lyrics_auto?.value === '1';
