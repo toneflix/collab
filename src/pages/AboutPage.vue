@@ -4,7 +4,7 @@
       <h1 class="text-3xl font-bold">About Toneflix Music</h1>
 
       <p class="about__lead">
-        Toneflix Music is a community music platform that brings artists,
+        Toneflix Music is a community-driven music platform that brings artists,
         producers, creators and music lovers together through streaming,
         discovery, music creation and collaboration.
       </p>
