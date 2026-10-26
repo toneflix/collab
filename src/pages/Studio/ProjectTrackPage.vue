@@ -143,14 +143,16 @@
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"
+        @job="(e: AiJob) => lyricsPanel?.onJob(e)"
         v-if="!viewOnly"
       >
-        <template #default="{ toggle, open }">
+        <template #default="{ toggle, open, busy }">
           <ActionButton
             label="AI tools"
             icon="lucide-sparkles"
             :expanded="expanded"
             :active="open"
+            :glow="busy"
             @click="toggle"
           />
         </template>
@@ -166,12 +168,13 @@
         :seek="(s: number) => editor?.seek(s)"
         dock="#studio-dock"
       >
-        <template #default="{ toggle, open }">
+        <template #default="{ toggle, open, busy }">
           <ActionButton
             label="Lyrics"
             icon="lucide-file-text"
             :expanded="expanded"
             :active="open"
+            :glow="busy"
             @click="toggle"
           />
         </template>
@@ -1119,8 +1122,8 @@ useRealtimeChannel(
       }
     },
     'ai.job': (e: RealtimeMeta & AiJob) => {
-      aiPanel.value?.onJob(e);
-      lyricsPanel.value?.onJob(e);
+      if (aiPanel.value) aiPanel.value.onJob(e);
+      else lyricsPanel.value?.onJob(e);
     },
     'lyrics.updated': (e: RealtimeMeta & { lyrics: Lyrics | null }) =>
       lyricsPanel.value?.onRemote(e.lyrics, who(e)),

@@ -1,5 +1,5 @@
 <template>
-  <slot :toggle="toggle" :open="open" />
+  <slot :toggle="toggle" :open="open" :busy="busy" />
   <StudioSheet :dock="dock" v-model="open" @show="refresh" @hide="tool = null">
     <q-card dark class="ai" :class="{ 'ai--mobile': $q.screen.lt.sm }">
       <header class="ai__head">
@@ -467,7 +467,11 @@ const props = defineProps<{
   dock?: string;
 }>();
 
-const emit = defineEmits<{ finished: [job: AiJob] }>();
+const emit = defineEmits<{
+  finished: [job: AiJob];
+  /** Every job update for this track, lyric jobs included. */
+  job: [job: AiJob];
+}>();
 
 const $q = useQuasar();
 
@@ -606,6 +610,12 @@ const cost = computed(() =>
 const stemOptions = computed(() =>
   props.stems.map((s) => ({ label: stemTitle(s), value: s.id })),
 );
+/** Whether a job other than a lyric job is queued or running. */
+const busy = computed(() =>
+  jobs.value.some(
+    (j) => j.kind !== 'lyrics' && (j.status === 'queued' || j.status === 'running'),
+  ),
+);
 const unfinished = computed(() =>
   jobs.value.some((j) => j.status === 'queued' || j.status === 'running' || j.choosing != null),
 );
@@ -691,6 +701,8 @@ const prompted = new Set<number>();
  */
 const onJob = (job: AiJob) => {
   if (String(job.trackId) !== String(props.trackId)) return;
+
+  emit('job', job);
 
   const at = jobs.value.findIndex((j) => j.id === job.id);
   if (at >= 0) jobs.value.splice(at, 1, job);
