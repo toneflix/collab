@@ -1,7 +1,7 @@
 <template>
   <q-btn
     color="negative"
-    icon="delete"
+    icon="lucide-trash-2"
     :loading="loading"
     @click="confirm"
     v-if="validate"

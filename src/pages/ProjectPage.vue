@@ -17,7 +17,7 @@
               rounded
               with-notifications
               size="2.4em"
-              icon="eva-hash"
+              icon="lucide-hash"
               dropdown-icon="none"
               color="dark-opaque"
               class="!flex-none opacity-90 rounded-full"
@@ -27,7 +27,7 @@
               :links="[
                 {
                   label: 'Project Studio',
-                  icon: 'fas fa-expand',
+                  icon: 'lucide-expand',
                   show: project.isCollaber || project.isOwner,
                   to: {
                     name: 'studio.project',
@@ -36,7 +36,7 @@
                 },
                 {
                   label: 'Edit Project',
-                  icon: 'fas fa-edit',
+                  icon: 'lucide-pencil',
                   show: project.isOwner,
                   to: {
                     name: 'studio.projects.create',
@@ -45,7 +45,7 @@
                 },
                 {
                   label: 'Request to Join',
-                  icon: 'fas fa-user-plus',
+                  icon: 'lucide-user-plus',
                   color: 'green',
                   show:
                     !project.isCollaber &&
@@ -57,7 +57,7 @@
                   label: project.pendingData
                     ? 'Cancel Request'
                     : 'Leave Project',
-                  icon: `fas fa-user-${project.pendingData ? 'times' : 'minus'}`,
+                  icon: project.pendingData ? 'lucide-user-x' : 'lucide-user-minus',
                   show:
                     (project.isCollaber || !!project.pendingData) &&
                     !project.isOwner,
@@ -109,7 +109,7 @@
                   >
                     <q-icon
                       color="white"
-                      :name="active ? ionHandLeft : ionHandLeftOutline"
+                      :name="active ? 'lucide-hand:fill' : 'lucide-hand'"
                       :fill="active"
                     />
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
@@ -120,7 +120,7 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none">
-                <q-icon color="white" name="eva-message-square" />
+                <q-icon color="white" name="lucide-message-square" />
                 &nbsp;{{ intStr(project.commentsCount) }}
               </span>
             </div>
@@ -139,7 +139,7 @@
         <CreatorList
           hide-all-link
           :special-icon="[
-            'check_circle',
+            'lucide-circle-check',
             (id: string | number) => id === project.userId,
           ]"
           :params="{ limit: 30, project_id: project.id }"
@@ -182,7 +182,6 @@ import {
   UserComment,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionHandLeft, ionHandLeftOutline } from '@quasar/extras/ionicons-v8';
 import { intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';

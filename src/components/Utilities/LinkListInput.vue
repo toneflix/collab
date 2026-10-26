@@ -17,7 +17,7 @@
         round
         dense
         class="!flex-none mt-1"
-        icon="fas fa-xmark"
+        icon="lucide-x"
         :aria-label="`Remove link ${i + 1}`"
         v-if="links.length > 1"
         @click="links.splice(i, 1)"
@@ -29,7 +29,7 @@
       dense
       no-caps
       size="sm"
-      icon="fas fa-plus"
+      icon="lucide-plus"
       label="Add another link"
       class="!flex-none self-start"
       v-if="links.length < max"

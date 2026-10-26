@@ -40,7 +40,7 @@
                 flat
                 dense
                 color="primary"
-                icon="send"
+                icon="lucide-send"
                 :loading="loading"
                 @click="formRef.submit()"
               />

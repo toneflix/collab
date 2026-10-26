@@ -4,7 +4,7 @@
       <q-form @submit="save">
         <q-card-section class="flex items-center justify-between flex-nowrap">
           <div class="text-lg font-bold">Edit artist profile</div>
-          <q-btn flat round dense icon="fas fa-xmark" class="!flex-none" v-close-popup />
+          <q-btn flat round dense icon="lucide-x" class="!flex-none" v-close-popup />
         </q-card-section>
 
         <q-card-section class="pt-0">
@@ -23,7 +23,7 @@
                   size="sm"
                   padding="xs md"
                   color="dark-opaque"
-                  icon="fas fa-image"
+                  icon="lucide-image"
                   class="absolute right-2 bottom-2"
                   :label="preview.cover ? 'Change cover' : 'Add cover photo'"
                   @click="open"
@@ -43,7 +43,7 @@
                 <q-avatar size="96px" class="relative cursor-pointer avatar" @click="open">
                   <q-img :ratio="1" :src="preview.image || artist.imageUrl" />
                   <div class="absolute-full flex items-center justify-center avatar-overlay">
-                    <q-icon name="fas fa-camera" size="18px" />
+                    <q-icon name="lucide-camera" size="18px" />
                   </div>
                 </q-avatar>
               </template>

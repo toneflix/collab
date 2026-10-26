@@ -6,7 +6,7 @@
         <q-badge rounded color="red-6" :label="store.unread" v-if="store.unread" />
       </div>
       <div class="inbox__search">
-        <q-icon name="search" size="18px" color="grey-6" class="!flex-none" />
+        <q-icon name="lucide-search" size="18px" color="grey-6" class="!flex-none" />
         <input type="search" placeholder="Search conversations" aria-label="Search conversations" v-model="search" />
       </div>
 
@@ -15,7 +15,7 @@
           <q-spinner size="22px" color="grey-6" />
         </div>
         <div class="inbox__empty" v-else-if="!filtered.length">
-          <q-icon name="forum" size="36px" color="grey-7" />
+          <q-icon name="lucide-messages-square" size="36px" color="grey-7" />
           <div class="mt-2 text-sm text-grey-5">
             {{
               search
@@ -62,7 +62,7 @@
             flat
             round
             dense
-            icon="arrow_back"
+            icon="lucide-arrow-left"
             aria-label="All conversations"
             class="!flex-none"
             :to="{ name: 'messages' }"
@@ -80,7 +80,7 @@
             size="sm"
             color="grey-4"
             class="!flex-none"
-            icon-right="arrow_outward"
+            icon-right="lucide-arrow-up-right"
             :label="narrow ? 'Open' : `Open ${noun}`"
             :to="link"
             v-if="link"
@@ -97,7 +97,7 @@
       </template>
 
       <div class="chat__empty" v-else>
-        <q-icon name="chat_bubble_outline" size="48px" color="grey-7" />
+        <q-icon name="lucide-message-circle" size="48px" color="grey-7" />
         <div class="mt-4 text-lg font-bold">Your conversations</div>
         <div class="text-sm text-grey-5">Pick one on the left to read and reply.</div>
       </div>

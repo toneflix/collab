@@ -13,10 +13,10 @@
         <q-avatar clickable color="white" size="25px" v-if="user.id">
           <img :src="user.imageUrl" />
         </q-avatar>
-        <q-icon class="rounded-full bg-grey" v-else name="person" />
+        <q-icon class="rounded-full bg-grey" v-else name="lucide-user" />
         <span class="ml-2 mr-6">{{ user.fullname || 'Guest' }}</span>
         <q-icon
-          name="fas fa-crown"
+          name="lucide-crown"
           color="amber-7"
           size="12px"
           class="-ml-5 mr-8"
@@ -120,48 +120,48 @@ const options = computed<ProfileOptions[]>(() =>
         {
           name: 'profile',
           to: 'preferences',
-          icon: 'account_circle',
+          icon: 'lucide-circle-user',
         },
         {
           name: 'settings',
           to: 'settings',
-          icon: 'settings',
+          icon: 'lucide-settings',
         },
         {
           name: 'Notifications',
           to: { name: 'account.notifications' },
-          icon: 'notifications',
+          icon: 'lucide-bell',
         },
         {
           name: 'Studio',
           to: { name: 'studio.home' },
-          icon: 'fas fa-microphone-lines',
+          icon: 'lucide-mic',
         },
         {
           name: user.value.isPremium ? 'Premium' : 'Go Premium',
           to: { name: 'premium' },
-          icon: 'fas fa-crown',
+          icon: 'lucide-crown',
         },
         {
           name: 'Purchases',
           to: { name: 'library.purchases' },
-          icon: 'fas fa-receipt',
+          icon: 'lucide-receipt',
         },
         {
           name: 'Earnings',
           to: { name: 'studio.earnings' },
-          icon: 'fas fa-sack-dollar',
+          icon: 'lucide-circle-dollar-sign',
         },
         {
           name: 'AI credits',
           to: { name: 'studio.credits' },
-          icon: 'fas fa-wand-magic-sparkles',
+          icon: 'lucide-wand-sparkles',
         },
         {
           hide: !allowedAdminLinks(user.value.permissions).length,
           name: 'Admin',
           to: { name: 'admin' },
-          icon: 'fas fa-gauge',
+          icon: 'lucide-gauge',
         },
       ].filter((e) => !e.hide),
     },
@@ -172,12 +172,12 @@ const options = computed<ProfileOptions[]>(() =>
         {
           name: 'FAQ',
           to: 'faq',
-          icon: 'quiz',
+          icon: 'lucide-circle-question-mark',
         },
         {
           name: 'Help And Support',
           href: 'https://discord.gg/u7fQdqQt8c',
-          icon: 'error',
+          icon: 'lucide-circle-alert',
         },
       ],
     },
@@ -189,13 +189,13 @@ const options = computed<ProfileOptions[]>(() =>
           hide: !!user.value.id,
           name: 'Login',
           to: { name: 'auth.login' },
-          icon: 'login',
+          icon: 'lucide-log-in',
         },
         {
           hide: !user.value.id,
           name: 'Logout',
           to: { name: 'auth.logout' },
-          icon: 'logout',
+          icon: 'lucide-log-out',
         },
       ].filter((e) => !e.hide),
     },

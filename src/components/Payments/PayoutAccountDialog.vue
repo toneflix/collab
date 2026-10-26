@@ -139,8 +139,8 @@
 
             <div class="flex items-center gap-2 px-4 py-2 rounded note" v-if="method.lookup === 'resolve' && (resolving || resolved || resolveError)">
               <q-spinner size="16px" class="!flex-none" v-if="resolving" />
-              <q-icon name="fas fa-circle-check" color="green-5" class="!flex-none" v-else-if="resolved" />
-              <q-icon name="fas fa-circle-exclamation" color="red-4" class="!flex-none" v-else />
+              <q-icon name="lucide-circle-check" color="green-5" class="!flex-none" v-else-if="resolved" />
+              <q-icon name="lucide-circle-alert" color="red-4" class="!flex-none" v-else />
               <span class="text-sm" :class="{ 'text-red-4': resolveError && !resolving }">
                 {{ resolving ? 'Checking the account…' : resolved?.accountName || resolveError }}
               </span>
@@ -161,7 +161,7 @@
             no-caps
             color="toneflix"
             class="!flex-none"
-            icon-right="fas fa-arrow-up-right-from-square"
+            icon-right="lucide-external-link"
             :label="`Continue to ${providerNames[country!.provider]}`"
             :loading="saving"
             @click="connect"

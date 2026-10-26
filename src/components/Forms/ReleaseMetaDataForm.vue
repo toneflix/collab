@@ -29,7 +29,7 @@
           trigger="click"
           class="inline-flex items-center justify-center"
         >
-          <q-icon name="info" />
+          <q-icon name="lucide-info" />
           <template #content>
             <p>
               An ISRC (International Standard Recording Code) is a unique
@@ -122,7 +122,7 @@
         v-model="form.releaseDate"
       >
         <template v-slot:append>
-          <q-icon name="event" class="cursor-pointer">
+          <q-icon name="lucide-calendar" class="cursor-pointer">
             <q-popup-proxy
               cover
               transition-show="scale"
@@ -145,7 +145,7 @@
           trigger="click"
           class="inline-flex items-center justify-center"
         >
-          <q-icon name="info" />
+          <q-icon name="lucide-info" />
           <template #content>
             <p>
               The ISWC (International Standard Musical Work Code) is a unique,
@@ -175,7 +175,7 @@
           trigger="click"
           class="inline-flex items-center justify-center"
         >
-          <q-icon name="info" />
+          <q-icon name="lucide-info" />
           <template #content>
             <p>
               P-line notice identify the owner of the rights in the original

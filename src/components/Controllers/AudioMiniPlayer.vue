@@ -13,7 +13,7 @@
           'right-3 -translate-y-[50%]': !miniMode,
           'right-1 -translate-y-[50%]': miniMode,
         }"
-        :icon="playing ? ionPauseOutline : ionPlayOutline"
+        :icon="playing ? 'lucide-pause' : 'lucide-play'"
         @click="togglePlay()"
       />
       <q-list dense>
@@ -76,7 +76,6 @@
 
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
-import { ionPlayOutline, ionPauseOutline } from '@quasar/extras/ionicons-v8';
 import { onBeforeUnmount, ref, watch } from 'vue';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';

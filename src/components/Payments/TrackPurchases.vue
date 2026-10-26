@@ -6,7 +6,7 @@
       unelevated
       size="sm"
       color="toneflix"
-      icon="fas fa-lock-open"
+      icon="lucide-lock-open"
       :label="`Buy ${track.release?.title || 'release'} for ${price(track.price)}`"
       :amount="track.price"
       :body="{ purpose: 'release', id: track.release?.id || '' }"
@@ -22,7 +22,7 @@
       no-caps
       size="sm"
       color="grey-9"
-      icon="fas fa-download"
+      icon="lucide-download"
       label="Download"
       :loading="downloading"
       @click="download"
@@ -34,7 +34,7 @@
       outline
       no-caps
       size="sm"
-      icon="fas fa-crown"
+      icon="lucide-crown"
       label="Download with Premium"
       :to="{ name: 'premium' }"
       v-else-if="!track.locked"
@@ -49,7 +49,7 @@
         no-caps
         size="sm"
         color="grey-9"
-        icon="fas fa-layer-group"
+        icon="lucide-layers"
         label="Download stems"
         :loading="loadingStems"
         @click="openStems"
@@ -60,7 +60,7 @@
         unelevated
         size="sm"
         color="toneflix"
-        icon="fas fa-layer-group"
+        icon="lucide-layers"
         :label="`Buy stems for ${price(track.stemsPrice)}`"
         :amount="track.stemsPrice"
         :body="{ purpose: 'stems', id: track.id }"
@@ -84,7 +84,7 @@
             v-for="stem in stems"
           >
             <q-item-section avatar>
-              <q-icon name="fas fa-wave-square" />
+              <q-icon name="lucide-audio-waveform" />
             </q-item-section>
             <q-item-section>
               <q-item-label>{{ stem.title }}</q-item-label>
@@ -93,7 +93,7 @@
               </q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-icon name="fas fa-download" />
+              <q-icon name="lucide-download" />
             </q-item-section>
           </q-item>
         </q-list>

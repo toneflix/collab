@@ -178,10 +178,10 @@ const loadingHistory = ref(false);
 const loadedHistory = ref(false);
 
 const icons: Record<CreditEntry['type'], string> = {
-  purchase: 'fas fa-cart-shopping',
-  spend: 'fas fa-wand-magic-sparkles',
-  refund: 'fas fa-rotate-left',
-  grant: 'fas fa-gift',
+  purchase: 'lucide-shopping-cart',
+  spend: 'lucide-wand-sparkles',
+  refund: 'lucide-rotate-ccw',
+  grant: 'lucide-gift',
 };
 
 const day = (value: string) => date.formatDate(value, 'MMM D');

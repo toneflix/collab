@@ -17,9 +17,8 @@
           <div>
             <h6 class="text-sm">
               <q-icon
-                name="verified"
+                name="lucide-badge-check"
                 color="toneflix"
-                class="verified-badge"
                 v-if="artist.verified"
               />
               {{ artist.verified ? 'Verified Creator' : 'Artist' }}
@@ -52,7 +51,7 @@
                     unelevated
                     size="sm"
                     padding="0 sm"
-                    :icon="following ? undefined : ionAdd"
+                    :icon="following ? undefined : 'lucide-plus'"
                     :label="following ? 'Unfollow' : 'Follow'"
                     :color="following ? 'primary' : undefined"
                     @click="submit"
@@ -101,7 +100,6 @@ import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { Artist, Category, PageMeta, Project } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionAdd } from '@quasar/extras/ionicons-v8';
 import { intStr } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

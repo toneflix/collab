@@ -6,7 +6,7 @@
       </q-avatar>
       <q-avatar v-else>
         <img :src="payout.user.imageUrl" v-if="payout.user.imageUrl" />
-        <q-icon name="person" v-else />
+        <q-icon name="lucide-user" v-else />
       </q-avatar>
     </q-item-section>
 

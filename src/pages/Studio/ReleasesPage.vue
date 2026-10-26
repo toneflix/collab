@@ -7,7 +7,7 @@
           <q-btn
             dense
             no-caps
-            icon="add"
+            icon="lucide-plus"
             size="md"
             label="Create Release"
             color="white"
@@ -48,12 +48,12 @@
               class="flex !flex-none flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
             >
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="fas fa-play" size=".6rem" />
+                <q-icon name="lucide-play:fill" size=".6rem" />
                 {{ intStr(release.streams) }}
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="fas fa-compact-disc" size=".7rem" />
+                <q-icon name="lucide-disc-3" size=".7rem" />
                 {{ intStr(release.tracksCount) }}
               </span>
               <q-badge
@@ -92,10 +92,9 @@
                 v-if="isLive(release)"
               >
                 <q-icon
-                  name="fas fa-check-circle"
+                  name="lucide-circle-check"
                   size=".7rem"
                   color="success"
-                  class="icon-fill"
                 />
               </span>
             </q-item-label>
@@ -110,13 +109,13 @@
               dense
               rounded
               with-notifications
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               dropdown-icon="none"
               color="white"
               :links="[
                 {
                   label: 'Edit Release',
-                  icon: 'fas fa-edit',
+                  icon: 'lucide-pencil',
                   to: {
                     name: 'studio.release.create',
                     params: { release_id: release.slug },
@@ -125,12 +124,12 @@
                 {
                   show: !release.draft && release.reviewStatus !== 'pending',
                   label: release.retired ? 'Restore Release' : 'Retire Release',
-                  icon: release.retired ? 'fas fa-rotate-left' : 'fas fa-box-archive',
+                  icon: release.retired ? 'lucide-rotate-ccw' : 'lucide-archive',
                   click: () => toggleRetired(release),
                 },
                 {
                   label: 'Delete Release',
-                  icon: 'fas fa-trash',
+                  icon: 'lucide-trash-2',
                   color: 'red',
                   action: 'delete',
                   target: `creator/releases/${release.id}`,

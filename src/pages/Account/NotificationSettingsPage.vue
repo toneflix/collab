@@ -10,7 +10,7 @@
       </div>
 
       <q-banner rounded dense class="mb-8 bg-green-10 text-white" v-if="unsubscribed">
-        <template #avatar><q-icon name="mark_email_read" /></template>
+        <template #avatar><q-icon name="lucide-mail-check" /></template>
         You won't get emails about {{ unsubscribed.title.toLowerCase() }} anymore. You can turn them back on below.
       </q-banner>
 
@@ -21,7 +21,7 @@
       <template v-else-if="settings">
         <section class="push-card">
           <div class="flex !flex-nowrap items-start gap-3">
-            <q-icon name="fas fa-mobile-screen-button" size="22px" class="!flex-none mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
+            <q-icon name="lucide-smartphone" size="22px" class="!flex-none mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
             <div>
               <div class="font-bold">Push on this device</div>
               <div class="text-sm text-grey-5">{{ pushText }}</div>

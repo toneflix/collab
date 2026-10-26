@@ -31,7 +31,7 @@
         <q-icon
           class="settings__chevron"
           size="14px"
-          name="fas fa-chevron-right"
+          name="lucide-chevron-right"
         />
       </router-link>
     </nav>
@@ -44,7 +44,7 @@
           dense
           size="sm"
           class="settings__back"
-          icon="fas fa-arrow-left"
+          icon="lucide-arrow-left"
           aria-label="All sections"
           :to="{ query: { ...route.query, section: undefined } }"
         />

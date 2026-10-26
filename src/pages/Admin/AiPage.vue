@@ -571,14 +571,14 @@ type FormKey = keyof typeof form;
 const sections: (SettingsSection & { fields: FormKey[] })[] = [
   {
     key: 'general',
-    icon: 'fas fa-power-off',
+    icon: 'lucide-power',
     title: 'Availability',
     caption: 'Whether the studio offers AI tools.',
     fields: ['ai_enabled'],
   },
   {
     key: 'engines',
-    icon: 'fas fa-plug',
+    icon: 'lucide-plug',
     title: 'Engines',
     caption: 'Replicate and Suno, and the keys they need.',
     fields: [],
@@ -586,14 +586,14 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   },
   {
     key: 'music',
-    icon: 'fas fa-music',
+    icon: 'lucide-music',
     title: 'Music generation',
     caption: 'The model songs are made with, and its price.',
     fields: ['ai_music_model', 'credits', 'ai_suno_model', 'ai_suno_keep_both'],
   },
   {
     key: 'stems',
-    icon: 'fas fa-layer-group',
+    icon: 'lucide-layers',
     title: 'Stem splitting',
     caption: 'Demucs or Suno, and what a split costs.',
     fields: [
@@ -605,14 +605,14 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   },
   {
     key: 'credits',
-    icon: 'fas fa-coins',
+    icon: 'lucide-coins',
     title: 'Credits',
     caption: 'Credit price, packs and the longest song.',
     fields: ['ai_credit_price', 'ai_credit_packs', 'ai_music_max_seconds'],
   },
   {
     key: 'lyrics',
-    icon: 'fas fa-align-left',
+    icon: 'lucide-text-align-start',
     title: 'Lyrics',
     caption: 'Transcription and the words that flag a track.',
     fields: [
@@ -624,14 +624,14 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   },
   {
     key: 'tags',
-    icon: 'fas fa-gauge',
+    icon: 'lucide-gauge',
     title: 'Tempo and key',
     caption: 'BPM and key tags on new tracks.',
     fields: ['ai_tags_auto'],
   },
   {
     key: 'composer',
-    icon: 'fas fa-pen-nib',
+    icon: 'lucide-pen-tool',
     title: 'Composer',
     caption: 'Word lookups, lyric suggestions and songs from lyrics.',
     fields: [
@@ -643,7 +643,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   },
   {
     key: 'moderator',
-    icon: 'fas fa-robot',
+    icon: 'lucide-bot',
     title: 'AI moderator',
     caption: 'Automatic reviews of claims and releases.',
     fields: [

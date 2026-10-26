@@ -28,14 +28,12 @@
           class="!text-gray-300 text-md md:text-lg w-32 md:w-40 break-words"
         >
           <q-icon
-            name="verified"
+            name="lucide-badge-check"
             color="toneflix"
-            class="verified-badge"
             v-if="creator.verified"
           />
           <q-icon
             color="orange"
-            class="verified-badge"
             :name="specialIcon[0]"
             v-if="specialIcon && specialIcon[1](creator.id)"
           />

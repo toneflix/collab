@@ -9,7 +9,7 @@
           outline
           no-caps
           size="sm"
-          icon="fas fa-crown"
+          icon="lucide-crown"
           label="Premium"
           :to="{ name: 'premium' }"
         />

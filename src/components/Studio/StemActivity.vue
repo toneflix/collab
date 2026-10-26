@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionCloudDownload, ionCloudUpload, ionPhonePortrait, ionPulse } from '@quasar/extras/ionicons-v8';
 import { computed } from 'vue';
 
 export type ActivityPhase = 'download' | 'cached' | 'decode' | 'upload';
@@ -58,10 +57,10 @@ const props = defineProps<{
 }>();
 
 const icons: Record<ActivityPhase, string> = {
-  download: ionCloudDownload,
-  cached: ionPhonePortrait,
-  decode: ionPulse,
-  upload: ionCloudUpload,
+  download: 'lucide-cloud-download',
+  cached: 'lucide-smartphone',
+  decode: 'lucide-activity',
+  upload: 'lucide-cloud-upload',
 };
 
 const loading = computed(() => props.items.filter((i) => i.phase !== 'upload').length);

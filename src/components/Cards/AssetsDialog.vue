@@ -1,6 +1,6 @@
 <template>
   <slot :toggle="() => (toggle = !toggle)">
-    <q-btn icon="fas fa-folder" v-bind="$attrs" @click="toggle = !toggle">
+    <q-btn icon="lucide-folder" v-bind="$attrs" @click="toggle = !toggle">
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
@@ -17,7 +17,7 @@
           <div>
             <q-btn
               padding="xs sm"
-              icon="fas fa-cloud-upload"
+              icon="lucide-cloud-upload"
               color="primary"
               :disable="readonly"
             />
@@ -63,11 +63,11 @@
                   v-model="form.file"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="fas fa-cloud-upload" @click.stop.prevent />
+                    <q-icon name="lucide-cloud-upload" @click.stop.prevent />
                   </template>
                   <template v-slot:append>
                     <q-icon
-                      name="close"
+                      name="lucide-x"
                       @click.stop.prevent="form.file = undefined"
                       class="cursor-pointer"
                     />
@@ -90,7 +90,7 @@
             </q-popup-edit>
           </div>
         </q-toolbar-title>
-        <q-btn flat round dense icon="close" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[50vh]">
@@ -100,18 +100,18 @@
             dense
             no-animation
             color="primary"
-            icon="fas fa-file-waveform"
+            icon="lucide-file-audio"
             :title="String(stem.title || stem.name)"
             :key="i"
             :links="[
               {
                 label: formatBytes(stem.size, 2, true),
-                icon: 'fas fa-box-open',
+                icon: 'lucide-package-open',
                 color: 'white',
               },
               {
                 label: 'Download Asset',
-                icon: 'fas fa-cloud-download',
+                icon: 'lucide-cloud-download',
                 color: 'white',
                 click: () => download(stem.src as string, stem.name, '.wav'),
               },
@@ -124,7 +124,7 @@
                   flat
                   dense
                   size="xs"
-                  icon="fas fa-edit"
+                  icon="lucide-pencil"
                   color="white"
                   :disable="readonly"
                 />
@@ -176,18 +176,18 @@
             :links="[
               {
                 label: formatBytes(asset.size, 2, true),
-                icon: 'fas fa-box-open',
+                icon: 'lucide-package-open',
                 color: 'white',
               },
               {
                 label: 'Download File',
-                icon: 'fas fa-cloud-download',
+                icon: 'lucide-cloud-download',
                 color: 'white',
                 click: () => download(asset.src, asset.name),
               },
               {
                 label: 'Delete File',
-                icon: 'fas fa-trash',
+                icon: 'lucide-trash-2',
                 color: 'negative',
                 target: `creator/projects/${track.projectId}/tracks/${track.id}/assets/${asset.id}`,
                 action: 'delete',
@@ -295,16 +295,16 @@ onSuccess(({ data }) => {
 
 const icon = (type: FileType) => {
   const set = {
-    pdf: 'fas fa-file-pdf',
+    pdf: 'lucide-file-text',
     lrc: 'svguse:/icons.svg#lrc-fill|0 0 512 512',
-    zip: 'fas fa-file-zipper',
-    txt: 'fas fa-file-lines',
-    text: 'fas fa-file-lines',
-    audio: 'fas fa-file-audio',
-    image: 'fas fa-file-image',
+    zip: 'lucide-file-archive',
+    txt: 'lucide-file-text',
+    text: 'lucide-file-text',
+    audio: 'lucide-file-music',
+    image: 'lucide-file-image',
   };
 
-  return set[type] || 'fas fa-file-circle-question';
+  return set[type] || 'lucide-file-question-mark';
 };
 
 const download = (src: string, name: string, ext: string = '') => {

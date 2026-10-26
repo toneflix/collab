@@ -48,10 +48,10 @@
             <q-icon
               :name="
                 track.locked
-                  ? 'fas fa-lock'
+                  ? 'lucide-lock'
                   : player.isPlaying(track)
-                    ? ionPauseCircle
-                    : ionPlayCircle
+                    ? 'lucide-circle-pause'
+                    : 'lucide-circle-play'
               "
             />
             <q-tooltip v-if="track.locked">
@@ -65,7 +65,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionPauseCircle, ionPlayCircle } from '@quasar/extras/ionicons-v8';
 import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';

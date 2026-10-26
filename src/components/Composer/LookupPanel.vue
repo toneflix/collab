@@ -11,7 +11,7 @@
           placeholder="Look up a word"
           v-model="word"
         >
-          <template #prepend><q-icon :name="ionSearch" size="18px" /></template>
+          <template #prepend><q-icon name="lucide-search" size="18px" /></template>
         </q-input>
       </div>
       <q-tabs dense no-caps align="left" class="px-2 mt-2 text-grey-5" active-color="toneflix" indicator-color="toneflix" v-model="tab">
@@ -80,7 +80,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionSearch } from '@quasar/extras/ionicons-v8';
 import { computed, ref, watch } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';
 import {

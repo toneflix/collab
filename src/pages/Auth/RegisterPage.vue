@@ -185,7 +185,7 @@
                 color="primary"
                 class="mb-12 text-xl rounded-lg md:!mb-0"
                 label="Create your account"
-                icon-right="chevron_right"
+                icon-right="lucide-chevron-right"
                 :loading="loading"
               />
 

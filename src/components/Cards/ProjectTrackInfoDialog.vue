@@ -1,6 +1,6 @@
 <template>
   <slot :toggle="() => (toggle = !toggle)">
-    <q-btn icon="fas fa-info-circle" v-bind="$attrs" @click="toggle = !toggle">
+    <q-btn icon="lucide-info" v-bind="$attrs" @click="toggle = !toggle">
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
@@ -11,7 +11,7 @@
           <span class="text-bold">{{ project.title }} Project:</span>
           {{ track.id ? `Update Track (${track.title})` : 'Create Track' }}
         </q-toolbar-title>
-        <q-btn flat round dense icon="close" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[60vh]">

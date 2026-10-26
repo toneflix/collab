@@ -19,7 +19,7 @@
               color="dark-opaque"
               size="xl"
               class="!flex-none opacity-90"
-              :icon="playing ? ionPause : ionPlay"
+              :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
           </template>
@@ -28,9 +28,8 @@
           <div>
             <h6 class="text-sm">
               <q-icon
-                name="verified"
+                name="lucide-badge-check"
                 color="toneflix"
-                class="verified-badge"
                 v-if="artist.verified"
               />
               {{ artist.verified ? 'Verified Artist' : 'Artist' }}
@@ -62,7 +61,7 @@
                     unelevated
                     size="sm"
                     padding="0 sm"
-                    :icon="following ? undefined : ionAdd"
+                    :icon="following ? undefined : 'lucide-plus'"
                     :label="following ? 'Unfollow' : 'Follow'"
                     :color="following ? 'primary' : undefined"
                     @click="submit"
@@ -84,7 +83,7 @@
                   outline
                   size="sm"
                   padding="0 sm"
-                  icon="fas fa-pen"
+                  icon="lucide-pen"
                   label="Edit profile"
                   @click="editing = true"
                 />
@@ -97,7 +96,7 @@
                   outline
                   size="sm"
                   padding="0 sm"
-                  icon="fas fa-id-badge"
+                  icon="lucide-id-card"
                   label="Claim this artist"
                   @click="claimDialog?.open()"
                 />
@@ -109,11 +108,11 @@
             </p>
             <div class="claim-status" v-if="artist.claimable && artist.yourClaim">
               <template v-if="artist.yourClaim.status === 'pending'">
-                <q-icon name="fas fa-hourglass-half" color="orange-5" class="!flex-none" />
+                <q-icon name="lucide-hourglass" color="orange-5" class="!flex-none" />
                 <span>Your claim is being reviewed. We'll let you know when a moderator decides.</span>
               </template>
               <template v-else-if="artist.yourClaim.status === 'rejected'">
-                <q-icon name="fas fa-circle-xmark" color="red-5" class="!flex-none" />
+                <q-icon name="lucide-circle-x" color="red-5" class="!flex-none" />
                 <span>
                   Your claim was declined<template v-if="artist.yourClaim.reviewNote">: {{ artist.yourClaim.reviewNote }}</template>.
                   You can send a new one with more proof.
@@ -183,7 +182,6 @@ import {
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import { ionAdd, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { intStr } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

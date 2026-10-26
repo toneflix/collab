@@ -16,7 +16,7 @@
 
     <div class="py-10 text-center" v-if="loading && !claims.length"><q-spinner size="md" /></div>
     <div class="py-12 text-center text-grey-5" v-else-if="!claims.length">
-      <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" v-if="status === 'pending'" />
+      <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" v-if="status === 'pending'" />
       <div>
         {{ search ? 'No claims match your search.' : status === 'pending' ? 'No artist claims waiting for review.' : 'Nothing here yet.' }}
       </div>
@@ -59,7 +59,7 @@
             </div>
             <div class="flex items-center gap-3 text-xs text-grey-5 !flex-none">
               {{ timeAgoStamp(claim.createdAt) }}
-              <q-icon name="fas fa-chevron-down" size="12px" class="transition-transform" :class="{ 'rotate-180': expanded[claim.id] }" />
+              <q-icon name="lucide-chevron-down" size="12px" class="transition-transform" :class="{ 'rotate-180': expanded[claim.id] }" />
             </div>
           </div>
 
@@ -83,7 +83,7 @@
                     :key="link"
                     v-for="link in claim.links"
                   >
-                    <q-icon name="fas fa-link" size="10px" class="!flex-none" /> {{ link }}
+                    <q-icon name="lucide-link" size="10px" class="!flex-none" /> {{ link }}
                   </a>
                 </div>
                 <div v-if="claim.hasDocument">
@@ -93,7 +93,7 @@
                     no-caps
                     size="sm"
                     color="white"
-                    icon="fas fa-paperclip"
+                    icon="lucide-paperclip"
                     label="Open supporting document"
                     class="!flex-none"
                     :loading="busy === `document:${claim.id}`"
@@ -131,7 +131,7 @@
                     no-caps
                     size="sm"
                     color="green-9"
-                    icon="fas fa-check"
+                    icon="lucide-check"
                     label="Approve and link artist"
                     class="!flex-none"
                     :loading="busy === `approve:${claim.id}`"
@@ -143,7 +143,7 @@
                     no-caps
                     size="sm"
                     color="white"
-                    icon="fas fa-xmark"
+                    icon="lucide-x"
                     label="Decline"
                     class="!flex-none"
                     :disable="!notes[claim.id]?.trim()"
@@ -156,7 +156,7 @@
                     no-caps
                     size="sm"
                     color="purple-3"
-                    icon="fas fa-wand-magic-sparkles"
+                    icon="lucide-wand-sparkles"
                     label="Send to AI moderator"
                     class="!flex-none"
                     v-if="aiModerator"

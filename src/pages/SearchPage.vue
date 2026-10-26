@@ -115,7 +115,7 @@
                 </q-item-label>
                 <AudioTagChips class="mt-1 sm:!hidden" :tags="track.tags" />
                 <q-item-label lines="2" class="song__lyric" v-if="track.lyricMatch">
-                  <q-icon :name="ionText" size="14px" class="mr-1" />
+                  <q-icon name="lucide-type" size="14px" class="mr-1" />
                   “<span v-html="highlight(track.lyricMatch)" />”
                 </q-item-label>
               </q-item-section>
@@ -131,7 +131,7 @@
                     dense
                     class="!flex-none"
                     :aria-label="player.isPlaying(track) ? 'Pause' : 'Play'"
-                    :icon="track.locked ? 'fas fa-lock' : player.isPlaying(track) ? ionPauseCircle : ionPlayCircle"
+                    :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"
                     @click.prevent.stop="player.toggleTrack(track, tracks, `search:${q}`)"
                   />
                 </div>
@@ -157,7 +157,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionPauseCircle, ionPlayCircle, ionText } from '@quasar/extras/ionicons-v8';
 import { useMeta } from 'quasar';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

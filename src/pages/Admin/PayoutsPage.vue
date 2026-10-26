@@ -30,7 +30,7 @@
               class="min-w-56"
               v-model="search"
             >
-              <template #prepend><q-icon name="search" /></template>
+              <template #prepend><q-icon name="lucide-search" /></template>
             </q-input>
           </div>
 
@@ -142,20 +142,20 @@ const sections = computed(() => {
   const list: SettingsSection<View>[] = [
     {
       key: 'pending',
-      icon: 'fas fa-hourglass-half',
+      icon: 'lucide-hourglass',
       title: 'Waiting',
       caption: 'Withdrawals to approve or reject.',
       count: summary.value.pendingCount,
     },
     {
       key: 'processing',
-      icon: 'fas fa-paper-plane',
+      icon: 'lucide-send',
       title: 'On its way',
       caption: 'Sent and waiting for the provider.',
     },
-    { key: 'paid', icon: 'fas fa-circle-check', title: 'Paid', caption: 'Money that reached the creator.' },
-    { key: 'failed', icon: 'fas fa-circle-exclamation', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
-    { key: 'all', icon: 'fas fa-list', title: 'All', caption: 'Every withdrawal request.' },
+    { key: 'paid', icon: 'lucide-circle-check', title: 'Paid', caption: 'Money that reached the creator.' },
+    { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
+    { key: 'all', icon: 'lucide-list', title: 'All', caption: 'Every withdrawal request.' },
   ];
 
   return canConfigure.value
@@ -163,7 +163,7 @@ const sections = computed(() => {
         ...list,
         {
           key: 'providers',
-          icon: 'fas fa-building-columns',
+          icon: 'lucide-landmark',
           title: 'Providers',
           caption: 'Paystack, Flutterwave and Stripe Connect.',
         },

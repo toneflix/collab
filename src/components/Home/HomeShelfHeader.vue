@@ -9,7 +9,7 @@
       rounded
       no-caps
       dense
-      icon-right="eva-arrow-forward"
+      icon-right="lucide-arrow-right"
       label="See all"
       class="!flex-none px-4 text-gray-300"
       :to="to"

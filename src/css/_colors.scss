@@ -1,38 +1,3 @@
-.verified-badge {
-  z-index: 1;
-  &:before {
-    content: '';
-    width: calc(100% - 5px);
-    height: calc(100% - 5px);
-    background: #fff;
-    position: absolute;
-    z-index: -1;
-    border-radius: 50%;
-  }
-}
-
-.repeat-icon.single:after {
-  content: '1';
-  position: absolute;
-  font-size: 0.5em;
-  left: 7px;
-  bottom: 5px;
-}
-
-.icon-fill {
-  z-index: 1;
-  &::after {
-    content: '';
-    width: calc(100% - 2px);
-    height: calc(100% - 2px);
-    display: block;
-    background-color: #fff;
-    position: absolute;
-    z-index: -1;
-    border-radius: 50%;
-  }
-}
-
 // "toneflix" is the brand colour, the same as primary
 .bg-toneflix {
   background-color: var(--q-primary) !important;

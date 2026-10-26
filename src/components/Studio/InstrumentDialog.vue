@@ -16,7 +16,7 @@
             {{ patternSeconds(pattern).toFixed(1) }}s
           </div>
         </div>
-        <q-btn flat round dense icon="close" aria-label="Close" class="!flex-none" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" aria-label="Close" class="!flex-none" v-close-popup />
       </header>
 
       <q-tabs
@@ -30,8 +30,8 @@
         @update:model-value="switchKind"
         v-if="!editing"
       >
-        <q-tab name="drums" icon="grid_view" label="Drum machine" />
-        <q-tab name="keys" icon="piano" label="Piano roll" />
+        <q-tab name="drums" icon="lucide-layout-grid" label="Drum machine" />
+        <q-tab name="keys" icon="lucide-piano" label="Piano roll" />
       </q-tabs>
 
       <div class="inst__controls">
@@ -73,12 +73,12 @@
           v-if="pattern.kind === 'keys'"
         />
         <div class="flex items-center gap-1 no-wrap" v-if="pattern.kind === 'keys'">
-          <q-btn flat round dense icon="keyboard_arrow_down" aria-label="Lower octave" :disable="octave <= 1" @click="octave--" />
+          <q-btn flat round dense icon="lucide-chevron-down" aria-label="Lower octave" :disable="octave <= 1" @click="octave--" />
           <span class="text-sm tabular-nums">Octave {{ octave }}</span>
-          <q-btn flat round dense icon="keyboard_arrow_up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
+          <q-btn flat round dense icon="lucide-chevron-up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
         </div>
         <label class="flex items-center gap-2 no-wrap w-40">
-          <q-icon name="volume_up" size="18px" class="!flex-none" />
+          <q-icon name="lucide-volume-2" size="18px" class="!flex-none" />
           <q-slider
             dense
             color="toneflix"
@@ -90,7 +90,7 @@
             @update:model-value="setVolume"
           />
         </label>
-        <q-btn flat dense no-caps icon="delete_sweep" label="Clear" class="!flex-none" @click="clear" />
+        <q-btn flat dense no-caps icon="lucide-trash" label="Clear" class="!flex-none" @click="clear" />
       </div>
 
       <!-- Drum machine -->

@@ -34,12 +34,12 @@
     <div class="mb-8">
       <div class="label">Beat</div>
       <div class="flex items-center gap-2 no-wrap" v-if="song.beat">
-        <q-icon :name="ionMusicalNotes" size="20px" class="!flex-none text-toneflix" />
+        <q-icon name="lucide-music" size="20px" class="!flex-none text-toneflix" />
         <div class="min-w-0">
           <div class="text-sm truncate">{{ song.beat.name }}</div>
           <div class="text-xs text-grey-5">Play it on a loop from the toolbar</div>
         </div>
-        <q-btn flat dense round icon="close" class="!flex-none ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
+        <q-btn flat dense round icon="lucide-x" class="!flex-none ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
       </div>
       <q-select
         dark
@@ -92,7 +92,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionMusicalNotes } from '@quasar/extras/ionicons-v8';
 import { ref } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';
 import type { Song, SongInput } from 'src/utils/requests/composer';

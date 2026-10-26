@@ -33,10 +33,10 @@ withDefaults(defineProps<{ item: ModeratedItem; showOwner?: boolean; hideStatus?
 });
 
 const icons: Record<ModeratedItem['type'], string> = {
-  release: 'fas fa-compact-disc',
-  track: 'fas fa-music',
-  sound: 'fas fa-wave-square',
-  comment: 'fas fa-comment',
-  user: 'fas fa-user',
+  release: 'lucide-disc-3',
+  track: 'lucide-music',
+  sound: 'lucide-audio-waveform',
+  comment: 'lucide-message-square',
+  user: 'lucide-user',
 };
 </script>

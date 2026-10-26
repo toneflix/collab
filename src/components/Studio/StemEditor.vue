@@ -9,7 +9,7 @@
     <!-- Transport, editing and zoom -->
     <div class="stem-editor__toolbar">
       <div class="stem-editor__group">
-        <q-btn flat round dense :icon="ionPlaySkipBack" aria-label="Back to start" :disable="!ready" @click="toStart">
+        <q-btn flat round dense icon="lucide-skip-back:fill" aria-label="Back to start" :disable="!ready" @click="toStart">
           <q-tooltip>Back to start</q-tooltip>
         </q-btn>
         <q-btn
@@ -21,10 +21,10 @@
           :disable="!ready"
           @click="togglePlay"
         >
-          <q-icon size="22px" :name="playing ? ionPause : ionPlay" />
+          <q-icon size="22px" :name="playing ? 'lucide-pause:fill' : 'lucide-play:fill'" />
           <q-tooltip>{{ playing ? 'Pause' : 'Play' }} (Space)</q-tooltip>
         </q-btn>
-        <q-btn flat round dense :icon="ionStop" aria-label="Stop" :disable="!ready" @click="stop">
+        <q-btn flat round dense icon="lucide-square:fill" aria-label="Stop" :disable="!ready" @click="stop">
           <q-tooltip>Stop</q-tooltip>
         </q-btn>
         <q-btn
@@ -33,7 +33,7 @@
           dense
           class="record-btn"
           :class="{ 'record-btn--on': recording }"
-          :icon="recording ? ionStop : ionRadioButtonOn"
+          :icon="recording ? 'lucide-square:fill' : 'lucide-circle-dot'"
           :aria-label="recording ? 'Stop recording' : 'Record'"
           :loading="startingRecording"
           :disable="!ready || (!recording && !canRecord)"
@@ -49,7 +49,7 @@
           flat
           round
           dense
-          :icon="ionRepeat"
+          icon="lucide-repeat"
           :class="{ 'text-toneflix': loop }"
           :aria-label="loop ? 'Stop looping the selection' : 'Loop the selection'"
           :disable="!ready || !hasSelection"
@@ -61,7 +61,7 @@
           flat
           round
           dense
-          :icon="ionChatbubbleEllipses"
+          icon="lucide-message-circle-more"
           aria-label="Message about the selected part"
           :disable="!ready || !hasSelection"
           @click="messageAboutSelection"
@@ -72,13 +72,13 @@
       </div>
 
       <div class="stem-editor__group" v-if="!readonly">
-        <q-btn flat round dense :icon="ionCut" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
+        <q-btn flat round dense icon="lucide-scissors" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
           <q-tooltip>Split the selected stem at the playhead (S)</q-tooltip>
         </q-btn>
-        <q-btn flat round dense :icon="ionArrowUndo" aria-label="Undo" :disable="!canUndo" @click="undo">
+        <q-btn flat round dense icon="lucide-undo-2" aria-label="Undo" :disable="!canUndo" @click="undo">
           <q-tooltip>Undo (Ctrl+Z)</q-tooltip>
         </q-btn>
-        <q-btn flat round dense :icon="ionArrowRedo" aria-label="Redo" :disable="!canRedo" @click="redo">
+        <q-btn flat round dense icon="lucide-redo-2" aria-label="Redo" :disable="!canRedo" @click="redo">
           <q-tooltip>Redo (Ctrl+Shift+Z)</q-tooltip>
         </q-btn>
       </div>
@@ -117,7 +117,7 @@
           flat
           round
           dense
-          icon="grid_on"
+          icon="lucide-grid-3x3"
           :class="{ 'text-toneflix': grid }"
           :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
           :aria-pressed="grid"
@@ -146,7 +146,7 @@
           flat
           round
           dense
-          icon="av_timer"
+          icon="lucide-timer"
           :class="{ 'text-toneflix': metronome }"
           :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
           :aria-pressed="metronome"
@@ -159,7 +159,7 @@
           flat
           round
           dense
-          icon="hourglass_top"
+          icon="lucide-hourglass"
           :class="{ 'text-toneflix': countIn }"
           :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
           :aria-pressed="countIn"
@@ -172,20 +172,20 @@
       </div>
 
       <div class="stem-editor__group">
-        <q-btn flat round dense :icon="ionRemove" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
+        <q-btn flat round dense icon="lucide-minus" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
           <q-tooltip>Zoom out</q-tooltip>
         </q-btn>
-        <q-btn flat round dense :icon="ionScan" aria-label="Fit to screen" :disable="!ready" @click="fit">
+        <q-btn flat round dense icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
           <q-tooltip>Fit everything on screen</q-tooltip>
         </q-btn>
-        <q-btn flat round dense :icon="ionAdd" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
+        <q-btn flat round dense icon="lucide-plus" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
           <q-tooltip>Zoom in</q-tooltip>
         </q-btn>
         <q-btn
           flat
           round
           dense
-          :icon="ionLocateOutline"
+          icon="lucide-locate"
           :class="{ 'text-toneflix': follow }"
           :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
           :aria-pressed="follow"
@@ -205,7 +205,7 @@
           size="sm"
           color="grey-4"
           class="!flex-none px-2 mr-1"
-          icon="tune"
+          icon="lucide-sliders-horizontal"
           :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
           :disable="!ready"
           @click="masterEffectsOpen = true"
@@ -213,7 +213,7 @@
           <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
         </q-btn>
         <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
-        <q-icon :name="masterVolume ? ionVolumeHigh : ionVolumeMute" size="20px" class="!flex-none" />
+        <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="!flex-none" />
         <q-slider
           dense
           color="toneflix"
@@ -226,7 +226,7 @@
           aria-label="Master volume"
           @update:model-value="setMasterVolume"
         />
-        <q-btn flat round dense :icon="ionHelpCircleOutline" aria-label="How to use the editor" class="max-sm:!hidden">
+        <q-btn flat round dense icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:!hidden">
           <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
             <div class="mb-2 font-bold">Using the editor</div>
             <ul class="pl-8 space-y-1 text-sm list-disc">
@@ -278,7 +278,7 @@
           size="sm"
           color="grey-4"
           class="!flex-none px-4"
-          icon="tune"
+          icon="lucide-sliders-horizontal"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
           @click="effectsOpen = true"
         />
@@ -289,7 +289,7 @@
           size="sm"
           color="grey-4"
           class="!flex-none"
-          :icon="ionCopyOutline"
+          icon="lucide-copy"
           aria-label="Duplicate stem"
           @click="duplicate(selected.id)"
         >
@@ -303,7 +303,7 @@
           size="sm"
           color="grey-4"
           class="!flex-none px-4"
-          :icon="selectedPattern.kind === 'drums' ? 'grid_view' : 'piano'"
+          :icon="selectedPattern.kind === 'drums' ? 'lucide-layout-grid' : 'lucide-piano'"
           label="Edit pattern"
           @click="emit('edit-instrument', tracks.get(selected.id)!)"
           v-if="selectedPattern"
@@ -320,7 +320,7 @@
 
     <div class="stem-editor__missing" v-if="missing.length">
       <div class="stem-editor__missing-row" :key="stem.id" v-for="stem in missing">
-        <q-icon :name="ionAlertCircle" size="18px" class="text-amber-5 !flex-none" />
+        <q-icon name="lucide-circle-alert" size="18px" class="text-amber-5 !flex-none" />
         <div class="flex-1 min-w-0">
           <div class="text-sm font-bold truncate">{{ stem.title || stem.name }}</div>
           <div class="text-xs text-grey-5">
@@ -336,7 +336,7 @@
             size="sm"
             color="grey-4"
             class="!flex-none px-4"
-            :icon="ionCloudUpload"
+            icon="lucide-cloud-upload"
             label="Replace audio"
             @click="pickReplacement(stem)"
           />
@@ -347,7 +347,7 @@
             size="sm"
             color="grey-5"
             class="!flex-none"
-            :icon="ionTrash"
+            icon="lucide-trash-2"
             aria-label="Remove stem"
             @click="emit('remove', stem)"
           />
@@ -378,7 +378,7 @@
           @open="openPlugin(selected!.id, $event)"
           v-if="selected"
         >
-          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
         </EffectsPanel>
       </q-card>
     </q-dialog>
@@ -393,7 +393,7 @@
           @param="setMasterEffectParams"
           @commit="checkDirty"
         >
-          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
         </EffectsPanel>
       </q-card>
     </q-dialog>
@@ -428,43 +428,20 @@
         <q-card-section class="flex items-center gap-2 py-2">
           <div class="font-bold">{{ pluginTitle }}</div>
           <q-space />
-          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
         </q-card-section>
         <div ref="pluginHost" class="stem-editor__plugin" />
       </q-card>
     </q-dialog>
 
     <div class="stem-editor__dropzone" v-if="dropping">
-      <q-icon :name="ionCloudUpload" size="40px" />
+      <q-icon name="lucide-cloud-upload" size="40px" />
       <div class="mt-2 text-lg font-bold">Drop audio files to add them as stems</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  ionAdd,
-  ionAlertCircle,
-  ionChatbubbleEllipses,
-  ionArrowRedo,
-  ionArrowUndo,
-  ionCloudUpload,
-  ionCopyOutline,
-  ionCut,
-  ionHelpCircleOutline,
-  ionLocateOutline,
-  ionPause,
-  ionPlay,
-  ionPlaySkipBack,
-  ionRadioButtonOn,
-  ionRemove,
-  ionRepeat,
-  ionScan,
-  ionStop,
-  ionTrash,
-  ionVolumeHigh,
-  ionVolumeMute,
-} from '@quasar/extras/ionicons-v8';
 import type { DawEditorElement, SerializedEffectEntry } from '@dawcore/components';
 import type { NativePlayoutAdapter } from '@dawcore/transport';
 import type { ClipTrack } from '@waveform-playlist/core';

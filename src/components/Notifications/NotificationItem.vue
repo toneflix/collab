@@ -25,7 +25,7 @@
         round
         dense
         size="sm"
-        icon="close"
+        icon="lucide-x"
         color="grey-6"
         aria-label="Remove notification"
         class="!flex-none mt-2"

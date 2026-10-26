@@ -6,7 +6,7 @@
       :aria-label="`Report this ${label}`"
       @click="open"
     >
-      <q-icon color="white" name="far fa-flag" />
+      <q-icon color="white" name="lucide-flag" />
       <q-tooltip>Report</q-tooltip>
     </q-btn>
   </slot>

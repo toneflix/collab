@@ -14,7 +14,7 @@
       @click="open = true"
       v-if="editable"
     >
-      <q-icon :name="hasTags ? ionCreateOutline : ionAdd" size="12px" />
+      <q-icon :name="hasTags ? 'lucide-square-pen' : 'lucide-plus'" size="12px" />
       <span v-if="!hasTags">Tempo and key</span>
     </button>
 
@@ -86,7 +86,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionAdd, ionCreateOutline } from '@quasar/extras/ionicons-v8';
 import { computed, reactive, ref, watch } from 'vue';
 import { notify } from 'src/utils/helpers';
 import type { ResponseBody } from 'src/utils/models';

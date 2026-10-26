@@ -19,7 +19,7 @@
             outline
             no-caps
             size="sm"
-            icon="settings"
+            icon="lucide-settings"
             label="Settings"
             class="!flex-none"
             :to="{ name: 'account.notifications' }"

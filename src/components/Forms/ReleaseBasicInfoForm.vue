@@ -28,7 +28,7 @@
                     rounded
                     padding="xs md"
                     unelevated
-                    icon="fas fa-camera"
+                    icon="lucide-camera"
                     label="Upload Image"
                     color="primary"
                     @click="open"
@@ -71,7 +71,7 @@
                 rounded
                 padding="xs md"
                 unelevated
-                icon="fas fa-camera"
+                icon="lucide-camera"
                 label="Upload Image"
                 color="primary"
                 @click="open"
@@ -128,7 +128,7 @@
                 dense
                 outline
                 color="primary"
-                icon="edit"
+                icon="lucide-pencil"
                 @click="
                   () => {
                     editingSlug = !editingSlug;

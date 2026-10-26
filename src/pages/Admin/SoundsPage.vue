@@ -47,7 +47,7 @@
             </p>
             <div class="callback">
               <code class="truncate">{{ callbackUrl }}</code>
-              <q-btn flat dense round size="sm" icon="content_copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
+              <q-btn flat dense round size="sm" icon="lucide-copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
             </div>
             <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
           </template>
@@ -123,7 +123,7 @@
                   rounded
                   no-caps
                   color="white"
-                  icon="sync"
+                  icon="lucide-refresh-cw"
                   :label="settings.syncing ? 'Syncing…' : 'Sync now'"
                   class="!flex-none"
                   :loading="syncing"
@@ -147,10 +147,10 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div class="flex items-center gap-2 no-wrap">
                 <q-input dense dark outlined clearable debounce="350" placeholder="Search" class="w-48" v-model="search">
-                  <template #prepend><q-icon name="search" /></template>
+                  <template #prepend><q-icon name="lucide-search" /></template>
                 </q-input>
                 <input ref="fileInput" type="file" multiple class="hidden" accept="audio/*" @change="onFiles" />
-                <q-btn unelevated rounded no-caps color="white" text-color="dark" icon="upload" label="Upload" class="!flex-none" :loading="uploading > 0" @click="fileInput?.click()" />
+                <q-btn unelevated rounded no-caps color="white" text-color="dark" icon="lucide-upload" label="Upload" class="!flex-none" :loading="uploading > 0" @click="fileInput?.click()" />
               </div>
             </div>
 
@@ -169,11 +169,11 @@
                   </q-item-label>
                 </q-item-section>
                 <q-item-section side class="flex-row items-center gap-1 no-wrap">
-                  <q-btn flat dense round size="sm" icon="open_in_new" :href="sound.sourceUrl" target="_blank" aria-label="Open on Freesound" v-if="sound.sourceUrl" />
+                  <q-btn flat dense round size="sm" icon="lucide-external-link" :href="sound.sourceUrl" target="_blank" aria-label="Open on Freesound" v-if="sound.sourceUrl" />
                   <q-toggle dense size="sm" color="toneflix" :model-value="sound.isActive" :aria-label="sound.isActive ? 'Hide this sound' : 'Show this sound'" @update:model-value="setActive(sound, $event)">
                     <q-tooltip>{{ sound.isActive ? 'Shown in the studio' : 'Hidden' }}</q-tooltip>
                   </q-toggle>
-                  <q-btn flat dense round size="sm" icon="delete_outline" :aria-label="`Delete ${sound.name}`" @click="remove(sound)" />
+                  <q-btn flat dense round size="sm" icon="lucide-trash-2" :aria-label="`Delete ${sound.name}`" @click="remove(sound)" />
                 </q-item-section>
               </q-item>
             </q-list>
@@ -242,14 +242,14 @@ type FormKey = keyof typeof form;
 const sections: (SettingsSection & { fields: FormKey[] })[] = [
   {
     key: 'availability',
-    icon: 'fas fa-power-off',
+    icon: 'lucide-power',
     title: 'Availability',
     caption: 'The studio library and Freesound for creators.',
     fields: ['sounds_library_enabled', 'freesound_enabled'],
   },
   {
     key: 'freesound',
-    icon: 'fas fa-key',
+    icon: 'lucide-key-round',
     title: 'Freesound app',
     caption: 'The API app, its callback and keys.',
     fields: [],
@@ -257,14 +257,14 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   },
   {
     key: 'sync',
-    icon: 'fas fa-rotate',
+    icon: 'lucide-refresh-cw',
     title: 'Library sync',
     caption: 'The searches that fill the library each day.',
     fields: ['freesound_sync_paused', 'freesound_sync_queries', 'freesound_sync_limit', 'freesound_sync_max_duration'],
   },
   {
     key: 'library',
-    icon: 'fas fa-music',
+    icon: 'lucide-music',
     title: 'Library',
     caption: 'Every shared sound, to play, hide or delete.',
     fields: [],

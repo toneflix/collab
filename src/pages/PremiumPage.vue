@@ -2,14 +2,14 @@
   <q-page padding>
     <div class="max-w-4xl mx-auto">
       <div class="py-6 text-center">
-        <q-icon name="fas fa-crown" color="amber-7" size="40px" />
+        <q-icon name="lucide-crown" color="amber-7" size="40px" />
         <h1 class="mt-4 text-4xl font-circlular-std">Toneflix Premium</h1>
         <p class="mt-2 text-grey-5">
           Pick the plan that fits how you listen and create.
         </p>
         <q-spinner class="mt-4" v-if="loading" />
         <q-chip
-          icon="fas fa-check"
+          icon="lucide-check"
           color="green-9"
           text-color="white"
           class="mt-4"
@@ -135,11 +135,11 @@
               <td class="text-center" :key="plan.id" v-for="plan in data.plans">
                 <template v-if="feature.type === 'toggle'">
                   <q-icon
-                    name="fas fa-check"
+                    name="lucide-check"
                     color="green-5"
                     v-if="plan.features[feature.key]"
                   />
-                  <q-icon name="fas fa-xmark" color="grey-6" v-else />
+                  <q-icon name="lucide-x" color="grey-6" v-else />
                 </template>
                 <template v-else>
                   {{

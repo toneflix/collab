@@ -2,7 +2,7 @@
   <q-page padding>
     <div class="max-w-5xl mx-auto">
       <div class="py-2">
-        <q-btn flat dense no-caps icon="eva-arrow-back" label="Users" class="!flex-none" :to="{ name: 'admin.users' }" />
+        <q-btn flat dense no-caps icon="lucide-arrow-left" label="Users" class="!flex-none" :to="{ name: 'admin.users' }" />
       </div>
 
       <div class="py-10 text-center" v-if="loading && !detail">
@@ -14,12 +14,12 @@
         <div class="profile">
           <q-avatar size="72px" color="grey-9" class="!flex-none">
             <img :src="user.imageUrl" v-if="user.imageUrl" />
-            <q-icon name="eva-person" v-else />
+            <q-icon name="lucide-user" v-else />
           </q-avatar>
           <div class="min-w-0">
             <h1 class="text-2xl font-circlular-std truncate">
               {{ user.fullname || user.username }}
-              <q-icon name="fas fa-circle-check" color="toneflix" size="18px" v-if="user.verified" />
+              <q-icon name="lucide-circle-check" color="toneflix" size="18px" v-if="user.verified" />
             </h1>
             <div class="text-grey-5 truncate">@{{ user.username }} · {{ user.email }}</div>
             <div class="flex flex-wrap gap-1 mt-2">
@@ -33,23 +33,23 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="eva-edit" label="Edit" @click="mode = 'edit'" v-if="can.update" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-pencil" label="Edit" @click="mode = 'edit'" v-if="can.update" />
           <q-btn
             outline
             rounded
             no-caps
             padding="4px 14px"
             class="!flex-none"
-            :icon="user.verified ? 'fas fa-circle-xmark' : 'fas fa-circle-check'"
+            :icon="user.verified ? 'lucide-circle-x' : 'lucide-circle-check'"
             :label="user.verified ? 'Remove badge' : 'Verify'"
             :loading="busy === 'verify'"
             @click="toggleVerified"
             v-if="can.verify"
           />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="fas fa-user-shield" label="Roles" @click="mode = 'roles'" v-if="can.roles" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="fas fa-layer-group" label="Give plan" @click="mode = 'plan'" v-if="can.plan" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="fas fa-wallet" label="Funds" @click="mode = 'funds'" v-if="can.funds" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="fas fa-wand-magic-sparkles" label="AI credits" @click="mode = 'credits'" v-if="can.credits" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-shield-user" label="Roles" @click="mode = 'roles'" v-if="can.roles" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-layers" label="Give plan" @click="mode = 'plan'" v-if="can.plan" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-wallet" label="Funds" @click="mode = 'funds'" v-if="can.funds" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-wand-sparkles" label="AI credits" @click="mode = 'credits'" v-if="can.credits" />
           <template v-if="can.suspend">
             <q-btn
               outline
@@ -58,13 +58,13 @@
               padding="4px 14px"
               color="green-5"
               class="!flex-none"
-              icon="fas fa-unlock"
+              icon="lucide-lock-open"
               label="Lift suspension"
               :loading="busy === 'unsuspend'"
               @click="unsuspend"
               v-if="user.suspended"
             />
-            <q-btn outline rounded no-caps padding="4px 14px" color="red-4" class="!flex-none" icon="fas fa-ban" label="Suspend" @click="mode = 'suspend'" v-else />
+            <q-btn outline rounded no-caps padding="4px 14px" color="red-4" class="!flex-none" icon="lucide-ban" label="Suspend" @click="mode = 'suspend'" v-else />
           </template>
         </div>
 
@@ -227,28 +227,28 @@ const tab = ref<Tab>('activity');
 const sections: SettingsSection<Tab>[] = [
   {
     key: 'activity',
-    icon: 'fas fa-clock-rotate-left',
+    icon: 'lucide-history',
     title: 'Admin activity',
     caption: 'What admins changed on this account.',
     flush: true,
   },
   {
     key: 'payments',
-    icon: 'fas fa-receipt',
+    icon: 'lucide-receipt',
     title: 'Payments',
     caption: 'Plans, credits and tips they paid for.',
     flush: true,
   },
   {
     key: 'earnings',
-    icon: 'fas fa-sack-dollar',
+    icon: 'lucide-circle-dollar-sign',
     title: 'Earnings',
     caption: 'Money they earned and withdrew.',
     flush: true,
   },
   {
     key: 'details',
-    icon: 'fas fa-id-card',
+    icon: 'lucide-id-card',
     title: 'Details',
     caption: 'Account and profile fields.',
     flush: true,

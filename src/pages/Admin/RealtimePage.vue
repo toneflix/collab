@@ -110,19 +110,19 @@ import {
 const boot = useBootstrapStore();
 
 const drivers: { value: RealtimeDriver; label: string; icon: string; description: string }[] = [
-  { value: 'none', label: 'Off', icon: 'block', description: 'No live updates.' },
+  { value: 'none', label: 'Off', icon: 'lucide-ban', description: 'No live updates.' },
   {
     value: 'reverb',
     label: 'Reverb',
-    icon: 'dns',
+    icon: 'lucide-server',
     description: 'Laravel\'s own server, run alongside the API. Free; you host it.',
   },
-  { value: 'pusher', label: 'Pusher', icon: 'cell_tower', description: 'Hosted Pusher Channels.' },
-  { value: 'ably', label: 'Ably', icon: 'hub', description: 'Hosted Ably, through its Pusher protocol support.' },
+  { value: 'pusher', label: 'Pusher', icon: 'lucide-radio-tower', description: 'Hosted Pusher Channels.' },
+  { value: 'ably', label: 'Ably', icon: 'lucide-network', description: 'Hosted Ably, through its Pusher protocol support.' },
   {
     value: 'firebase',
     label: 'Firebase',
-    icon: 'local_fire_department',
+    icon: 'lucide-flame',
     description: 'Firebase Realtime Database.',
   },
 ];

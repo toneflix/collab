@@ -16,7 +16,7 @@
           size="md"
           class="!flex-none max-sm:!hidden"
           aria-label="Previous track"
-          :icon="ionPlaySkipBack"
+          icon="lucide-skip-back:fill"
           @click="player.previous()"
         />
         <q-btn
@@ -30,7 +30,7 @@
           @click="player.toggle()"
         >
           <q-spinner size="24px" color="white" v-if="player.loading" />
-          <q-icon size="26px" :name="player.playing ? ionPause : ionPlay" v-else />
+          <q-icon size="26px" :name="player.playing ? 'lucide-pause:fill' : 'lucide-play:fill'" v-else />
         </q-btn>
         <q-btn
           flat
@@ -38,7 +38,7 @@
           size="md"
           class="!flex-none"
           aria-label="Next track"
-          :icon="ionPlaySkipForward"
+          icon="lucide-skip-forward:fill"
           @click="player.next()"
         />
         <div class="ml-2 text-xs whitespace-nowrap text-grey-5 !flex-none max-md:!hidden">
@@ -99,37 +99,37 @@
               size="md"
               class="!flex-none"
               :aria-label="active ? 'Unlike' : 'Like'"
-              :icon="active ? ionHeart : ionHeartOutline"
+              :icon="active ? 'lucide-heart:fill' : 'lucide-heart'"
               :color="active ? 'toneflix' : undefined"
               @click="submit"
             />
           </TInteraction>
 
-          <q-btn flat round size="md" class="!flex-none" aria-label="More" :icon="ionEllipsisVertical">
+          <q-btn flat round size="md" class="!flex-none" aria-label="More" icon="lucide-ellipsis-vertical">
             <q-menu dark anchor="top middle" self="bottom middle" :offset="[0, 8]">
               <q-list dense class="min-w-48">
                 <q-item clickable v-close-popup :to="trackLink">
-                  <q-item-section avatar><q-icon :name="ionMusicalNote" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-music-2" /></q-item-section>
                   <q-item-section>Go to song</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup :to="artistLink" v-if="track.artist">
-                  <q-item-section avatar><q-icon :name="ionPerson" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
                   <q-item-section>Go to artist</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup :to="releaseLink" v-if="track.release">
-                  <q-item-section avatar><q-icon :name="ionDisc" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-disc-3" /></q-item-section>
                   <q-item-section>Go to album</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="copyLink">
-                  <q-item-section avatar><q-icon :name="ionLink" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-link" /></q-item-section>
                   <q-item-section>Copy link</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="openPanel('next')">
-                  <q-item-section avatar><q-icon :name="ionList" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-list" /></q-item-section>
                   <q-item-section>Up next</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="openPanel('lyrics')">
-                  <q-item-section avatar><q-icon :name="ionText" /></q-item-section>
+                  <q-item-section avatar><q-icon name="lucide-type" /></q-item-section>
                   <q-item-section>Lyrics</q-item-section>
                 </q-item>
               </q-list>
@@ -172,8 +172,7 @@
           :aria-label="`Repeat: ${player.repeat}`"
           @click="player.cycleRepeat()"
         >
-          <q-icon :name="ionRepeat" />
-          <span class="repeat-one" v-if="player.repeat === 'one'">1</span>
+          <q-icon :name="player.repeat === 'one' ? 'lucide-repeat-1' : 'lucide-repeat'" />
           <q-tooltip>{{ repeatLabel }}</q-tooltip>
         </q-btn>
         <q-btn
@@ -183,7 +182,7 @@
           class="!flex-none max-sm:!hidden"
           :class="{ 'text-toneflix': player.shuffle }"
           :aria-label="player.shuffle ? 'Turn shuffle off' : 'Turn shuffle on'"
-          :icon="ionShuffle"
+          icon="lucide-shuffle"
           @click="player.toggleShuffle()"
         >
           <q-tooltip>{{ player.shuffle ? 'Shuffle on' : 'Shuffle off' }}</q-tooltip>
@@ -194,7 +193,7 @@
           size="md"
           class="!flex-none"
           :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
-          :icon="queueOpen ? ionCaretDown : ionCaretUp"
+          :icon="queueOpen ? 'lucide-chevron-down' : 'lucide-chevron-up'"
           @click="queueOpen = !queueOpen"
         />
       </div>
@@ -205,28 +204,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ionCaretDown,
-  ionCaretUp,
-  ionDisc,
-  ionEllipsisVertical,
-  ionHeart,
-  ionHeartOutline,
-  ionLink,
-  ionList,
-  ionMusicalNote,
-  ionPause,
-  ionPerson,
-  ionPlay,
-  ionPlaySkipBack,
-  ionPlaySkipForward,
-  ionRepeat,
-  ionShuffle,
-  ionText,
-  ionVolumeHigh,
-  ionVolumeLow,
-  ionVolumeMute,
-} from '@quasar/extras/ionicons-v8';
 import { copyToClipboard } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -284,10 +261,10 @@ const year = computed(() => {
 
 const volumeIcon = computed(() =>
   player.muted || player.volume === 0
-    ? ionVolumeMute
+    ? 'lucide-volume-x'
     : player.volume < 50
-      ? ionVolumeLow
-      : ionVolumeHigh,
+      ? 'lucide-volume-1'
+      : 'lucide-volume-2',
 );
 
 const repeatLabel = computed(
@@ -372,14 +349,6 @@ onBeforeUnmount(() => resize?.disconnect());
   border-radius: 2px;
   color: #111;
   background: #bbb;
-}
-
-.repeat-one {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  font-size: 9px;
-  font-weight: 700;
 }
 
 .volume {

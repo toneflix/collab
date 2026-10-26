@@ -11,7 +11,7 @@
           text-color="dark"
           label="New song"
           class="!flex-none ml-auto"
-          :icon="ionAdd"
+          icon="lucide-plus"
           :loading="creating"
           @click="newSong"
         />
@@ -32,12 +32,12 @@
         v-model="search"
       >
         <template #prepend>
-          <q-icon :name="ionSearch" />
+          <q-icon name="lucide-search" />
         </template>
       </q-input>
 
       <div class="empty" v-if="!songs.length && !loading">
-        <q-icon size="40px" class="mb-2 text-toneflix" :name="ionCreateOutline" />
+        <q-icon size="40px" class="mb-2 text-toneflix" name="lucide-square-pen" />
         <div class="text-base font-semibold" v-if="search">No songs match "{{ search }}".</div>
         <template v-else>
           <div class="text-base font-semibold">No songs yet.</div>
@@ -69,7 +69,7 @@
               size="sm"
               class="!flex-none"
               aria-label="Delete song"
-              :icon="ionTrashOutline"
+              icon="lucide-trash-2"
               @click.stop.prevent="remove(song, i)"
             />
           </div>
@@ -91,7 +91,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionAdd, ionCreateOutline, ionSearch, ionTrashOutline } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
