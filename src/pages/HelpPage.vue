@@ -106,13 +106,55 @@ const share = computed(() => Number(boot.configuration.creator_share || 85));
 
 const faq = computed(() => [
   {
+    title: 'About Toneflix Music',
+    icon: 'lucide-music',
+    items: [
+      {
+        q: 'What is Toneflix Music?',
+        a: 'A community music platform that brings artists, producers, creators and music lovers together through streaming, discovery, music creation and collaboration.',
+      },
+      {
+        q: 'Who can use Toneflix Music?',
+        a: 'Anyone who loves music. Artists, producers, songwriters, content creators and listeners all have a place here.',
+      },
+      {
+        q: 'What makes Toneflix Music different?',
+        a: 'It puts listening, discovery and making music in the same place. You can stream a track, follow the people behind it and join them on their next project.',
+      },
+      {
+        q: 'Can I discover new music here?',
+        a: 'Yes. Browse trending tracks, new releases, genres and creators, search by tempo or key, and get recommendations based on what you play, like and follow.',
+      },
+      {
+        q: 'Is Toneflix Music only for listeners?',
+        a: 'No. Artists, producers and other creatives release and sell their music here, alongside the listeners who discover and support their work.',
+      },
+      {
+        q: 'Can artists and producers use Toneflix Music?',
+        a: 'Yes. Release songs and albums, sell releases and stems, receive tips, claim your artist profile and open your projects to collaborators.',
+      },
+      {
+        q: 'Does Toneflix Music support music creation and collaboration?',
+        a: 'Yes. Start a project, invite collaborators and build tracks from stems in the studio, all in your browser. Write lyrics in the Composer and chat with your collaborators beside the work.',
+      },
+      {
+        q: 'Is Toneflix Music a social network?',
+        a: 'In part. You can follow artists and creators, comment, send messages and join projects, but everything centres on music.',
+      },
+      {
+        q: 'How can I get involved?',
+        a: 'Create a free account, follow the artists you like, and start a project or ask to join one that is open to collaborators. You can also join our Discord.',
+      },
+      {
+        q: 'What is the mission behind Toneflix Music?',
+        a: 'To make music more connected, collaborative and community driven, by bringing listeners and creators together in one place for discovery, creativity and shared musical experiences.',
+      },
+    ],
+  },
+  {
     title: 'Getting started',
     icon: 'lucide-sparkles',
     items: [
-      {
-        q: 'What is Toneflix Collab?',
-        a: 'A place to make music with other people. Start a project, invite collaborators, build tracks from stems in the studio, then release the finished songs for listeners.',
-      },
       {
         q: 'Do I need to pay to use it?',
         a: 'No. Listening, projects, the studio and releasing are free. Premium adds downloads, a profile badge, higher limits and AI tools.',

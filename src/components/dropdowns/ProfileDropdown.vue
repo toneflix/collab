@@ -168,6 +168,11 @@ const options = computed<ProfileOptions[]>(() =>
       separator: true,
       list: [
         {
+          name: 'About',
+          to: { name: 'about' },
+          icon: 'lucide-info',
+        },
+        {
           name: 'FAQ',
           to: { name: 'help', hash: '#faq' },
           icon: 'lucide-circle-question-mark',

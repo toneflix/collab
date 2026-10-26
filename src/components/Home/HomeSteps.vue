@@ -3,7 +3,7 @@
     <div class="max-w-xl">
       <h2 class="text-2xl font-bold text-white font-circlular-std md:text-3xl">How a collab comes together</h2>
       <p class="mt-2 leading-relaxed text-gray-400">
-        Every song on Toneflix starts as a project. Keep it private while you
+        Every song on Toneflix Music starts as a project. Keep it private while you
         work, or open it up so other creators can find it and ask to join.
       </p>
     </div>
@@ -32,7 +32,7 @@ const steps = [
   },
   {
     title: 'Release it',
-    text: 'Mix it down, publish it to listeners and share what it earns with the people who made it.',
+    text: 'Mix it down, release it to listeners and earn from sales and tips.',
   },
 ];
 </script>
