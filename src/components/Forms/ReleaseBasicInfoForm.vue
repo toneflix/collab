@@ -17,7 +17,7 @@
                   fit="cover"
                   class="w-full h-full card-avatar"
                   :ratio="1 / 1"
-                  :src="dataURL || meta.imageUrl || placeholder"
+                  :src="picked || dataURL || meta.imageUrl || placeholder"
                   :alt="meta.title"
                 />
 
@@ -60,7 +60,7 @@
               fit="cover"
               class="w-full h-full card-avatar"
               :ratio="1 / 1"
-              :src="dataURL || meta.imageUrl || placeholder"
+              :src="picked || dataURL || meta.imageUrl || placeholder"
               :alt="meta.title"
             />
 
@@ -83,6 +83,16 @@
           </q-avatar>
         </template>
       </ImageCropper>
+      <AiArtworkButton
+        outline
+        color="toneflix"
+        class="mt-3"
+        :kind="type"
+        :title="form.title"
+        :artist="artistName"
+        :genre="genreName"
+        @pick="pickArtwork"
+      />
     </div>
     <div class="text-white col-12 col-md-8">
       <div class="grid gap-y-2 md:grid-cols-2 md:gap-x-4">
@@ -285,6 +295,8 @@
 <script setup lang="ts">
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
+import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
+import type { ArtworkPick } from 'src/components/Artwork/AiArtworkDialog.vue';
 import placeholder from 'src/assets/placeholder.svg';
 import { frontUrl } from 'src/utils/env';
 import { privacyOptions } from 'src/utils/presets';
@@ -351,12 +363,28 @@ const uploading = { total: 0 };
 const slugInput = ref();
 const editingSlug = ref(false);
 
+/** An image drawn with AI, shown until another one is uploaded */
+const picked = ref('');
+
+const artistName = computed(
+  () => artist.value?.name || artist.value?.label || null,
+);
+const genreName = computed(
+  () => genres.value.find((g) => g.id == form.value.genre_id)?.title ?? null,
+);
+
 const uploadArtwork = ({ file }: { file: File }) => {
+  picked.value = '';
   if (props.type === 'release') {
     form.value.artwork = file;
   } else {
     form.value.image = file;
   }
+};
+
+const pickArtwork = ({ file, url }: ArtworkPick) => {
+  uploadArtwork({ file });
+  picked.value = url;
 };
 
 const clearError = (error: string) => {

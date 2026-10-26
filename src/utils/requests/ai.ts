@@ -45,6 +45,7 @@ export type AiConfig = {
     stems: number;
     lyrics: number;
     edit?: number;
+    artwork?: number;
     composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
   };
   /** The model music is generated with */
@@ -105,9 +106,10 @@ export type SongVersion = {
 
 export type AiJob = {
   id: number;
-  kind: 'music' | 'stems' | 'lyrics' | 'edit';
+  kind: 'music' | 'stems' | 'lyrics' | 'edit' | 'artwork';
   status: AiJobStatus;
-  trackId: number;
+  /** Empty for jobs that aren't on a track, like artwork */
+  trackId: number | null;
   prompt?: string | null;
   /** The music model's name */
   model?: string | null;
@@ -135,8 +137,38 @@ export type AiJob = {
   chosen?: number | null;
   /** The version on its way to the track */
   choosing?: number | null;
+  /** What an artwork job drew for */
+  artworkKind?: ArtworkKind | null;
+  /** The images an artwork job drew; empty once they expired */
+  images?: ArtworkImage[] | null;
   createdAt: string;
   finishedAt?: string | null;
+};
+
+/** What a piece of AI artwork is for, which sets its shape */
+export type ArtworkKind =
+  | 'project'
+  | 'release'
+  | 'track'
+  | 'song'
+  | 'artist'
+  | 'artist_cover';
+
+/** An image an artwork job drew, with a link that shows it for a day */
+export type ArtworkImage = {
+  index: number;
+  width: number;
+  height: number;
+  url: string;
+};
+
+export type ArtworkForm = {
+  kind: ArtworkKind;
+  prompt: string;
+  /** The title, artist and genre of what the artwork is for */
+  title?: string | null;
+  artist?: string | null;
+  genre?: string | null;
 };
 
 export type MusicForm = {
@@ -264,6 +296,17 @@ export const loadAiJobsRequest = (
 export const loadAiJobRequest = (id: number) =>
   alova.Get(`creator/ai/jobs/${id}`, {
     transform: (e: ResponseBody<AiJob>) => e.data,
+    cacheFor: 0,
+  });
+
+export const generateArtworkRequest = (form: ArtworkForm) =>
+  alova.Post<ResponseBody<AiJob>>('creator/ai/artwork', form);
+
+/** The person's latest artwork jobs of a kind */
+export const loadArtworkJobsRequest = (kind: ArtworkKind, limit = 1) =>
+  alova.Get('creator/ai/artwork', {
+    params: { kind, limit },
+    transform: (e: ResponseBody<AiJob[]>) => e.data,
     cacheFor: 0,
   });
 

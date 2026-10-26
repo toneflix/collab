@@ -738,6 +738,7 @@ const jobTitle = (job: AiJob) =>
     stems: 'Split into stems',
     lyrics: `Lyrics from ${job.title || 'a stem'}`,
     edit: `${job.title || 'Stem'}: ${job.prompt}`,
+    artwork: job.prompt,
   })[job.kind];
 
 const statusText = (job: AiJob) =>
@@ -748,6 +749,7 @@ const statusText = (job: AiJob) =>
       stems: 'Splitting',
       lyrics: 'Listening',
       edit: 'Rewriting the section',
+      artwork: 'Drawing',
     }[job.kind],
     succeeded:
       job.kind === 'lyrics'
