@@ -57,7 +57,7 @@ const answer = async (accept: boolean) => {
     await store.answer(props.request, accept);
     const invitation = props.request.customData?.action === 'invitation';
     notify(
-      !accept ? 'Declined.' : invitation ? 'You joined the project. It\'s in your studio now.' : 'Approved. They\'re on the project now.',
+      !accept ? 'Declined.' : invitation ? 'You joined the project.' : 'Approved.',
       'success',
     );
   } catch (e) {

@@ -698,7 +698,7 @@ const onJob = (job: AiJob) => {
 
   if (awaitingPick(job) && !prompted.has(job.id) && !handed.has(job.id)) {
     prompted.add(job.id);
-    notify('Your song is ready in two versions. Pick the one for the track in AI tools.', 'success');
+    notify('Your song is ready in two versions.', 'success');
     void loadAccount();
   }
 
@@ -710,7 +710,7 @@ const onJob = (job: AiJob) => {
       if (job.notice) notify(job.notice, 'warning');
     } else
       notify(
-        job.error || 'The AI job failed. Your credits were refunded.',
+        job.error || 'The AI job failed. Credits refunded.',
         'error',
       );
     void loadAccount();

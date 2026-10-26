@@ -426,7 +426,7 @@ const onJob = (update: AiJob) => {
   void loadAi();
 
   if (update.status === 'failed') {
-    notify(update.error || 'The lyrics could not be written out. Your credits were refunded.', 'error');
+    notify(update.error || 'Could not write out the lyrics. Credits refunded.', 'error');
     return;
   }
 

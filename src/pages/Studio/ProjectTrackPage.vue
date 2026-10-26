@@ -964,7 +964,7 @@ const save = async (withPreview = false) => {
     ed.markSaved();
     tempoDirty.value = false;
     if (render) onMix({ status: 'rendering' });
-    notify(render ? 'Saved. The preview is being mixed.' : 'Saved.', 'success');
+    notify(render ? 'Saved. Mixing the preview.' : 'Saved.', 'success');
     historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, "The track couldn't be saved."), 'error');

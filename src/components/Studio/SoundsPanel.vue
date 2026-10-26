@@ -434,7 +434,7 @@ const importSound = async (item: Item) => {
     const res = await importFreesoundRequest(String(item.id)).send();
     item.imported = true;
     if (status.value) status.value.storage = res.storage;
-    notify(`"${item.name}" is in My sounds now.`, 'success');
+    notify(`Added "${item.name}" to My sounds.`, 'success');
   } catch (e) {
     notify(errorText(e, 'The sound couldn\'t be imported.'), 'error');
   } finally {
