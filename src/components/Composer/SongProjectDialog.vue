@@ -9,7 +9,7 @@
         <q-btn flat round dense icon="close" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
 
-      <q-form class="flex flex-col gap-3 px-4 pb-2" @submit.prevent="submit">
+      <q-form class="flex flex-col gap-3 px-8 pb-2" @submit.prevent="submit">
         <div>
           <q-btn-toggle
             dark

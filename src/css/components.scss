@@ -1,0 +1,313 @@
+// Base look for Quasar components: flat surfaces, thin borders, no Material elevation.
+
+body {
+  background: var(--tf-bg);
+  color: var(--tf-text);
+  font-family: var(--tf-font-sans);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.font-display {
+  font-family: var(--tf-font-display);
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--tf-primary-soft);
+  color: var(--tf-text);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-border-strong) transparent;
+}
+
+// Text on the primary colour is dark: white on cyan is hard to read
+.bg-primary.text-white,
+.bg-toneflix.text-white {
+  color: var(--tf-on-primary) !important;
+}
+
+// Buttons
+.q-btn {
+  text-transform: none;
+  letter-spacing: 0;
+
+  &:before {
+    box-shadow: none !important;
+  }
+
+  &--outline:before {
+    border-color: color-mix(in srgb, currentColor 35%, transparent);
+  }
+}
+
+// Cards: a border instead of a shadow
+.q-card--dark {
+  background: var(--tf-surface-1);
+  box-shadow: none;
+
+  &:not(.q-card--flat),
+  &.q-card--bordered {
+    border: 1px solid var(--tf-border);
+  }
+}
+
+.q-card {
+  border-radius: var(--tf-radius-lg);
+}
+
+.q-dialog__inner > .q-card,
+.q-dialog__inner > div > .q-card {
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-xl);
+  box-shadow: var(--tf-shadow-lg);
+}
+
+.q-dialog__inner--maximized > .q-card,
+.q-dialog__inner--maximized > div > .q-card {
+  border-radius: 0;
+}
+
+.q-dialog__backdrop {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+// Menus and popups
+.q-menu--dark {
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  box-shadow: var(--tf-shadow-lg);
+}
+
+.q-tooltip {
+  border: 1px solid var(--tf-border-strong);
+  font-weight: 500;
+}
+
+.q-notification {
+  border-radius: var(--tf-radius-lg);
+  box-shadow: var(--tf-shadow-lg);
+}
+
+// Lists
+.q-item {
+  border-radius: var(--tf-radius-md);
+}
+
+.q-list--dark,
+.q-item--dark {
+  color: var(--tf-text);
+}
+
+.q-item__label--caption {
+  color: var(--tf-text-muted);
+}
+
+.q-item__label--header {
+  color: var(--tf-text-subtle);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.q-separator--dark {
+  background: var(--tf-border);
+}
+
+// Fields
+.q-field--outlined .q-field__control {
+  border-radius: var(--tf-radius-md);
+
+  &:before {
+    border-color: var(--tf-border-strong);
+    transition: border-color var(--tf-duration) var(--tf-ease);
+  }
+
+  &:hover:before {
+    border-color: var(--tf-text-subtle);
+  }
+
+  &:after {
+    border-width: 1px !important;
+    border-radius: inherit;
+  }
+}
+
+.q-field--outlined.q-field--focused .q-field__control:after {
+  box-shadow: 0 0 0 3px var(--tf-focus);
+}
+
+.q-field--filled .q-field__control {
+  border-radius: var(--tf-radius-md);
+
+  &:before,
+  &:after {
+    display: none;
+  }
+}
+
+.q-field--filled.q-field--dark .q-field__control {
+  background: var(--tf-surface-2);
+}
+
+.q-field--filled.q-field--focused .q-field__control {
+  box-shadow:
+    inset 0 0 0 1px var(--q-primary),
+    0 0 0 3px var(--tf-focus);
+}
+
+.q-field--dark .q-field__control:before {
+  border-color: var(--tf-border-strong);
+}
+
+.q-field--dark .q-field__label,
+.q-field--dark .q-field__marginal {
+  color: var(--tf-text-muted);
+}
+
+// Toggle: a pill track with the thumb inside it
+.q-toggle__inner {
+  padding: 0.275em 0.3em;
+}
+
+.q-toggle__track {
+  height: 0.45em;
+  border-radius: 0.45em;
+  opacity: 1 !important;
+  background: var(--tf-border-strong);
+  transition: background-color var(--tf-duration) var(--tf-ease);
+}
+
+.q-toggle__thumb {
+  top: 0.325em;
+  left: 0.35em;
+  width: 0.35em;
+  height: 0.35em;
+
+  &:after {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .q-icon {
+    color: var(--tf-on-primary);
+  }
+}
+
+.q-toggle__inner--truthy {
+  .q-toggle__track {
+    background: currentColor;
+  }
+
+  .q-toggle__thumb {
+    left: 0.7em;
+  }
+}
+
+.q-toggle__inner--indet .q-toggle__thumb {
+  left: 0.525em;
+}
+
+// Checkbox and radio
+.q-checkbox__bg {
+  border-width: 1.5px;
+  border-radius: 5px;
+}
+
+.q-checkbox--dark
+  .q-checkbox__inner:not(.q-checkbox__inner--truthy)
+  .q-checkbox__bg {
+  border-color: var(--tf-text-subtle);
+}
+
+.q-checkbox__inner--truthy .q-checkbox__svg {
+  color: var(--tf-on-primary);
+}
+
+.q-radio__outer-circle {
+  stroke-width: 1.5;
+}
+
+// Tabs
+.q-tab {
+  text-transform: none;
+  letter-spacing: 0;
+
+  &__label {
+    font-weight: 500;
+  }
+
+  &__indicator {
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+  }
+}
+
+// Chips and badges
+.q-chip {
+  border-radius: var(--tf-radius-full);
+  font-weight: 500;
+}
+
+.q-chip--dark {
+  background: var(--tf-surface-3);
+}
+
+.q-badge {
+  border-radius: var(--tf-radius-sm);
+  font-weight: 600;
+  padding: 2px 6px;
+}
+
+.q-badge--rounded {
+  border-radius: var(--tf-radius-full);
+}
+
+// Tables
+.q-table__card.q-table--dark,
+.q-table--dark .q-table__card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+}
+
+// Layout
+.q-layout,
+.q-page-container {
+  background: var(--tf-bg);
+}
+
+.q-header--bordered,
+.q-footer--bordered,
+.q-drawer--bordered {
+  border-color: var(--tf-border);
+}
+
+.q-drawer--dark {
+  background: var(--tf-surface-1);
+}
+
+// Sliders and progress
+.q-slider__track {
+  border-radius: var(--tf-radius-full);
+}
+
+.q-linear-progress {
+  border-radius: var(--tf-radius-full);
+}
+
+// Expansion items
+.q-expansion-item__container > .q-item {
+  border-radius: var(--tf-radius-md);
+}

@@ -18,7 +18,7 @@
             Account Recovery.
           </h1>
 
-          <p class="mt-4 text-lg text-gray-300">
+          <p class="mt-8 text-lg text-gray-300">
             Let’s help you recover your account.
           </p>
 
@@ -55,7 +55,7 @@
 
               <router-link
                 :to="{ name: 'auth.login' }"
-                class="inline-block w-full mt-5 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
+                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
               >
                 Login Instead?
               </router-link>
@@ -64,7 +64,7 @@
             <div class="justify-center col-span-2 md:flex md:items-center">
               <router-link
                 :to="{ name: 'auth.register' }"
-                class="inline-block w-full mt-5 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
+                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
               >
                 Don't have an account? Create one!
               </router-link>

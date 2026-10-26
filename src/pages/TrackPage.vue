@@ -63,11 +63,9 @@
                   :signature="`track:${track.id}`"
                   @done="track.likes = $event.likes"
                 >
-                  <VaButton
-                    size="medium"
-                    preset="plain"
-                    color="textPrimary"
-                    hover-opacity="0.05"
+                  <q-btn
+                    flat
+                    no-caps
                     @click="submit"
                   >
                     <q-icon
@@ -78,7 +76,7 @@
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
                       &nbsp;{{ intStr(track.likes) }}
                     </span>
-                  </VaButton>
+                  </q-btn>
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
@@ -104,17 +102,14 @@
                   "
                   v-slot="{ toggle }"
                 >
-                  <VaButton
-                    fill
-                    size="medium"
-                    preset="plain"
-                    color="textPrimary"
-                    hover-opacity="0.05"
+                  <q-btn
+                    flat
+                    no-caps
                     @click="toggle"
                   >
                     <q-icon color="white" name="eva-message-square" />
                     &nbsp;{{ intStr(track.commentsCount) }}
-                  </VaButton>
+                  </q-btn>
                 </ConversationDialog>
               </span>
               <span class="!flex-none">•</span>
@@ -123,22 +118,22 @@
               </span>
             </div>
             <AudioTagChips
-              class="mt-3"
+              class="mt-4"
               :tags="track.tags"
               :editable="track.owned"
               :target="{ trackId: track.id }"
               @update:tags="track.tags = $event"
             />
-            <q-banner dense rounded class="mt-4 text-white bg-red-10 max-w-96" v-if="track.takenDown">
+            <q-banner dense rounded class="mt-8 text-white bg-red-10 max-w-96" v-if="track.takenDown">
               <template #avatar><q-icon name="fas fa-ban" /></template>
               This track was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
-            <p class="mt-4 text-sm max-w-96">
+            <p class="mt-8 text-sm max-w-96">
               {{ track.description }}
             </p>
             <TrackPurchases
-              class="mt-4"
+              class="mt-8"
               :track="track"
               @changed="() => reload()"
             />

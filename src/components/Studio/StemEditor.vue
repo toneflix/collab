@@ -229,7 +229,7 @@
         <q-btn flat round dense :icon="ionHelpCircleOutline" aria-label="How to use the editor" class="max-sm:!hidden">
           <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
             <div class="mb-2 font-bold">Using the editor</div>
-            <ul class="pl-4 space-y-1 text-sm list-disc">
+            <ul class="pl-8 space-y-1 text-sm list-disc">
               <li><b>Space</b> plays and pauses.</li>
               <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
               <li v-if="!readonly">Drag a stem's clip to move it. Drag its edges to trim it.</li>
@@ -277,7 +277,7 @@
           no-caps
           size="sm"
           color="grey-4"
-          class="!flex-none px-3"
+          class="!flex-none px-4"
           icon="tune"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
           @click="effectsOpen = true"
@@ -302,7 +302,7 @@
           no-caps
           size="sm"
           color="grey-4"
-          class="!flex-none px-3"
+          class="!flex-none px-4"
           :icon="selectedPattern.kind === 'drums' ? 'grid_view' : 'piano'"
           label="Edit pattern"
           @click="emit('edit-instrument', tracks.get(selected.id)!)"
@@ -335,7 +335,7 @@
             no-caps
             size="sm"
             color="grey-4"
-            class="!flex-none px-3"
+            class="!flex-none px-4"
             :icon="ionCloudUpload"
             label="Replace audio"
             @click="pickReplacement(stem)"
@@ -400,7 +400,7 @@
 
     <q-dialog v-model="colorsOpen">
       <q-card dark class="bg-[#1c1c1c]">
-        <q-card-section class="py-3">
+        <q-card-section class="py-4">
           <div class="font-bold">Colour of {{ selected?.name }}</div>
         </q-card-section>
         <q-card-section class="pt-0">

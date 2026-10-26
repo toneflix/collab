@@ -1,33 +1,52 @@
+// ToneflixText, the brand display face used for headings
 @font-face {
-  font-family: 'ToneflixText-Black';
-  src:
-    local('ToneflixText-Black'),
-    url('./fonts/ToneflixText-Black.otf') format('opentype'),
-    url('./fonts/ToneflixText-BlackItalic.otf') format('opentype');
+  font-family: 'ToneflixText';
+  font-weight: 300;
+  font-display: swap;
+  src: url('./ToneflixText-Light.otf') format('opentype');
 }
 @font-face {
-  font-family: 'ToneflixText-Bold';
-  src:
-    local('ToneflixText-Bold'),
-    url('./fonts/ToneflixText-Bold.otf') format('opentype');
+  font-family: 'ToneflixText';
+  font-weight: 400;
+  font-display: swap;
+  src: url('./ToneflixText-Book.otf') format('opentype');
 }
 @font-face {
-  font-family: 'ToneflixText-Book';
-  src:
-    local('ToneflixText-Book'),
-    url('./fonts/ToneflixText-Book.otf') format('opentype'),
-    url('./fonts/ToneflixText-BookItalic.otf') format('opentype');
+  font-family: 'ToneflixText';
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  src: url('./ToneflixText-BookItalic.otf') format('opentype');
 }
 @font-face {
-  font-family: 'ToneflixText-Light';
-  src:
-    local('ToneflixText-Light'),
-    url('./fonts/ToneflixText-Light.otf') format('opentype');
+  font-family: 'ToneflixText';
+  font-weight: 500;
+  font-display: swap;
+  src: url('./ToneflixText-Medium.otf') format('opentype');
 }
 @font-face {
-  font-family: 'ToneflixText-Medium';
-  src:
-    local('ToneflixText-Medium'),
-    url('./fonts/ToneflixText-Medium.otf') format('opentype'),
-    url('./fonts/ToneflixText-MediumItalic.otf') format('opentype');
+  font-family: 'ToneflixText';
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+  src: url('./ToneflixText-MediumItalic.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText';
+  font-weight: 700;
+  font-display: swap;
+  src: url('./ToneflixText-Bold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText';
+  font-weight: 900;
+  font-display: swap;
+  src: url('./ToneflixText-Black.otf') format('opentype');
+}
+@font-face {
+  font-family: 'ToneflixText';
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+  src: url('./ToneflixText-BlackItalic.otf') format('opentype');
 }

@@ -104,7 +104,7 @@
                 <q-tooltip>Manage this artist? Claim the profile to edit it and manage the catalogue.</q-tooltip>
               </span>
             </div>
-            <p class="block mt-4 text-sm max-w-96">
+            <p class="block mt-8 text-sm max-w-96">
               {{ artist.about }}
             </p>
             <div class="claim-status" v-if="artist.claimable && artist.yourClaim">

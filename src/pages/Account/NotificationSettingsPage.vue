@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-2xl mx-auto">
-      <div class="mb-4">
+      <div class="mb-8">
         <h1 class="text-2xl font-bold">Notification settings</h1>
         <p class="text-grey-5">
           Choose what reaches you when you're not in the app. Everything still
@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <q-banner rounded dense class="mb-4 bg-green-10 text-white" v-if="unsubscribed">
+      <q-banner rounded dense class="mb-8 bg-green-10 text-white" v-if="unsubscribed">
         <template #avatar><q-icon name="mark_email_read" /></template>
         You won't get emails about {{ unsubscribed.title.toLowerCase() }} anymore. You can turn them back on below.
       </q-banner>

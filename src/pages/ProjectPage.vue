@@ -102,11 +102,9 @@
                   :base-url="`projects/${project.id}`"
                   @done="project.props = $event.props"
                 >
-                  <VaButton
-                    size="medium"
-                    preset="plain"
-                    color="textPrimary"
-                    hover-opacity="0.05"
+                  <q-btn
+                    flat
+                    no-caps
                     @click="submit"
                   >
                     <q-icon
@@ -117,7 +115,7 @@
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
                       &nbsp;{{ intStr(project.props) }} Props
                     </span>
-                  </VaButton>
+                  </q-btn>
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
@@ -126,7 +124,7 @@
                 &nbsp;{{ intStr(project.commentsCount) }}
               </span>
             </div>
-            <p class="mt-4 text-sm max-w-96">
+            <p class="mt-8 text-sm max-w-96">
               {{ project.description }}
             </p>
           </div>

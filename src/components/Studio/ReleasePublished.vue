@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center gap-4 px-4 py-12 text-center">
+  <div class="flex flex-col items-center gap-4 px-8 py-12 text-center">
     <div class="release-art !flex-none">
       <q-img
         no-spinner

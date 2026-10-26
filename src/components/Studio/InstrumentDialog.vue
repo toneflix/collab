@@ -25,7 +25,7 @@
         align="left"
         active-color="toneflix"
         indicator-color="toneflix"
-        class="px-3"
+        class="px-4"
         :model-value="pattern.kind"
         @update:model-value="switchKind"
         v-if="!editing"
@@ -161,7 +161,7 @@
             v-if="playStep >= 0"
           />
         </div>
-        <div class="px-3 pt-2 text-xs text-grey-5">
+        <div class="px-4 pt-2 text-xs text-grey-5">
           Click or drag on the grid to add a note, click a note to remove it. Notes outside this octave range are kept.
         </div>
       </div>

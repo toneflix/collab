@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-6xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Configuration</h1>
         <p class="text-grey-5">
           General settings for the whole app. API keys are not here; they live

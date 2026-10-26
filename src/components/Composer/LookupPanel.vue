@@ -1,7 +1,7 @@
 <template>
   <ComposerSheet title="Lookup" :caption="caption" :dock="dock" v-model="open">
     <template #top>
-      <div class="px-4 pt-3">
+      <div class="px-8 pt-4">
         <q-input
           dark
           filled
@@ -19,7 +19,7 @@
         <q-tab name="related" label="Related" />
         <q-tab name="definitions" label="Definitions" />
       </q-tabs>
-      <div class="flex gap-1 px-4 pt-2 no-wrap" v-if="tab !== 'definitions'">
+      <div class="flex gap-1 px-8 pt-2 no-wrap" v-if="tab !== 'definitions'">
         <q-btn
           unelevated
           dense
@@ -56,7 +56,7 @@
       <div class="py-8 text-sm text-center text-grey-5" v-if="loaded && !hits.length">
         Nothing found for "{{ word }}".
       </div>
-      <div class="mb-3" :key="group.label" v-for="group in groups">
+      <div class="mb-4" :key="group.label" v-for="group in groups">
         <div class="mb-1 text-xs font-bold text-grey-5" v-if="group.label">{{ group.label }}</div>
         <div class="flex flex-wrap gap-x-1 gap-y-0.5">
           <button

@@ -1,0 +1,61 @@
+/*
+ * Design tokens. Quasar (quasar.variables.scss), Tailwind (tailwind.config.js)
+ * and the component styles (components.scss) all read these.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces, from the page up to raised layers */
+  --tf-bg: #0a0c10;
+  --tf-surface-1: #111419;
+  --tf-surface-2: #171b22;
+  --tf-surface-3: #1e232c;
+  --tf-overlay: rgb(5 6 9 / 72%);
+
+  /* Lines */
+  --tf-border: #232832;
+  --tf-border-strong: #313846;
+
+  /* Text */
+  --tf-text: #eceef2;
+  --tf-text-muted: #a0a7b4;
+  --tf-text-subtle: #6c7383;
+
+  /* Brand and states */
+  --tf-primary: #03bfff;
+  --tf-primary-hover: #38ceff;
+  --tf-primary-soft: rgb(3 191 255 / 12%);
+  --tf-on-primary: #03141c;
+  --tf-secondary: #8b7cff;
+  --tf-accent: #ff5c8a;
+  --tf-success: #2fd07f;
+  --tf-warning: #f5b53d;
+  --tf-danger: #f2555a;
+  --tf-info: #5aa9ff;
+  --tf-focus: rgb(3 191 255 / 45%);
+
+  /* Type */
+  --tf-font-sans:
+    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --tf-font-display:
+    'ToneflixText', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --tf-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  /* Radius */
+  --tf-radius-sm: 6px;
+  --tf-radius-md: 8px;
+  --tf-radius-lg: 12px;
+  --tf-radius-xl: 16px;
+  --tf-radius-2xl: 24px;
+  --tf-radius-full: 9999px;
+
+  /* Elevation: borders do most of the work, shadows only lift floating layers */
+  --tf-shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --tf-shadow-md: 0 4px 16px rgb(0 0 0 / 35%);
+  --tf-shadow-lg: 0 16px 48px rgb(0 0 0 / 50%);
+
+  /* Motion */
+  --tf-ease: cubic-bezier(0.2, 0, 0, 1);
+  --tf-duration: 150ms;
+}

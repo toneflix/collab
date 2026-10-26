@@ -98,7 +98,7 @@
     </div>
 
     <!-- Stems, assets and conversation -->
-    <div class="flex flex-wrap items-center gap-1 mb-3">
+    <div class="flex flex-wrap items-center gap-1 mb-4">
       <input
         multiple
         type="file"
@@ -274,14 +274,14 @@
       <div class="studio-body" :style="fit" ref="studioBody">
         <div class="studio-main">
           <div
-            class="mb-3 text-sm empty-hint"
+            class="mb-4 text-sm empty-hint"
             v-if="loaded && !stems.length && !viewOnly"
           >
             No stems yet. Upload the parts of this track, press record, add a
             sound, or make a beat with an instrument.
           </div>
           <SimpleInfo
-            class="mt-4"
+            class="mt-8"
             text="This track has no stems."
             v-if="loaded && !stems.length && viewOnly"
           />

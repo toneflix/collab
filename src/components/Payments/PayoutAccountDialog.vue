@@ -48,7 +48,7 @@
           />
 
           <template v-if="method?.lookup === 'hosted'">
-            <div class="px-3 py-3 text-sm rounded note">
+            <div class="px-4 py-4 text-sm rounded note">
               Payouts to {{ country!.name }} go through {{ providerNames[country!.provider] }}. You'll add your bank details
               on their secure page and come straight back here. Withdrawals are sent in {{ country!.currency }}.
               <div class="mt-1 text-xs text-grey-5" v-if="pending">You started this already. Continue where you left off.</div>
@@ -137,7 +137,7 @@
               />
             </template>
 
-            <div class="flex items-center gap-2 px-3 py-2 rounded note" v-if="method.lookup === 'resolve' && (resolving || resolved || resolveError)">
+            <div class="flex items-center gap-2 px-4 py-2 rounded note" v-if="method.lookup === 'resolve' && (resolving || resolved || resolveError)">
               <q-spinner size="16px" class="!flex-none" v-if="resolving" />
               <q-icon name="fas fa-circle-check" color="green-5" class="!flex-none" v-else-if="resolved" />
               <q-icon name="fas fa-circle-exclamation" color="red-4" class="!flex-none" v-else />

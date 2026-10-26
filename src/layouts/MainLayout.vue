@@ -14,42 +14,39 @@
           <t-icon name="eva-menu" />
         </q-btn>
 
-        <VaButton
+        <q-btn
+          flat
           round
-          size="medium"
-          color="backgroundSecondary"
+          class="!flex-none bg-surface-2"
+          aria-label="Search"
           v-if="!showSearch"
           @click="showSearch = !showSearch"
         >
           <t-icon name="eva-search" />
-        </VaButton>
+        </q-btn>
 
-        <VaInput
+        <q-input
+          dense
+          outlined
+          rounded
           placeholder="Search songs, lyrics and creators"
           aria-label="Search"
+          class="header-search"
           v-model="searchText"
           @keyup.enter="search"
-          preset="solid"
-          color="textPrimary"
-          class="placeholder-white"
-          background="backgroundSecondary"
-          style="
-            --va-input-wrapper-border-radius: 20px;
-            --va-input-wrapper-color: #fff;
-            --va-input-wrapper-border-color: var(--va-background-secondary);
-          "
           v-if="showSearch"
         >
-          <template #prependInner>
+          <template #prepend>
             <q-icon
               name="clear"
-              size="sm"
-              color="white"
+              size="xs"
+              class="cursor-pointer"
               v-if="$q.screen.lt.sm"
               @click="showSearch = !showSearch"
             />
+            <t-icon name="eva-search" v-else />
           </template>
-        </VaInput>
+        </q-input>
         <!-- <q-toolbar-title class="text-center"> Title </q-toolbar-title> -->
 
         <q-space />
@@ -105,7 +102,7 @@
       v-model="leftDrawerOpen"
     >
       <q-toolbar
-        class="!items-start !flex-nowrap py-3 mb-10 h-28 bg-dark absolute-top"
+        class="!items-start !flex-nowrap py-4 mb-10 h-28 bg-dark absolute-top"
         :class="{ '!justify-center !px-0': collapsed }"
       >
         <div class="!flex-none" v-if="!collapsed">

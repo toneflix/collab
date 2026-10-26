@@ -93,20 +93,20 @@
         </div>
 
         <div
-          class="justify-end gap-2 mt-4 text-center md:flex md:items-center md:col-span-2"
+          class="justify-end gap-2 mt-8 text-center md:flex md:items-center md:col-span-2"
         >
           <q-btn
             no-caps
             outline
             color="primary"
-            class="mb-5 text-xl rounded-lg md:!mb-0"
+            class="mb-12 text-xl rounded-lg md:!mb-0"
             label="Cancel"
           />
           <q-btn
             no-caps
             type="submit"
             color="primary"
-            class="mb-5 text-xl rounded-lg md:!mb-0"
+            class="mb-12 text-xl rounded-lg md:!mb-0"
             label="Save"
             :loading="saving"
           />

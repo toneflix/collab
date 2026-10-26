@@ -15,7 +15,7 @@
         <span class="home-feature__icon" :style="{ color: feature.color, background: `${feature.color}1f` }">
           <q-icon :name="feature.icon" size="24px" />
         </span>
-        <h3 class="mt-4 text-lg font-bold text-white">{{ feature.title }}</h3>
+        <h3 class="mt-8 text-lg font-bold text-white">{{ feature.title }}</h3>
         <p class="mt-2 text-sm leading-relaxed text-gray-400">{{ feature.text }}</p>
         <span class="home-feature__more">
           {{ feature.action }}

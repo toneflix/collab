@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-6xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">AI tools</h1>
         <p class="text-grey-5">
           Plans choose who gets the tools and how many credits come each month.
@@ -31,7 +31,7 @@
           </template>
 
           <template #engines>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Keys go in the API's .env. Replicate runs every tool unless you
               switch Music generation or Stem splitting to Suno.
             </p>
@@ -77,7 +77,7 @@
           </template>
 
           <template #music>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               The studio generates music with this model. Each model has its own
               price in credits. Jobs already started keep the model and price
               they started with.
@@ -168,7 +168,7 @@
           </template>
 
           <template #stems>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               {{ fields.ai_stems_engine?.hint }} Jobs already started keep the
               engine and price they started with.
             </p>
@@ -197,7 +197,7 @@
                     dense
                     type="number"
                     min="1"
-                    class="mt-3 model__credits"
+                    class="mt-4 model__credits"
                     label="Credits per split"
                     :hint="fields.ai_stems_credits?.hint"
                     v-model.number="form.ai_stems_credits"
@@ -262,7 +262,7 @@
           </template>
 
           <template #credits>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               A Demucs split costs us about $0.03, a 30 second ElevenLabs track
               about $0.08 and a Suno song about $0.06. The defaults sell a
               credit for about four times what it costs us.
@@ -298,7 +298,7 @@
               />
             </div>
 
-            <div class="mt-4 text-sm" v-if="settings.client.packs.length">
+            <div class="mt-8 text-sm" v-if="settings.client.packs.length">
               <div class="mb-1 text-grey-5">Packs on sale</div>
               <div class="flex flex-wrap gap-2">
                 <q-chip
@@ -319,13 +319,13 @@
           </template>
 
           <template #lyrics>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Whisper writes out lyrics for about $0.001 a track. Released
               tracks show synced lyrics in the player and can be found by their
               words. Explicit words mark a track explicit, and words to review
               send it to the moderation queue.
             </p>
-            <div class="toggle-card mb-3">
+            <div class="toggle-card mb-4">
               <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
               <div class="min-w-0">
                 <div class="font-bold">{{ fields.ai_lyrics_auto?.title }}</div>
@@ -365,7 +365,7 @@
           </template>
 
           <template #tags>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               New tracks and studio mixes are tagged with their BPM and key,
               which show in the player, on track pages and in the studio, and
               can be searched. Creators can correct them. Run
@@ -383,7 +383,7 @@
           </template>
 
           <template #composer>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Composer is the lyrics notepad in the studio. Its suggestions use
               the Replicate token from Engines and need a plan with AI tools.
             </p>
@@ -437,7 +437,7 @@
           </template>
 
           <template #moderator>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Reviews artist claims and releases waiting for approval. Admins
               can send any of them from the moderation queue, and those always
               get a decision. Items sent automatically are only decided when the

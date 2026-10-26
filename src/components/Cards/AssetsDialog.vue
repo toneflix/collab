@@ -95,7 +95,7 @@
       <q-separator />
       <q-card-section class="scroll max-h-[50vh]">
         <q-item-label class="text-lg font-bold">Stem Files</q-item-label>
-        <div class="grid grid-cols-4 gap-2 mt-2 mb-4">
+        <div class="grid grid-cols-4 gap-2 mt-2 mb-8">
           <IconCard
             dense
             no-animation

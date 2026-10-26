@@ -1,7 +1,7 @@
 <template>
   <ComposerSheet title="Versions" caption="Saved copies of the lyrics" :dock="dock" v-model="open" @show="load(1)">
     <template #top>
-      <form class="flex items-center gap-2 px-4 pt-3 no-wrap" @submit.prevent="nameVersion">
+      <form class="flex items-center gap-2 px-8 pt-4 no-wrap" @submit.prevent="nameVersion">
         <q-input dark filled dense class="min-w-0" maxlength="100" placeholder="Name this version" v-model="name" />
         <q-btn
           unelevated

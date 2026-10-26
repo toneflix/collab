@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-2xl mx-auto">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-8">
         <h1 class="text-2xl font-bold">Purchases</h1>
         <q-btn
           class="!flex-none"
@@ -45,7 +45,7 @@
         text="Nothing here yet. Releases, stems, tips and Premium you pay for show up here."
       />
 
-      <div class="flex justify-center mt-4" v-if="pageCount > 1">
+      <div class="flex justify-center mt-8" v-if="pageCount > 1">
         <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
       </div>
     </div>

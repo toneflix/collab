@@ -16,7 +16,7 @@
           @click="newSong"
         />
       </div>
-      <p class="mb-4 text-sm text-grey-5">
+      <p class="mb-8 text-sm text-grey-5">
         Your notepad for lyrics. Syllables, rhymes and word lookups sit beside every line, and songs save as you write.
       </p>
 
@@ -27,7 +27,7 @@
         rounded
         clearable
         debounce="300"
-        class="mb-4"
+        class="mb-8"
         placeholder="Search your songs"
         v-model="search"
       >
@@ -83,7 +83,7 @@
         </router-link>
       </div>
 
-      <div class="flex justify-center py-4" v-if="loading">
+      <div class="flex justify-center py-8" v-if="loading">
         <q-spinner size="lg" />
       </div>
     </div>

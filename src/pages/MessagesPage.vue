@@ -98,7 +98,7 @@
 
       <div class="chat__empty" v-else>
         <q-icon name="chat_bubble_outline" size="48px" color="grey-7" />
-        <div class="mt-3 text-lg font-bold">Your conversations</div>
+        <div class="mt-4 text-lg font-bold">Your conversations</div>
         <div class="text-sm text-grey-5">Pick one on the left to read and reply.</div>
       </div>
     </section>

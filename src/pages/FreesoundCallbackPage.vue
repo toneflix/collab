@@ -3,19 +3,19 @@
     <div class="max-w-md text-center">
       <template v-if="state === 'working'">
         <q-spinner size="32px" color="toneflix" />
-        <div class="mt-3 text-lg">Connecting Freesound…</div>
+        <div class="mt-4 text-lg">Connecting Freesound…</div>
       </template>
       <template v-else-if="state === 'done'">
         <q-icon name="check_circle" size="40px" color="green-5" />
-        <div class="mt-3 text-lg font-bold">Freesound is connected</div>
+        <div class="mt-4 text-lg font-bold">Freesound is connected</div>
         <div class="text-sm text-grey-5" v-if="username">Signed in as {{ username }}.</div>
-        <q-btn unelevated rounded no-caps color="toneflix" class="mt-4" label="Continue" :to="back" />
+        <q-btn unelevated rounded no-caps color="toneflix" class="mt-8" label="Continue" :to="back" />
       </template>
       <template v-else>
         <q-icon name="error_outline" size="40px" color="red-4" />
-        <div class="mt-3 text-lg font-bold">Freesound wasn't connected</div>
+        <div class="mt-4 text-lg font-bold">Freesound wasn't connected</div>
         <div class="text-sm text-grey-5">{{ message }}</div>
-        <q-btn outline rounded no-caps color="white" class="mt-4" label="Go back" :to="back" />
+        <q-btn outline rounded no-caps color="white" class="mt-8" label="Go back" :to="back" />
       </template>
     </div>
   </q-page>

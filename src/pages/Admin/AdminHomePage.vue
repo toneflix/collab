@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-5xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Overview</h1>
         <p class="text-grey-5" v-if="stats">How the app is doing over the last {{ stats.days }} days.</p>
       </div>
@@ -41,7 +41,7 @@
 
         <div class="grid gap-3 lg:grid-cols-2">
           <div class="section" v-if="stats.revenue">
-            <div class="mb-3 font-bold">Payments by type</div>
+            <div class="mb-4 font-bold">Payments by type</div>
             <div class="text-grey-5" v-if="!stats.revenue.byPurpose.length">
               No payments in the last {{ stats.days }} days.
             </div>
@@ -50,7 +50,7 @@
               <div class="text-grey-5">{{ row.count.toLocaleString() }}</div>
               <div class="text-right">{{ price(row.amount) }}</div>
             </div>
-            <q-separator dark class="my-3" />
+            <q-separator dark class="my-4" />
             <div class="row-item text-grey-5">
               <div>All time</div>
               <div />

@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-6xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Moderation</h1>
         <p class="text-grey-5">
           Reported content, tracks the audio check flagged as copies, and tracks whose lyrics need a look. Taking something down hides it from everyone
@@ -10,7 +10,7 @@
       </div>
 
       <SettingsSections :sections="sections" v-model="tab">
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-8">
           <q-input
             dark
             dense
@@ -53,7 +53,7 @@
 
           <div class="py-10 text-center" v-if="loading && !queue.length"><q-spinner size="md" /></div>
           <div class="py-12 text-center text-grey-5" v-else-if="!queue.length">
-            <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
+            <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'Nothing matches your search.' : 'Nothing waiting for review.' }}</div>
           </div>
 
@@ -177,7 +177,7 @@
         <template v-else-if="tab === 'releases'">
           <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
           <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
-            <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
+            <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'No releases match your search.' : 'No releases waiting for approval.' }}</div>
           </div>
 
@@ -333,7 +333,7 @@
           </div>
         </template>
 
-        <div class="flex justify-center mt-4" v-if="tab !== 'claims' && pages.lastPage > 1">
+        <div class="flex justify-center mt-8" v-if="tab !== 'claims' && pages.lastPage > 1">
           <q-pagination dark color="toneflix" :max="pages.lastPage" :model-value="pages.page" @update:model-value="load" />
         </div>
       </SettingsSections>

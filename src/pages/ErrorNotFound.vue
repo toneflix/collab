@@ -1,22 +1,24 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
+  <div class="fullscreen bg-page text-center q-pa-md flex flex-center">
     <div>
-      <div style="font-size: 30vh">
+      <div
+        class="font-display font-black leading-none text-primary text-[28vh]"
+      >
         404
       </div>
 
-      <div class="text-h2" style="opacity:.4">
-        Oops. Nothing here...
-      </div>
+      <div class="mt-4 text-2xl font-semibold font-display">Nothing here</div>
+      <p class="mt-2 text-fg-muted">
+        The page you're looking for moved or never existed.
+      </p>
 
       <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
         unelevated
-        to="/"
-        label="Go Home"
         no-caps
+        color="primary"
+        class="q-mt-xl"
+        to="/"
+        label="Go home"
       />
     </div>
   </div>
@@ -24,6 +26,6 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: 'ErrorNotFound'
+  name: 'ErrorNotFound',
 });
 </script>

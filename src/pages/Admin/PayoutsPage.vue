@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-6xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Payouts</h1>
         <p class="text-grey-5">
           Creators' withdrawal requests. Approving one sends the money through the
@@ -15,7 +15,7 @@
         </template>
 
         <template #default>
-          <q-banner rounded dense class="mb-4 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
+          <q-banner rounded dense class="mb-8 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
             {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
           </q-banner>
 
@@ -79,7 +79,7 @@
           </div>
           <SimpleInfo v-else text="Nothing here." />
 
-          <div class="flex justify-center mt-4" v-if="pageCount > 1">
+          <div class="flex justify-center mt-8" v-if="pageCount > 1">
             <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
           </div>
         </template>

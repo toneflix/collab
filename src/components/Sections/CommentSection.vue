@@ -1,7 +1,7 @@
 <template>
   <!-- component -->
   <div class="antialiased">
-    <h1 class="max-w-screen-sm px-3 mx-auto va-h5" v-if="!hideTitle">
+    <h1 class="max-w-screen-sm px-4 mx-auto text-2xl font-bold" v-if="!hideTitle">
       Discussion
     </h1>
     <q-scroll-area
@@ -9,7 +9,7 @@
     >
       <div class="space-y-4">
         <div
-          class="flex-1 px-4 py-2 leading-relaxed text-center border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
+          class="flex-1 px-8 py-2 leading-relaxed text-center border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
           v-if="!comments.length"
         >
           It's silent here, Be the first to {{ label }}!

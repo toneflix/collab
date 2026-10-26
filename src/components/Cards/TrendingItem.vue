@@ -1,7 +1,7 @@
 <template>
   <div>
     <q-item
-      class="py-0 pl-3"
+      class="py-0 pl-4"
       active-class="text-white"
       :to="{
         name: 'artist.track',
@@ -12,7 +12,7 @@
       }"
       v-intersection="onIntersect"
     >
-      <q-item-section avatar class="pr-3 min-w-10">
+      <q-item-section avatar class="pr-4 min-w-10">
         <q-avatar rounded>
           <q-img
             no-spinner
@@ -40,11 +40,9 @@
       <q-item-section side>
         <div class="flex flex-row items-center gap-2">
           {{ formatSeconds(track.duration) }}
-          <VaButton
-            size="medium"
-            preset="plain"
-            color="textPrimary"
-            hover-opacity="0.8"
+          <q-btn
+            flat
+            no-caps
             @click.prevent="togglePlay"
           >
             <q-icon
@@ -59,7 +57,7 @@
             <q-tooltip v-if="track.locked">
               Part of a paid release
             </q-tooltip>
-          </VaButton>
+          </q-btn>
         </div>
       </q-item-section>
     </q-item>

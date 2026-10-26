@@ -1,6 +1,6 @@
 <template>
   <ComposerSheet title="Notes" caption="Only you can see these. They save with the song." :dock="dock" v-model="open">
-    <div class="mb-4">
+    <div class="mb-8">
       <div class="label">Tempo and key</div>
       <div class="flex gap-2 no-wrap">
         <q-input
@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-8">
       <div class="label">Beat</div>
       <div class="flex items-center gap-2 no-wrap" v-if="song.beat">
         <q-icon :name="ionMusicalNotes" size="20px" class="!flex-none text-toneflix" />
@@ -61,7 +61,7 @@
       />
     </div>
 
-    <div class="mb-4">
+    <div class="mb-8">
       <div class="label">Scratchpad</div>
       <q-input
         dark
