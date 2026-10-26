@@ -108,7 +108,7 @@ onMounted(() => void load(1));
 
 useMeta(() => ({
   title: search.value ? `${search.value} - Compositions` : 'Compositions',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

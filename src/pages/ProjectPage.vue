@@ -269,7 +269,7 @@ useMeta(() => {
   return project.value?.id
     ? {
         title: project.value.title,
-        titleTemplate: (title) => `${title} - Toneflix Collab`,
+        titleTemplate: (title) => `${title} - Toneflix Music`,
         meta: {
           description: {
             name: 'description',

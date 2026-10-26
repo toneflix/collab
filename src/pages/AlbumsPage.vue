@@ -81,16 +81,16 @@ const { data } = useRequest(
 useMeta(() => {
   return {
     title: 'Explore Albums',
-    titleTemplate: (title) => `${title} - Toneflix Collab`,
+    titleTemplate: (title) => `${title} - Toneflix Music`,
     meta: {
       description: {
         name: 'description',
-        content: 'Explore Albums on Toneflix Collab',
+        content: 'Explore Albums on Toneflix Music',
       },
       ogTitle: { property: 'og:title', content: 'Explore Albums' },
       ogDescription: {
         property: 'og:description',
-        content: 'Explore Albums on Toneflix Collab',
+        content: 'Explore Albums on Toneflix Music',
       },
     },
   };

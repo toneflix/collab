@@ -365,7 +365,7 @@ const endPlan = () => {
 
 useMeta(() => ({
   title: detail.value ? `${user.value.fullname || user.value.username} - Users` : 'Users',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

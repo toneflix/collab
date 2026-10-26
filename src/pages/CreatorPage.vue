@@ -191,17 +191,17 @@ useMeta(() => {
   return artist.value
     ? {
         title: artist.value.name,
-        titleTemplate: (title) => `${title} - Toneflix Collab`,
+        titleTemplate: (title) => `${title} - Toneflix Music`,
         meta: {
           description: {
             name: 'description',
-            content: artist.value.name + ' on Toneflix Collab',
+            content: artist.value.name + ' on Toneflix Music',
           },
           ogImage: { property: 'og:image', content: artist.value.imageUrl },
           ogTitle: { property: 'og:title', content: artist.value.name },
           ogDescription: {
             property: 'og:description',
-            content: artist.value.name + ' on Toneflix Collab',
+            content: artist.value.name + ' on Toneflix Music',
           },
         },
       }

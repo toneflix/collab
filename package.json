@@ -1,8 +1,8 @@
 {
   "name": "toneflix-collab",
   "version": "0.0.1",
-  "description": "A streaming platform that brings together creatives in the music industry to make awesome sounds through collaboration.",
-  "productName": "Toneflix Collab",
+  "description": "A music community for listening, discovering artists and making music together.",
+  "productName": "Toneflix Music",
   "author": "toneflix<code@toneflix.com.ng>",
   "type": "module",
   "private": true,

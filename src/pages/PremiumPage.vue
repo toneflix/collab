@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto">
       <div class="py-6 text-center">
         <q-icon name="lucide-crown" color="amber-7" size="40px" />
-        <h1 class="mt-4 text-4xl font-circlular-std">Toneflix Premium</h1>
+        <h1 class="mt-4 text-4xl font-circlular-std">Toneflix Music Premium</h1>
         <p class="mt-2 text-grey-5">
           Pick the plan that fits how you listen and create.
         </p>
@@ -244,6 +244,6 @@ const onPaid = async () => {
 
 useMeta(() => ({
   title: 'Premium',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

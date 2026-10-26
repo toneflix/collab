@@ -90,6 +90,6 @@ void store.load();
 
 useMeta(() => ({
   title: 'Notifications',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

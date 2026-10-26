@@ -309,7 +309,7 @@ watch(
 
 useMeta(() => ({
   title: q.value ? `${q.value} - Search` : 'Search',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

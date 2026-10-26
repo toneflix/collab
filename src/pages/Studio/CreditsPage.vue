@@ -213,7 +213,7 @@ onMounted(() => void reload());
 
 useMeta(() => ({
   title: 'AI credits',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

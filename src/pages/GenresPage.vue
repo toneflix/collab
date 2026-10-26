@@ -54,16 +54,16 @@ const categories = reactive({
 useMeta(() => {
   return {
     title: 'Explore',
-    titleTemplate: (title) => `${title} - Toneflix Collab`,
+    titleTemplate: (title) => `${title} - Toneflix Music`,
     meta: {
       description: {
         name: 'description',
-        content: 'Explore and Create Music on Toneflix Collab',
+        content: 'Explore and Create Music on Toneflix Music',
       },
       ogTitle: { property: 'og:title', content: 'Explore and Create Music' },
       ogDescription: {
         property: 'og:description',
-        content: 'Explore and Create Music on Toneflix Collab',
+        content: 'Explore and Create Music on Toneflix Music',
       },
     },
   };

@@ -128,7 +128,7 @@ const pageCount = computed(() => data.value?.meta?.lastPage || 1);
 
 useMeta(() => ({
   title: 'Users',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

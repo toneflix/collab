@@ -966,7 +966,7 @@ onMounted(async () => {
 
 useMeta(() => ({
   title: 'AI tools',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

@@ -25,6 +25,6 @@ const boot = useBootstrapStore();
 
 useMeta(() => ({
   title: 'Content agent',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
