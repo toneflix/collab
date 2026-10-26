@@ -133,8 +133,8 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     key: 'releases',
     icon: 'lucide-disc-3',
     title: 'Releases',
-    caption: 'Whether releases wait for a review.',
-    keys: ['review_releases'],
+    caption: 'Reviews and track downloads.',
+    keys: ['review_releases', 'track_downloads'],
   },
   {
     key: 'studio',

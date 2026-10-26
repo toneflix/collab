@@ -34,7 +34,7 @@
       icon="lucide-crown"
       label="Download with Premium"
       :to="{ name: 'premium' }"
-      v-else-if="!track.locked"
+      v-else-if="!track.locked && track.downloadable"
     />
 
     <!-- Stems -->
@@ -121,9 +121,12 @@ const emit = defineEmits<{
 
 const { price, isPremium } = usePayments();
 
-// Premium listeners can download anything they can stream; buyers can download what they bought.
+// Owners and buyers can always download; premium listeners can when the creator allowed it.
 const canDownload = computed(
-  () => !props.track.locked && (isPremium.value || Number(props.track.price) > 0),
+  () =>
+    !!props.track.downloadable &&
+    !props.track.locked &&
+    (isPremium.value || !!props.track.owned || Number(props.track.price) > 0),
 );
 
 const downloading = ref(false);
