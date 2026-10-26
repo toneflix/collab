@@ -112,7 +112,8 @@
         </template>
 
         <div class="mb-2 font-bold">History</div>
-        <q-list dark separator class="history">
+        <ListSkeleton side :rows="5" v-if="loadingHistory && !history.length" />
+        <q-list dark separator class="history" :class="{ 'opacity-60': loadingHistory }" v-else>
           <q-item :key="entry.id" v-for="entry in history">
             <q-item-section avatar>
               <q-icon
@@ -140,14 +141,15 @@
             >
           </q-item>
         </q-list>
-        <div class="mt-4 text-center" v-if="page < lastPage">
-          <q-btn
-            flat
-            rounded
-            no-caps
-            label="Show more"
-            :loading="loadingHistory"
-            @click="loadHistory(page + 1)"
+        <div class="flex justify-center mt-4" v-if="lastPage > 1">
+          <q-pagination
+            direction-links
+            boundary-numbers
+            class="!flex-none"
+            :max="lastPage"
+            :max-pages="7"
+            :model-value="page"
+            @update:model-value="loadHistory"
           />
         </div>
       </template>
@@ -168,6 +170,7 @@ import {
   type CreditEntry,
 } from 'src/utils/requests/ai';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const { price } = usePayments();
 
@@ -192,7 +195,7 @@ const loadHistory = async (to = 1) => {
   loadingHistory.value = true;
   try {
     const res = await loadCreditHistoryRequest(to).send();
-    history.value = to === 1 ? res.data : [...history.value, ...res.data];
+    history.value = res.data;
     page.value = res.meta.currentPage;
     lastPage.value = res.meta.lastPage;
   } finally {
