@@ -28,10 +28,8 @@
                 :label="settings.client.enabled ? 'On' : 'Off'"
               />
             </div>
-          </template>
 
-          <template #engines>
-            <p class="mb-4 text-sm text-grey-5">
+            <p class="mt-6 mb-4 text-sm text-grey-5">
               Keys go in the API's .env. Replicate runs every tool unless you
               switch it to Suno or Cloudflare Workers AI in its section.
             </p>
@@ -731,17 +729,9 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   {
     key: 'general',
     icon: 'lucide-power',
-    title: 'Availability',
-    caption: 'Whether the studio offers AI tools.',
+    title: 'Availability and engines',
+    caption: 'Whether the studio offers AI tools, and the engine keys.',
     fields: ['ai_enabled'],
-  },
-  {
-    key: 'engines',
-    icon: 'lucide-plug',
-    title: 'Engines',
-    caption: 'Replicate, Suno and Workers AI, and the keys they need.',
-    fields: [],
-    hideFooter: true,
   },
   {
     key: 'music',
