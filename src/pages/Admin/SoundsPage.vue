@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <q-spinner v-if="loading" />
+      <ListSkeleton avatar="square" v-if="loading" />
 
       <q-form v-else-if="settings" @submit="save">
         <SettingsSections :sections="sections" :marked="unsaved">
@@ -217,6 +217,7 @@ import {
   type Sound,
   type SoundAdminSettings,
 } from 'src/utils/requests/sounds';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const $q = useQuasar();
 const boot = useBootstrapStore();

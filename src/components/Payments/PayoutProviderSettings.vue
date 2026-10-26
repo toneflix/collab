@@ -1,5 +1,5 @@
 <template>
-  <q-spinner v-if="loading" />
+  <BlockSkeleton variant="form" :count="3" v-if="loading" />
 
   <q-form class="flex flex-col gap-4" @submit="save" v-else-if="settings">
     <div class="section" :key="provider.key" v-for="provider in providers">
@@ -72,6 +72,7 @@ import {
   PayoutSettings,
   savePayoutSettingsRequest,
 } from 'src/utils/requests/payouts';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const providers: { key: PayoutProvider; name: string; settings: string[]; events?: string }[] = [
   { key: 'paystack', name: 'Paystack', settings: [], events: 'transfer events' },

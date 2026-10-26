@@ -80,7 +80,7 @@
         <div class="p-3 text-center" v-if="page < lastPage">
           <q-btn flat rounded no-caps label="Show older versions" :loading="loading" @click="load(page + 1)" />
         </div>
-        <q-inner-loading dark :showing="loading && !versions.length" />
+        <ListSkeleton dense :avatar="false" :rows="5" v-if="loading && !versions.length" />
       </div>
     </q-card>
   </StudioSheet>
@@ -99,6 +99,7 @@ import {
   type RestoreResult,
   type TrackVersion,
 } from 'src/utils/requests/history';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const props = defineProps<{
   projectId: string | number;

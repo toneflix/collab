@@ -79,9 +79,7 @@
         </router-link>
       </div>
 
-      <div class="flex justify-center py-8" v-if="loading">
-        <q-spinner size="lg" />
-      </div>
+      <ListSkeleton avatar="square" :rows="4" v-if="loading" />
     </div>
   </q-page>
 </template>
@@ -92,6 +90,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { notifyError } from 'src/utils/composer';
 import { createSongRequest, deleteSongRequest, loadSongsRequest, type Song } from 'src/utils/requests/composer';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 defineOptions({ name: 'ComposerPage' });
 

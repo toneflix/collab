@@ -18,7 +18,7 @@
       </form>
     </template>
 
-    <q-inner-loading dark :showing="loading && !versions.length" />
+    <ListSkeleton dense :avatar="false" :rows="4" v-if="loading && !versions.length" />
 
     <div class="version" :key="v.id" v-for="v in versions">
       <div class="flex items-start gap-2 no-wrap">
@@ -62,6 +62,7 @@ import {
   type SongVersion,
   type SongVersionKind,
 } from 'src/utils/requests/composer';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const props = defineProps<{
   songId: number;

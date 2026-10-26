@@ -71,9 +71,7 @@
           </q-item-section>
         </q-item>
       </q-list>
-      <div class="py-10 text-center" v-else-if="loading">
-        <q-spinner size="32px" />
-      </div>
+      <ListSkeleton side v-else-if="loading" />
       <SimpleInfo v-else text="No users match." />
 
       <div class="flex justify-center mt-8" v-if="pageCount > 1">
@@ -89,6 +87,7 @@ import { date, useMeta } from 'quasar';
 import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { loadAdminUsersRequest } from 'src/utils/requests/adminUsers';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const statuses = [
   { value: '', label: 'All' },

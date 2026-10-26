@@ -7,9 +7,7 @@
         mistake, for example because you own the rights or have a licence, you can appeal it once.
       </p>
 
-      <div class="py-10 text-center" v-if="loading && !takedowns.length">
-        <q-spinner size="md" />
-      </div>
+      <ListSkeleton avatar="square" :rows="3" v-if="loading && !takedowns.length" />
 
       <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
         <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
@@ -113,6 +111,7 @@ import {
   reasonLabel,
   type Takedown,
 } from 'src/utils/requests/moderation';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const statusLabel: Record<Takedown['status'], string> = {
   active: 'Down',

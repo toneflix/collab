@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <q-spinner v-if="loading" />
+      <BlockSkeleton variant="form" :count="6" v-if="loading" />
 
       <q-form @submit="save" v-else-if="settings">
         <SettingsSections :sections="sections" :marked="unsaved">
@@ -510,6 +510,7 @@ import {
   type AiAdminSettings,
   type MusicModel,
 } from 'src/utils/requests/ai';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const { price } = usePayments();
 

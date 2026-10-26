@@ -73,9 +73,7 @@
             v-for="n in latest"
           />
         </q-list>
-        <div class="px-4 py-8 text-center text-grey-5" v-else-if="store.loading">
-          <q-spinner size="24px" />
-        </div>
+        <ListSkeleton dense :rows="4" v-else-if="store.loading" />
         <div class="px-4 py-8 text-center text-grey-5" v-else>
           You're all caught up.
         </div>
@@ -99,6 +97,7 @@ import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useNotificationStore } from 'src/stores/notification-store';
 import NotificationItem from './NotificationItem.vue';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const $q = useQuasar();
 const store = useNotificationStore();

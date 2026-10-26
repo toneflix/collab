@@ -6,7 +6,7 @@
         <p class="text-grey-5" v-if="stats">How the app is doing over the last {{ stats.days }} days.</p>
       </div>
 
-      <q-spinner v-if="loading" />
+      <BlockSkeleton variant="stats" :count="8" v-if="loading" />
 
       <div class="py-10 text-center text-grey-5" v-else-if="!stats">
         {{ error || 'Your account has no admin permissions.' }}
@@ -111,6 +111,7 @@ import DailyBars from 'src/components/Utilities/DailyBars.vue';
 import { usePayments } from 'src/composables/usePayments';
 import type { ResponseBody } from 'src/utils/models';
 import { loadAdminStatsRequest, type AdminStats } from 'src/utils/requests/adminStats';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const { price } = usePayments();
 

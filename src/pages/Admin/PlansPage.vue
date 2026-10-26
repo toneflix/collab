@@ -20,7 +20,7 @@
         />
       </div>
 
-      <q-spinner v-if="loading" />
+      <BlockSkeleton variant="stats" :count="3" v-if="loading" />
 
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <q-card
@@ -372,6 +372,7 @@ import {
   loadPlanFeaturesRequest,
   savePlanRequest,
 } from 'src/utils/requests/plans';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const $q = useQuasar();
 const { price, featureValue, period, symbol, billingLabel } = usePayments();

@@ -7,7 +7,7 @@
         <p class="mt-2 text-grey-5">
           Pick the plan that fits how you listen and create.
         </p>
-        <q-spinner class="mt-4" v-if="loading" />
+        <BlockSkeleton variant="stats" :count="2" class="mt-4 text-left" v-if="loading" />
         <q-chip
           icon="lucide-check"
           color="green-9"
@@ -170,6 +170,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { refreshUser } from 'src/utils/proccessor';
 import { loadPlansRequest } from 'src/utils/requests/plans';
 import { loadSubscriptionRequest } from 'src/utils/requests/payments';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const router = useRouter();
 const boot = useBootstrapStore();

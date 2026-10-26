@@ -11,9 +11,7 @@
       </div>
 
       <div class="inbox__list" role="list">
-        <div class="inbox__status" v-if="!store.loaded && store.loading">
-          <q-spinner size="22px" color="grey-6" />
-        </div>
+        <ListSkeleton dense :rows="6" v-if="!store.loaded && store.loading" />
         <div class="inbox__empty" v-else-if="!filtered.length">
           <q-icon name="lucide-messages-square" size="36px" color="grey-7" />
           <div class="mt-2 text-sm text-grey-5">
@@ -115,6 +113,7 @@ import {
   type Conversation,
   type ConversationType,
 } from 'src/utils/requests/conversations';
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 
 const $q = useQuasar();
 const route = useRoute();

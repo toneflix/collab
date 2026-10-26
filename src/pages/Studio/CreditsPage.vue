@@ -7,7 +7,7 @@
         first and start over each month. Credits you buy never expire.
       </p>
 
-      <q-spinner v-if="!account" />
+      <BlockSkeleton variant="stats" :count="3" v-if="!account" />
 
       <template v-else>
         <div class="mb-8 notice" v-if="!account.access">
@@ -167,6 +167,7 @@ import {
   type AiAccount,
   type CreditEntry,
 } from 'src/utils/requests/ai';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 const { price } = usePayments();
 

@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <q-spinner v-if="loading" />
+      <BlockSkeleton variant="form" :count="6" v-if="loading" />
 
       <q-form @submit="save" v-else-if="settings">
         <SettingsSections :sections="groups" :marked="unsaved">
@@ -99,6 +99,7 @@ import {
   type ConfigurationSettings,
   type ConfigurationValue,
 } from 'src/utils/requests/configuration';
+import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
 /** The page's sections and the settings each one holds. */
 const groups: (SettingsSection & { keys: string[] })[] = [

@@ -267,6 +267,7 @@
       <!-- The editor, with a column on the right that panels dock into. -->
       <div class="studio-body" :style="fit" ref="studioBody">
         <div class="studio-main">
+          <DawSkeleton class="daw-loading" v-if="!loaded" />
           <div
             class="mb-4 text-sm empty-hint"
             v-if="loaded && !stems.length && !viewOnly"
@@ -316,8 +317,6 @@
         v-if="!viewOnly"
       />
     </q-no-ssr>
-
-    <q-inner-loading :showing="!loaded" />
   </q-page>
 </template>
 
@@ -388,6 +387,7 @@ import {
   saveProjectTrackStemRequest,
   shareLiveStemsRequest,
 } from 'src/utils/requests/requests';
+import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 
 defineOptions({
   async preFetch({ currentRoute, store }) {
@@ -1227,6 +1227,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+.daw-loading {
+  flex: 1 1 auto;
+  min-height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 /* Title, project, stem count and tags on one line; the title gives way first. */
 .studio-title {
   display: flex;

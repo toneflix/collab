@@ -27,11 +27,15 @@
         />
       </div>
     </div>
-    <q-inner-loading :showing="loading" />
+    <div class="flex flex-col gap-6" v-else>
+      <ListSkeleton avatar="square" side :rows="6" />
+      <ListSkeleton :rows="3" />
+    </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';
