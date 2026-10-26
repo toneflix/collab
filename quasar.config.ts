@@ -109,10 +109,12 @@ export default defineConfig((ctx) => {
     framework: {
       config: {
         dark: true,
+        // Shows that a clicked link is loading while the next page fetches its data
+        loadingBar: { color: 'primary', size: '3px', position: 'top' },
       },
 
       // Quasar plugins
-      plugins: ['Dark', 'Meta', 'Notify', 'Dialog', 'Cookies'],
+      plugins: ['Dark', 'Meta', 'Notify', 'Dialog', 'Cookies', 'LoadingBar'],
     },
 
     animations: [],

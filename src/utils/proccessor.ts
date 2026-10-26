@@ -1,14 +1,14 @@
 import { Configuration, Initialize, PriviPerm, ResponseBody, User } from './models';
-import { RouteLocationNormalized, Router } from 'vue-router';
+import { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router';
 import { alova, invalidateCache } from 'src/boot/alova';
 
-import { Cookies } from 'quasar';
-import { QSsrContext } from '@quasar/app-vite';
+import { AuthSession } from 'src/utils/auth-session';
+import { requestPinia } from 'src/utils/request-context';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
 export const refreshUser = (router?: Router) => {
   return new Promise<User>((resolve) => {
-    const boot = useBootstrapStore();
+    const boot = useBootstrapStore(requestPinia());
     if (!boot.token) {
       return resolve({} as User);
     }
@@ -46,7 +46,7 @@ export const reboot = (done?: () => void, router?: Router, reloadUser: boolean |
     user: User,
     error?: Record<string, string>
   }>((resolve) => {
-    const boot = useBootstrapStore();
+    const boot = useBootstrapStore(requestPinia());
     const alova_ = alova.Get<ResponseBody<Initialize>>('initialize');
     alova_.meta = { noContentType: true };
 
@@ -75,94 +75,71 @@ export const reboot = (done?: () => void, router?: Router, reloadUser: boolean |
   });
 };
 
+/**
+ * Where a navigation should go instead, or true to let it through.
+ */
 export const authValidator = (
-  { to, from }: { to: RouteLocationNormalized, from?: RouteLocationNormalized },
-  router: Router,
-  usr?: User,
-  ssrContext?: QSsrContext | null
-) => {
-  if (!to) {
-    return false
-  }
+  to: RouteLocationNormalized,
+  from?: RouteLocationNormalized,
+): RouteLocationRaw | true => {
+  const boot = useBootstrapStore(requestPinia());
+  const token = AuthSession.current().token;
+  const user = boot.user;
 
-  // Initialize the bootstrap store
-  const boot = useBootstrapStore();
+  boot.token = token;
 
-  const user = usr ? usr : boot.user;
-
-  if (ssrContext) {
-    const cookies = Cookies.parseSSR(ssrContext)
-    boot.token = cookies.get('token')
-  } else if (!boot.token && Cookies.has('token')) {
-    // The first navigation can run before any request has copied the cookie into the store
-    boot.token = Cookies.get('token')
-  }
-
-  // Check if user is logged in when requesting a page that requires authentication
-  if (!boot.token && (to.meta.requireAuth || to.meta.requireAdmin)) {
-    // Redirect to Login if login required
-    return router.replace({ name: 'auth.login' });
-  } else if (boot.token) {
-    const config = boot.configuration;
-
-    // Set variables: User needs to be verified
-    const needVerify =
-      (!user?.emailVerifiedAt && config?.verify_email) ||
-      (!user?.phoneVerifiedAt && config?.verify_phone);
-
-    // Set variables: User is verified
-    const isVerified = !needVerify && !to.meta.requireCode;
-
-    const pushVerification = () => {
-      if (
-        user?.id &&
-        !to.meta.requireCode &&
-        !isVerified &&
-        to.name !== 'auth.logout'
-      ) {
-        const type = user.verifying || 'email';
-        if (!user.emailVerifiedAt && config.verify_email && to.name) {
-          return router.push({
-            name: 'auth.verify',
-            params: { type },
-          });
-        } else if (!user.phoneVerifiedAt && config.verify_phone) {
-          return router.push({
-            name: 'auth.verify',
-            params: { type },
-          });
-        }
-      }
-      //  else if (to.name !== "home" && (isVerified || !needVerify)) {
-      //   return router.replace({ name: "home" });
-      // }
-    };
-
-    // Redirect to the appropriate dashboard based on user role and verification status
-    if (to.meta.requireGuest) {
-      if (user.roles?.length || user.permissions?.length) {
-        return router.replace({ name: 'admin.dashboard' });
-      }
-
-      if (isVerified || !needVerify) {
-        if (to.name == 'auth.register' && from?.query.reference) {
-          return true
-        }
-        return router.replace({ name: 'studio.home' });
-      } else {
-        return pushVerification();
-      }
-    } else {
-      return pushVerification();
+  if (!token) {
+    if (to.name === 'auth.logout') {
+      return { name: 'auth.login' };
     }
+
+    if (to.meta.requireAuth || to.meta.requireAdmin) {
+      return { name: 'auth.login', query: { redirect: to.fullPath } };
+    }
+
+    return true;
   }
+
+  if (to.meta.requireGuest) {
+    if (to.name == 'auth.register' && from?.query.reference) {
+      return true;
+    }
+
+    if (user.roles?.length || user.permissions?.length) {
+      return { name: 'admin.dashboard' };
+    }
+
+    return { name: 'studio.home' };
+  }
+
+  return true;
+};
+
+/**
+ * Signs out here and on the API.
+ */
+export const signOut = async () => {
+  const boot = useBootstrapStore(requestPinia());
+
+  if (AuthSession.current().token) {
+    const request = alova.Post('account/logout');
+
+    request.meta = { ignoreUnauthorized: true };
+
+    await request
+      .send()
+      .catch(() => undefined);
+  }
+
+  AuthSession.current().clear();
+  await boot.clearAuth();
 };
 
 /**
  * Check if a user can do something in an organization
  */
 export const iCan = (ability: PriviPerm) => {
-  const user = useBootstrapStore().user
+  const user = useBootstrapStore(requestPinia()).user
 
   if (!user.permissions || user.permissions.length < 1) {
     return false;

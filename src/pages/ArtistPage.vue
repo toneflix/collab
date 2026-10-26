@@ -205,23 +205,22 @@ defineOptions({
     const boot = useBootstrapStore(store);
     const id = String(currentRoute.params.artist_id);
 
-    const artist = await loadArtistRequest(id, {}, true).send();
-
-    const { data: tracks, meta: tracksMeta } = await loadTracksRequest({
-      artist_id: artist.id,
-      limit: 30,
-    }).send();
-
-    const { data: features, meta: featuresMeta } = await loadTracksRequest({
-      artist_id: artist.id,
-      filters: 'features',
-      limit: 30,
-    }).send();
-
-    const { data: releases, meta: rMeta } = await loadReleasesRequest({
-      artist_id: artist.id,
-      limit: 30,
-    }).send();
+    const [artist, { data: tracks, meta: tracksMeta }, { data: features, meta: featuresMeta }, { data: releases, meta: rMeta }] = await Promise.all([
+      loadArtistRequest(id, {}, true).send(),
+      loadTracksRequest({
+        artist_id: id,
+        limit: 30,
+      }).send(),
+      loadTracksRequest({
+        artist_id: id,
+        filters: 'features',
+        limit: 30,
+      }).send(),
+      loadReleasesRequest({
+        artist_id: id,
+        limit: 30,
+      }).send(),
+    ]);
 
     boot.pageData.current = {
       artist,

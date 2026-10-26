@@ -113,9 +113,10 @@ import { useForm } from 'alova/client';
 import { alova } from 'src/boot/alova';
 import { reboot } from 'src/utils/proccessor';
 import { ResponseBody, User } from 'src/utils/models';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const config = computed(() => useBootstrapStore().configuration);
+const route = useRoute();
 const router = useRouter();
 const errors = computed(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
@@ -139,7 +140,15 @@ onSuccess(({ data }) => {
   reboot().then(() => {
     if (data.data) {
       useBootstrapStore().saveAuthUser(data.data, data.token);
-      router.replace({ name: 'studio.home' });
+
+      // Return to the page that asked for a login, when it is one of ours
+      const redirect = route.query.redirect;
+
+      if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+        router.replace(redirect);
+      } else {
+        router.replace({ name: 'studio.home' });
+      }
     }
   });
 });

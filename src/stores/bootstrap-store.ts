@@ -1,9 +1,11 @@
 import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
-import { RouteLocationNormalized } from 'vue-router';
+import { AuthSession } from 'src/utils/auth-session';
 
 export const useBootstrapStore = defineStore('bootstrap', {
-  persist: true,
+  // The token lives in its cookie and the signed-in user comes from the server render,
+  // so only settings are kept in browser storage.
+  persist: { pick: ['configuration', 'realtime', 'sounds', 'app'] },
   state: () => ({
     user: <User>{},
     roles: <PriviRole[]>[],
@@ -17,7 +19,6 @@ export const useBootstrapStore = defineStore('bootstrap', {
     ready: <boolean>false,
     initialized: <boolean>false,
     csrf_token: <string | null | undefined>null,
-    redirect: <RouteLocationNormalized | null>null,
     app: {
       super: <boolean>false,
       cache: {
@@ -43,12 +44,12 @@ export const useBootstrapStore = defineStore('bootstrap', {
     setReady () {
       this.ready = true;
     },
-    redirectTo (route: RouteLocationNormalized) {
-      this.redirect = route;
-    },
     saveAuthUser (user: User, token?: string | null) {
       this.user = user;
       this.token = token;
+      if (token) {
+        AuthSession.current().save(token);
+      }
       if (user.permissions) {
         this.permissions = user.permissions;
       }
@@ -65,6 +66,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
         this.token = null;
         this.roles = [];
         this.permissions = [];
+        // A server render can see an older copy of the cookie, so only the browser removes it
+        if (!import.meta.env.SSR) {
+          AuthSession.current().clear();
+        }
         resolve(true);
       });
     },

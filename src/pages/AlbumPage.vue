@@ -224,21 +224,21 @@ defineOptions({
     const id = String(currentRoute.params.album_id);
     const aid = String(currentRoute.params.artist_id);
 
-    const album = await loadReleaseRequest(id, {
-      artist_id: aid,
-      with: 'tracks,artist,comments_count',
-    }).send();
-
-    const { data: related, meta: relatedMeta } = await loadTracksRequest({
-      artist_id: aid,
-      limit: 8,
-    }).send();
-
-    const { data: releases, meta: releaseMeta } = await loadReleasesRequest({
-      artist_id: aid,
-      limit: 30,
-      with: 'artist',
-    }).send();
+    const [album, { data: related, meta: relatedMeta }, { data: releases, meta: releaseMeta }] = await Promise.all([
+      loadReleaseRequest(id, {
+        artist_id: aid,
+        with: 'tracks,artist,comments_count',
+      }).send(),
+      loadTracksRequest({
+        artist_id: aid,
+        limit: 8,
+      }).send(),
+      loadReleasesRequest({
+        artist_id: aid,
+        limit: 30,
+        with: 'artist',
+      }).send(),
+    ]);
 
     boot.pageData.current = {
       album,
