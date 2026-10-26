@@ -322,11 +322,10 @@
           >
             <div class="ai__model">
               <q-icon name="lucide-wand-sparkles" size="14px" class="!flex-none" />
-              <span class="min-w-0 truncate">{{ editEngine }}</span>
-              <span class="!flex-none text-grey-6">· {{ account.costs.edit }} credits per edit</span>
+              <span>{{ account.costs.edit }} credits per edit</span>
             </div>
             <div class="ai__notice mb-3" v-if="!editEngineReady">
-              Section edits run on {{ editEngine }}, which isn't set up yet.
+              Section edits aren't available right now.
             </div>
             <div class="ai__part" v-if="section">
               <q-icon name="lucide-audio-lines" size="18px" class="!flex-none text-toneflix" />
@@ -341,11 +340,6 @@
             <div class="text-sm text-grey-6" v-else>
               Drag across a stem on the timeline to select the part to change,
               then press the wand button above the tracks.
-            </div>
-            <div class="mt-2 text-xs text-grey-6" v-if="editShort">
-              {{ editEngine }} rewrites at least
-              {{ account.edit?.minSeconds }} seconds, so the audio around your
-              selection is rewritten with it and only your selection is kept.
             </div>
 
             <q-input
@@ -529,7 +523,6 @@ import {
   musicPrice,
   splitStemRequest,
   type AiAccount,
-  type AiEngine,
   type AiJob,
   type MusicForm,
   type ReferenceKind,
@@ -898,23 +891,10 @@ const generate = async () => {
 const section = ref<SectionSelection | null>(null);
 const editForm = reactive({ prompt: '', lyrics: '' });
 
-const engineNames: Record<AiEngine, string> = {
-  replicate: 'Replicate',
-  suno: 'Suno',
-  cloudflare: 'Cloudflare Workers AI',
-};
-const editEngine = computed(() => engineNames[account.value?.edit?.engine ?? 'suno']);
 const editEngineReady = computed(() => {
   const engine = account.value?.edit?.engine;
   return !!engine && !!account.value?.engines[engine];
 });
-/** Whether the selection is shorter than the engine rewrites */
-const editShort = computed(
-  () =>
-    !!section.value &&
-    !!account.value?.edit &&
-    section.value.end - section.value.start < account.value.edit.minSeconds,
-);
 
 /** Open the section edit tool on a part of a stem selected in the DAW. */
 const editSection = (region: SectionSelection) => {
