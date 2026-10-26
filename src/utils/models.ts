@@ -97,6 +97,7 @@ export type Initialize = {
   configuration: Configuration;
   realtime?: RealtimeSettings;
   auth?: AuthPagesConfig;
+  accountTypes?: AccountTypeOption[];
 };
 
 /**
@@ -355,6 +356,8 @@ export interface ExploreData {
   latestArtists: ExploreItem<Artist>;
   randomArtists: ExploreItem<Artist>;
   recentlyPlayed: ExploreItem<Track>;
+  /** Tracks in the viewer's interest genres */
+  forYou: ExploreItem<Track>;
   randomCreators: ExploreItem<User>;
   randomProjects: ExploreItem<Project>;
   activeProjects: ExploreItem<Project>;
@@ -443,9 +446,32 @@ export interface User extends Artist {
   };
   emailVerifiedAt: string;
   phoneVerifiedAt: string;
+  /** How the account uses Toneflix Music, picked at sign-up */
+  accountType?: AccountTypeValue | null;
+  /** Roles that fit the account type, like artist or producer */
+  identities?: string[];
+  /** When the user last saved their interest genres */
+  interestsAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
+
+export type AccountTypeValue = 'creator' | 'listener';
+
+/** An account type and the identities it can pick, from /initialize. */
+export type AccountTypeOption = {
+  value: AccountTypeValue;
+  label: string;
+  identities: { value: string; label: string }[];
+};
+
+/** A user's account type, identities and interest genres. */
+export type Interests = {
+  accountType: AccountTypeValue | null;
+  identities: string[];
+  genres: { id: number; slug: string; title: string }[];
+  interestsAt: string | null;
+};
 
 export interface Collaber extends User {
   meta: GenericData;

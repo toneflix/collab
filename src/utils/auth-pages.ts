@@ -2,7 +2,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { requestPinia } from 'src/utils/request-context';
 import type { Configuration, User } from './models';
 
-export type AuthPageKey = 'banner' | 'login' | 'register' | 'forgot' | 'reset' | 'verify';
+export type AuthPageKey = 'banner' | 'login' | 'register' | 'forgot' | 'reset' | 'verify' | 'interests';
 
 /** Layout, banner and text of the auth pages, from the API's /initialize. */
 export type AuthPagesConfig = {

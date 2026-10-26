@@ -1,4 +1,4 @@
-import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
+import { AccountTypeOption, Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
 import { AuthSession } from 'src/utils/auth-session';
 import type { AuthPagesConfig } from 'src/utils/auth-pages';
@@ -6,7 +6,7 @@ import type { AuthPagesConfig } from 'src/utils/auth-pages';
 export const useBootstrapStore = defineStore('bootstrap', {
   // The token lives in its cookie and the signed-in user comes from the server render,
   // so only settings are kept in browser storage.
-  persist: { pick: ['configuration', 'realtime', 'sounds', 'auth', 'app'] },
+  persist: { pick: ['configuration', 'realtime', 'sounds', 'auth', 'accountTypes', 'app'] },
   state: () => ({
     user: <User>{},
     roles: <PriviRole[]>[],
@@ -18,6 +18,8 @@ export const useBootstrapStore = defineStore('bootstrap', {
     sounds: <SoundsConfig>{ library: false, freesound: false },
     /** Layout, banner and text of the auth pages */
     auth: <AuthPagesConfig>{ layout: '45-55', split: { form: 45, banner: 55 }, banner: null, texts: {} },
+    /** Account types and their identities, for sign-up and settings */
+    accountTypes: <AccountTypeOption[]>[],
     token: <string | null | undefined>null,
     ready: <boolean>false,
     initialized: <boolean>false,
@@ -76,7 +78,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         resolve(true);
       });
     },
-    setConfig ({ configuration, realtime, sounds, auth, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, sounds?: SoundsConfig, auth?: AuthPagesConfig, csrf_token?: string }) {
+    setConfig ({ configuration, realtime, sounds, auth, accountTypes, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, sounds?: SoundsConfig, auth?: AuthPagesConfig, accountTypes?: AccountTypeOption[], csrf_token?: string }) {
       if (configuration) {
         this.configuration = configuration;
       }
@@ -91,6 +93,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
 
       if (auth) {
         this.auth = auth;
+      }
+
+      if (accountTypes) {
+        this.accountTypes = accountTypes;
       }
 
       if (csrf_token) {

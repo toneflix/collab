@@ -38,6 +38,12 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Auth/VerifyPage.vue')
       },
       {
+        meta: { requireGuest: false, requireAuth: true },
+        path: '/account/interests',
+        name: 'auth.interests',
+        component: () => import('pages/Auth/InterestsPage.vue')
+      },
+      {
         meta: { requireGuest: false, requireAuth: true, allowUnverified: true },
         path: '/account/logout',
         component: () => import('src/pages/Auth/LoginPage.vue'),

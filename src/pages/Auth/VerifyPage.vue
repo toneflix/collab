@@ -70,7 +70,7 @@ import OtpInput from 'src/components/Auth/OtpInput.vue';
 import { alova } from 'src/boot/alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { authText, pendingVerification, type VerificationType } from 'src/utils/auth-pages';
-import { safeRedirect } from 'src/utils/auth-redirect';
+import { afterSignIn } from 'src/utils/auth-redirect';
 import { notify } from 'src/utils/helpers';
 import { ResponseBody, User } from 'src/utils/models';
 
@@ -142,7 +142,6 @@ const resend = async () => {
 
 const next = () => {
   const pending = pendingVerification(boot.user, boot.configuration);
-  const redirect = safeRedirect(route.query.redirect);
 
   if (pending) {
     done.value = false;
@@ -151,7 +150,7 @@ const next = () => {
     return router.replace({ name: 'auth.verify', params: { type: pending }, query: route.query });
   }
 
-  return router.replace(redirect ?? { name: 'studio.home' });
+  return router.replace(afterSignIn(boot.user, route.query.redirect));
 };
 
 const status = async () => {
