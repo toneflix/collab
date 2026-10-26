@@ -1,12 +1,12 @@
 <template>
   <q-page padding>
     <div class="max-w-5xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Users</h1>
         <p class="text-grey-5">Find an account to see its numbers and manage it.</p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3 mb-3">
+      <div class="flex flex-wrap items-center gap-3 mb-4">
         <q-tabs dense no-caps align="left" active-color="toneflix" class="!flex-none" v-model="status">
           <q-tab :key="option.value" :name="option.value" :label="option.label" v-for="option in statuses" />
         </q-tabs>
@@ -76,7 +76,7 @@
       </div>
       <SimpleInfo v-else text="No users match." />
 
-      <div class="flex justify-center mt-4" v-if="pageCount > 1">
+      <div class="flex justify-center mt-8" v-if="pageCount > 1">
         <q-pagination class="!flex-none" v-model="page" :max="pageCount" :max-pages="7" direction-links boundary-numbers />
       </div>
     </div>

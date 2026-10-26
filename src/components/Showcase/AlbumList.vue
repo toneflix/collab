@@ -1,16 +1,15 @@
 <template>
   <div :key="category.id" v-for="(category, i) in categories">
     <q-toolbar class="px-0" v-if="category.data?.list?.length">
-      <h1 class="va-h5">{{ category.title }}</h1>
+      <h1 class="text-2xl font-bold">{{ category.title }}</h1>
       <q-space v-if="!hideAllLink" />
-      <VaButton
-        size="medium"
-        color="textPrimary"
-        preset="plain"
+      <q-btn
+        flat
+        no-caps
         v-if="!hideAllLink"
       >
         <h1>See All</h1>
-      </VaButton>
+      </q-btn>
     </q-toolbar>
     <AlbumCategory
       :params="params"

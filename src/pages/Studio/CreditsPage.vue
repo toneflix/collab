@@ -2,7 +2,7 @@
   <q-page padding>
     <div class="max-w-2xl mx-auto">
       <h1 class="mb-1 text-2xl font-bold">AI credits</h1>
-      <p class="mb-4 text-sm text-grey-5">
+      <p class="mb-8 text-sm text-grey-5">
         Credits pay for the AI tools in the studio. Your plan's credits are used
         first and start over each month. Credits you buy never expire.
       </p>
@@ -10,7 +10,7 @@
       <q-spinner v-if="!account" />
 
       <template v-else>
-        <div class="mb-4 notice" v-if="!account.access">
+        <div class="mb-8 notice" v-if="!account.access">
           <div class="font-bold">AI tools come with Premium</div>
           <div class="text-sm text-grey-4">
             Generate music from a prompt and split stems with AI.
@@ -20,13 +20,13 @@
             rounded
             no-caps
             color="toneflix"
-            class="mt-3 !flex-none"
+            class="mt-4 !flex-none"
             label="See plans"
             :to="{ name: 'premium' }"
           />
         </div>
 
-        <q-card flat bordered class="mb-4 bg-dark">
+        <q-card flat bordered class="mb-8 bg-dark">
           <q-card-section class="grid gap-4 sm:grid-cols-3">
             <div>
               <div class="text-xs text-grey-5">Credits left</div>
@@ -140,7 +140,7 @@
             >
           </q-item>
         </q-list>
-        <div class="mt-3 text-center" v-if="page < lastPage">
+        <div class="mt-4 text-center" v-if="page < lastPage">
           <q-btn
             flat
             rounded

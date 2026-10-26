@@ -231,7 +231,7 @@
                 <div class="mb-2">
                   Add the following, or save it as a draft and finish later:
                 </div>
-                <ul class="ml-5 list-disc">
+                <ul class="ml-12 list-disc">
                   <li :key="item.label" v-for="item in missing">
                     <a class="underline cursor-pointer" @click="goTo(item.tab)">
                       {{ item.label }}
@@ -265,7 +265,7 @@
                 </span>
 
                 <template v-slot:action>
-                  <div class="w-full mb-3 text-left" v-if="otherVersions.length">
+                  <div class="w-full mb-4 text-left" v-if="otherVersions.length">
                     <div class="mb-1 font-semibold">
                       Retire earlier versions when this one is published
                     </div>
@@ -295,7 +295,7 @@
                 This release is published. Saving updates it for everyone.
               </div>
 
-              <div class="flex justify-center gap-2 mt-4">
+              <div class="flex justify-center gap-2 mt-8">
                 <q-btn
                   no-caps
                   outline
@@ -330,14 +330,14 @@
           </q-tab-panels>
 
           <div
-            class="justify-end gap-2 mt-4 text-center md:flex md:items-center md:col-span-2"
+            class="justify-end gap-2 mt-8 text-center md:flex md:items-center md:col-span-2"
             v-if="tab !== 'publish'"
           >
             <q-btn
               no-caps
               outline
               color="primary"
-              class="mb-5 text-xl rounded-lg md:!mb-0"
+              class="mb-12 text-xl rounded-lg md:!mb-0"
               label="Back"
               @click="back"
               v-if="tab !== 'basic'"
@@ -345,7 +345,7 @@
             <q-btn
               no-caps
               color="primary"
-              class="mb-5 text-xl rounded-lg md:!mb-0"
+              class="mb-12 text-xl rounded-lg md:!mb-0"
               label="Next"
               @click="next"
             />

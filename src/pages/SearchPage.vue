@@ -69,7 +69,7 @@
 
       <template v-else>
         <section class="mb-8" v-if="q && artists.length">
-          <h2 class="mb-3 text-lg font-bold">Creators</h2>
+          <h2 class="mb-4 text-lg font-bold">Creators</h2>
           <div class="flex flex-wrap gap-3">
             <router-link
               class="artist !flex-none"
@@ -86,7 +86,7 @@
         </section>
 
         <section>
-          <h2 class="mb-3 text-lg font-bold">Songs</h2>
+          <h2 class="mb-4 text-lg font-bold">Songs</h2>
           <div class="text-grey-5" v-if="!loading && !tracks.length">
             No songs match{{ q ? ` “${q}”` : '' }}{{ filtering ? ' these filters' : '' }}.
           </div>
@@ -139,7 +139,7 @@
             </q-item>
           </q-list>
 
-          <div class="flex justify-center mt-4" v-if="page < lastPage">
+          <div class="flex justify-center mt-8" v-if="page < lastPage">
             <q-btn
               flat
               rounded

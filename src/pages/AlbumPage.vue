@@ -56,11 +56,9 @@
                   :base-url="`releases/${album.id}`"
                   @done="album.likes = $event.likes"
                 >
-                  <VaButton
-                    size="medium"
-                    preset="plain"
-                    color="textPrimary"
-                    hover-opacity="0.05"
+                  <q-btn
+                    flat
+                    no-caps
                     @click="submit"
                   >
                     <q-icon
@@ -71,7 +69,7 @@
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
                       &nbsp;{{ intStr(album.likes) }}
                     </span>
-                  </VaButton>
+                  </q-btn>
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
@@ -97,17 +95,14 @@
                   "
                   v-slot="{ toggle }"
                 >
-                  <VaButton
-                    fill
-                    size="medium"
-                    preset="plain"
-                    color="textPrimary"
-                    hover-opacity="0.05"
+                  <q-btn
+                    flat
+                    no-caps
                     @click="toggle"
                   >
                     <q-icon color="white" name="eva-message-square" />
                     &nbsp;{{ intStr(album.commentsCount) }}
-                  </VaButton>
+                  </q-btn>
                 </ConversationDialog>
               </span>
               <span class="!flex-none">•</span>
@@ -115,15 +110,15 @@
                 <ReportDialog type="release" label="release" :id="album.id" />
               </span>
             </div>
-            <q-banner dense rounded class="mt-4 text-white bg-red-10 max-w-96" v-if="album.takenDown">
+            <q-banner dense rounded class="mt-8 text-white bg-red-10 max-w-96" v-if="album.takenDown">
               <template #avatar><q-icon name="fas fa-ban" /></template>
               This release was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
-            <p class="mt-4 text-sm max-w-96">
+            <p class="mt-8 text-sm max-w-96">
               {{ album.description }}
             </p>
-            <div class="flex items-center gap-3 mt-4" v-if="album.price">
+            <div class="flex items-center gap-3 mt-8" v-if="album.price">
               <template v-if="album.locked">
                 <PayButton
                   rounded

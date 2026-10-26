@@ -1,6 +1,6 @@
 <template>
   <q-page class="p-3 md:p-4">
-    <div class="flex items-center gap-x-3 gap-y-2 mb-3" :class="narrow ? 'flex-wrap' : 'no-wrap'">
+    <div class="flex items-center gap-x-3 gap-y-2 mb-4" :class="narrow ? 'flex-wrap' : 'no-wrap'">
       <q-btn
         flat
         round
@@ -48,7 +48,7 @@
           :color="dirty ? 'toneflix' : 'grey-8'"
           :text-color="dirty ? 'dark' : 'grey-5'"
           label="Save"
-          class="!flex-none px-3"
+          class="!flex-none px-4"
           title="Save (Ctrl+S)"
           :icon="ionSaveOutline"
           :loading="status === 'saving'"

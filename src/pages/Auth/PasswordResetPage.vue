@@ -18,7 +18,7 @@
             Password Reset.
           </h1>
 
-          <p class="mt-4 text-lg text-gray-300">
+          <p class="mt-8 text-lg text-gray-300">
             Let’s help you setup your new password.
           </p>
 
@@ -127,7 +127,7 @@
 
               <router-link
                 :to="{ name: 'auth.login' }"
-                class="inline-block w-full mt-5 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
+                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
               >
                 Login Instead?
               </router-link>
@@ -136,7 +136,7 @@
             <div class="justify-center col-span-2 md:flex md:items-center">
               <router-link
                 :to="{ name: 'auth.register' }"
-                class="inline-block w-full mt-5 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
+                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
               >
                 Don't have an account? Create one!
               </router-link>
@@ -144,7 +144,7 @@
           </q-form>
           <div
             v-else
-            class="flex flex-col items-center justify-center gap-5 p-5 mt-5 text-center bg-gray-200 rounded-3xl text-success"
+            class="flex flex-col items-center justify-center gap-5 p-5 mt-12 text-center bg-gray-200 rounded-3xl text-success"
           >
             <q-icon name="fas fa-check-circle" size="5em" />
             <h5 class="text-2xl leading-none text-gray-600">{{ message }}</h5>

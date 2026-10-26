@@ -67,7 +67,7 @@
             />
           </span>
         </q-no-ssr>
-        <q-no-ssr class="flex items-center gap-2 mt-3 !flex-none" v-if="project.isOwner">
+        <q-no-ssr class="flex items-center gap-2 mt-4 !flex-none" v-if="project.isOwner">
           <q-btn
             no-caps
             rounded
@@ -210,7 +210,7 @@
         </q-item>
       </q-list>
 
-      <div class="flex justify-start gap-4 mt-4 mb-2">
+      <div class="flex justify-start gap-4 mt-8 mb-2">
         <h4 class="text-xl !flex-none font-semibold md:text-2xl">Collabers</h4>
         <AddCollaberDialog
           ref="collaberDialogRef"
@@ -310,7 +310,7 @@
           </q-item-section>
         </q-item>
       </q-list>
-      <q-separator class="my-5" v-if="project.isOwner" />
+      <q-separator class="my-12" v-if="project.isOwner" />
       <div class="text-center" v-if="project.isOwner">
         <ContentRemover
           dense

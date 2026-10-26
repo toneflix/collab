@@ -10,7 +10,7 @@
 
     <div class="write__section text-sm" v-else-if="!account.access">
       <div class="mb-2 font-semibold">Get AI suggestions with Premium</div>
-      <div class="mb-3 text-grey-5">
+      <div class="mb-4 text-grey-5">
         AI can suggest your next line as you write, write the next few lines or a whole verse, and give other takes on a
         line, all in your style.
       </div>

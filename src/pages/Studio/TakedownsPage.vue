@@ -12,7 +12,7 @@
       </div>
 
       <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
-        <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" />
+        <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" />
         <div>Nothing of yours has been taken down.</div>
       </div>
 

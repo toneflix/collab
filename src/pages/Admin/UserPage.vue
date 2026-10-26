@@ -109,7 +109,7 @@
                   : `Until ${date.formatDate(stats.plan.paidUntil || stats.plan.current?.endsAt, 'MMM D, YYYY')}`
               }}
             </div>
-            <q-separator dark class="my-3" />
+            <q-separator dark class="my-4" />
             <div class="row-item"><span>Storage</span><span>{{ storage }}</span></div>
           </div>
 
@@ -134,7 +134,7 @@
             <div class="row-item"><span>Clearing</span><span>{{ price(stats.earnings.clearing) }}</span></div>
             <div class="row-item"><span>Being withdrawn</span><span>{{ price(stats.earnings.inFlight) }}</span></div>
             <div class="row-item"><span>Withdrawn</span><span>{{ price(stats.earnings.withdrawn) }}</span></div>
-            <q-separator dark class="my-3" />
+            <q-separator dark class="my-4" />
             <div class="row-item"><span>Spent on the app</span><span>{{ price(stats.spend.total) }}</span></div>
           </div>
         </div>
@@ -167,7 +167,7 @@
             </div>
             <div class="py-8 text-center text-grey-5" v-else>Nothing here yet.</div>
 
-            <div class="flex justify-center py-3" v-if="listPages > 1">
+            <div class="flex justify-center py-4" v-if="listPages > 1">
               <q-pagination class="!flex-none" v-model="listPage" :max="listPages" :max-pages="7" direction-links />
             </div>
           </template>

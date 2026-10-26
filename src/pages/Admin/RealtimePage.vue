@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-3xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Realtime</h1>
         <p class="text-grey-5">
           Choose the service that delivers live updates: new messages, and

@@ -3,16 +3,16 @@
     <div class="max-w-4xl mx-auto">
       <div class="py-6 text-center">
         <q-icon name="fas fa-crown" color="amber-7" size="40px" />
-        <h1 class="mt-3 text-4xl font-circlular-std">Toneflix Premium</h1>
+        <h1 class="mt-4 text-4xl font-circlular-std">Toneflix Premium</h1>
         <p class="mt-2 text-grey-5">
           Pick the plan that fits how you listen and create.
         </p>
-        <q-spinner class="mt-3" v-if="loading" />
+        <q-spinner class="mt-4" v-if="loading" />
         <q-chip
           icon="fas fa-check"
           color="green-9"
           text-color="white"
-          class="mt-3"
+          class="mt-4"
           v-if="status?.premium"
         >
           You're on {{ status.plan.name }} until {{ date(status.endsAt) }}

@@ -17,13 +17,13 @@
         />
       </div>
 
-      <div class="mt-3 text-xs text-grey-5" v-if="countsFor(provider.key)">
+      <div class="mt-4 text-xs text-grey-5" v-if="countsFor(provider.key)">
         {{ countryNames(provider.key) }}
       </div>
 
-      <EnvKeys class="mt-4" :keys="settings.keys[provider.key] ?? []" v-if="settings.keys[provider.key]?.length" />
+      <EnvKeys class="mt-8" :keys="settings.keys[provider.key] ?? []" v-if="settings.keys[provider.key]?.length" />
 
-      <div class="grid gap-3 mt-4 sm:grid-cols-2" v-if="provider.settings.length">
+      <div class="grid gap-3 mt-8 sm:grid-cols-2" v-if="provider.settings.length">
         <div :key="key" v-for="key in provider.settings">
           <q-input
             dark
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <div class="mt-4">
+      <div class="mt-8">
         <div class="mb-1 text-xs text-grey-5">
           Webhook URL{{ provider.events ? ` (send ${provider.events})` : '' }}
         </div>

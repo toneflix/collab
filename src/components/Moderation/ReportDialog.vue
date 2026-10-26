@@ -1,16 +1,14 @@
 <template>
   <slot :open="open">
-    <VaButton
-      size="medium"
-      preset="plain"
-      color="textPrimary"
-      hover-opacity="0.05"
+    <q-btn
+      flat
+      no-caps
       :aria-label="`Report this ${label}`"
       @click="open"
     >
       <q-icon color="white" name="far fa-flag" />
       <q-tooltip>Report</q-tooltip>
-    </VaButton>
+    </q-btn>
   </slot>
 
   <q-dialog v-model="show">

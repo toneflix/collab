@@ -18,7 +18,7 @@
             :ratio="1"
             :src="track.imageUrl"
           />
-          <div class="mt-4 text-center">
+          <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
             <div class="truncate text-grey-5">{{ track.artist?.name }}</div>
           </div>

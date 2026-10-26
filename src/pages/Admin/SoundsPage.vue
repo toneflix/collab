@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-6xl mx-auto">
-      <div class="py-4">
+      <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Sounds</h1>
         <p class="text-grey-5">
           The shared sound library in the studio, and Freesound search and import. Only CC0 sounds are
@@ -41,7 +41,7 @@
           </template>
 
           <template #freesound>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Create an API app at freesound.org/apiv2/apply and put its Client ID and Client secret in the API's .env.
               Set the app's callback URL to:
             </p>
@@ -49,22 +49,22 @@
               <code class="truncate">{{ callbackUrl }}</code>
               <q-btn flat dense round size="sm" icon="content_copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
             </div>
-            <EnvKeys class="mt-4" :keys="settings.keys.freesound" />
+            <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
           </template>
 
           <template #sync>
-            <p class="mb-3 text-sm text-grey-5">
+            <p class="mb-4 text-sm text-grey-5">
               Each search adds CC0 sounds to the library, once a day and when you press Sync now. Sounds already in the
               library are skipped.
             </p>
             <q-checkbox
               dark
               color="toneflix"
-              class="mb-3"
+              class="mb-4"
               :label="fields.freesound_sync_paused?.title || 'Pause library sync'"
               v-model="form.freesound_sync_paused"
             />
-            <div class="mb-4 -mt-2 text-sm text-grey-5" v-if="fields.freesound_sync_paused?.hint">{{ fields.freesound_sync_paused.hint }}</div>
+            <div class="mb-8 -mt-2 text-sm text-grey-5" v-if="fields.freesound_sync_paused?.hint">{{ fields.freesound_sync_paused.hint }}</div>
             <q-input
               dark
               outlined
@@ -76,12 +76,12 @@
               placeholder="Drums: drum loop 120bpm&#10;Bass: bass loop&#10;FX: riser"
               v-model="form.freesound_sync_queries"
             />
-            <div class="grid gap-3 mt-4 sm:grid-cols-2">
+            <div class="grid gap-3 mt-8 sm:grid-cols-2">
               <q-input dark outlined type="number" min="1" max="150" :label="fields.freesound_sync_limit?.title" :hint="fields.freesound_sync_limit?.hint" v-model.number="form.freesound_sync_limit" />
               <q-input dark outlined type="number" min="1" max="600" :label="fields.freesound_sync_max_duration?.title" :hint="fields.freesound_sync_max_duration?.hint" v-model.number="form.freesound_sync_max_duration" />
             </div>
 
-            <div class="mt-4 text-sm">
+            <div class="mt-8 text-sm">
               <template v-if="settings.downloads.quality === 'original'">
                 Downloads original files with the Freesound account
                 <b>{{ settings.downloads.username || 'that was chosen' }}</b>{{ settings.downloads.isMe ? ' (yours)' : '' }}.
@@ -117,7 +117,7 @@
                   @click="useMine"
                 />
               </div>
-              <div class="flex flex-wrap items-center gap-3 mt-4">
+              <div class="flex flex-wrap items-center gap-3 mt-8">
                 <q-btn
                   outline
                   rounded
@@ -137,14 +137,14 @@
                   Last sync {{ when(settings.lastSync.at) }}: {{ settings.lastSync.added }} added, {{ settings.lastSync.skipped }} skipped<template v-if="settings.lastSync.failed">, {{ settings.lastSync.failed }} failed</template><template v-if="settings.lastSync.paused">, paused before it finished</template>.
                 </span>
               </div>
-              <q-banner rounded dense class="mt-4 text-white bg-orange-10" v-if="settings.lastSync?.errors.length">
+              <q-banner rounded dense class="mt-8 text-white bg-orange-10" v-if="settings.lastSync?.errors.length">
                 <div class="font-bold">From the last sync:</div>
                 <div class="text-sm" :key="i" v-for="(e, i) in settings.lastSync.errors">{{ e }}</div>
               </q-banner>
           </template>
 
           <template #library>
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div class="flex items-center gap-2 no-wrap">
                 <q-input dense dark outlined clearable debounce="350" placeholder="Search" class="w-48" v-model="search">
                   <template #prepend><q-icon name="search" /></template>
@@ -177,7 +177,7 @@
                 </q-item-section>
               </q-item>
             </q-list>
-            <div class="flex justify-center mt-3" v-if="hasMore">
+            <div class="flex justify-center mt-4" v-if="hasMore">
               <q-btn flat no-caps label="Show more" :loading="listing" @click="list(true)" />
             </div>
           </template>

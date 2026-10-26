@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
-      <div class="flex justify-start gap-4 mt-4 mb-2">
+      <div class="flex justify-start gap-4 mt-8 mb-2">
         <h4 class="text-xl !flex-none font-semibold md:text-2xl">Collabers</h4>
       </div>
       <q-list class="grid grid-cols-1 md:grid-cols-2">

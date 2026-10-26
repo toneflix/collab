@@ -18,7 +18,7 @@
             Get started.
           </h1>
 
-          <p class="mt-4 text-lg text-gray-300">
+          <p class="mt-8 text-lg text-gray-300">
             Let’s get you all set up so you can verify your account and begin
             collaborating.
           </p>
@@ -183,7 +183,7 @@
                 no-caps
                 type="submit"
                 color="primary"
-                class="mb-5 text-xl rounded-lg md:!mb-0"
+                class="mb-12 text-xl rounded-lg md:!mb-0"
                 label="Create your account"
                 icon-right="chevron_right"
                 :loading="loading"

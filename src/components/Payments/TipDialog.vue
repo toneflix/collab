@@ -29,7 +29,7 @@
       </q-card-section>
 
       <q-card-section class="pt-0">
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex flex-wrap gap-2 mb-4">
           <q-chip
             class="!flex-none"
             clickable

@@ -176,7 +176,7 @@
           </q-item-section>
         </q-item>
 
-        <div class="flex justify-center py-3" v-if="hasMore && !loading">
+        <div class="flex justify-center py-4" v-if="hasMore && !loading">
           <q-btn flat no-caps label="Show more" :loading="loadingMore" @click="loadMore" />
         </div>
       </q-list>

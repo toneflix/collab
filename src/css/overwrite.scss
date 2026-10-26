@@ -1,20 +1,11 @@
+// Children of `.flex` containers stretch to share the row, unless they opt out
 .flex > * {
+  flex: 1 1 auto;
+
   &[class*='flex-grow'],
   &[class*='flex-shrink'],
   &[class*='flex-none'],
   &[class*='block'] {
     flex: unset;
   }
-}
-
-// Vuestic sets its font on every element ("*"), and Quasar renders icon
-// ligatures inside a <span>, so let icon children keep the icon font.
-.q-icon * {
-  font-family: inherit;
-}
-
-// Something sets ".row { flex: 1 1 auto }", which stretches field icons and
-// pushes input text to the middle. Quasar's field marginals never grow.
-.q-field__marginal {
-  flex: none;
 }

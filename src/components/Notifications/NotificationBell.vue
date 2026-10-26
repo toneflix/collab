@@ -77,10 +77,10 @@
             v-for="n in latest"
           />
         </q-list>
-        <div class="px-3 py-8 text-center text-grey-5" v-else-if="store.loading">
+        <div class="px-4 py-8 text-center text-grey-5" v-else-if="store.loading">
           <q-spinner size="24px" />
         </div>
-        <div class="px-3 py-8 text-center text-grey-5" v-else>
+        <div class="px-4 py-8 text-center text-grey-5" v-else>
           You're all caught up.
         </div>
 

@@ -50,8 +50,7 @@
     "vue": "^3.5.44",
     "vue-i18n": "^11.4.16",
     "vue-picture-cropper": "^1.0.0",
-    "vue-router": "^5.4.0",
-    "vuestic-ui": "^1.10.3"
+    "vue-router": "^5.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

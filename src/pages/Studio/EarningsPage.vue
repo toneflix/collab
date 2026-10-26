@@ -2,12 +2,12 @@
   <q-page padding>
     <div class="max-w-2xl mx-auto">
       <h1 class="mb-1 text-2xl font-bold">Earnings</h1>
-      <p class="mb-4 text-sm text-grey-5">
+      <p class="mb-8 text-sm text-grey-5">
         What you've earned from release sales, stem sales and tips. You keep
         {{ share }}% of each payment.
       </p>
 
-      <q-card flat bordered class="mb-4 bg-dark balance">
+      <q-card flat bordered class="mb-8 bg-dark balance">
         <q-card-section class="flex flex-wrap items-end gap-4">
           <div>
             <div class="text-xs text-grey-5">Available to withdraw</div>
@@ -45,7 +45,7 @@
 
         <q-separator dark />
 
-        <q-item class="py-3">
+        <q-item class="py-4">
           <q-item-section avatar>
             <q-avatar rounded color="grey-9" :icon="methodIcon(account?.method)" size="40px" />
           </q-item-section>
@@ -140,7 +140,7 @@
         </div>
         <SimpleInfo v-else text="No withdrawals yet. When you withdraw, it shows up here with its status." />
 
-        <div class="flex justify-center mt-4" v-if="payoutPages > 1">
+        <div class="flex justify-center mt-8" v-if="payoutPages > 1">
           <q-pagination class="!flex-none" v-model="payoutPage" :max="payoutPages" direction-links />
         </div>
       </template>
@@ -161,7 +161,7 @@
           text="No earnings yet. Set a price on a release or its stems in your releases, and fans can tip you from your profile."
         />
 
-        <div class="flex justify-center mt-4" v-if="pageCount > 1">
+        <div class="flex justify-center mt-8" v-if="pageCount > 1">
           <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
         </div>
       </template>

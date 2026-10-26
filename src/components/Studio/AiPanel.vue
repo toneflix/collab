@@ -59,7 +59,7 @@
               rounded
               no-caps
               color="toneflix"
-              class="mt-3 !flex-none"
+              class="mt-4 !flex-none"
               label="See plans"
               :to="{ name: 'premium' }"
             />
@@ -120,7 +120,7 @@
             </div>
 
             <template v-if="account.music.lyricsLength">
-              <div class="mt-3 ai__label">
+              <div class="mt-4 ai__label">
                 Lyrics
                 <span class="normal-case" v-if="!account.music.lyricsRequired">(optional)</span>
               </div>
@@ -144,7 +144,7 @@
             </template>
 
             <template v-if="account.music.maxSeconds">
-              <div class="mt-3 text-sm">
+              <div class="mt-4 text-sm">
                 Length <b>{{ clock(form.seconds) }}</b>
               </div>
               <q-slider
@@ -160,11 +160,11 @@
                 instrumental. Otherwise it picks one.
               </div>
             </template>
-            <div class="mt-3 text-xs text-grey-6" v-else>
+            <div class="mt-4 text-xs text-grey-6" v-else>
               {{ account.music.name }} picks the length from the lyrics.
             </div>
 
-            <div class="mt-3" v-if="account.music.references.length">
+            <div class="mt-4" v-if="account.music.references.length">
               <div class="ai__label">Reference audio <span class="normal-case">(optional)</span></div>
               <q-btn-toggle
                 dense
@@ -233,7 +233,7 @@
               </div>
             </div>
 
-            <div class="mt-3 text-xs text-grey-6" v-if="account.music.instrumentalOnly">
+            <div class="mt-4 text-xs text-grey-6" v-if="account.music.instrumentalOnly">
               {{ account.music.name }} makes instrumentals, with no vocals.
             </div>
             <q-toggle
@@ -425,7 +425,7 @@
                       dense
                       no-caps
                       color="toneflix"
-                      class="!flex-none px-3"
+                      class="!flex-none px-4"
                       label="Use this"
                       :loading="picking === versionKey(job, version)"
                       :disable="disabled || !version.url || !!picking"

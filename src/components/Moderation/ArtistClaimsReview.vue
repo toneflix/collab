@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex flex-wrap gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 mb-8">
       <q-btn-toggle
         dense
         no-caps
@@ -16,7 +16,7 @@
 
     <div class="py-10 text-center" v-if="loading && !claims.length"><q-spinner size="md" /></div>
     <div class="py-12 text-center text-grey-5" v-else-if="!claims.length">
-      <q-icon name="fas fa-circle-check" size="32px" class="mb-3" color="green-6" v-if="status === 'pending'" />
+      <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" v-if="status === 'pending'" />
       <div>
         {{ search ? 'No claims match your search.' : status === 'pending' ? 'No artist claims waiting for review.' : 'Nothing here yet.' }}
       </div>
@@ -172,7 +172,7 @@
       </q-card>
     </div>
 
-    <div class="flex justify-center mt-4" v-if="pages.lastPage > 1">
+    <div class="flex justify-center mt-8" v-if="pages.lastPage > 1">
       <q-pagination dark color="toneflix" :max="pages.lastPage" :model-value="pages.page" @update:model-value="load" />
     </div>
   </div>

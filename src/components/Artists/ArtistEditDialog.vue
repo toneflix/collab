@@ -32,7 +32,7 @@
             </template>
           </ImageCropper>
 
-          <div class="flex items-end gap-3 -mt-10 flex-nowrap px-3">
+          <div class="flex items-end gap-3 -mt-10 flex-nowrap px-4">
             <ImageCropper
               class="!flex-none"
               :aspect-ratio="1 / 1"

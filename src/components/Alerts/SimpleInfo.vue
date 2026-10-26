@@ -1,5 +1,5 @@
 <template>
-  <div class="py-4 border-[0.3px] text-center border-white border-solid">
+  <div class="py-8 border-[0.3px] text-center border-white border-solid">
     {{ text }}
     <slot />
   </div>

@@ -1,18 +1,18 @@
 <template>
   <div class="flex flex-nowrap">
-    <div class="flex-shrink-0 mr-3">
+    <div class="flex-shrink-0 mr-4">
       <q-avatar size="lg" color="grey-6">
         <q-img no-spinner loading="eager" :src="comment.user.imageUrl" :error-src="avatarFallback" alt="" />
       </q-avatar>
     </div>
     <div class="flex flex-col">
       <div
-        class="flex-1 px-4 py-2 leading-relaxed border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
+        class="flex-1 px-8 py-2 leading-relaxed border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
       >
         <div class="flex justify-around">
           <div>
             <strong>{{ comment.user.name }}</strong>
-            <span class="ml-3 text-xs text-gray-400">
+            <span class="ml-4 text-xs text-gray-400">
               {{ timeAgoStamp(comment.createdAt, 'facebook', 'HH MMM, YYYY') }}
             </span>
           </div>
@@ -63,7 +63,7 @@
         </p>
 
         <h4
-          class="flex justify-start gap-1 my-5 text-xs font-bold text-gray-400 uppercase cursor-pointer"
+          class="flex justify-start gap-1 my-12 text-xs font-bold text-gray-400 uppercase cursor-pointer"
           @click="expanded = !expanded"
           v-if="comment.repliesCount && expanded"
         >
@@ -85,7 +85,7 @@
 
         <div class="space-y-4" v-if="expanded">
           <div class="flex" :key="reply.id" v-for="reply in comments">
-            <div class="flex-shrink-0 mr-3">
+            <div class="flex-shrink-0 mr-4">
               <q-avatar size="lg" color="grey-6">
                 <q-img
                   no-spinner
@@ -96,12 +96,12 @@
               </q-avatar>
             </div>
             <div
-              class="flex-1 px-4 py-2 leading-relaxed rounded-lg sm:px-6 sm:py-4"
+              class="flex-1 px-8 py-2 leading-relaxed rounded-lg sm:px-6 sm:py-4"
             >
               <div class="flex justify-around">
                 <div>
                   <strong>{{ reply.user.name }}</strong>
-                  <span class="ml-3 text-xs text-gray-400">
+                  <span class="ml-4 text-xs text-gray-400">
                     {{
                       timeAgoStamp(reply.createdAt, 'facebook', 'HH MMM, YYYY')
                     }}

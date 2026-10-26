@@ -19,7 +19,7 @@
           name="fas fa-crown"
           color="amber-7"
           size="12px"
-          class="-ml-5 mr-4"
+          class="-ml-5 mr-8"
           v-if="user.badge"
         />
       </template>

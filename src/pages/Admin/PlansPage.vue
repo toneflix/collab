@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between gap-3 py-4">
+      <div class="flex items-center justify-between gap-3 py-8">
         <div>
           <h1 class="text-3xl font-circlular-std">Plans</h1>
           <p class="text-grey-5">

@@ -30,7 +30,7 @@
             </template>
           </q-input>
 
-          <div class="flex items-center gap-3 px-3 py-2 rounded destination">
+          <div class="flex items-center gap-3 px-4 py-2 rounded destination">
             <q-icon :name="methodIcon(account.method)" class="!flex-none text-grey-5" />
             <div>
               <div class="text-sm font-bold">{{ account.accountName }}</div>
