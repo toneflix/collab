@@ -3,9 +3,9 @@
     <q-card dark class="project-dialog !flex-none" style="width: 480px; max-width: 100vw">
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
-          <div class="text-lg font-bold">{{ own ? 'Add this song to a project' : 'Start a project with this song' }}</div>
+          <div class="text-lg font-bold">{{ own ? 'Add this composition to a project' : 'Start a project with this composition' }}</div>
           <div class="text-xs text-grey-5">
-            {{ own ? 'The song becomes a track, and the lyrics go on its lyric sheet.' : 'The lyrics go on a new track\'s lyric sheet, credited to the writer.' }}
+            {{ own ? 'The composition becomes a track, and the lyrics go on its lyric sheet.' : 'The lyrics go on a new track\'s lyric sheet, credited to the writer.' }}
           </div>
         </div>
         <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
@@ -272,7 +272,7 @@ const submit = async () => {
     errors.value = Object.fromEntries(
       Object.entries(err.errors ?? {}).map(([key, value]) => [key, Array.isArray(value) ? (value[0] ?? '') : value]),
     );
-    if (!Object.keys(errors.value).length) notifyError(e, "The song couldn't be added to a project.");
+    if (!Object.keys(errors.value).length) notifyError(e, "The composition couldn't be added to a project.");
   } finally {
     saving.value = false;
   }

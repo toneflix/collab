@@ -111,7 +111,7 @@
         </div>
 
         <div class="grid gap-1" v-if="songs.length">
-          <div class="text-sm font-bold text-grey-5">Written songs</div>
+          <div class="text-sm font-bold text-grey-5">Compositions</div>
           <q-list dense>
             <q-item
               :clickable="!!song.to"

@@ -3,16 +3,16 @@
     <div class="flex items-center gap-x-3 gap-y-3 mb-4" :class="narrow || showLabels ? 'flex-wrap' : 'no-wrap'">
       <IconBtn
         class="!flex-none"
-        aria-label="Back to your songs"
+        aria-label="Back to your compositions"
         icon="lucide-arrow-left"
         :to="{ name: 'studio.composer' }"
       />
       <div class="song-head">
         <input
           class="song-title"
-          aria-label="Song title"
+          aria-label="Composition title"
           maxlength="150"
-          placeholder="Untitled song"
+          placeholder="Untitled composition"
           :value="song?.title"
           :disabled="!song"
           @input="setTitle(($event.target as HTMLInputElement).value)"
@@ -184,7 +184,7 @@
           <q-card-section>
             <div class="text-base font-semibold">Save your changes?</div>
             <div class="mt-1 text-sm text-grey-5">
-              This song has changes that aren't saved yet. If you leave without saving, they stay on this device and
+              This composition has changes that aren't saved yet. If you leave without saving, they stay on this device and
               you can restore them next time.
             </div>
           </q-card-section>
@@ -346,7 +346,7 @@ const save = () => void flush();
 const conflict = () => {
   $q.dialog({
     dark: true,
-    title: 'This song changed in another window',
+    title: 'This composition changed in another window',
     message: 'Load the newer copy, or keep what you have here. Keeping yours saves the other copy as a version first.',
     persistent: true,
     ok: { label: 'Keep mine', color: 'toneflix', textColor: 'dark', noCaps: true, unelevated: true, rounded: true },
@@ -381,7 +381,7 @@ const load = async ({ offerDraft = true } = {}) => {
     fitBody();
     if (offerDraft) offerRestore();
   } catch (e) {
-    notifyError(e, "This song couldn't be opened.");
+    notifyError(e, "This composition couldn't be opened.");
     void router.replace({ name: 'studio.composer' });
   }
 };
@@ -396,7 +396,7 @@ const offerRestore = () => {
   $q.dialog({
     dark: true,
     title: 'Restore your unsaved changes?',
-    message: `This song has changes from ${at} that weren't saved. Restore them to keep working on them, or discard them.`,
+    message: `This composition has changes from ${at} that weren't saved. Restore them to keep working on them, or discard them.`,
     persistent: true,
     ok: { label: 'Restore', color: 'toneflix', textColor: 'dark', noCaps: true, unelevated: true, rounded: true },
     cancel: { label: 'Discard', flat: true, noCaps: true, rounded: true },

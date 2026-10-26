@@ -9,7 +9,7 @@
           no-caps
           color="toneflix"
           text-color="dark"
-          label="New song"
+          label="New composition"
           class="!flex-none ml-auto"
           icon="lucide-plus"
           :loading="creating"
@@ -17,7 +17,7 @@
         />
       </div>
       <p class="mb-8 text-sm text-grey-5">
-        Your notepad for lyrics. Syllables, rhymes and word lookups sit beside every line, and songs save as you write.
+        Your notepad for lyrics. Syllables, rhymes and word lookups sit beside every line, and compositions save as you write.
         <router-link class="text-toneflix" :to="{ name: 'compositions' }">See compositions others published</router-link>
       </p>
 
@@ -29,7 +29,7 @@
         clearable
         debounce="300"
         class="mb-8"
-        placeholder="Search your songs"
+        placeholder="Search your compositions"
         v-model="search"
       >
         <template #prepend>
@@ -39,9 +39,9 @@
 
       <div class="empty" v-if="!songs.length && !loading">
         <q-icon size="40px" class="mb-2 text-toneflix" name="lucide-square-pen" />
-        <div class="text-base font-semibold" v-if="search">No songs match "{{ search }}".</div>
+        <div class="text-base font-semibold" v-if="search">No compositions match "{{ search }}".</div>
         <template v-else>
-          <div class="text-base font-semibold">No songs yet.</div>
+          <div class="text-base font-semibold">No compositions yet.</div>
           <div class="text-sm text-grey-5">Start one and write your first verse.</div>
         </template>
       </div>
@@ -69,7 +69,7 @@
             </div>
             <IconBtn size="sm"
               class="!flex-none"
-              aria-label="Delete song"
+              aria-label="Delete composition"
               icon="lucide-trash-2"
               @click.stop.prevent="remove(song, i)"
             />
@@ -124,7 +124,7 @@ const load = async (reset = false) => {
     songs.value = reset ? res.data : [...songs.value, ...res.data];
     lastPage.value = res.meta?.lastPage ?? 1;
   } catch (e) {
-    notifyError(e, "Your songs couldn't be loaded.");
+    notifyError(e, "Your compositions couldn't be loaded.");
   } finally {
     if (mine === ticket) loading.value = false;
   }
@@ -143,7 +143,7 @@ const newSong = async () => {
     const res = await createSongRequest().send();
     await router.push({ name: 'studio.composer.song', params: { song_id: res.data.id } });
   } catch (e) {
-    notifyError(e, "A new song couldn't be started.");
+    notifyError(e, "A new composition couldn't be started.");
   } finally {
     creating.value = false;
   }
@@ -152,7 +152,7 @@ const newSong = async () => {
 const remove = (song: Song, i: number) => {
   $q.dialog({
     dark: true,
-    title: 'Delete this song?',
+    title: 'Delete this composition?',
     message: `"${song.title}" and its versions will be deleted.`,
     ok: { label: 'Delete', color: 'negative', noCaps: true, unelevated: true, rounded: true },
     cancel: { label: 'Keep it', flat: true, noCaps: true, rounded: true },
@@ -161,7 +161,7 @@ const remove = (song: Song, i: number) => {
       await deleteSongRequest(song.id).send();
       songs.value.splice(i, 1);
     } catch (e) {
-      notifyError(e, "The song couldn't be deleted.");
+      notifyError(e, "The composition couldn't be deleted.");
     }
   });
 };

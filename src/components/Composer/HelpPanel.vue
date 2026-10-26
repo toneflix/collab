@@ -8,8 +8,8 @@
       </p>
       <ul>
         <li>Rhyme colours start over in each section, so only rhymes in the same verse or hook match.</li>
-        <li>AI reads the tags to know where it is in the song and can start new sections with them.</li>
-        <li>Tags and blank lines are left off a project's lyric sheet. AI singing gets them, to shape the song.</li>
+        <li>AI reads the tags to know where it is in the composition and can start new sections with them.</li>
+        <li>Tags and blank lines are left off a project's lyric sheet. AI singing gets them, to shape the song it sings.</li>
       </ul>
       <div class="flex flex-wrap gap-2 mt-2">
         <button type="button" class="help__chip !flex-none" :key="tag" @click="emit('section', tag)" v-for="tag in tags">
@@ -47,7 +47,7 @@
         <li>Steer it with a few words, like "about leaving home".</li>
         <li>Next-line ideas show in grey in your lyrics: <kbd>Tab</kbd> adds one, <kbd>Alt</kbd>+<kbd>]</kbd> shows the next, <kbd>Esc</kbd> hides them.</li>
         <li>Turn on automatic suggestions to get an idea each time you start a new line.</li>
-        <li>Before a block or verse goes in, the song is kept as a version so you can go back.</li>
+        <li>Before a block or verse goes in, the composition is kept as a version so you can go back.</li>
       </ul>
     </section>
 
@@ -55,7 +55,7 @@
       <div class="help__label">Saving and versions</div>
       <ul>
         <li>Changes stay on this device until you press Save or <kbd>{{ mod }}</kbd>+<kbd>S</kbd>.</li>
-        <li>Leaving with unsaved changes asks you to save first. If you don't, you can restore them the next time you open the song here.</li>
+        <li>Leaving with unsaved changes asks you to save first. If you don't, you can restore them the next time you open the composition here.</li>
         <li>Versions keeps earlier copies. Name one before a big rewrite, and restore any of them later.</li>
       </ul>
     </section>
@@ -63,8 +63,8 @@
     <section class="help__section">
       <div class="help__label">Notes, beat and projects</div>
       <ul>
-        <li>Notes holds the BPM, key, a beat to write to and a scratchpad. With a BPM set, the top line shows how long the song runs.</li>
-        <li>Add to a project turns the song into a track with its lyric sheet, on a new project or one you own or collaborate on, and AI can sing it. After that, every save that changes the lyrics updates the sheet too.</li>
+        <li>Notes holds the BPM, key, a beat to write to and a scratchpad. With a BPM set, the top line shows how long the composition runs.</li>
+        <li>Add to a project turns the composition into a track with its lyric sheet, on a new project or one you own or collaborate on, and AI can sing it. After that, every save that changes the lyrics updates the sheet too.</li>
       </ul>
     </section>
 

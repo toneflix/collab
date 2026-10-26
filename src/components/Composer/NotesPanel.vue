@@ -1,5 +1,5 @@
 <template>
-  <ComposerSheet title="Notes" caption="Only you can see these. They save with the song." :dock="dock" v-model="open">
+  <ComposerSheet title="Notes" caption="Only you can see these. They save with the composition." :dock="dock" v-model="open">
     <div class="mb-8">
       <div class="label">Tempo and key</div>
       <div class="flex gap-2 no-wrap">
