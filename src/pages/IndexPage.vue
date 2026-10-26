@@ -8,6 +8,11 @@
         <TrackCategory hide-all-link v-model:category="shelves.recent" />
       </section>
 
+      <section v-if="signedIn && shelves.forYou.data?.list.length">
+        <HomeShelfHeader title="Made for you" subtitle="Picked from the genres you like." />
+        <TrackCategory hide-all-link v-model:category="shelves.forYou" />
+      </section>
+
       <section v-if="shelves.trending.data?.list.length">
         <HomeShelfHeader
           title="Trending this week"
@@ -119,7 +124,7 @@ defineOptions({
         top_creators: size,
         latest_albums: size,
         new_songs: size,
-        ...(boot.user?.id ? { recently_played: size } : {}),
+        ...(boot.user?.id ? { recently_played: size, for_you: size } : {}),
       }).send(),
       loadGenresRequest({ limit: 16 }).send(),
     ]);
@@ -145,6 +150,13 @@ const shelves = reactive({
     title: 'Jump back in',
     data: explore.recentlyPlayed,
     params: { filters: 'recently_played' },
+  },
+  forYou: <Category<Track>>{
+    id: 'for-you',
+    slug: 'for-you',
+    title: 'Made for you',
+    data: explore.forYou,
+    params: { filters: 'for_you' },
   },
   trending: <Category<Track>>{
     id: 'trending',

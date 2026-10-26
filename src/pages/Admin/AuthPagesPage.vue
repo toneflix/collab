@@ -141,6 +141,7 @@ const icons: Record<string, string> = {
   forgot: 'lucide-key-round',
   reset: 'lucide-lock',
   verify: 'lucide-mail',
+  interests: 'lucide-heart',
 };
 
 const loading = ref(true);

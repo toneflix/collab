@@ -112,6 +112,52 @@
         </q-form>
       </section>
 
+      <!-- Interests -->
+      <section class="settings__card" aria-labelledby="interests-heading">
+        <div class="settings__head">
+          <div>
+            <h2 id="interests-heading" class="settings__title">You and your music</h2>
+            <p class="settings__caption">Your genres and topics shape the playlists made for you.</p>
+          </div>
+        </div>
+
+        <q-form class="flex flex-col gap-6" @submit="saveInterests">
+          <div>
+            <span class="settings__label">How you use Toneflix Music</span>
+            <AccountTypePicker v-model="interests.account_type" />
+          </div>
+
+          <div v-if="identityOptions.length">
+            <span class="settings__label">
+              {{ interests.account_type === 'creator' ? 'What you do' : 'What describes you' }}
+            </span>
+            <ChoiceChips :options="identityOptions" :max="6" v-model="interests.identities" />
+          </div>
+
+          <InterestPicker
+            :picked-topics="pickedTopics"
+            v-model:genres="interests.genres"
+            v-model:topics="interests.topics"
+          />
+          <div class="text-sm text-negative" v-if="errors.genres || errors.topics">
+            {{ errors.genres || errors.topics }}
+          </div>
+
+          <div class="settings__actions">
+            <q-btn
+              unelevated
+              rounded
+              no-caps
+              color="primary"
+              type="submit"
+              label="Save"
+              :disable="!interests.genres.length && !interests.topics.length"
+              :loading="saving === 'interests'"
+            />
+          </div>
+        </q-form>
+      </section>
+
       <!-- Contact -->
       <section class="settings__card" aria-labelledby="contact-heading">
         <div class="settings__head">
@@ -283,8 +329,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
+import AccountTypePicker from 'src/components/Auth/AccountTypePicker.vue';
+import ChoiceChips from 'src/components/Auth/ChoiceChips.vue';
+import InterestPicker from 'src/components/Auth/InterestPicker.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import { notify } from 'src/utils/helpers';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -293,6 +342,8 @@ import {
   updateAvatarRequest,
   type AccountFields,
 } from 'src/utils/requests/account';
+import { loadInterestsRequest, saveInterestsRequest } from 'src/utils/requests/interests';
+import type { AccountTypeValue, Interests } from 'src/utils/models';
 
 type Field = keyof AccountFields;
 type CropResult = { base64: string; blob: Blob; file: File };
@@ -318,6 +369,13 @@ const password = reactive({
   new_password: '',
   new_password_confirmation: '',
 });
+const interests = reactive({
+  account_type: <AccountTypeValue | null>null,
+  identities: <string[]>[],
+  genres: <number[]>[],
+  topics: <number[]>[],
+});
+const pickedTopics = ref<Interests['topics']>([]);
 const errors = ref<Record<string, string>>({});
 const saving = ref<string | null>(null);
 const savingPhoto = ref(false);
@@ -362,6 +420,32 @@ watch(
   { immediate: true },
 );
 
+const identityOptions = computed(
+  () => boot.accountTypes.find((type) => type.value === interests.account_type)?.identities ?? [],
+);
+
+/** Identities belong to one account type, so switching types drops the rest. */
+watch(
+  () => interests.account_type,
+  () => {
+    const allowed = identityOptions.value.map((option) => option.value);
+
+    interests.identities = interests.identities.filter((identity) => allowed.includes(identity));
+  },
+);
+
+onMounted(async () => {
+  const { data } = await loadInterestsRequest().send();
+
+  pickedTopics.value = data.topics;
+  Object.assign(interests, {
+    account_type: data.accountType,
+    identities: data.identities,
+    genres: data.genres.map((genre) => genre.id),
+    topics: data.topics.map((topic) => topic.id),
+  });
+});
+
 const fail = (error: unknown, fallback: string) => {
   const body = error as {
     message?: string;
@@ -405,6 +489,32 @@ const save = async (section: string, fields: Field[]) => {
     notify(message, 'success');
   } catch (error) {
     fail(error, 'We could not save your changes.');
+  } finally {
+    saving.value = null;
+  }
+};
+
+const saveInterests = async () => {
+  saving.value = 'interests';
+  errors.value = {};
+
+  try {
+    const { data, message } = await saveInterestsRequest({
+      ...(interests.account_type ? { account_type: interests.account_type } : {}),
+      identities: interests.identities,
+      genres: interests.genres,
+      topics: interests.topics,
+    }).send();
+
+    boot.setUser({
+      ...boot.user,
+      accountType: data.accountType,
+      identities: data.identities,
+      interestsAt: data.interestsAt,
+    });
+    notify(message, 'success');
+  } catch (error) {
+    fail(error, 'We could not save your interests.');
   } finally {
     saving.value = null;
   }
@@ -490,6 +600,14 @@ const savePhoto = async (result: CropResult) => {
     font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.4;
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
   }
 
   &__caption {

@@ -13,17 +13,29 @@ export const safeRedirect = (redirect: unknown) =>
     : undefined;
 
 /**
+ * The page a user lands on by default: the studio for creators, the home page for listeners.
+ */
+export const homeFor = (user: Partial<User>): RouteLocationRaw =>
+  user.accountType === 'listener' ? { name: 'index' } : { name: 'studio.home' };
+
+/**
  * Where to go once someone signs in or signs up: a pending verification first,
- * then the page that asked for a sign-in, then the studio.
+ * then picking interests if they never have, then the page that asked for a
+ * sign-in, then their default page.
  */
 export const afterSignIn = (user: User, redirect?: unknown): RouteLocationRaw => {
   const boot = useBootstrapStore(requestPinia());
   const target = safeRedirect(redirect);
+  const query = target ? { redirect: target } : {};
   const pending = pendingVerification(user, boot.configuration);
 
   if (pending) {
-    return { name: 'auth.verify', params: { type: pending }, query: target ? { redirect: target } : {} };
+    return { name: 'auth.verify', params: { type: pending }, query };
   }
 
-  return target ?? { name: 'studio.home' };
+  if (!user.interestsAt) {
+    return { name: 'auth.interests', query };
+  }
+
+  return target ?? homeFor(user);
 };

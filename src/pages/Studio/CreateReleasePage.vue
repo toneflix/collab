@@ -402,7 +402,7 @@ defineOptions({
     // Load Release
     if (id) {
       const loaded = await loadReleaseRequest(id, {
-        with: 'artist,genre,tracks,project,streamUrl',
+        with: 'artist,genre,topics,tracks,project,streamUrl',
       }).send();
 
       // The API sends camelCase fields and the form sends its request names.
@@ -494,6 +494,7 @@ const {
     privacy: curr.release.privacy || 'public',
     explicit: curr.release.explicit ? 1 : 0,
     downloadable: curr.release.downloadable ? 1 : 0,
+    topic_ids: curr.release.topic_ids ?? [],
     genre_id: curr.release.genre_id || genres.value[0]?.id,
     contains_music: curr.release.contains_music,
   } as unknown as Release & UploadData,

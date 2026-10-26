@@ -11,6 +11,7 @@ export const releaseFormFields = (release: Release): Release & UploadData => {
     record_label: release.recordLabel,
     contains_music: release.containsMusic ? 1 : 0,
     downloadable: release.downloadable ? 1 : 0,
+    topic_ids: (release.topics ?? []).map((topic) => topic.id),
   } as UploadData);
 };
 

@@ -4,6 +4,7 @@ import { alova, invalidateCache } from 'src/boot/alova';
 
 import { AuthSession } from 'src/utils/auth-session';
 import { pendingVerification } from 'src/utils/auth-pages';
+import { homeFor } from 'src/utils/auth-redirect';
 import { requestPinia } from 'src/utils/request-context';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 
@@ -110,7 +111,7 @@ export const authValidator = (
       return { name: 'admin.dashboard' };
     }
 
-    return { name: 'studio.home' };
+    return homeFor(user);
   }
 
   const pending = pendingVerification(user, boot.configuration);

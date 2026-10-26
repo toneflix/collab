@@ -198,6 +198,16 @@
       />
     </div>
     <div class="col-span-2">
+      <label class="block mb-2 text-xl text-gray-400"> Topics </label>
+      <TopicSelect
+        hint="Moods and subjects, like Heartbreak or Joy. Up to 10."
+        :initial="form.topics"
+        :error="!!topicError"
+        :error-message="topicError"
+        v-model="form.topic_ids"
+      />
+    </div>
+    <div class="col-span-2">
       <q-separator />
     </div>
     <div class="col-span-2 md:col-span-1">
@@ -253,6 +263,7 @@
 
 <script setup lang="ts">
 import HoverCard from 'src/components/Cards/HoverCard.vue';
+import TopicSelect from 'src/components/Forms/TopicSelect.vue';
 import { Release, UploadData } from 'src/utils/models';
 import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -272,4 +283,10 @@ const errors = defineModel<Record<string, string>>('errors', {
   required: false,
   default: () => ({}),
 });
+
+const topicError = computed(
+  () =>
+    errors.value.topics ||
+    Object.entries(errors.value).find(([key]) => key.startsWith('topics.'))?.[1],
+);
 </script>
