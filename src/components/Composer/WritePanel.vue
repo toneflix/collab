@@ -60,7 +60,7 @@
           </button>
         </div>
         <div class="mt-2 text-xs text-grey-6">
-          Lines go after the line your cursor is on. Rewrite works on that line. Before a block or verse, the song is
+          Lines go after the line your cursor is on. Rewrite works on that line. Before a block or verse, the composition is
           saved as a version.
         </div>
         <div class="mt-2 text-xs text-orange" v-if="short">

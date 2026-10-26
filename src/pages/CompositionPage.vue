@@ -5,7 +5,7 @@
         <div class="hero__glow" :style="{ backgroundImage: `url(${song.imageUrl})` }" />
         <img class="hero__art" :src="song.imageUrl" :alt="song.title" />
         <div class="hero__info">
-          <div class="text-xs font-semibold tracking-widest uppercase text-grey-5">Song</div>
+          <div class="text-xs font-semibold tracking-widest uppercase text-grey-5">Composition</div>
           <h1 class="hero__title">{{ song.title }}</h1>
           <router-link
             class="writer"
@@ -34,7 +34,7 @@
           <div class="text-xs text-grey-5" v-if="song.forkedFrom || song.project">
             <template v-if="song.forkedFrom">
               Forked from
-              <router-link class="text-toneflix" :to="{ name: 'song', params: { slug: song.forkedFrom.slug } }">
+              <router-link class="text-toneflix" :to="{ name: 'composition', params: { slug: song.forkedFrom.slug } }">
                 {{ song.forkedFrom.title }}
               </router-link>
               <template v-if="song.forkedFrom.writer"> by {{ song.forkedFrom.writer }}</template>
@@ -87,7 +87,7 @@
               />
             </template>
             <IconBtn class="!flex-none" icon="lucide-share-2" aria-label="Copy the link" @click="share" />
-            <ReportDialog type="song" label="song" :id="song.id" v-if="!song.isOwner" />
+            <ReportDialog type="song" label="composition" :id="song.id" v-if="!song.isOwner" />
           </div>
         </div>
       </section>
@@ -105,7 +105,7 @@
         <aside class="more" v-if="more.length">
           <h2 class="mb-3 text-base font-bold">More from {{ song.writer?.name }}</h2>
           <div class="more__grid">
-            <PublicSongCard :key="other.id" :song="other" v-for="other in more" />
+            <CompositionCard :key="other.id" :song="other" v-for="other in more" />
           </div>
         </aside>
       </div>
@@ -113,7 +113,7 @@
       <SongProjectDialog :song="song" v-model="projectDialog" @created="onProjectCreated" v-if="song.allowProjects" />
     </div>
 
-    <OopsAlert text="This song isn't here. It may be private, or its writer took it down." v-else />
+    <OopsAlert text="This composition isn't here. It may be private, or its writer took it down." v-else />
   </q-page>
 </template>
 
@@ -124,7 +124,7 @@ import { useRoute, useRouter } from 'vue-router';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import SongProjectDialog from 'src/components/Composer/SongProjectDialog.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
-import PublicSongCard from 'src/components/Songs/PublicSongCard.vue';
+import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { isSectionLine, notifyError } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
@@ -197,7 +197,7 @@ const fork = async () => {
     notify(res.message, 'success');
     await router.push({ name: 'studio.composer.song', params: { song_id: res.data.id } });
   } catch (e) {
-    notifyError(e, "The song couldn't be forked.");
+    notifyError(e, "The composition couldn't be forked.");
   } finally {
     forking.value = false;
   }
@@ -230,7 +230,7 @@ const loadMore = async () => {
 watch(
   () => route.params.slug,
   async (slug, before) => {
-    if (!slug || slug === before || route.name !== 'song') return;
+    if (!slug || slug === before || route.name !== 'composition') return;
     song.value = await loadPublicSongRequest(String(slug))
       .send()
       .then((res) => res.data)
@@ -242,14 +242,14 @@ watch(
 onMounted(() => void loadMore());
 
 useMeta(() => {
-  const title = song.value ? `${song.value.title}${song.value.writer ? ` by ${song.value.writer.name}` : ''}` : 'Song';
+  const title = song.value ? `${song.value.title}${song.value.writer ? ` by ${song.value.writer.name}` : ''}` : 'Composition';
   const description = song.value?.body?.split(/\r?\n/).filter((l) => l.trim() && !isSectionLine(l.trim())).slice(0, 2).join(' / ');
 
   return {
     title,
     titleTemplate: (t) => `${t} - Toneflix Collab`,
     meta: {
-      description: { name: 'description', content: description || 'Lyrics on Toneflix Collab.' },
+      description: { name: 'description', content: description || 'A composition on Toneflix Collab.' },
       ogTitle: { property: 'og:title', content: title },
       ogImage: { property: 'og:image', content: song.value?.imageUrl ?? '' },
     },

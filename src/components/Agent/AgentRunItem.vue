@@ -6,7 +6,7 @@
         <span v-if="run.owner">For @{{ run.owner.username }} · </span>
         <span v-if="run.counts">
           {{ countStr(run.counts.artists, 'artist') }}, {{ countStr(run.counts.albums, 'album') }},
-          {{ countStr(run.counts.tracks, 'track') }}<template v-if="run.counts.songs">, {{ countStr(run.counts.songs, 'song') }}</template> ·
+          {{ countStr(run.counts.tracks, 'track') }}<template v-if="run.counts.songs">, {{ countStr(run.counts.songs, 'composition') }}</template> ·
         </span>
         {{ run.credits }} credits · {{ date.formatDate(run.createdAt, 'MMM D, HH:mm') }}
       </q-item-label>

@@ -141,7 +141,7 @@ const faq = computed(() => [
       },
       {
         q: 'What is the Composer?',
-        a: 'A notepad for lyrics. It counts syllables, colours rhymes and can suggest lines with AI. A song can be turned into a project track when it is ready.',
+        a: 'A notepad for lyrics. It counts syllables, colours rhymes and can suggest lines with AI. A composition can be turned into a project track when it is ready.',
       },
     ],
   },

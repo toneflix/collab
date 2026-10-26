@@ -1,5 +1,5 @@
 <template>
-  <router-link class="song-card" :to="{ name: 'song', params: { slug: song.slug } }">
+  <router-link class="song-card" :to="{ name: 'composition', params: { slug: song.slug } }">
     <div class="song-card__art">
       <img :src="song.imageUrl" :alt="song.title" loading="lazy" />
     </div>

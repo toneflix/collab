@@ -7,7 +7,7 @@
         <template v-else>Search</template>
       </h1>
       <p class="mb-6 text-sm text-grey-5">
-        Find songs by their title or a line of their lyrics, published lyrics,
+        Find songs by their title or a line of their lyrics, published compositions,
         and creators by name. Narrow songs down by tempo and key.
       </p>
 
@@ -87,7 +87,7 @@
 
         <section class="mb-8" v-if="q && lyrics.length">
           <div class="flex items-center justify-between gap-3 mb-4 no-wrap">
-            <h2 class="text-lg font-bold">Lyrics</h2>
+            <h2 class="text-lg font-bold">Compositions</h2>
             <q-btn
               flat
               rounded
@@ -96,12 +96,12 @@
               label="See all"
               icon-right="lucide-arrow-right"
               class="!flex-none px-3"
-              :to="{ name: 'songs', query: { search: q } }"
+              :to="{ name: 'compositions', query: { search: q } }"
               v-if="lyricsMore"
             />
           </div>
           <div class="lyrics-grid">
-            <PublicSongCard :key="song.id" :song="song" v-for="song in lyrics" />
+            <CompositionCard :key="song.id" :song="song" v-for="song in lyrics" />
           </div>
         </section>
 
@@ -184,7 +184,7 @@ import { formatSeconds } from 'src/utils/helpers';
 import type { Artist, Track } from 'src/utils/models';
 import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
-import PublicSongCard from 'src/components/Songs/PublicSongCard.vue';
+import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { loadPublicSongsRequest, type PublicSong } from 'src/utils/requests/composer';
 
 type SearchTrack = Track & { lyricMatch?: string | null };
@@ -281,7 +281,7 @@ watch(
 const lyrics = ref<PublicSong[]>([]);
 const lyricsMore = ref(false);
 
-/** Published Composer songs whose title or lyrics match */
+/** Published compositions whose title or lyrics match */
 const loadLyrics = async () => {
   const term = q.value;
   try {

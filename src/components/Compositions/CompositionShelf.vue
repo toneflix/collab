@@ -1,11 +1,11 @@
 <template>
   <div class="shelf">
-    <PublicSongCard class="shelf__item" :key="song.id" :song="song" v-for="song in songs" />
+    <CompositionCard class="shelf__item" :key="song.id" :song="song" v-for="song in songs" />
   </div>
 </template>
 
 <script setup lang="ts">
-import PublicSongCard from 'src/components/Songs/PublicSongCard.vue';
+import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import type { PublicSong } from 'src/utils/requests/composer';
 
 defineProps<{ songs: PublicSong[] }>();

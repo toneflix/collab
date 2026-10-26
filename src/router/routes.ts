@@ -6,7 +6,7 @@ import library from './library';
 import messages from './messages';
 import notifications from './notifications';
 import projects from './projects';
-import songs from './songs';
+import compositions from './compositions';
 import studio from './studio';
 
 const routes: RouteRecordRaw[] = [
@@ -64,7 +64,7 @@ const routes: RouteRecordRaw[] = [
   },
   ...authentication,
   ...projects,
-  ...songs,
+  ...compositions,
   ...artistsCreators,
   ...library,
   ...messages,

@@ -9,7 +9,7 @@
       filled
       autogrow
       label="Instructions"
-      hint="Say what to make: artists, albums and how many tracks, genres, moods, and any written songs."
+      hint="Say what to make: artists, albums and how many tracks, genres, moods, and any compositions to write."
       :input-style="{ minHeight: '120px' }"
       :error="!!errors.prompt"
       :error-message="errors.prompt"
