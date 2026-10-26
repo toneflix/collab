@@ -100,6 +100,14 @@
       v-model="form.publish"
     />
 
+    <q-toggle
+      dark
+      color="toneflix"
+      label="Draw album covers and artist pictures"
+      v-if="settings?.artwork"
+      v-model="form.artwork"
+    />
+
     <div class="flex items-center gap-3">
       <q-btn
         unelevated
@@ -138,6 +146,7 @@ const blank = (): AgentRunForm => ({
   prompt: '',
   owner_id: null,
   publish: false,
+  artwork: true,
   max_tracks: 12,
   seconds: props.settings?.defaultSeconds || 120,
   label: '',
