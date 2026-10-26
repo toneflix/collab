@@ -15,7 +15,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['prototypes', 'main', 'icons', 'alova', 'i18n', 'images'],
+    boot: ['prototypes', 'main', 'icons', 'alova', 'i18n', 'images', ...(ctx.mode.capacitor ? ['native'] : [])],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
