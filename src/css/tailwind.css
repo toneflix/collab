@@ -35,7 +35,7 @@ select {
 }
 
 .search-1.q-field--outlined .q-field__control {
-  border-radius: 0 4px 4px 4px;
+  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) var(--tf-radius-md);
   padding: 0 12px;
 }
 
@@ -44,14 +44,11 @@ select {
     &:before {
       border-style: solid;
     }
-    &:hover:before {
-      border-color: currentColor;
-    }
   }
 }
 
+/* Form fields with their label above them */
 .custom-q-class {
-  border-radius: 4px;
   @apply border-0! focus:shadow-none! focus:outline-none! focus:ring-0!;
   &.capitalize .q-field__messages {
     @apply normal-case;
@@ -65,54 +62,21 @@ select {
     }
   }
   &.q-field--outlined .q-field__control {
-    &:before {
-      border-width: 1px;
-      border-color: rgb(0 0 0 / 8%);
-    }
-    &:hover:before {
-      border-color: #000;
-    }
-    &:after {
-      border-width: 1px;
-    }
+    @apply text-base;
+  }
+  &.q-field--outlined:not(.no-fill) .q-field__control {
+    background: var(--tf-surface-2);
   }
   &.search-input {
     &.q-field--outlined .q-field__control::after {
       border-color: inherit !important;
     }
   }
-  .q-field__messages {
-    font-size: 0.9rem;
-    line-height: 0.8rem;
-  }
 }
 
 .custom-input-class {
   @apply bg-transparent! focus:shadow-none! focus:border-0! focus:outline-none! focus:ring-0!;
-}
-
-.body--dark {
-  .custom-q-class {
-    &.q-field--outlined .q-field__control {
-      @apply rounded-lg text-xl;
-      &:before {
-        border-width: 1px;
-        border-color: rgba(255, 255, 255, 0.523);
-      }
-      &:hover:before {
-        border-color: #bcbcbc;
-      }
-    }
-    &:not(.no-fill).q-field--outlined .q-field__control {
-      &:before {
-        background-color: rgb(255, 255, 255);
-      }
-    }
-  }
-
-  .custom-input-class {
-    @apply text-gray-500!;
-  }
+  color: var(--tf-text) !important;
 }
 
 .q-field__append.row {
@@ -126,19 +90,20 @@ select {
 
 /* Dialogs */
 .q-dialog-plugin.q-card.mode-dialog {
-  @apply rounded-[3em] min-h-72 flex flex-col justify-around;
+  @apply min-h-56 flex flex-col justify-around p-2;
   .q-dialog__title {
     text-align: center;
-    @apply font-bold text-3xl flex-none!;
+    @apply font-semibold text-xl flex-none!;
   }
   .q-dialog__message {
     text-align: center;
-    @apply text-2xl flex-none!;
+    @apply text-base flex-none!;
+    color: var(--tf-text-muted);
   }
   .q-card__actions--horiz {
     @apply flex justify-center gap-2 flex-none!;
     .q-btn {
-      @apply rounded-3xl px-8 font-bold;
+      @apply px-6 font-semibold;
     }
   }
 }

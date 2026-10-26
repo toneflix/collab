@@ -18,13 +18,19 @@ export default defineConfig((ctx) => {
     boot: ['prototypes', 'main', 'alova', 'i18n', 'images'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
-    css: ['overwrite.scss', 'app.scss', 'tailwind.css'],
+    css: [
+      '~@fontsource-variable/inter/index.css',
+      'tokens.css',
+      'components.scss',
+      'overwrite.scss',
+      'app.scss',
+      'tailwind.css',
+    ],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       'fontawesome-v7',
       'eva-icons',
-      'roboto-font', // optional, you are not bound to it
       'material-icons-outlined',
       'material-icons', // optional, you are not bound to it
     ],
@@ -109,8 +115,10 @@ export default defineConfig((ctx) => {
     framework: {
       config: {
         dark: true,
+        // Flat buttons and items, without Material's ripple
+        ripple: false,
         // Shows that a clicked link is loading while the next page fetches its data
-        loadingBar: { color: 'primary', size: '3px', position: 'top' },
+        loadingBar: { color: 'primary', size: '2px', position: 'top' },
       },
 
       // Quasar plugins

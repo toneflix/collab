@@ -1,25 +1,66 @@
-// Quasar SCSS (& Sass) Variables
-// --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+// Quasar's Sass variables, set from the design tokens in tokens.css.
+// Colours stay literal here because Quasar runs Sass colour functions on them.
 
-// Check documentation for full list of Quasar variables
+$primary: #03bfff;
+$secondary: #8b7cff;
+$accent: #ff5c8a;
 
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
+$dark: #111419;
+$dark-page: #0a0c10;
 
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
+$positive: #2fd07f;
+$negative: #f2555a;
+$info: #5aa9ff;
+$warning: #f5b53d;
 
-$primary: #1976d2;
-$secondary: #26a69a;
-$accent: #9c27b0;
+$separator-dark-color: #232832;
+$dimmed-background: rgba(5, 6, 9, 0.72);
 
-$dark: #15151e;
-$dark-page: #12131a;
+$typography-font-family:
+  'Inter Variable',
+  'Inter',
+  ui-sans-serif,
+  system-ui,
+  -apple-system,
+  'Segoe UI',
+  sans-serif;
+$body-font-size: 14px;
+$body-line-height: 1.5;
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+$generic-border-radius: 8px;
+$generic-hover-transition: 0.15s cubic-bezier(0.2, 0, 0, 1);
+
+$button-border-radius: 8px;
+$button-rounded-border-radius: 9999px;
+$button-font-weight: 500;
+$button-padding: 4px 14px;
+$button-transition: $generic-hover-transition;
+
+$chip-height: 28px;
+$chip-dense-height: 22px;
+
+$dialog-title-font-size: 1.125rem;
+$dialog-title-line-height: 1.5rem;
+$dialog-title-letter-spacing: -0.01em;
+
+$item-label-header-letter-spacing: 0.02em;
+
+$table-border-radius: 12px;
+$table-box-shadow-dark: none;
+$table-dark-border-color: #232832;
+$table-dark-hover-background: #171b22;
+
+$toolbar-title-font-weight: 600;
+$toolbar-title-letter-spacing: -0.01em;
+
+$layout-shadow-dark: none;
+
+$menu-box-shadow-dark: 0 16px 48px rgba(0, 0, 0, 0.5);
+
+$tooltip-background: #1e232c;
+$tooltip-color: #eceef2;
+$tooltip-padding: 6px 10px;
+$tooltip-border-radius: 6px;
+$tooltip-fontsize: 12px;
+
+$tabs-icon-font-size: 20px;
