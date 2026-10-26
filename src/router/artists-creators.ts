@@ -32,6 +32,11 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/CreatorPage.vue')
       },
       {
+        path: '/u/:artist_id',
+        name: 'user',
+        component: () => import('pages/CreatorPage.vue')
+      },
+      {
         path: ':track_id',
         name: 'artist.track',
         component: () => import('pages/TrackPage.vue')

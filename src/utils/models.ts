@@ -416,6 +416,11 @@ export interface User extends Artist {
   phone: string;
   roles?: PriviRole[];
   fullname: string;
+  firstname?: string;
+  lastname?: string;
+  country?: string | null;
+  state?: string | null;
+  city?: string | null;
   verifying: string;
   permissions?: PriviPerm[];
   userData: {

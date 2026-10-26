@@ -16,6 +16,11 @@ export default <RouteRecordRaw[]>[
         name: 'account.notifications',
         component: () => import('pages/Account/NotificationSettingsPage.vue'),
       },
+      {
+        path: 'account/settings',
+        name: 'account.settings',
+        component: () => import('pages/Account/SettingsPage.vue'),
+      },
     ],
   },
 ];

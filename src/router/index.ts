@@ -25,7 +25,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       : createWebHashHistory;
 
   const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    scrollBehavior: (to) => (to.hash ? { el: to.hash, top: 72 } : { left: 0, top: 0 }),
     routes,
 
     // Leave this as is and make changes in quasar.config.ts instead!

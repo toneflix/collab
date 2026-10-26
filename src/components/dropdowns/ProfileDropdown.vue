@@ -30,7 +30,7 @@
               clickable
               v-ripple
               class="user-card"
-              :to="{ name: 'account.profile' }"
+              :to="{ name: 'user', params: { artist_id: user.username } }"
               v-if="user.id"
             >
               <q-item-section avatar>
@@ -116,13 +116,13 @@ const options = computed<ProfileOptions[]>(() =>
       separator: true,
       list: [
         {
-          name: 'profile',
-          to: 'preferences',
+          name: 'Your page',
+          to: { name: 'user', params: { artist_id: user.value.username } },
           icon: 'lucide-circle-user',
         },
         {
-          name: 'settings',
-          to: 'settings',
+          name: 'Settings',
+          to: { name: 'account.settings' },
           icon: 'lucide-settings',
         },
         {
@@ -164,18 +164,18 @@ const options = computed<ProfileOptions[]>(() =>
       ].filter((e) => !e.hide),
     },
     {
-      name: 'explore',
+      name: 'help',
       separator: true,
       list: [
         {
           name: 'FAQ',
-          to: 'faq',
+          to: { name: 'help', hash: '#faq' },
           icon: 'lucide-circle-question-mark',
         },
         {
-          name: 'Help And Support',
-          href: 'https://discord.gg/u7fQdqQt8c',
-          icon: 'lucide-circle-alert',
+          name: 'Help and support',
+          to: { name: 'help', hash: '#support' },
+          icon: 'lucide-life-buoy',
         },
       ],
     },

@@ -21,7 +21,7 @@
                 color="toneflix"
                 v-if="artist.verified"
               />
-              {{ artist.verified ? 'Verified Creator' : 'Artist' }}
+              {{ artist.verified ? 'Verified creator' : artist.projectsCount ? 'Creator' : 'Member' }}
               <PremiumBadge class="ml-1" v-if="artist.badge" />
             </h6>
 
@@ -32,7 +32,7 @@
             <div
               class="flex flex-row items-center justify-start gap-2 font-semibold"
             >
-              <span class="!flex-none">
+              <span class="!flex-none" v-if="!isMe">
                 <ToggleFollow
                   :following="artist.youFollow"
                   :base-url="`users/${artist.id}`"
@@ -70,6 +70,17 @@
               <span class="!flex-none">
                 {{ intStr(artist.reputation) }} Reps.
               </span>
+              <q-btn
+                outline
+                rounded
+                no-caps
+                padding="6px 16px"
+                icon="lucide-pen"
+                label="Edit profile"
+                class="!flex-none"
+                :to="{ name: 'account.settings' }"
+                v-if="isMe"
+              />
             </div>
             <p class="block mt-8 text-sm max-w-96">
               {{ artist.about }}
