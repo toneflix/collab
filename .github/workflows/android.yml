@@ -19,7 +19,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
+  # The ubuntu runner ships the Android SDK; Gradle fetches missing platforms itself
+  android:
     runs-on: ubuntu-latest
 
     env:
@@ -44,8 +45,6 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: gradle
-
-      - uses: android-actions/setup-android@v3
 
       - name: Install dependencies
         run: |
