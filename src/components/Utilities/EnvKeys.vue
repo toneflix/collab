@@ -8,7 +8,7 @@
         <q-icon
           size="16px"
           class="!flex-none"
-          :name="key.isSet ? 'lucide-circle-check' : key.required ? 'lucide-circle-alert' : 'radio_button_unchecked'"
+          :name="key.isSet ? 'lucide-circle-check' : key.required ? 'lucide-circle-alert' : 'lucide-circle'"
           :color="key.isSet ? 'green-5' : key.required ? 'orange-5' : 'grey-6'"
         />
         <code class="!flex-none">{{ key.env }}</code>
