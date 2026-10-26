@@ -1,4 +1,4 @@
-package net.toneflix.music;
+package com.toneflix.music.app;
 
 import com.getcapacitor.BridgeActivity;
 

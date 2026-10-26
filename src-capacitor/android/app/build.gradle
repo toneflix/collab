@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "net.toneflix.music"
+    namespace = "com.toneflix.music.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "net.toneflix.music"
+        applicationId "com.toneflix.music.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // CI passes these; local builds use 1 and 1.0
