@@ -57,6 +57,11 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Admin/AiPage.vue'),
           },
           {
+            path: 'agent',
+            name: 'admin.agent',
+            component: () => import('pages/Admin/AgentPage.vue'),
+          },
+          {
             path: 'sounds',
             name: 'admin.sounds',
             component: () => import('pages/Admin/SoundsPage.vue'),

@@ -1,0 +1,148 @@
+import { alova } from 'src/boot/alova';
+import type { ResponseBody } from '../models';
+
+export type AgentRunStatus = 'queued' | 'planning' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+
+export type AgentRunView = 'open' | 'succeeded' | 'failed';
+
+export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'release';
+
+export type AgentStepStatus = 'pending' | 'waiting' | 'done' | 'failed' | 'skipped';
+
+export type AgentStep = {
+  id: number;
+  key: string;
+  kind: AgentStepKind;
+  status: AgentStepStatus;
+  title: string | null;
+  instrumental: boolean | null;
+  dependsOn: string[];
+  /** Ids of what the step made */
+  made: {
+    artistId?: number;
+    projectId?: number;
+    songId?: number;
+    trackId?: number;
+    aiJobId?: number;
+    releaseId?: number;
+  };
+  published: boolean | null;
+  error: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+};
+
+export type AgentPlanTrack = {
+  key: string;
+  title: string;
+  style: string;
+  theme: string;
+  mood: string | null;
+  instrumental: boolean;
+};
+
+export type AgentPlan = {
+  artists: { key: string; name: string; about: string }[];
+  albums: {
+    key: string;
+    title: string;
+    artist: string;
+    genre_id: number | string | null;
+    description: string;
+    tracks: AgentPlanTrack[];
+  }[];
+  songs: { key: string; title: string; theme: string; style: string; mood: string | null }[];
+};
+
+export type AgentRun = {
+  id: number;
+  prompt: string;
+  status: AgentRunStatus;
+  options: { publish: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
+  plan: AgentPlan | null;
+  counts: { artists: number; albums: number; tracks: number; songs: number } | null;
+  progress: { done: number; total: number } | null;
+  credits: number;
+  error: string | null;
+  failure: string | null;
+  owner?: { id: number; name: string; username: string };
+  queuedBy?: { id: number; name: string };
+  steps?: AgentStep[];
+  createdAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+};
+
+export type AgentOwner = {
+  id: number;
+  name: string;
+  username: string;
+  imageUrl: string | null;
+  contentAgent: boolean;
+  aiTools: boolean;
+  credits: number;
+};
+
+export type AgentSettings = {
+  available: boolean;
+  maxTracks: number;
+  defaultSeconds: number;
+  maxSeconds: number;
+  vocals: boolean;
+  instrumentals: boolean;
+};
+
+export type AgentRunsResponse = ResponseBody<AgentRun[]> & { agent: AgentSettings };
+
+export type AgentRunForm = {
+  prompt: string;
+  owner_id: number | null;
+  publish: boolean;
+  max_tracks: number;
+  seconds: number;
+  label: string;
+};
+
+/** Runs that are still waiting or being built */
+export const isActiveRun = (run: AgentRun) => ['queued', 'planning', 'running'].includes(run.status);
+
+export const runStatusLabels: Record<AgentRunStatus, { label: string; color: string }> = {
+  queued: { label: 'Queued', color: 'grey-7' },
+  planning: { label: 'Planning', color: 'blue-8' },
+  running: { label: 'Building', color: 'blue-8' },
+  succeeded: { label: 'Done', color: 'green-8' },
+  failed: { label: 'Failed', color: 'red-8' },
+  cancelled: { label: 'Cancelled', color: 'grey-8' },
+};
+
+/** Admins reach every agent account's runs; users of an agent account reach their own */
+export type AgentScope = 'admin' | 'creator';
+
+export const loadAgentRunsRequest = (scope: AgentScope, params: { status?: AgentRunView; page?: number }) =>
+  alova.Get<AgentRunsResponse>(`${scope}/agent/runs`, { cacheFor: 0, params });
+
+export const loadAgentRunRequest = (scope: AgentScope, id: number) =>
+  alova.Get<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}`, { cacheFor: 0 });
+
+export const queueAgentRunRequest = (scope: AgentScope, form: AgentRunForm) =>
+  alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs`, {
+    ...form,
+    owner_id: scope === 'admin' ? form.owner_id : undefined,
+    label: form.label || null,
+  });
+
+export const cancelAgentRunRequest = (scope: AgentScope, id: number) =>
+  alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}/cancel`, {});
+
+export const retryAgentRunRequest = (scope: AgentScope, id: number) =>
+  alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}/retry`, {});
+
+/** Agent accounts, or with `all` every account, for admins */
+export const loadAgentOwnersRequest = (params: { search?: string; all?: boolean; page?: number; limit?: number }) =>
+  alova.Get<ResponseBody<AgentOwner[]>>('admin/agent/owners', {
+    cacheFor: 0,
+    params: { ...params, all: params.all ? 1 : undefined },
+  });
+
+export const setAgentAccountRequest = (userId: number, enabled: boolean) =>
+  alova.Put<ResponseBody<AgentOwner>>(`admin/agent/accounts/${userId}`, { enabled });
