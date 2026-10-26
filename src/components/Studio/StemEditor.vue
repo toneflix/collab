@@ -208,18 +208,9 @@
           icon="tune"
           :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
           :disable="!ready"
+          @click="masterEffectsOpen = true"
         >
           <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
-          <q-menu dark anchor="bottom right" self="top right" class="bg-[#1c1c1c]">
-            <EffectsPanel
-              name="the master"
-              :readonly="readonly"
-              :model-value="master"
-              @update:model-value="setMasterEffects"
-              @param="setMasterEffectParams"
-              @commit="checkDirty"
-            />
-          </q-menu>
         </q-btn>
         <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
         <q-icon :name="masterVolume ? ionVolumeHigh : ionVolumeMute" size="20px" class="!flex-none" />
@@ -289,19 +280,8 @@
           class="!flex-none px-3"
           icon="tune"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
-        >
-          <q-menu ref="effectsMenu" dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
-            <EffectsPanel
-              plugins
-              :name="selected.name"
-              :model-value="selectedEffects"
-              @update:model-value="setEffects(selected.id, $event)"
-              @param="(i, params) => setEffectParams(selected!.id, i, params)"
-              @commit="checkDirty"
-              @open="openPlugin(selected!.id, $event)"
-            />
-          </q-menu>
-        </q-btn>
+          @click="effectsOpen = true"
+        />
         <q-btn
           flat
           round
@@ -385,6 +365,38 @@
     <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
 
     <div ref="host" class="stem-editor__host" />
+
+    <q-dialog v-model="effectsOpen">
+      <q-card dark class="bg-[#1c1c1c]">
+        <EffectsPanel
+          plugins
+          :name="selected.name"
+          :model-value="selectedEffects"
+          @update:model-value="setEffects(selected!.id, $event)"
+          @param="(i, params) => setEffectParams(selected!.id, i, params)"
+          @commit="checkDirty"
+          @open="openPlugin(selected!.id, $event)"
+          v-if="selected"
+        >
+          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+        </EffectsPanel>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="masterEffectsOpen">
+      <q-card dark class="bg-[#1c1c1c]">
+        <EffectsPanel
+          name="the master"
+          :readonly="readonly"
+          :model-value="master"
+          @update:model-value="setMasterEffects"
+          @param="setMasterEffectParams"
+          @commit="checkDirty"
+        >
+          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+        </EffectsPanel>
+      </q-card>
+    </q-dialog>
 
     <q-dialog v-model="colorsOpen">
       <q-card dark class="bg-[#1c1c1c]">
@@ -547,7 +559,6 @@ const editor = shallowRef<DawEditorElement>();
 let adapter: NativePlayoutAdapter | null = null;
 let context: AudioContext | null = null;
 let look: TrackLook | null = null;
-const effectsMenu = ref<{ show: () => void }>();
 /** The master output level, 0 to 1 */
 const masterLevel = ref(0);
 /** Track id → its colour, mirrored from the track look so the page can show it */
@@ -1563,13 +1574,15 @@ const selectTrack = (trackId: string) => {
 };
 
 /** Open a stem's effects from its controls. */
-const openEffects = async (e: Event) => {
+const openEffects = (e: Event) => {
   const { trackId } = (e as CustomEvent<{ trackId: string }>).detail;
   if (!trackId || !tracks.has(trackId)) return;
   selectTrack(trackId);
-  await nextTick();
-  effectsMenu.value?.show();
+  effectsOpen.value = true;
 };
+
+const effectsOpen = ref(false);
+const masterEffectsOpen = ref(false);
 
 const colorsOpen = ref(false);
 
@@ -1939,7 +1952,7 @@ const listeners: [string, EventListener][] = [
   ['daw-error', (e) => console.warn('[stem editor]', (e as CustomEvent).detail)],
   ['daw-recording-complete', (e) => void onRecordingComplete(e)],
   ['daw-recording-error', onRecordingError],
-  ['tf-track-effects', (e) => void openEffects(e)],
+  ['tf-track-effects', openEffects],
   ['tf-track-color', openColors],
   ['tf-track-select', (e) => selectTrack((e as CustomEvent<{ trackId: string }>).detail.trackId)],
 ];

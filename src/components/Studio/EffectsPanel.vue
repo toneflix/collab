@@ -1,7 +1,8 @@
 <template>
   <div class="fx">
     <div class="fx__head">
-      <div class="font-bold">Effects on {{ name }}</div>
+      <div class="font-bold truncate">Effects on {{ name }}</div>
+      <q-space />
       <q-btn-dropdown
         flat
         dense
@@ -49,6 +50,7 @@
           </template>
         </q-list>
       </q-btn-dropdown>
+      <slot />
     </div>
 
     <div class="py-6 text-sm text-center text-grey-5" v-if="!modelValue.length">
@@ -230,9 +232,17 @@ const setParam = (i: number, key: string, value: number | null) => {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
     margin-bottom: 8px;
+
+    > *:not(.q-space) {
+      flex: none;
+    }
+
+    > :first-child {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
   }
 
   &__item {
