@@ -293,7 +293,9 @@
             :mix-volume="track.mixVolume"
             :master-effects="track.masterEffects"
             commentable
+            :ai-editable="!viewOnly"
             @comment="messageAboutRegion"
+            @ai-edit="(region: SectionSelection) => aiPanel?.editSection(region)"
             @ready="editorReady = true"
             @dirty="dirty = $event"
             @remove="removeStem"
@@ -376,7 +378,7 @@ import {
   projectReleaseLabel,
   projectReleaseLink,
 } from 'src/utils/navigations';
-import { Stem, StemMeta } from 'src/utils/daw';
+import { SectionSelection, Stem, StemMeta } from 'src/utils/daw';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
@@ -712,6 +714,12 @@ const onAiFinished = async (job: AiJob) => {
     } catch {
       // It may have been removed already.
     }
+  }
+  // A section edit plays in place of the stem it was made from.
+  const original = job.muted != null ? findStem(job.muted) : undefined;
+  if (original && !original.meta?.muted) {
+    original.meta = { ...original.meta, muted: true };
+    editor.value?.applyRemote(original.id, original.meta, true);
   }
   if (added.length)
     notify(

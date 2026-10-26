@@ -69,6 +69,15 @@ export interface Stem {
   createdAt?: string;
 }
 
+/** A selected part of a stem: seconds into its audio file, and where it sits on the timeline */
+export interface SectionSelection {
+  stem: Stem;
+  start: number;
+  end: number;
+  at: number;
+  until: number;
+}
+
 const num = (value: unknown, fallback = 0) => {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;

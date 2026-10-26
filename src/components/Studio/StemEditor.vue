@@ -60,6 +60,15 @@
         >
           <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
         </IconBtn>
+        <IconBtn
+          icon="lucide-wand-sparkles"
+          aria-label="Edit the selected part with AI"
+          :disable="!ready || !hasSelection"
+          @click="editSelection"
+          v-if="aiEditable && !readonly"
+        >
+          <q-tooltip>{{ hasSelection ? 'Edit this part with AI' : 'Drag across a stem to select a part to change with AI' }}</q-tooltip>
+        </IconBtn>
       </div>
 
       <div class="stem-editor__group" v-if="!readonly">
@@ -213,6 +222,7 @@
               <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
               <li v-if="!readonly">Drag a stem's clip to move it. Drag its edges to trim it.</li>
               <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
+              <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
               <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes.</li>
               <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
               <li v-if="!readonly">Drag a stem's grip, or use its arrows, to move it up or down.</li>
@@ -451,6 +461,7 @@ import { notify } from 'src/utils/helpers';
 import {
   encodeWav,
   formatClock,
+  SectionSelection,
   Stem,
   StemMeta,
   stemClips,
@@ -471,6 +482,8 @@ const props = defineProps<{
   readonly?: boolean;
   /** Show the button for messaging about a selected part */
   commentable?: boolean;
+  /** Show the button for rewriting a selected part of a stem with AI */
+  aiEditable?: boolean;
   /** The track's tempo */
   bpm?: number;
   /** The track's meter, like "4/4" */
@@ -492,6 +505,8 @@ const emit = defineEmits<{
   change: [stems: Record<string, StemMeta>];
   /** Someone wants to message about the selected part */
   comment: [region: { start: number; end: number; stemId?: string | number; stemName?: string }];
+  /** Someone wants AI to rewrite the selected part of a stem */
+  'ai-edit': [region: SectionSelection];
   /** The tempo or meter was changed here */
   tempo: [value: { bpm: number; timeSignature: string }];
   /** A take was recorded onto a new track; the parent uploads it and calls adoptStem */
@@ -930,6 +945,42 @@ const messageAboutSelection = () => {
     start: Math.round(selection.value.start * 1000) / 1000,
     end: Math.round(selection.value.end * 1000) / 1000,
     ...(stem ? { stemId: stem.id, stemName: stem.title || stem.name } : {}),
+  });
+};
+
+/**
+ * Hand the selected part of a stem to the AI tools, with its times in the
+ * stem's audio file as well as on the timeline. The part must sit inside one
+ * clip, so it maps to one stretch of audio.
+ */
+const editSelection = () => {
+  if (!selection.value) return;
+  const id = selectionTrackId ?? selectedTrackId.value;
+  const stem = id ? tracks.get(id) : undefined;
+  const track = engineTrack(id);
+  if (!stem || !track) {
+    notify('Drag across a stem to select the part to change.', 'info');
+    return;
+  }
+
+  const { start, end } = selection.value;
+  const clip = track.clips.find((c) => {
+    const from = c.startSample / c.sampleRate;
+    return start >= from - 0.01 && end <= from + c.durationSamples / c.sampleRate + 0.01;
+  });
+  if (!clip) {
+    notify('Select a part inside one clip of the stem.', 'info');
+    return;
+  }
+
+  const round = (n: number) => Math.round(n * 1000) / 1000;
+  const offset = clip.offsetSamples / clip.sampleRate - clip.startSample / clip.sampleRate;
+  emit('ai-edit', {
+    stem,
+    start: round(Math.max(0, start + offset)),
+    end: round(Math.max(0, end + offset)),
+    at: round(start),
+    until: round(end),
   });
 };
 

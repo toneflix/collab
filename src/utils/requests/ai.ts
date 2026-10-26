@@ -40,14 +40,29 @@ export type AiConfig = {
   enabled: boolean;
   creditPrice: number;
   packs: CreditPack[];
-  /** Credits per split into stems, per lyrics transcription and per Composer suggestion */
-  costs: { stems: number; lyrics: number; composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number> };
+  /** Credits per split into stems, per lyrics transcription, per section edit and per Composer suggestion */
+  costs: {
+    stems: number;
+    lyrics: number;
+    edit?: number;
+    composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
+  };
   /** The model music is generated with */
   music: MusicModel;
   /** The engine stems are split on */
   stemsEngine: AiEngine;
+  /** The engine that rewrites a section of a stem, and the sections it can take */
+  edit?: SectionEditLimits;
   /** Which engines have their key set */
   engines: Record<AiEngine, boolean>;
+};
+
+export type SectionEditLimits = {
+  engine: AiEngine;
+  /** The shortest part the engine rewrites; shorter selections are rewritten with what's around them */
+  minSeconds: number;
+  /** The largest share of the audio sent to the engine that the part may be */
+  maxShare: number;
 };
 
 export type CreditBalance = {
@@ -90,7 +105,7 @@ export type SongVersion = {
 
 export type AiJob = {
   id: number;
-  kind: 'music' | 'stems' | 'lyrics';
+  kind: 'music' | 'stems' | 'lyrics' | 'edit';
   status: AiJobStatus;
   trackId: number;
   prompt?: string | null;
@@ -100,6 +115,12 @@ export type AiJob = {
   split: boolean;
   /** The stem a split or transcription worked on */
   title?: string | null;
+  /** The part of the stem's audio a section edit rewrote, in seconds */
+  section?: { start: number; end: number } | null;
+  /** The stem a split, transcription or section edit worked on */
+  stemId?: number | null;
+  /** The stem a section edit muted, now that its copy plays instead */
+  muted?: number | null;
   /** Lines of lyrics a transcription wrote */
   lines?: number | null;
   credits: number;
@@ -210,6 +231,25 @@ export const splitStemRequest = (
 ) =>
   alova.Post<ResponseBody<AiJob>>(
     `${track(projectId, trackId)}/stems/${stemId}/split`,
+  );
+
+/** A part of a stem to rewrite, in seconds of its audio file */
+export type SectionEditForm = {
+  prompt: string;
+  lyrics?: string;
+  start: number;
+  end: number;
+};
+
+export const editSectionRequest = (
+  projectId: string | number,
+  trackId: string | number,
+  stemId: string | number,
+  form: SectionEditForm,
+) =>
+  alova.Post<ResponseBody<AiJob>>(
+    `${track(projectId, trackId)}/stems/${stemId}/edit`,
+    form,
   );
 
 export const loadAiJobsRequest = (
