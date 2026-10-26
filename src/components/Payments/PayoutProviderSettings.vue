@@ -44,7 +44,7 @@
         </div>
         <div class="callback">
           <code class="truncate">{{ settings.webhooks[provider.key] }}</code>
-          <q-btn flat dense round size="sm" icon="lucide-copy" :aria-label="`Copy the ${provider.name} webhook URL`" class="!flex-none" @click="copy(settings.webhooks[provider.key])" />
+          <IconBtn size="sm" icon="lucide-copy" :aria-label="`Copy the ${provider.name} webhook URL`" class="!flex-none" @click="copy(settings.webhooks[provider.key])" />
         </div>
       </div>
     </div>

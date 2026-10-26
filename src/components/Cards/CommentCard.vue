@@ -50,16 +50,12 @@
             {{ comment.comment }}
           </span>
 
-          <q-btn
-            flat
-            dense
-            no-caps
-            padding="none"
+          <IconBtn
             icon="lucide-reply"
             class="self-center flex-none text-sm font-semibold text-white"
             @click="showForm = !showForm"
           >
-          </q-btn>
+          </IconBtn>
         </p>
 
         <h4
@@ -181,9 +177,7 @@
           @blur="showForm = false"
         >
           <template #append>
-            <q-btn
-              flat
-              dense
+            <IconBtn
               color="primary"
               icon="lucide-send"
               :loading="loading"

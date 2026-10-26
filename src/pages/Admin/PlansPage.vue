@@ -260,11 +260,7 @@
                   )
                 }}
               </div>
-              <q-btn
-                flat
-                round
-                dense
-                size="sm"
+              <IconBtn size="sm"
                 icon="lucide-x"
                 class="mt-1 !flex-none"
                 @click="form.billing_options.splice(i, 1)"

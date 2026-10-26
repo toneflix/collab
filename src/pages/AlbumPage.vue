@@ -42,10 +42,7 @@
                 {{ formatSeconds(album.duration) }}
               </span>
               <span class="!flex-none">•</span>
-              <span class="!flex-none flex items-center gap-1">
-                <q-icon fill color="white" name="lucide-play:fill" />
-                {{ intStr(album.streams) }}
-              </span>
+              <IconBtn plain icon="lucide-play" label="Plays" :count="intStr(album.streams)" />
               <span class="!flex-none">•</span>
               <span class="!flex-none">
                 <TInteraction
@@ -56,20 +53,13 @@
                   :base-url="`releases/${album.id}`"
                   @done="album.likes = $event.likes"
                 >
-                  <q-btn
-                    flat
-                    no-caps
+                  <IconBtn
+                    :icon="active ? 'lucide-heart:fill' : 'lucide-heart'"
+                    :label="active ? 'Unlike' : 'Like'"
+                    :active="active"
+                    :count="intStr(album.likes)"
                     @click="submit"
-                  >
-                    <q-icon
-                      color="white"
-                      :name="active ? 'lucide-heart:fill' : 'lucide-heart'"
-                      :fill="active"
-                    />
-                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
-                      &nbsp;{{ intStr(album.likes) }}
-                    </span>
-                  </q-btn>
+                  />
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
@@ -95,14 +85,12 @@
                   "
                   v-slot="{ toggle }"
                 >
-                  <q-btn
-                    flat
-                    no-caps
+                  <IconBtn
+                    icon="lucide-message-square"
+                    label="Comments"
+                    :count="intStr(album.commentsCount)"
                     @click="toggle"
-                  >
-                    <q-icon color="white" name="lucide-message-square" />
-                    &nbsp;{{ intStr(album.commentsCount) }}
-                  </q-btn>
+                  />
                 </ConversationDialog>
               </span>
               <span class="!flex-none">•</span>
@@ -179,6 +167,7 @@
 </template>
 
 <script setup lang="ts">
+import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import TrendingItem from 'src/components/Cards/TrendingItem.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
@@ -217,16 +206,16 @@ defineOptions({
       loadReleaseRequest(id, {
         artist_id: aid,
         with: 'tracks,artist,comments_count',
-      }).send(),
+      }).send().catch(missing),
       loadTracksRequest({
         artist_id: aid,
         limit: 8,
-      }).send(),
+      }).send().catch(emptyPage),
       loadReleasesRequest({
         artist_id: aid,
         limit: 30,
         with: 'artist',
-      }).send(),
+      }).send().catch(emptyPage),
     ]);
 
     boot.pageData.current = {

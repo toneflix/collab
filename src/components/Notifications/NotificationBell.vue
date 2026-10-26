@@ -6,7 +6,7 @@
     aria-label="Notifications"
     :to="compact ? { name: 'notifications' } : undefined"
   >
-    <q-icon name="lucide-bell" size="18px" />
+    <q-icon name="lucide-bell" size="20px" />
     <q-badge floating rounded color="red-6" :label="badgeLabel" v-if="store.badge" />
     <q-tooltip>Notifications</q-tooltip>
 
@@ -34,11 +34,7 @@
               @click="store.markAllRead()"
               v-if="store.unread"
             />
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
+            <IconBtn size="sm"
               icon="lucide-settings"
               color="grey-5"
               aria-label="Notification settings"

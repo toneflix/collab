@@ -38,11 +38,7 @@
 
     <section class="settings__panel" v-if="active">
       <header class="settings__head">
-        <q-btn
-          flat
-          round
-          dense
-          size="sm"
+        <IconBtn size="sm"
           class="settings__back"
           icon="lucide-arrow-left"
           aria-label="All sections"

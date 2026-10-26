@@ -99,9 +99,9 @@
                 </div>
 
                 <div class="msg__actions" v-if="!row.message.pending && !row.message.failed">
-                  <q-btn flat round dense size="sm" icon="lucide-reply" aria-label="Reply" @click="startReply(row.message)">
+                  <IconBtn size="sm" icon="lucide-reply" aria-label="Reply" @click="startReply(row.message)">
                     <q-tooltip>Reply</q-tooltip>
-                  </q-btn>
+                  </IconBtn>
                 </div>
               </div>
 
@@ -136,7 +136,7 @@
           <div class="text-xs font-bold">Replying to {{ replyTo.user?.name || 'Someone' }}</div>
           <div class="text-xs truncate text-grey-5">{{ replyTo.body || (replyTo.voice ? 'Voice note' : '') }}</div>
         </div>
-        <q-btn flat round dense size="sm" icon="lucide-x" class="!flex-none" aria-label="Cancel reply" @click="replyTo = null" />
+        <IconBtn size="sm" icon="lucide-x" class="!flex-none" aria-label="Cancel reply" @click="replyTo = null" />
       </div>
 
       <div class="composer__reply composer__reply--region" v-if="region">
@@ -145,21 +145,18 @@
           <div class="text-xs font-bold">About this part of the track</div>
           <div class="text-xs truncate text-grey-5">{{ regionLabel(region) }}</div>
         </div>
-        <q-btn flat round dense size="sm" icon="lucide-x" class="!flex-none" aria-label="Remove the part of the track" @click="region = null" />
+        <IconBtn size="sm" icon="lucide-x" class="!flex-none" aria-label="Remove the part of the track" @click="region = null" />
       </div>
 
       <div class="composer__row composer__row--recording" v-if="recorder.recording.value">
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-trash-2"
           class="!flex-none text-grey-5"
           aria-label="Discard recording"
           @click="recorder.cancel()"
         >
           <q-tooltip>Discard</q-tooltip>
-        </q-btn>
+        </IconBtn>
         <div class="recording" role="status" aria-live="polite">
           <span class="recording__dot" />
           <span class="recording__time">{{ clockShort(recorder.elapsed.value) }}</span>

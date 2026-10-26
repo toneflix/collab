@@ -20,11 +20,7 @@
 
     <q-item-section side top class="!pl-2">
       <span class="notification-item__dot" aria-label="Unread" v-if="!notification.readAt" />
-      <q-btn
-        flat
-        round
-        dense
-        size="sm"
+      <IconBtn size="sm"
         icon="lucide-x"
         color="grey-6"
         aria-label="Remove notification"

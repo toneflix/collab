@@ -4,7 +4,6 @@
     <PayButton
       rounded
       unelevated
-      size="sm"
       color="toneflix"
       icon="lucide-lock-open"
       :label="`Buy ${track.release?.title || 'release'} for ${price(track.price)}`"
@@ -20,7 +19,6 @@
       rounded
       unelevated
       no-caps
-      size="sm"
       color="grey-9"
       icon="lucide-download"
       label="Download"
@@ -33,7 +31,6 @@
       rounded
       outline
       no-caps
-      size="sm"
       icon="lucide-crown"
       label="Download with Premium"
       :to="{ name: 'premium' }"
@@ -47,7 +44,6 @@
         rounded
         unelevated
         no-caps
-        size="sm"
         color="grey-9"
         icon="lucide-layers"
         label="Download stems"
@@ -58,7 +54,6 @@
       <PayButton
         rounded
         unelevated
-        size="sm"
         color="toneflix"
         icon="lucide-layers"
         :label="`Buy stems for ${price(track.stemsPrice)}`"

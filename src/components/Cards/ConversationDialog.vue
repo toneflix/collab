@@ -10,7 +10,7 @@
         <q-toolbar-title>
           <span class="text-bold">{{ title }}</span>
         </q-toolbar-title>
-        <q-btn flat round dense icon="lucide-x" v-close-popup />
+        <IconBtn icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[60vh]">

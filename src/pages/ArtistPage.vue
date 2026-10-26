@@ -55,15 +55,14 @@
                   v-slot="{ submit, following }"
                 >
                   <q-btn
-                    dense
                     no-caps
                     rounded
                     unelevated
-                    size="sm"
-                    padding="0 sm"
+                    padding="6px 16px"
+                    :outline="following"
                     :icon="following ? undefined : 'lucide-plus'"
                     :label="following ? 'Unfollow' : 'Follow'"
-                    :color="following ? 'primary' : undefined"
+                    :color="following ? undefined : 'primary'"
                     @click="submit"
                   />
                 </ToggleFollow>
@@ -77,12 +76,10 @@
               </span>
               <span class="!flex-none" v-if="artist.canEdit">
                 <q-btn
-                  dense
                   no-caps
                   rounded
                   outline
-                  size="sm"
-                  padding="0 sm"
+                  padding="6px 16px"
                   icon="lucide-pen"
                   label="Edit profile"
                   @click="editing = true"
@@ -90,12 +87,10 @@
               </span>
               <span class="!flex-none" v-else-if="artist.claimable && artist.yourClaim?.status !== 'pending'">
                 <q-btn
-                  dense
                   no-caps
                   rounded
                   outline
-                  size="sm"
-                  padding="0 sm"
+                  padding="6px 16px"
                   icon="lucide-id-card"
                   label="Claim this artist"
                   @click="claimDialog?.open()"
@@ -170,6 +165,7 @@
 </template>
 
 <script setup lang="ts">
+import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import TrackList from 'src/components/Showcase/TrackList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
@@ -204,20 +200,20 @@ defineOptions({
     const id = String(currentRoute.params.artist_id);
 
     const [artist, { data: tracks, meta: tracksMeta }, { data: features, meta: featuresMeta }, { data: releases, meta: rMeta }] = await Promise.all([
-      loadArtistRequest(id, {}, true).send(),
+      loadArtistRequest(id, {}, true).send().catch(missing),
       loadTracksRequest({
         artist_id: id,
         limit: 30,
-      }).send(),
+      }).send().catch(emptyPage),
       loadTracksRequest({
         artist_id: id,
         filters: 'features',
         limit: 30,
-      }).send(),
+      }).send().catch(emptyPage),
       loadReleasesRequest({
         artist_id: id,
         limit: 30,
-      }).send(),
+      }).send().catch(emptyPage),
     ]);
 
     boot.pageData.current = {

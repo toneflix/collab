@@ -2,10 +2,7 @@
   <q-page class="p-3 md:p-4">
     <!-- Track header and actions -->
     <div class="flex items-center gap-2 mb-2 no-wrap">
-      <q-btn
-        flat
-        round
-        dense
+      <IconBtn
         class="!flex-none"
         aria-label="Back to the project"
         icon="lucide-arrow-left"
@@ -254,10 +251,7 @@
         @click="router.push(projectReleaseLink(project))"
         v-if="project.isOwner"
       />
-      <q-btn
-        flat
-        round
-        dense
+      <IconBtn
         class="!flex-none expand-toggle"
         :class="{ 'expand-toggle--open': expanded }"
         icon="lucide-chevron-right"
@@ -266,7 +260,7 @@
         @click="toggleExpanded"
       >
         <q-tooltip>{{ expanded ? 'Hide labels' : 'Show labels' }}</q-tooltip>
-      </q-btn>
+      </IconBtn>
     </div>
 
     <q-no-ssr>

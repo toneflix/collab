@@ -125,10 +125,7 @@
               <q-item-section side class="text-xs">
                 <div class="flex items-center gap-2 no-wrap">
                   {{ formatSeconds(track.duration) }}
-                  <q-btn
-                    flat
-                    round
-                    dense
+                  <IconBtn
                     class="!flex-none"
                     :aria-label="player.isPlaying(track) ? 'Pause' : 'Play'"
                     :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"

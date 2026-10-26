@@ -21,11 +21,7 @@
         <div class="flex flex-col flex-1 min-w-0 gap-3">
           <div class="flex items-center gap-2 !flex-none">
             <span class="text-xs font-semibold tracking-wider uppercase text-fg-muted !flex-none">Project</span>
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
+            <IconBtn size="sm"
               icon="lucide-pencil"
               aria-label="Edit project"
               class="!flex-none text-fg-muted"

@@ -12,10 +12,7 @@
         :error-message="errors[`${name}.${i}`]"
         v-model="links[i]"
       />
-      <q-btn
-        flat
-        round
-        dense
+      <IconBtn
         class="!flex-none mt-1"
         icon="lucide-x"
         :aria-label="`Remove link ${i + 1}`"

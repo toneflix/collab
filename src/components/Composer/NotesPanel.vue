@@ -39,7 +39,7 @@
           <div class="text-sm truncate">{{ song.beat.name }}</div>
           <div class="text-xs text-grey-5">Play it on a loop from the toolbar</div>
         </div>
-        <q-btn flat dense round icon="lucide-x" class="!flex-none ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
+        <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
       </div>
       <q-select
         dark

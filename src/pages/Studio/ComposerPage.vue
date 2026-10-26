@@ -62,11 +62,7 @@
                 <template v-if="song.key"> · {{ song.key }}</template>
               </div>
             </div>
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
+            <IconBtn size="sm"
               class="!flex-none"
               aria-label="Delete song"
               icon="lucide-trash-2"

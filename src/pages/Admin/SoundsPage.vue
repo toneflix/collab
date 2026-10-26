@@ -47,7 +47,7 @@
             </p>
             <div class="callback">
               <code class="truncate">{{ callbackUrl }}</code>
-              <q-btn flat dense round size="sm" icon="lucide-copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
+              <IconBtn size="sm" icon="lucide-copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
             </div>
             <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
           </template>
@@ -160,7 +160,7 @@
               </div>
               <q-item :key="sound.id" v-for="sound in library">
                 <q-item-section avatar>
-                  <q-btn round dense flat :icon="playing === sound.id ? 'pause' : 'play_arrow'" :aria-label="`Play ${sound.name}`" @click="play(sound)" />
+                  <IconBtn :icon="playing === sound.id ? 'pause' : 'play_arrow'" :aria-label="`Play ${sound.name}`" @click="play(sound)" />
                 </q-item-section>
                 <q-item-section class="min-w-0">
                   <q-item-label class="truncate">{{ sound.name }}</q-item-label>
@@ -169,11 +169,11 @@
                   </q-item-label>
                 </q-item-section>
                 <q-item-section side class="flex-row items-center gap-1 no-wrap">
-                  <q-btn flat dense round size="sm" icon="lucide-external-link" :href="sound.sourceUrl" target="_blank" aria-label="Open on Freesound" v-if="sound.sourceUrl" />
+                  <IconBtn size="sm" icon="lucide-external-link" :href="sound.sourceUrl" target="_blank" aria-label="Open on Freesound" v-if="sound.sourceUrl" />
                   <q-toggle dense size="sm" color="toneflix" :model-value="sound.isActive" :aria-label="sound.isActive ? 'Hide this sound' : 'Show this sound'" @update:model-value="setActive(sound, $event)">
                     <q-tooltip>{{ sound.isActive ? 'Shown in the studio' : 'Hidden' }}</q-tooltip>
                   </q-toggle>
-                  <q-btn flat dense round size="sm" icon="lucide-trash-2" :aria-label="`Delete ${sound.name}`" @click="remove(sound)" />
+                  <IconBtn size="sm" icon="lucide-trash-2" :aria-label="`Delete ${sound.name}`" @click="remove(sound)" />
                 </q-item-section>
               </q-item>
             </q-list>

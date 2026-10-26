@@ -177,47 +177,79 @@ h3,
   color: var(--tf-text-muted);
 }
 
-// Toggle: a pill track with the thumb inside it
-.q-toggle__inner {
-  padding: 0.275em 0.3em;
-}
-
-.q-toggle__track {
-  height: 0.45em;
-  border-radius: 0.45em;
-  opacity: 1 !important;
-  background: var(--tf-border-strong);
-  transition: background-color var(--tf-duration) var(--tf-ease);
-}
-
-.q-toggle__thumb {
-  top: 0.325em;
-  left: 0.35em;
-  width: 0.35em;
-  height: 0.35em;
-
-  &:after {
-    background: #fff !important;
-    box-shadow: none !important;
-  }
-
-  .q-icon {
-    color: var(--tf-on-primary);
-  }
-}
-
-.q-toggle__inner--truthy {
+// Toggle: a pill track with the thumb inside it, for both sizes
+.q-toggle {
   .q-toggle__track {
-    background: currentColor;
+    position: absolute;
+    top: 50%;
+    left: 0.3em;
+    right: 0.3em;
+    height: 0.5em;
+    margin-top: -0.25em;
+    border-radius: 0.25em;
+    opacity: 1 !important;
+    background: var(--tf-border-strong);
+    transition: background-color var(--tf-duration) var(--tf-ease);
   }
 
   .q-toggle__thumb {
-    left: 0.7em;
-  }
-}
+    top: 50%;
+    left: 0.35em;
+    width: 0.4em;
+    height: 0.4em;
+    margin-top: -0.2em;
 
-.q-toggle__inner--indet .q-toggle__thumb {
-  left: 0.525em;
+    &:before {
+      display: none;
+    }
+
+    &:after {
+      background: #fff !important;
+      box-shadow: none !important;
+    }
+
+    .q-icon {
+      color: var(--tf-on-primary);
+    }
+  }
+
+  .q-toggle__inner--indet .q-toggle__thumb {
+    left: 0.5em;
+  }
+
+  .q-toggle__inner--truthy {
+    .q-toggle__track {
+      background: currentColor;
+    }
+
+    .q-toggle__thumb {
+      left: 0.65em;
+    }
+  }
+
+  &--dense {
+    .q-toggle__track {
+      left: 0;
+      right: 0;
+    }
+
+    .q-toggle__thumb {
+      top: 50%;
+      left: 0.05em;
+    }
+
+    .q-toggle__inner--indet .q-toggle__thumb {
+      left: 0.2em;
+    }
+
+    .q-toggle__inner--truthy .q-toggle__thumb {
+      left: 0.35em;
+    }
+  }
+
+  &:not(.disabled):hover .q-toggle__track {
+    box-shadow: 0 0 0 0.1em var(--tf-focus);
+  }
 }
 
 // Checkbox and radio
