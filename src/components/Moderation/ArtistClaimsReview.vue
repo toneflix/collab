@@ -183,7 +183,7 @@ import { exportFile } from 'quasar';
 import { reactive, ref, watch } from 'vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';
 import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
-import { useAiReviewPolling } from 'src/composables/useAiReviewPolling';
+import { useAiReviewUpdates } from 'src/composables/useAiReviewUpdates';
 import {
   approveArtistClaimRequest,
   claimRoleLabel,
@@ -265,7 +265,7 @@ const sendToAi = async (claim: ArtistClaim) => {
   }
 };
 
-useAiReviewPolling(claims, () => load(pages.value.page));
+useAiReviewUpdates(claims, () => load(pages.value.page));
 
 const openDocument = async (claim: ArtistClaim) => {
   busy.value = `document:${claim.id}`;

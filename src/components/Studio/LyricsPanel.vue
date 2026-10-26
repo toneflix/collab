@@ -232,6 +232,7 @@
 import { useQuasar } from 'quasar';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
+import { useFallbackPoll } from 'src/composables/useFallbackPoll';
 import { notify } from 'src/utils/helpers';
 import { stemTitle, type Stem } from 'src/utils/daw';
 import type { ResponseBody } from 'src/utils/models';
@@ -262,6 +263,8 @@ const props = defineProps<{
   seek: (seconds: number) => void;
   /** CSS selector of the column the panel docks into on desktop. */
   dock?: string;
+  /** Whether job updates arrive over realtime; polling stands in when not. */
+  live?: boolean;
 }>();
 
 const $q = useQuasar();
@@ -395,19 +398,15 @@ const save = async () => {
   }
 };
 
-let poll: ReturnType<typeof setTimeout> | undefined;
-
-/** Check on a running transcription, in case realtime updates don't arrive. */
-const schedulePoll = () => {
-  clearTimeout(poll);
+/** Fetch the running transcription's state. */
+const checkJob = async () => {
   if (!job.value) return;
-  poll = setTimeout(async () => {
-    try {
-      if (job.value) onJob(await loadAiJobRequest(job.value.id).send());
-    } catch {
-      schedulePoll();
-    }
-  }, 5000);
+
+  try {
+    onJob(await loadAiJobRequest(job.value.id).send());
+  } catch {
+    // Checked again on the next round.
+  }
 };
 
 /** Take a job's latest state from a start, a poll or a realtime event. */
@@ -416,13 +415,11 @@ const onJob = (update: AiJob) => {
 
   if (update.status === 'queued' || update.status === 'running') {
     job.value = update;
-    schedulePoll();
     return;
   }
 
   if (job.value?.id !== update.id) return;
   job.value = null;
-  clearTimeout(poll);
   void loadAi();
 
   if (update.status === 'failed') {
@@ -494,8 +491,9 @@ watch(active, async (i) => {
   lineEls.value[i]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 });
 
+useFallbackPoll({ live: () => !!props.live, active: () => !!job.value, check: checkJob });
+
 onBeforeUnmount(() => {
-  clearTimeout(poll);
   stopFollowing();
 });
 

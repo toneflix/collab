@@ -143,6 +143,7 @@
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"
+        :live="trackLive"
         @job="(e: AiJob) => lyricsPanel?.onJob(e)"
         v-if="!viewOnly"
       >
@@ -166,6 +167,7 @@
         :disabled="!editorReady"
         :playhead="() => editor?.currentTime() ?? 0"
         :seek="(s: number) => editor?.seek(s)"
+        :live="trackLive"
         dock="#studio-dock"
       >
         <template #default="{ toggle, open, busy }">
@@ -1104,7 +1106,7 @@ const reloadStem = async (id: string | number) => {
 const findStem = (id: string | number) =>
   stems.value.find((s) => String(s.id) === String(id));
 
-useRealtimeChannel(
+const { live: trackLive } = useRealtimeChannel(
   () => (track.value?.id ? `project-track.${track.value.id}` : null),
   {
     'stems.updated': (

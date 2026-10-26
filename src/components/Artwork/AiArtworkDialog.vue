@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="show" @before-show="resume" @hide="stop">
+  <q-dialog v-model="show" @before-show="resume">
     <q-card class="w-full max-w-xl bg-dark">
       <q-card-section class="flex items-center justify-between flex-nowrap">
         <div class="text-lg font-bold">Generate artwork</div>
@@ -162,8 +162,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { useFallbackPoll } from 'src/composables/useFallbackPoll';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
+import { useRealtimeChannel } from 'src/utils/realtime';
 import {
   coverTextPositions,
   coverTextStyles,
@@ -201,7 +204,7 @@ const job = ref<AiJob>();
 const picked = ref<number | null>(null);
 const starting = ref(false);
 const using = ref(false);
-let timer: ReturnType<typeof setTimeout> | undefined;
+const boot = useBootstrapStore();
 
 const cost = computed(() => props.ai.costs.artwork ?? 1);
 const short = computed(() => cost.value > props.ai.balance.total);
@@ -274,27 +277,28 @@ const errorText = (e: unknown, fallback: string) => {
   return (Array.isArray(first) ? first[0] : first) || err?.message || fallback;
 };
 
-const stop = () => {
-  clearTimeout(timer);
-  timer = undefined;
+/** Take the job's latest state, from realtime or a check. */
+const onJob = (update: AiJob) => {
+  if (job.value?.id === update.id) job.value = update;
 };
 
-/** Check on the job until it's done. */
-const poll = () => {
-  stop();
-  if (!busy.value || !job.value) return;
+const checkJob = async () => {
+  const id = job.value?.id;
+  if (!id) return;
 
-  const id = job.value.id;
-  timer = setTimeout(async () => {
-    try {
-      const update = await loadAiJobRequest(id).send();
-      if (job.value?.id === id) job.value = update;
-    } catch {
-      // Tried again on the next tick.
-    }
-    if (show.value) poll();
-  }, 2500);
+  try {
+    onJob(await loadAiJobRequest(id).send());
+  } catch {
+    // Checked again on the next round.
+  }
 };
+
+const { live } = useRealtimeChannel(
+  () => (show.value && boot.user?.id ? `user.${boot.user.id}` : null),
+  { 'ai.job': onJob },
+);
+
+useFallbackPoll({ live, active: () => show.value && busy.value, check: checkJob, every: 2500 });
 
 /** Pick up the last artwork drawn for this kind, while its images last. */
 const resume = async () => {
@@ -304,7 +308,7 @@ const resume = async () => {
   }
   if (!text.artist) text.artist = props.artist ?? '';
 
-  if (job.value) return poll();
+  if (job.value) return;
 
   try {
     const [last] = await loadArtworkJobsRequest(props.kind).send();
@@ -313,7 +317,6 @@ const resume = async () => {
 
     job.value = last;
     prompt.value = last.prompt ?? '';
-    poll();
   } catch {
     // Starts empty.
   }
@@ -335,7 +338,6 @@ const generate = async () => {
     job.value = data;
     picked.value = null;
     emit('spent');
-    poll();
   } catch (e) {
     notify(errorText(e, "The artwork couldn't be started."), 'error');
   } finally {
@@ -370,8 +372,6 @@ const use = async () => {
     using.value = false;
   }
 };
-
-onBeforeUnmount(stop);
 </script>
 
 <style scoped lang="scss">
