@@ -83,8 +83,7 @@
           >
             <div class="ai__model">
               <q-icon name="lucide-sparkles" size="14px" class="!flex-none" />
-              <span class="min-w-0 truncate">{{ account.music.name }}</span>
-              <span class="!flex-none text-grey-6">· {{ musicPrice(account.music) }}</span>
+              <span>{{ musicPrice(account.music) }}</span>
             </div>
             <q-input
               dark
@@ -130,7 +129,7 @@
                 :hint="
                   account.music.lyricsRequired
                     ? 'Mark parts with [verse], [chorus], [bridge] and [outro].'
-                    : `Mark parts with [verse], [chorus] and [bridge]. Leave it empty and ${account.music.name} writes the lyrics.`
+                    : `Mark parts with [verse], [chorus] and [bridge]. Leave it empty and AI writes the lyrics.`
                 "
                 :disable="disabled"
                 v-model="form.lyrics"
@@ -150,12 +149,12 @@
                 v-model="form.seconds"
               />
               <div class="text-xs text-grey-6" v-if="lengthIgnored">
-                {{ account.music.name }} follows the length when you write lyrics or ask for an
-                instrumental. Otherwise it picks one.
+                The length is followed when you write lyrics or ask for an
+                instrumental. Otherwise AI picks one.
               </div>
             </template>
             <div class="mt-4 text-xs text-grey-6" v-else>
-              {{ account.music.name }} picks the length from the lyrics.
+              The length comes from the lyrics.
             </div>
 
             <div class="mt-4" v-if="account.music.references.length">
@@ -218,13 +217,13 @@
               <div class="mt-1 text-xs text-grey-6">
                 MP3 or WAV longer than {{ account.music.referenceMinSeconds }} seconds. The new song
                 follows its {{ referenceHint }}<template v-if="!account.music.lyricsRequired"
-                  >, and {{ account.music.name }} writes the lyrics</template
+                  >, and AI writes the lyrics</template
                 >.
               </div>
             </div>
 
             <div class="mt-4 text-xs text-grey-6" v-if="account.music.instrumentalOnly">
-              {{ account.music.name }} makes instrumentals, with no vocals.
+              Music is made as instrumentals, with no vocals.
             </div>
             <q-toggle
               dark
@@ -322,11 +321,10 @@
           >
             <div class="ai__model">
               <q-icon name="lucide-wand-sparkles" size="14px" class="!flex-none" />
-              <span class="min-w-0 truncate">{{ editEngine }}</span>
-              <span class="!flex-none text-grey-6">· {{ account.costs.edit }} credits per edit</span>
+              <span>{{ account.costs.edit }} credits per edit</span>
             </div>
             <div class="ai__notice mb-3" v-if="!editEngineReady">
-              Section edits run on {{ editEngine }}, which isn't set up yet.
+              Section edits aren't available right now.
             </div>
             <div class="ai__part" v-if="section">
               <q-icon name="lucide-audio-lines" size="18px" class="!flex-none text-toneflix" />
@@ -341,11 +339,6 @@
             <div class="text-sm text-grey-6" v-else>
               Drag across a stem on the timeline to select the part to change,
               then press the wand button above the tracks.
-            </div>
-            <div class="mt-2 text-xs text-grey-6" v-if="editShort">
-              {{ editEngine }} rewrites at least
-              {{ account.edit?.minSeconds }} seconds, so the audio around your
-              selection is rewritten with it and only your selection is kept.
             </div>
 
             <q-input
@@ -529,7 +522,6 @@ import {
   musicPrice,
   splitStemRequest,
   type AiAccount,
-  type AiEngine,
   type AiJob,
   type MusicForm,
   type ReferenceKind,
@@ -898,23 +890,10 @@ const generate = async () => {
 const section = ref<SectionSelection | null>(null);
 const editForm = reactive({ prompt: '', lyrics: '' });
 
-const engineNames: Record<AiEngine, string> = {
-  replicate: 'Replicate',
-  suno: 'Suno',
-  cloudflare: 'Cloudflare Workers AI',
-};
-const editEngine = computed(() => engineNames[account.value?.edit?.engine ?? 'suno']);
 const editEngineReady = computed(() => {
   const engine = account.value?.edit?.engine;
   return !!engine && !!account.value?.engines[engine];
 });
-/** Whether the selection is shorter than the engine rewrites */
-const editShort = computed(
-  () =>
-    !!section.value &&
-    !!account.value?.edit &&
-    section.value.end - section.value.start < account.value.edit.minSeconds,
-);
 
 /** Open the section edit tool on a part of a stem selected in the DAW. */
 const editSection = (region: SectionSelection) => {
