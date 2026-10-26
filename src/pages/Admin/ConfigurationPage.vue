@@ -108,7 +108,7 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     icon: 'lucide-settings',
     title: 'App',
     caption: 'Name, contact email and sign-up checks.',
-    keys: ['app_name', 'app_email', 'verify_email', 'verify_phone'],
+    keys: ['app_name', 'app_email', 'verify_email', 'verify_phone', 'token_lifespan'],
   },
   {
     key: 'money',

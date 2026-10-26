@@ -1,221 +1,150 @@
 <template>
-  <q-page>
-    <div class="flex justify-center min-h-screen">
-      <div
-        class="hidden bg-cover lg:!block lg:w-2/5"
-        style="
-          background-image: url('https://lorem.toneflix.com.ng/images/image/00033?w=1080&h=1920');
-        "
-      ></div>
+  <AuthShell>
+    <h1 class="auth-title">{{ t('title') }}</h1>
+    <p class="auth-subtitle" v-if="t('subtitle')">{{ t('subtitle') }}</p>
 
-      <div
-        class="flex items-center w-full max-w-3xl p-8 mx-auto lg:px-12 lg:w-3/5"
-      >
-        <div class="w-full">
-          <h1
-            class="text-2xl font-semibold tracking-wider text-gray-300 capitalize"
-          >
-            Join Toneflix Music.
-          </h1>
-
-          <p class="mt-8 text-lg text-gray-300">
-            Listen, share your music and make tracks with other creators.
-          </p>
-
-          <q-form
-            class="grid mt-8 gap-y-6 md:grid-cols-2 md:gap-x-6"
-            @submit="send"
-          >
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                First Name
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="John"
-                autocomplete="first-name"
-                v-model="form.firstname"
-                :error="!!errors.firstname"
-                :error-message="errors.firstname"
-              />
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                Last name
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="Snow"
-                autocomplete="family-name"
-                v-model="form.lastname"
-                :error="!!errors.lastname"
-                :error-message="errors.lastname"
-              />
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                Email address
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="jsnow@example.com"
-                autocomplete="email"
-                :error="!!errors.email"
-                :error-message="errors.email"
-                v-model="form.email"
-              />
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                Phone number
-              </label>
-              <q-input
-                outlined
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="+123 987 654 3210"
-                autocomplete="tel"
-                :error="!!errors.phone"
-                :error-message="errors.phone"
-                v-model="form.phone"
-              />
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                Password
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                type="password"
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="Enter your password"
-                autocomplete="new-password"
-                :error="!!errors.password"
-                :error-message="errors.password"
-                v-model="form.password"
-              />
-            </div>
-
-            <div class="col-span-2 md:col-span-1">
-              <label class="block mb-2 text-xl text-gray-400">
-                Confirm password
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                type="password"
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="Re-enter your password"
-                autocomplete="new-password"
-                :error="!!errors.password_confirmation"
-                :error-message="errors.password_confirmation"
-                v-model="form.password_confirmation"
-              />
-            </div>
-
-            <div class="w-full col-span-2 q-py-md">
-              <div class="flex items-center justify-start gap-4 no-wrap">
-                <q-checkbox
-                  outline
-                  color="primary"
-                  class="flex-none"
-                  size="sm"
-                  v-model="form.accept"
-                />
-                <p class="text-lg text-left cursor-pointer q-py-none">
-                  <span @click="form.accept = !form.accept">
-                    By signing up, you accept our
-                  </span>
-                  <router-link
-                    :to="{
-                      name: 'home',
-                    }"
-                  >
-                    <span class="text-info">Terms of Service</span>
-                  </router-link>
-                  <span @click="form.accept = !form.accept"> and </span>
-                  <router-link
-                    :to="{
-                      name: 'home',
-                    }"
-                  >
-                    <span class="text-info">Privacy Policy.</span>
-                  </router-link>
-                </p>
-              </div>
-              <small class="text-sm text-negative" v-if="errors.accept">
-                {{ errors.accept }}
-              </small>
-            </div>
-
-            <div
-              class="justify-between text-center md:flex md:items-center md:col-span-2"
-            >
-              <q-btn
-                no-caps
-                type="submit"
-                color="primary"
-                class="mb-12 text-xl rounded-lg md:!mb-0"
-                label="Create your account"
-                icon-right="lucide-chevron-right"
-                :loading="loading"
-              />
-
-              <router-link
-                :to="{ name: 'auth.login' }"
-                class="inline-block text-xl text-center text-white md:mt-0 md:mx-6 hover:text-gray-400"
-              >
-                Already have an account? Login Instead!
-              </router-link>
-            </div>
-          </q-form>
+    <q-form class="auth-form" @submit="send">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="auth-label" for="register-firstname">{{ t('firstname_label') }}</label>
+          <q-input
+            outlined
+            hide-bottom-space
+            required
+            for="register-firstname"
+            autocomplete="given-name"
+            :placeholder="t('firstname_placeholder')"
+            :error="!!errors.firstname"
+            :error-message="errors.firstname"
+            v-model="form.firstname"
+          />
+        </div>
+        <div>
+          <label class="auth-label" for="register-lastname">{{ t('lastname_label') }}</label>
+          <q-input
+            outlined
+            hide-bottom-space
+            required
+            for="register-lastname"
+            autocomplete="family-name"
+            :placeholder="t('lastname_placeholder')"
+            :error="!!errors.lastname"
+            :error-message="errors.lastname"
+            v-model="form.lastname"
+          />
         </div>
       </div>
-    </div>
-  </q-page>
+
+      <div>
+        <label class="auth-label" for="register-email">{{ t('email_label') }}</label>
+        <q-input
+          outlined
+          hide-bottom-space
+          required
+          for="register-email"
+          type="email"
+          autocomplete="email"
+          :placeholder="t('email_placeholder')"
+          :error="!!errors.email"
+          :error-message="errors.email"
+          v-model="form.email"
+        />
+      </div>
+
+      <div>
+        <label class="auth-label" for="register-phone">{{ t('phone_label') }}</label>
+        <q-input
+          outlined
+          hide-bottom-space
+          for="register-phone"
+          type="tel"
+          autocomplete="tel"
+          :placeholder="t('phone_placeholder')"
+          :error="!!errors.phone"
+          :error-message="errors.phone"
+          v-model="form.phone"
+        />
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="auth-label" for="register-password">{{ t('password_label') }}</label>
+          <PasswordInput
+            required
+            for="register-password"
+            autocomplete="new-password"
+            :placeholder="t('password_placeholder')"
+            :error="!!errors.password"
+            :error-message="errors.password"
+            v-model="form.password"
+          />
+        </div>
+        <div>
+          <label class="auth-label" for="register-confirm">{{ t('password_confirm_label') }}</label>
+          <PasswordInput
+            required
+            for="register-confirm"
+            autocomplete="new-password"
+            :placeholder="t('password_confirm_placeholder')"
+            :error="!!errors.password_confirmation"
+            :error-message="errors.password_confirmation"
+            v-model="form.password_confirmation"
+          />
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-start gap-2 no-wrap">
+          <q-checkbox dense color="primary" class="!flex-none mt-0.5" v-model="form.accept" />
+          <p class="m-0 text-sm leading-relaxed text-fg-muted">
+            <span class="cursor-pointer" @click="form.accept = !form.accept">{{ t('terms_before') }}</span>
+            {{ ' ' }}
+            <router-link class="auth-link" target="_blank" :to="{ name: 'terms' }">{{ t('terms_link') }}</router-link>
+            {{ ` ${t('terms_between')} ` }}
+            <router-link class="auth-link" target="_blank" :to="{ name: 'privacy' }">{{ t('privacy_link') }}</router-link>
+          </p>
+        </div>
+        <div class="mt-1 auth-error" v-if="errors.accept">{{ errors.accept }}</div>
+      </div>
+
+      <q-btn
+        unelevated
+        no-caps
+        type="submit"
+        color="primary"
+        text-color="dark"
+        class="auth-submit"
+        :label="t('submit')"
+        :loading="loading"
+      />
+    </q-form>
+
+    <p class="auth-footer">
+      {{ t('footer_text') }}
+      <router-link class="auth-link" :to="{ name: 'auth.login', query: $route.query }">
+        {{ t('footer_link') }}
+      </router-link>
+    </p>
+  </AuthShell>
 </template>
 
 <script setup lang="ts">
-import { useForm } from 'alova/client';
+import { computed } from 'vue';
 import { useMeta } from 'quasar';
+import { useForm } from 'alova/client';
+import { useRoute, useRouter } from 'vue-router';
+import AuthShell from 'src/components/Auth/AuthShell.vue';
+import PasswordInput from 'src/components/Auth/PasswordInput.vue';
 import { alova } from 'src/boot/alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { authText } from 'src/utils/auth-pages';
+import { afterSignIn } from 'src/utils/auth-redirect';
 import { ResponseBody, User } from 'src/utils/models';
 import { reboot } from 'src/utils/proccessor';
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
 
+const route = useRoute();
 const router = useRouter();
-const errors = computed(
-  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
-);
+const t = (key: string) => authText('register', key);
 
 const { form, send, error, loading, onSuccess } = useForm(
   (form) =>
@@ -235,18 +164,18 @@ const { form, send, error, loading, onSuccess } = useForm(
   },
 );
 
+const errors = computed(
+  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
+);
+
 onSuccess(({ data }) => {
   reboot().then(() => {
     if (data.data) {
       useBootstrapStore().saveAuthUser(data.data, data.token);
-      router.replace({ name: 'studio.home' });
+      router.replace(afterSignIn(data.data, route.query.redirect));
     }
   });
 });
 
-useMeta(() => ({
-  title: 'Create your account',
-  titleTemplate: (title) =>
-    `${title} - ${useBootstrapStore().configuration.app_name}`,
-}));
+useMeta(() => ({ title: t('title') || 'Sign up', titleTemplate: (title) => `${title} - Toneflix Music` }));
 </script>

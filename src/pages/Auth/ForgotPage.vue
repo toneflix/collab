@@ -1,102 +1,60 @@
 <template>
-  <q-page>
-    <div class="flex justify-center min-h-screen">
-      <div
-        class="hidden bg-cover lg:!block lg:w-2/5"
-        style="
-          background-image: url('https://lorem.toneflix.com.ng/images/image/00033?w=1080&h=1920');
-        "
-      ></div>
+  <AuthShell>
+    <h1 class="auth-title">{{ t('title') }}</h1>
+    <p class="auth-subtitle" v-if="t('subtitle')">{{ t('subtitle') }}</p>
 
-      <div
-        class="flex items-center w-full max-w-3xl p-8 mx-auto lg:px-12 lg:w-3/5"
-      >
-        <div class="w-full">
-          <h1
-            class="text-2xl font-semibold tracking-wider text-gray-300 capitalize"
-          >
-            Account Recovery.
-          </h1>
-
-          <p class="mt-8 text-lg text-gray-300">
-            Let’s help you recover your account.
-          </p>
-
-          <q-form class="grid grid-cols-2 gap-6 mt-8" @submit="send">
-            <div class="col-span-2">
-              <label class="block mb-2 text-xl text-gray-400">
-                Email address
-                <span class="text-center text-red-500">*</span>
-              </label>
-              <q-input
-                outlined
-                required
-                color="primary"
-                class="custom-q-class"
-                input-class="custom-input-class"
-                placeholder="jsnow@example.com"
-                autocomplete="email"
-                :error="!!errors.email"
-                :error-message="errors.email"
-                v-model="form.email"
-              />
-            </div>
-
-            <div class="justify-between col-span-2 md:flex md:items-center">
-              <q-btn
-                no-caps
-                type="submit"
-                color="primary"
-                class="w-full text-xl rounded-lg md:w-auto"
-                label="Proceed"
-                icon-right="lucide-chevron-right"
-                :loading="loading"
-              />
-
-              <router-link
-                :to="{ name: 'auth.login' }"
-                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
-              >
-                Login Instead?
-              </router-link>
-            </div>
-
-            <div class="justify-center col-span-2 md:flex md:items-center">
-              <router-link
-                :to="{ name: 'auth.register' }"
-                class="inline-block w-full mt-12 text-xl text-center text-white md:!mt-0 md:mx-6 hover:text-gray-400 md:w-auto"
-              >
-                Don't have an account? Create one!
-              </router-link>
-            </div>
-          </q-form>
-        </div>
+    <q-form class="auth-form" @submit="send">
+      <div>
+        <label class="auth-label" for="forgot-email">{{ t('email_label') }}</label>
+        <q-input
+          outlined
+          hide-bottom-space
+          required
+          for="forgot-email"
+          type="email"
+          autocomplete="email"
+          :placeholder="t('email_placeholder')"
+          :error="!!errors.email"
+          :error-message="errors.email"
+          v-model="form.email"
+        />
       </div>
-    </div>
-  </q-page>
+
+      <q-btn
+        unelevated
+        no-caps
+        type="submit"
+        color="primary"
+        text-color="dark"
+        class="auth-submit"
+        :label="t('submit')"
+        :loading="loading"
+      />
+    </q-form>
+
+    <p class="auth-footer">
+      {{ t('footer_text') }}
+      <router-link class="auth-link" :to="{ name: 'auth.login' }">{{ t('footer_link') }}</router-link>
+    </p>
+  </AuthShell>
 </template>
 
 <script setup lang="ts">
-import { useForm } from 'alova/client';
-import { useMeta } from 'quasar';
-import { alova } from 'src/boot/alova';
-import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { ResponseBody } from 'src/utils/models';
 import { computed } from 'vue';
+import { useMeta } from 'quasar';
+import { useForm } from 'alova/client';
 import { useRouter } from 'vue-router';
+import AuthShell from 'src/components/Auth/AuthShell.vue';
+import { alova } from 'src/boot/alova';
+import { authText } from 'src/utils/auth-pages';
+import { notify } from 'src/utils/helpers';
+import { ResponseBody } from 'src/utils/models';
 
-const config = computed(() => useBootstrapStore().configuration);
 const router = useRouter();
-const errors = computed(
-  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
-);
+const t = (key: string) => authText('forgot', key);
 
 const { form, send, error, loading, onSuccess } = useForm(
-  (form) =>
-    alova.Post<ResponseBody<Record<string, string>>>(
-      'auth/forgot-password',
-      form,
-    ),
+  (form) => alova.Post<ResponseBody<Record<string, string>>>('auth/forgot-password', form),
   {
     initialForm: {
       email: '',
@@ -104,14 +62,14 @@ const { form, send, error, loading, onSuccess } = useForm(
   },
 );
 
+const errors = computed(
+  () => (error.value as unknown as ResponseBody<string>)?.errors || {},
+);
+
 onSuccess(({ data }) => {
-  if (data.data) {
-    router.replace({ name: 'reset.password' });
-  }
+  notify(data.message, 'success');
+  router.replace({ name: 'reset.password', query: { email: form.value.email } });
 });
 
-useMeta(() => ({
-  title: 'Forgot Password',
-  titleTemplate: (title) => `${title} - ${config.value.app_name}`,
-}));
+useMeta(() => ({ title: t('title') || 'Forgot password', titleTemplate: (title) => `${title} - Toneflix Music` }));
 </script>
