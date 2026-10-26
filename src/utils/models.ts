@@ -470,7 +470,18 @@ export type Interests = {
   accountType: AccountTypeValue | null;
   identities: string[];
   genres: { id: number; slug: string; title: string }[];
+  topics: { id: number; slug: string; title: string }[];
   interestsAt: string | null;
+};
+
+/** A music topic people pick as an interest. */
+export type Topic = {
+  id: number;
+  slug: string;
+  title: string;
+  usersCount?: number;
+  /** Added by a user rather than built in */
+  custom?: boolean;
 };
 
 export interface Collaber extends User {

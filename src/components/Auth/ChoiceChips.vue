@@ -13,6 +13,7 @@
       <q-icon name="lucide-check" size="14px" v-if="picked(option.value)" />
       {{ option.label }}
     </button>
+    <slot name="after" />
   </div>
 </template>
 

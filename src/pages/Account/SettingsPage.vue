@@ -117,7 +117,7 @@
         <div class="settings__head">
           <div>
             <h2 id="interests-heading" class="settings__title">You and your music</h2>
-            <p class="settings__caption">Your genres shape the playlists made for you.</p>
+            <p class="settings__caption">Your genres and topics shape the playlists made for you.</p>
           </div>
         </div>
 
@@ -134,10 +134,13 @@
             <ChoiceChips :options="identityOptions" :max="6" v-model="interests.identities" />
           </div>
 
-          <div>
-            <span class="settings__label">Genres you like</span>
-            <ChoiceChips :options="genreOptions" :max="20" v-model="interests.genres" />
-            <div class="mt-2 text-sm text-negative" v-if="errors.genres">{{ errors.genres }}</div>
+          <InterestPicker
+            :picked-topics="pickedTopics"
+            v-model:genres="interests.genres"
+            v-model:topics="interests.topics"
+          />
+          <div class="text-sm text-negative" v-if="errors.genres || errors.topics">
+            {{ errors.genres || errors.topics }}
           </div>
 
           <div class="settings__actions">
@@ -148,7 +151,7 @@
               color="primary"
               type="submit"
               label="Save"
-              :disable="!interests.genres.length"
+              :disable="!interests.genres.length && !interests.topics.length"
               :loading="saving === 'interests'"
             />
           </div>
@@ -330,6 +333,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
 import AccountTypePicker from 'src/components/Auth/AccountTypePicker.vue';
 import ChoiceChips from 'src/components/Auth/ChoiceChips.vue';
+import InterestPicker from 'src/components/Auth/InterestPicker.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import { notify } from 'src/utils/helpers';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -338,9 +342,8 @@ import {
   updateAvatarRequest,
   type AccountFields,
 } from 'src/utils/requests/account';
-import { loadGenresRequest } from 'src/utils/requests/requests';
 import { loadInterestsRequest, saveInterestsRequest } from 'src/utils/requests/interests';
-import type { AccountTypeValue, Genre } from 'src/utils/models';
+import type { AccountTypeValue, Interests } from 'src/utils/models';
 
 type Field = keyof AccountFields;
 type CropResult = { base64: string; blob: Blob; file: File };
@@ -370,8 +373,9 @@ const interests = reactive({
   account_type: <AccountTypeValue | null>null,
   identities: <string[]>[],
   genres: <number[]>[],
+  topics: <number[]>[],
 });
-const genres = ref<Genre[]>([]);
+const pickedTopics = ref<Interests['topics']>([]);
 const errors = ref<Record<string, string>>({});
 const saving = ref<string | null>(null);
 const savingPhoto = ref(false);
@@ -420,10 +424,6 @@ const identityOptions = computed(
   () => boot.accountTypes.find((type) => type.value === interests.account_type)?.identities ?? [],
 );
 
-const genreOptions = computed(() =>
-  genres.value.map((genre) => ({ value: Number(genre.id), label: genre.title })),
-);
-
 /** Identities belong to one account type, so switching types drops the rest. */
 watch(
   () => interests.account_type,
@@ -435,16 +435,14 @@ watch(
 );
 
 onMounted(async () => {
-  const [list, current] = await Promise.all([
-    loadGenresRequest({ limit: 100 }).send(),
-    loadInterestsRequest().send(),
-  ]);
+  const { data } = await loadInterestsRequest().send();
 
-  genres.value = list.data;
+  pickedTopics.value = data.topics;
   Object.assign(interests, {
-    account_type: current.data.accountType,
-    identities: current.data.identities,
-    genres: current.data.genres.map((genre) => genre.id),
+    account_type: data.accountType,
+    identities: data.identities,
+    genres: data.genres.map((genre) => genre.id),
+    topics: data.topics.map((topic) => topic.id),
   });
 });
 
@@ -505,6 +503,7 @@ const saveInterests = async () => {
       ...(interests.account_type ? { account_type: interests.account_type } : {}),
       identities: interests.identities,
       genres: interests.genres,
+      topics: interests.topics,
     }).send();
 
     boot.setUser({
