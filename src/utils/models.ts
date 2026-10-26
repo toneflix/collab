@@ -173,6 +173,8 @@ export type Configuration = {
   payout_auto_approve: boolean;
   /** Hold published releases until an admin approves them */
   review_releases: boolean;
+  /** Let people add Web Audio Module plugins to stems */
+  studio_plugins?: boolean;
 };
 
 export type PaymentPurpose =

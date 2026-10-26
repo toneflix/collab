@@ -369,7 +369,7 @@
     <q-dialog v-model="effectsOpen">
       <q-card dark class="bg-[#1c1c1c]">
         <EffectsPanel
-          plugins
+          :plugins="pluginsOn"
           :name="selected.name"
           :model-value="selectedEffects"
           @update:model-value="setEffects(selected!.id, $event)"
@@ -495,6 +495,7 @@ import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import {
   encodeWav,
@@ -1307,16 +1308,25 @@ const dropTrack = (trackId: string) => {
   if (!tracks.has(trackId)) editor.value?.removeTrack(trackId);
 };
 
+/** Web Audio Module plugins, which an admin can turn on. */
+const pluginsOn = computed(() => !!useBootstrapStore().configuration.studio_plugins);
+
 /**
  * The editor's form of a chain. Faust effects and plugins load in the
  * browser, which needs running audio (and the Faust source from the server),
- * so until then they are left out. `applied` lists which entries of `list` made it in.
+ * so until then they are left out. Plugins are skipped while an admin has
+ * them turned off. `applied` lists which entries of `list` made it in.
  */
 const chainOf = (list: StemEffect[]) => {
   const ready = context?.state === 'running';
   const applied: number[] = [];
+  let skipped = 0;
   const entries = list.flatMap((e, i): SerializedEffectEntry[] => {
     if (isPlugin(e)) {
+      if (!pluginsOn.value) {
+        skipped++;
+        return [];
+      }
       if (!ready) return [];
       applied.push(i);
 
@@ -1342,7 +1352,7 @@ const chainOf = (list: StemEffect[]) => {
     ];
   });
 
-  return { entries, applied, complete: applied.length === list.length };
+  return { entries, applied, complete: applied.length + skipped === list.length };
 };
 
 /** Effect index in `effects` → index in the editor's chain, per track ('' is the master). */
@@ -1435,7 +1445,7 @@ const printPlugins = async (
   onRecord?: (stem: Stem) => void,
 ) => {
   const ed = editor.value;
-  if (!ed) return;
+  if (!ed || !pluginsOn.value) return;
   for (const [trackId, list] of effects) {
     const stem = tracks.get(trackId);
     if (!stem || !needsPrint(list) || placeholders.has(trackId)) continue;

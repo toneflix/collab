@@ -135,6 +135,13 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     caption: 'Whether releases wait for a review.',
     keys: ['review_releases'],
   },
+  {
+    key: 'studio',
+    icon: 'fas fa-sliders',
+    title: 'Studio',
+    caption: 'Plugins from other sites.',
+    keys: ['studio_plugins'],
+  },
 ];
 const moneyKeys = ['min_tip_amount', 'min_payout_amount'];
 
