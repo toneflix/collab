@@ -28,7 +28,7 @@
             ·
             <router-link
               class="text-toneflix"
-              :to="{ name: 'song', params: { slug: song.forkedFrom.slug } }"
+              :to="{ name: 'composition', params: { slug: song.forkedFrom.slug } }"
               v-if="song.forkedFrom.slug"
             >
               Forked from {{ song.forkedFrom.title }}

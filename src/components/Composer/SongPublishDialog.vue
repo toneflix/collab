@@ -67,7 +67,7 @@
         <div class="option">
           <q-toggle dark color="toneflix" class="!flex-none" v-model="form.published" />
           <div class="min-w-0">
-            <div class="text-sm font-semibold">Publish this song</div>
+            <div class="text-sm font-semibold">Publish this composition</div>
             <div class="text-xs text-grey-5">Your notes stay private.</div>
           </div>
         </div>
@@ -88,7 +88,7 @@
 
         <div class="link-row" v-if="song.publishedAt && song.slug">
           <q-icon name="lucide-globe" size="16px" class="!flex-none text-toneflix" />
-          <router-link class="truncate" :to="{ name: 'song', params: { slug: song.slug } }">{{ link }}</router-link>
+          <router-link class="truncate" :to="{ name: 'composition', params: { slug: song.slug } }">{{ link }}</router-link>
           <IconBtn size="sm" icon="lucide-copy" class="!flex-none ml-auto" aria-label="Copy the link" @click="copy" />
         </div>
 
@@ -155,7 +155,7 @@ const changed = computed(
 
 const link = computed(() => {
   if (!props.song.slug) return '';
-  const path = router.resolve({ name: 'song', params: { slug: props.song.slug } }).href;
+  const path = router.resolve({ name: 'composition', params: { slug: props.song.slug } }).href;
   return typeof window === 'undefined' ? path : `${window.location.origin}${path}`;
 });
 

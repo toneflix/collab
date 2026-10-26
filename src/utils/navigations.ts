@@ -33,9 +33,9 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Projects',
   },
   {
-    to: { name: 'songs' },
+    to: { name: 'compositions' },
     icon: 'lucide-quote',
-    title: 'Songs',
+    title: 'Compositions',
   },
   {
     to: { name: 'studio.composer' },

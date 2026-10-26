@@ -1,9 +1,9 @@
 <template>
   <q-page class="p-3 md:p-6">
     <div class="mx-auto max-w-[1400px]">
-      <h1 class="mb-1 text-2xl font-bold">Songs</h1>
+      <h1 class="mb-1 text-2xl font-bold">Compositions</h1>
       <p class="mb-6 text-sm text-grey-5">
-        Songs published from Composer.
+        Lyrics published from Composer.
       </p>
 
       <div class="flex flex-wrap items-center gap-3 mb-6">
@@ -40,16 +40,16 @@
       </div>
 
       <div class="py-12 text-center text-grey-5" v-if="!loading && !songs.length">
-        <template v-if="search">No published songs match “{{ search }}”.</template>
-        <template v-else>No songs published yet.</template>
+        <template v-if="search">No published compositions match “{{ search }}”.</template>
+        <template v-else>No compositions published yet.</template>
       </div>
 
       <div class="grid">
-        <PublicSongCard :key="song.id" :song="song" v-for="song in songs" />
+        <CompositionCard :key="song.id" :song="song" v-for="song in songs" />
       </div>
 
       <div class="flex justify-center mt-8" v-if="page < lastPage">
-        <q-btn flat rounded no-caps label="More songs" :loading="loading" @click="load(page + 1)" />
+        <q-btn flat rounded no-caps label="More compositions" :loading="loading" @click="load(page + 1)" />
       </div>
       <ListSkeleton avatar="square" :rows="4" v-if="loading && !songs.length" />
     </div>
@@ -61,7 +61,7 @@ import { useMeta } from 'quasar';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
-import PublicSongCard from 'src/components/Songs/PublicSongCard.vue';
+import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { notifyError } from 'src/utils/composer';
 import { loadPublicSongsRequest, type PublicSong, type PublicSongSort } from 'src/utils/requests/composer';
 
@@ -96,7 +96,7 @@ const load = async (to = 1) => {
     page.value = res.meta?.currentPage ?? to;
     lastPage.value = res.meta?.lastPage ?? to;
   } catch (e) {
-    notifyError(e, "Songs couldn't be loaded.");
+    notifyError(e, "Compositions couldn't be loaded.");
   } finally {
     if (mine === ticket) loading.value = false;
   }
@@ -107,7 +107,7 @@ watch([search, sort], () => void load(1));
 onMounted(() => void load(1));
 
 useMeta(() => ({
-  title: search.value ? `${search.value} - Songs` : 'Songs',
+  title: search.value ? `${search.value} - Compositions` : 'Compositions',
   titleTemplate: (title) => `${title} - Toneflix Collab`,
 }));
 </script>

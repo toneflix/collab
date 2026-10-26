@@ -18,7 +18,7 @@
       </div>
       <p class="mb-8 text-sm text-grey-5">
         Your notepad for lyrics. Syllables, rhymes and word lookups sit beside every line, and songs save as you write.
-        <router-link class="text-toneflix" :to="{ name: 'songs' }">See songs others published</router-link>
+        <router-link class="text-toneflix" :to="{ name: 'compositions' }">See compositions others published</router-link>
       </p>
 
       <q-input

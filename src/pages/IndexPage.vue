@@ -31,10 +31,10 @@
       <section class="min-w-0" v-if="songs.length">
         <HomeShelfHeader
           title="Fresh lyrics"
-          subtitle="New songs from Composer writers."
-          :to="{ name: 'songs' }"
+          subtitle="New compositions from Composer writers."
+          :to="{ name: 'compositions' }"
         />
-        <SongShelf :songs="songs" />
+        <CompositionShelf :songs="songs" />
       </section>
 
       <HomeSteps />
@@ -92,7 +92,7 @@ import HomeHero from 'src/components/Home/HomeHero.vue';
 import HomeJoin from 'src/components/Home/HomeJoin.vue';
 import HomeShelfHeader from 'src/components/Home/HomeShelfHeader.vue';
 import HomeSteps from 'src/components/Home/HomeSteps.vue';
-import SongShelf from 'src/components/Songs/SongShelf.vue';
+import CompositionShelf from 'src/components/Compositions/CompositionShelf.vue';
 import ProjectCategory from 'src/components/Showcase/ProjectCategory.vue';
 import TrackCategory from 'src/components/Showcase/TrackCategory.vue';
 import { useMeta } from 'quasar';
