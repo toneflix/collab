@@ -35,15 +35,18 @@
               AI listens to a stem and writes out the words, timed to the
               track. A vocals stem works best. Uses {{ ai.costs.lyrics }}
               credits<template v-if="lines.length">, and replaces the lines below</template>.
+              <template v-if="lines.length">
+                Sync times keeps your words and only times them to the stem.
+              </template>
             </div>
-            <div class="flex items-center gap-2 no-wrap">
+            <div class="flex flex-wrap items-center gap-2">
               <q-select
                 dark
                 filled
                 dense
                 emit-value
                 map-options
-                class="min-w-0"
+                class="w-full min-w-0"
                 label="Stem"
                 :options="stemOptions"
                 :disable="disabled || !stems.length || !!job"
@@ -57,19 +60,43 @@
                 class="!flex-none"
                 label="Transcribe"
                 icon="lucide-sparkles"
-                :loading="starting"
+                :loading="starting === 'replace'"
                 :disable="
                   disabled ||
                   !stemId ||
                   !!job ||
+                  !!starting ||
                   ai.costs.lyrics > ai.balance.total
                 "
-                @click="transcribe"
+                @click="transcribe('replace')"
               />
+              <q-btn
+                unelevated
+                rounded
+                no-caps
+                color="grey-9"
+                class="!flex-none"
+                label="Sync times"
+                icon="lucide-timer"
+                :loading="starting === 'sync'"
+                :disable="
+                  disabled ||
+                  !stemId ||
+                  !!job ||
+                  !!starting ||
+                  dirty ||
+                  ai.costs.lyrics > ai.balance.total
+                "
+                @click="transcribe('sync')"
+                v-if="lines.length"
+              >
+                <q-tooltip v-if="dirty">Save the sheet first</q-tooltip>
+              </q-btn>
             </div>
             <div class="sheet__status" v-if="job">
               <q-spinner-audio size="16px" color="toneflix" />
-              Listening to "{{ job.title }}". This takes about a minute.
+              {{ mode === 'sync' ? 'Timing the sheet to' : 'Listening to' }}
+              "{{ job.title }}". This takes about a minute.
             </div>
             <div class="sheet__short" v-else-if="ai.costs.lyrics > ai.balance.total">
               You need {{ ai.costs.lyrics - ai.balance.total }} more credits.
@@ -253,7 +280,8 @@ const $q = useQuasar();
 const open = ref(false);
 const loading = ref(false);
 const saving = ref(false);
-const starting = ref(false);
+const starting = ref<'replace' | 'sync' | null>(null);
+const mode = ref<'replace' | 'sync'>('replace');
 const ai = ref<AiAccount>();
 const job = ref<AiJob | null>(null);
 const stemId = ref<string | number | null>(null);
@@ -413,8 +441,11 @@ const onJob = (update: AiJob) => {
     return;
   }
 
+  const count = update.lines ?? 0;
   if (update.notice) notify(update.notice, 'warning');
-  else notify(`Wrote out ${update.lines ?? 0} lines of lyrics.`, 'success');
+  else if (mode.value === 'sync')
+    notify(`Timed ${count} ${count === 1 ? 'line' : 'lines'} to the stem.`, 'success');
+  else notify(`Wrote out ${count} lines of lyrics.`, 'success');
   void load();
 };
 
@@ -428,14 +459,16 @@ const onRemote = (lyrics: Lyrics | null, by?: string | null) => {
   updatedBy.value = by || null;
 };
 
-const transcribe = async () => {
+const transcribe = async (how: 'replace' | 'sync') => {
   if (!stemId.value) return;
-  starting.value = true;
+  starting.value = how;
+  mode.value = how;
   try {
     const { data, message } = await transcribeStemRequest(
       props.projectId,
       props.trackId,
       stemId.value,
+      how,
     ).send();
     notify(message, 'success');
     job.value = data;
@@ -444,7 +477,7 @@ const transcribe = async () => {
   } catch (e) {
     notify(errorText(e, "The lyrics couldn't be started."), 'error');
   } finally {
-    starting.value = false;
+    starting.value = null;
   }
 };
 
