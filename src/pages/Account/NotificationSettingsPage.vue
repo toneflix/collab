@@ -65,7 +65,7 @@
               <q-toggle
                 color="light-blue-6"
                 :aria-label="`Push for ${c.title}`"
-                :disable="!settings.push.enabled"
+                :disable="!pushAvailable"
                 :model-value="c.push"
                 @update:model-value="(v: boolean) => change(c, 'push', v)"
               />
@@ -83,7 +83,7 @@ import { useMeta } from 'quasar';
 import { useRoute } from 'vue-router';
 import { useRequest } from 'alova/client';
 import { notify } from 'src/utils/helpers';
-import { DevicePush } from 'src/utils/push';
+import { devicePush, type PushDevice, type PushPermission } from 'src/utils/push';
 import { categoryLook } from 'src/components/Notifications/categories';
 import {
   loadNotificationSettingsRequest,
@@ -100,39 +100,45 @@ const settings = computed<NotificationSettings | null>(() => data.value ?? null)
 
 const unsubscribed = computed(() => settings.value?.categories.find((c) => c.key === route.query.unsubscribed));
 
-const permission = ref<NotificationPermission | 'unsupported'>('default');
+const device = ref<PushDevice | null>(null);
+const permission = ref<PushPermission>('default');
 const pushOn = ref(false);
 const pushBusy = ref(false);
 
 onMounted(async () => {
-  permission.value = DevicePush.permission();
-  pushOn.value = !!(await DevicePush.current());
+  device.value = await devicePush();
+  permission.value = await device.value.permission();
+  pushOn.value = await device.value.isOn();
 });
 
-const canUsePush = computed(() => !!settings.value?.push.enabled && permission.value !== 'unsupported' && permission.value !== 'denied');
+const pushAvailable = computed(() => !!settings.value && !!device.value?.available(settings.value.push));
+
+const canUsePush = computed(() => pushAvailable.value && permission.value !== 'unsupported' && permission.value !== 'denied');
 
 const pushText = computed(() => {
-  if (!settings.value?.push.enabled) return 'Push notifications aren\'t available yet.';
-  if (permission.value === 'unsupported') return 'This browser doesn\'t support push notifications.';
-  if (permission.value === 'denied') return 'Notifications are blocked for this site. Allow them in your browser settings, then reload.';
-  if (pushOn.value) return 'This browser gets push notifications for the kinds you turn on below.';
+  const where = device.value?.name ?? 'this device';
 
-  return 'Get alerts in this browser even when Toneflix Music is closed.';
+  if (!pushAvailable.value) return 'Push notifications aren\'t available yet.';
+  if (permission.value === 'unsupported') return 'This browser doesn\'t support push notifications.';
+  if (permission.value === 'denied') return `Notifications are blocked for ${where}. Allow them in your settings, then come back.`;
+  if (pushOn.value) return `You get push notifications on ${where} for the kinds you turn on below.`;
+
+  return `Get alerts on ${where} even when Toneflix Music is closed.`;
 });
 
 const togglePush = async () => {
-  if (!settings.value?.push.publicKey) return;
+  if (!settings.value || !device.value) return;
 
   pushBusy.value = true;
   try {
-    const response = pushOn.value ? await DevicePush.disable() : await DevicePush.enable(settings.value.push.publicKey);
+    const response = pushOn.value ? await device.value.disable() : await device.value.enable(settings.value.push);
     pushOn.value = !pushOn.value;
     if (response?.data) data.value = response.data;
     if (response?.message) notify(response.message, 'success');
   } catch (e) {
     notify((e as { message?: string }).message || 'Push couldn\'t be turned on.', 'error');
   } finally {
-    permission.value = DevicePush.permission();
+    permission.value = await device.value.permission();
     pushBusy.value = false;
   }
 };

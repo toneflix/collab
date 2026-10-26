@@ -23,11 +23,13 @@ jobs:
           cache-dependency-path: |
             yarn.lock
             src-ssr/yarn.lock
+            src-capacitor/yarn.lock
 
       - name: Install dependencies
         run: |
           yarn install --frozen-lockfile
           yarn --cwd src-ssr install --frozen-lockfile
+          yarn --cwd src-capacitor install --frozen-lockfile
 
       - name: Lint
         run: yarn lint

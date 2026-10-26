@@ -44,7 +44,9 @@ export type NotificationSettings = {
     /** The server has push keys */
     enabled: boolean;
     publicKey: string | null;
-    /** Browsers signed up for push on this account */
+    /** The server can push to the mobile apps */
+    nativeEnabled: boolean;
+    /** Browsers and installed apps signed up for push on this account */
     devices: number;
   };
 }
@@ -119,4 +121,12 @@ export const savePushSubscriptionRequest = (subscription: PushSubscriptionJSON, 
 
 export const deletePushSubscriptionRequest = (endpoint: string) => {
   return alova.Delete<ResponseBody<NotificationSettings>>('account/push-subscriptions', { endpoint })
+}
+
+export const saveDeviceTokenRequest = (token: string, platform: string) => {
+  return alova.Post<ResponseBody<NotificationSettings>>('account/device-tokens', { token, platform })
+}
+
+export const deleteDeviceTokenRequest = (token: string) => {
+  return alova.Delete<ResponseBody<NotificationSettings>>('account/device-tokens', { token })
 }

@@ -129,6 +129,12 @@ export const signOut = async () => {
   const boot = useBootstrapStore(requestPinia());
 
   if (AuthSession.current().token) {
+    if (import.meta.env.QUASAR_CAPACITOR_MODE) {
+      const { NativePush } = await import('src/utils/native-push');
+
+      await NativePush.forget();
+    }
+
     const request = alova.Post('account/logout');
 
     request.meta = { ignoreUnauthorized: true };

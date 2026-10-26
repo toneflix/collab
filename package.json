@@ -17,6 +17,8 @@
     "worker:deploy": "yarn build:worker && wrangler deploy",
     "typecheck": "vue-tsc --noEmit",
     "icons:web": "icongenie generate -m spa,ssr -i src-icongenie/logo.png",
+    "icons:app": "icongenie generate -m capacitor -f png -i src-icongenie/logo-square-filled.png --skip-trim --theme-color d5a301",
+    "build:android": "quasar build -m capacitor -T android --skip-pkg",
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
