@@ -1,11 +1,12 @@
 import { Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
 import { AuthSession } from 'src/utils/auth-session';
+import type { AuthPagesConfig } from 'src/utils/auth-pages';
 
 export const useBootstrapStore = defineStore('bootstrap', {
   // The token lives in its cookie and the signed-in user comes from the server render,
   // so only settings are kept in browser storage.
-  persist: { pick: ['configuration', 'realtime', 'sounds', 'app'] },
+  persist: { pick: ['configuration', 'realtime', 'sounds', 'auth', 'app'] },
   state: () => ({
     user: <User>{},
     roles: <PriviRole[]>[],
@@ -15,6 +16,8 @@ export const useBootstrapStore = defineStore('bootstrap', {
     realtime: <RealtimeSettings>{ driver: 'none', authPath: 'realtime/auth', originHeader: 'X-Realtime-Origin' },
     /** Which sound sources the studio shows */
     sounds: <SoundsConfig>{ library: false, freesound: false },
+    /** Layout, banner and text of the auth pages */
+    auth: <AuthPagesConfig>{ layout: '45-55', split: { form: 45, banner: 55 }, banner: null, texts: {} },
     token: <string | null | undefined>null,
     ready: <boolean>false,
     initialized: <boolean>false,
@@ -73,7 +76,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         resolve(true);
       });
     },
-    setConfig ({ configuration, realtime, sounds, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, sounds?: SoundsConfig, csrf_token?: string }) {
+    setConfig ({ configuration, realtime, sounds, auth, csrf_token }: { configuration?: Configuration, realtime?: RealtimeSettings, sounds?: SoundsConfig, auth?: AuthPagesConfig, csrf_token?: string }) {
       if (configuration) {
         this.configuration = configuration;
       }
@@ -84,6 +87,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
 
       if (sounds) {
         this.sounds = sounds;
+      }
+
+      if (auth) {
+        this.auth = auth;
       }
 
       if (csrf_token) {

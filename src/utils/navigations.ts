@@ -124,6 +124,13 @@ export const adminNavigationLinks: AdminLink[] = [
     permission: 'manage-configuration',
   },
   {
+    to: { name: 'admin.auth-pages' },
+    icon: 'lucide-panels-top-left',
+    title: 'Auth pages',
+    caption: 'Sign-in and sign-up layout, banner and text',
+    permission: 'manage-configuration',
+  },
+  {
     to: { name: 'admin.plans' },
     icon: 'lucide-layers',
     title: 'Plans',

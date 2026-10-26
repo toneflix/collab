@@ -111,7 +111,7 @@ const faq = computed(() => [
     items: [
       {
         q: 'What is Toneflix Music?',
-        a: 'A community music platform that brings artists, producers, creators and music lovers together through streaming, discovery, music creation and collaboration.',
+        a: 'A community-driven music platform that brings artists, producers, creators and music lovers together through streaming, discovery, music creation and collaboration.',
       },
       {
         q: 'Who can use Toneflix Music?',

@@ -32,7 +32,13 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Auth/PasswordResetPage.vue')
       },
       {
-        meta: { requireGuest: false, requireAuth: true },
+        meta: { requireGuest: false, requireAuth: true, allowUnverified: true },
+        path: '/account/verify/:type(email|phone)',
+        name: 'auth.verify',
+        component: () => import('pages/Auth/VerifyPage.vue')
+      },
+      {
+        meta: { requireGuest: false, requireAuth: true, allowUnverified: true },
         path: '/account/logout',
         component: () => import('src/pages/Auth/LoginPage.vue'),
         name: 'auth.logout',

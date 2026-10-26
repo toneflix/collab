@@ -184,6 +184,8 @@ const footerLinks = [
   { label: 'Premium', to: { name: 'premium' } },
   { label: 'About', to: { name: 'about' } },
   { label: 'Help', to: { name: 'help' } },
+  { label: 'Terms', to: { name: 'terms' } },
+  { label: 'Privacy', to: { name: 'privacy' } },
 ];
 
 const description =

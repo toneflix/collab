@@ -1,3 +1,4 @@
+import type { AuthPagesConfig } from './auth-pages';
 import type { ArtistClaim } from './requests/artists';
 import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
@@ -95,6 +96,7 @@ export type UploadData = {
 export type Initialize = {
   configuration: Configuration;
   realtime?: RealtimeSettings;
+  auth?: AuthPagesConfig;
 };
 
 /**
