@@ -1,8 +1,17 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { defineSsrMiddleware } from "#q-app";
 import type {
   SsrRenderRedirectError,
   SsrRenderRouteNotFoundError
 } from "#q-app";
+
+/**
+ * Holds each render's request so app code reads its own cookies and store
+ * (see src/utils/request-context.ts).
+ */
+const requestContext = new AsyncLocalStorage<{ req: unknown; res: unknown }>();
+
+(globalThis as Record<string, unknown>).__collabRequestContext = requestContext;
 
 function isRedirectError(err: unknown): err is SsrRenderRedirectError {
   return (
@@ -33,11 +42,13 @@ export default defineSsrMiddleware(({ app, resolve, render, serve }) => {
     res.setHeader("Content-Type", "text/html");
 
     try {
-      const renderedHtml = await render({
-        req,
-        res,
-        nonce: res.locals.cspNonce
-      });
+      const renderedHtml = await requestContext.run({ req, res }, () =>
+        render({
+          req,
+          res,
+          nonce: res.locals.cspNonce
+        })
+      );
       res.send(renderedHtml);
     } catch (err) {
       if (isRouteNotFoundError(err)) {

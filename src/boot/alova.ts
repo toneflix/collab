@@ -2,11 +2,9 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { type Method, createAlova, invalidateCache } from 'alova';
 import { useRequest } from 'alova/client';
 
-import { Cookies } from 'quasar'
 import { GenericResponse } from 'src/utils/models';
 import adapterFetch from 'alova/fetch';
-import { MutationType } from 'pinia';
-import { RouteLocationNormalized } from 'vue-router';
+import { Router } from 'vue-router';
 import VueHook from 'alova/vue';
 import { axiosRequestAdapter } from '@alova/adapter-axios';
 import { defineBoot } from '#q-app';
@@ -14,15 +12,13 @@ import { notify } from 'src/utils/helpers';
 import { apiUrl } from 'src/utils/env';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { realtimeOrigin } from 'src/utils/realtime';
-
-// declare module '@vue/runtime-core' {
-//   interface ComponentCustomProperties {
-//     // $axios: ResponseMethod;
-//     // $api: AxiosInstance; 906 569 8152
-//   }
-// }
+import { AuthSession } from 'src/utils/auth-session';
+import { requestPinia } from 'src/utils/request-context';
 
 const baseURL = apiUrl;
+
+/** The browser's router, set once the app boots there. */
+let clientRouter: Router | undefined;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type ResponseMethod = Method<any>
@@ -32,14 +28,32 @@ function isAxios (useAxios: boolean, response: AxiosResponse | Response): respon
 }
 
 /**
- *
+ * The API turned down the token a request carried: forget it, and leave pages
+ * that need an account for the login page.
  */
+const signedOut = (method: ResponseMethod) => {
+  const boot = useBootstrapStore(requestPinia());
+  const sentToken = !!(method.config.headers as Record<string, string> | undefined)?.Authorization;
+
+  if (!sentToken || method.meta?.ignoreUnauthorized) {
+    return;
+  }
+
+  void boot.clearAuth();
+
+  const route = clientRouter?.currentRoute.value;
+
+  if (route && (route.meta.requireAuth || route.meta.requireAdmin) && route.name !== 'auth.logout') {
+    void clientRouter?.replace({ name: 'auth.login', query: { redirect: route.fullPath } });
+  }
+};
+
 const responded = async (
   response: AxiosResponse | Response,
   method: ResponseMethod,
   useAxios: boolean = false
 ) => {
-  const boot = useBootstrapStore();
+  const boot = useBootstrapStore(requestPinia());
 
   const json = isAxios(useAxios, response)
     ? await response.data
@@ -55,9 +69,7 @@ const responded = async (
     }
 
     if (response.status === 401) {
-      boot.clearAuth().then(() => {
-        boot.redirectTo({ name: 'auth.login' } as RouteLocationNormalized);
-      });
+      signedOut(method);
       reject(json);
     } else if (response.status >= 400) {
       const message = (json.message || response.statusText || 'Unknown error') as string;
@@ -83,12 +95,11 @@ const responded = async (
       }
       reject(json);
     } else {
-      if (json.token || json.data?.token) {
-        boot.token = json.token || json.data.token;
-        if (boot.token) {
-          Cookies.set('token', boot.token)
-        }
-        method.config.headers.Authorization = 'Bearer ' + boot.token;
+      const token = json.token || json.data?.token;
+
+      if (token) {
+        boot.token = token;
+        AuthSession.current().save(token);
       }
       resolve(json);
     }
@@ -118,17 +129,15 @@ const axios = createAlova({
     /**
      *
      */
-    onError (err: AxiosError) {
-      const boot = useBootstrapStore();
+    onError (err: AxiosError, method) {
+      const boot = useBootstrapStore(requestPinia());
       const response = err.response as unknown as GenericResponse<Record<string, string | number>>;
       if (!response) {
         return;
       }
 
       if (response.status === 401) {
-        boot.clearAuth().then(() => {
-          boot.redirectTo({ name: 'auth.login' } as RouteLocationNormalized);
-        });
+        signedOut(method as unknown as ResponseMethod);
       } else if (response.status >= 400) {
         const message =
           response.data.message || response.statusText || 'Unknown error';
@@ -160,22 +169,12 @@ const axios = createAlova({
   },
 });
 
-export default defineBoot(async ({ app, router, ssrContext }) => {
-  const boot = useBootstrapStore();
-  const cookies = import.meta.env.SSR
-    ? Cookies.parseSSR(ssrContext)
-    : Cookies
-
-  boot.$subscribe((e, store) => {
-    if (store.token && !cookies.has('token')) {
-      cookies.set('token', store.token)
-    } else if (!store.token) {
-      cookies.remove('token')
-    }
-  })
-
+export default defineBoot(({ app, router }) => {
   const beforeRequest = (method: ResponseMethod, withCredentials?: boolean) => {
-    // Set headers
+    // Read the store and cookie of this request, which on the server may run beside others
+    const boot = useBootstrapStore(requestPinia());
+    const token = AuthSession.current().token;
+
     method.config.headers = {
       ...method.config.headers,
       'X-Requested-With': 'XMLHttpRequest',
@@ -196,13 +195,10 @@ export default defineBoot(async ({ app, router, ssrContext }) => {
       method.config.headers['Content-Type'] = 'application/json; charset=utf-8';
     }
 
-    if (cookies.get('token')) {
-      boot.token = cookies.get('token')
-    }
+    boot.token = token;
 
-    // Check valid token and Set header
-    if (boot.token && !method.meta?.noAuth) {
-      method.config.headers.Authorization = 'Bearer ' + boot.token;
+    if (token && !method.meta?.noAuth) {
+      method.config.headers.Authorization = 'Bearer ' + token;
     }
   }
 
@@ -210,22 +206,9 @@ export default defineBoot(async ({ app, router, ssrContext }) => {
   axios.options.beforeRequest = (method) => beforeRequest(method as unknown as ResponseMethod, true)
   app.config.globalProperties.$alova = alova;
 
-
-  const redirector = (redirect: RouteLocationNormalized | null, cur: RouteLocationNormalized) => {
-    if (redirect && cur.name !== redirect.name) {
-      router.replace(redirect);
-      boot.redirect = null;
-    }
+  if (!import.meta.env.SSR) {
+    clientRouter = router;
   }
-
-  router.beforeResolve(async (to) => {
-    boot.$subscribe((e, i) => {
-      if (e.type === MutationType.patchFunction && i.redirect) {
-        redirector(i.redirect, to)
-      }
-    })
-    redirector(boot.redirect, to)
-  });
 });
 
 export { alova, axios, useRequest, invalidateCache };
