@@ -1,5 +1,5 @@
 <template>
-  <slot :toggle="toggle" :open="open" />
+  <slot :toggle="toggle" :open="open" :busy="!!job" />
   <StudioSheet :dock="dock" v-model="open" @show="onShow" @hide="stopFollowing">
     <q-card dark class="sheet" :class="{ 'sheet--mobile': $q.screen.lt.sm }">
       <header class="sheet__head">
