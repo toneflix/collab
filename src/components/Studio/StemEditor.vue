@@ -208,18 +208,9 @@
           icon="tune"
           :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
           :disable="!ready"
+          @click="masterEffectsOpen = true"
         >
           <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
-          <q-menu dark anchor="bottom right" self="top right" class="bg-[#1c1c1c]">
-            <EffectsPanel
-              name="the master"
-              :readonly="readonly"
-              :model-value="master"
-              @update:model-value="setMasterEffects"
-              @param="setMasterEffectParams"
-              @commit="checkDirty"
-            />
-          </q-menu>
         </q-btn>
         <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
         <q-icon :name="masterVolume ? ionVolumeHigh : ionVolumeMute" size="20px" class="!flex-none" />
@@ -289,19 +280,8 @@
           class="!flex-none px-3"
           icon="tune"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
-        >
-          <q-menu ref="effectsMenu" dark anchor="bottom left" self="top left" class="bg-[#1c1c1c]">
-            <EffectsPanel
-              plugins
-              :name="selected.name"
-              :model-value="selectedEffects"
-              @update:model-value="setEffects(selected.id, $event)"
-              @param="(i, params) => setEffectParams(selected!.id, i, params)"
-              @commit="checkDirty"
-              @open="openPlugin(selected!.id, $event)"
-            />
-          </q-menu>
-        </q-btn>
+          @click="effectsOpen = true"
+        />
         <q-btn
           flat
           round
@@ -385,6 +365,38 @@
     <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
 
     <div ref="host" class="stem-editor__host" />
+
+    <q-dialog v-model="effectsOpen">
+      <q-card dark class="bg-[#1c1c1c]">
+        <EffectsPanel
+          :plugins="pluginsOn"
+          :name="selected.name"
+          :model-value="selectedEffects"
+          @update:model-value="setEffects(selected!.id, $event)"
+          @param="(i, params) => setEffectParams(selected!.id, i, params)"
+          @commit="checkDirty"
+          @open="openPlugin(selected!.id, $event)"
+          v-if="selected"
+        >
+          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+        </EffectsPanel>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="masterEffectsOpen">
+      <q-card dark class="bg-[#1c1c1c]">
+        <EffectsPanel
+          name="the master"
+          :readonly="readonly"
+          :model-value="master"
+          @update:model-value="setMasterEffects"
+          @param="setMasterEffectParams"
+          @commit="checkDirty"
+        >
+          <q-btn flat round dense icon="close" aria-label="Close" v-close-popup />
+        </EffectsPanel>
+      </q-card>
+    </q-dialog>
 
     <q-dialog v-model="colorsOpen">
       <q-card dark class="bg-[#1c1c1c]">
@@ -483,6 +495,7 @@ import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import {
   encodeWav,
@@ -547,7 +560,6 @@ const editor = shallowRef<DawEditorElement>();
 let adapter: NativePlayoutAdapter | null = null;
 let context: AudioContext | null = null;
 let look: TrackLook | null = null;
-const effectsMenu = ref<{ show: () => void }>();
 /** The master output level, 0 to 1 */
 const masterLevel = ref(0);
 /** Track id → its colour, mirrored from the track look so the page can show it */
@@ -1296,16 +1308,25 @@ const dropTrack = (trackId: string) => {
   if (!tracks.has(trackId)) editor.value?.removeTrack(trackId);
 };
 
+/** Web Audio Module plugins, which an admin can turn on. */
+const pluginsOn = computed(() => !!useBootstrapStore().configuration.studio_plugins);
+
 /**
  * The editor's form of a chain. Faust effects and plugins load in the
  * browser, which needs running audio (and the Faust source from the server),
- * so until then they are left out. `applied` lists which entries of `list` made it in.
+ * so until then they are left out. Plugins are skipped while an admin has
+ * them turned off. `applied` lists which entries of `list` made it in.
  */
 const chainOf = (list: StemEffect[]) => {
   const ready = context?.state === 'running';
   const applied: number[] = [];
+  let skipped = 0;
   const entries = list.flatMap((e, i): SerializedEffectEntry[] => {
     if (isPlugin(e)) {
+      if (!pluginsOn.value) {
+        skipped++;
+        return [];
+      }
       if (!ready) return [];
       applied.push(i);
 
@@ -1331,7 +1352,7 @@ const chainOf = (list: StemEffect[]) => {
     ];
   });
 
-  return { entries, applied, complete: applied.length === list.length };
+  return { entries, applied, complete: applied.length + skipped === list.length };
 };
 
 /** Effect index in `effects` → index in the editor's chain, per track ('' is the master). */
@@ -1424,7 +1445,7 @@ const printPlugins = async (
   onRecord?: (stem: Stem) => void,
 ) => {
   const ed = editor.value;
-  if (!ed) return;
+  if (!ed || !pluginsOn.value) return;
   for (const [trackId, list] of effects) {
     const stem = tracks.get(trackId);
     if (!stem || !needsPrint(list) || placeholders.has(trackId)) continue;
@@ -1563,13 +1584,15 @@ const selectTrack = (trackId: string) => {
 };
 
 /** Open a stem's effects from its controls. */
-const openEffects = async (e: Event) => {
+const openEffects = (e: Event) => {
   const { trackId } = (e as CustomEvent<{ trackId: string }>).detail;
   if (!trackId || !tracks.has(trackId)) return;
   selectTrack(trackId);
-  await nextTick();
-  effectsMenu.value?.show();
+  effectsOpen.value = true;
 };
+
+const effectsOpen = ref(false);
+const masterEffectsOpen = ref(false);
 
 const colorsOpen = ref(false);
 
@@ -1939,7 +1962,7 @@ const listeners: [string, EventListener][] = [
   ['daw-error', (e) => console.warn('[stem editor]', (e as CustomEvent).detail)],
   ['daw-recording-complete', (e) => void onRecordingComplete(e)],
   ['daw-recording-error', onRecordingError],
-  ['tf-track-effects', (e) => void openEffects(e)],
+  ['tf-track-effects', openEffects],
   ['tf-track-color', openColors],
   ['tf-track-select', (e) => selectTrack((e as CustomEvent<{ trackId: string }>).detail.trackId)],
 ];

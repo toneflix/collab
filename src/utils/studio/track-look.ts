@@ -58,6 +58,9 @@ function render(this: Controls) {
   const send = (name: string) =>
     this.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true, detail: { trackId: this.trackId } }));
 
+  // Buttons select their stem on click, so the selected bar opening above can't move them mid-press.
+  const onButton = (e: Event) => e.target instanceof Element && !!e.target.closest('button');
+
   const openEffects = (e: Event) => {
     e.stopPropagation();
     send('tf-track-effects');
@@ -69,7 +72,12 @@ function render(this: Controls) {
   };
 
   return html`
-    <div class="tc ${selected ? 'tc--selected' : ''}" style="--tc-color: ${color}" @pointerdown=${() => send('tf-track-select')}>
+    <div
+      class="tc ${selected ? 'tc--selected' : ''}"
+      style="--tc-color: ${color}"
+      @pointerdown=${(e: Event) => !onButton(e) && send('tf-track-select')}
+      @click=${(e: Event) => onButton(e) && send('tf-track-select')}
+    >
       <div class="tc__main">
         <div class="tc__head">
           <span class="tc__name" title=${name}>${name}</span>

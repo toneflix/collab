@@ -1,7 +1,8 @@
 <template>
   <div class="fx">
     <div class="fx__head">
-      <div class="font-bold">Effects on {{ name }}</div>
+      <div class="font-bold truncate">Effects on {{ name }}</div>
+      <q-space />
       <q-btn-dropdown
         flat
         dense
@@ -49,6 +50,7 @@
           </template>
         </q-list>
       </q-btn-dropdown>
+      <slot />
     </div>
 
     <div class="py-6 text-sm text-center text-grey-5" v-if="!modelValue.length">
@@ -77,14 +79,17 @@
           icon="tune"
           :aria-label="`Open ${label(effect)}`"
           @click="emit('open', i)"
-          v-if="isPlugin(effect)"
+          v-if="plugins && isPlugin(effect)"
         />
         <q-btn flat round dense size="sm" icon="arrow_upward" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
         <q-btn flat round dense size="sm" icon="arrow_downward" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
         <q-btn flat round dense size="sm" icon="close" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
       </div>
       <div class="fx__note" v-if="isPlugin(effect)">
-        A plugin from {{ host(effect) }}. When you save, the stem is recorded through it so the mix sounds the same.
+        <template v-if="plugins">
+          A plugin from {{ host(effect) }}. When you save, the stem is recorded through it so the mix sounds the same.
+        </template>
+        <template v-else>Plugins are turned off, so this one from {{ host(effect) }} is skipped.</template>
       </div>
       <label class="fx__param" :key="p.key" v-for="p in effectInfo(effect.type)?.params ?? []">
         <span class="fx__param-label">{{ p.label }}</span>
@@ -230,9 +235,17 @@ const setParam = (i: number, key: string, value: number | null) => {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
     margin-bottom: 8px;
+
+    > *:not(.q-space) {
+      flex: none;
+    }
+
+    > :first-child {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
   }
 
   &__item {
