@@ -1,4 +1,4 @@
-/* Shows push notifications from Toneflix Collab and opens the app when one is clicked. */
+/* Shows push notifications from Toneflix Music and opens the app when one is clicked. */
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
@@ -8,10 +8,10 @@ self.addEventListener('push', (event) => {
   try {
     payload = event.data ? event.data.json() : {};
   } catch {
-    payload = { title: 'Toneflix Collab', body: event.data ? event.data.text() : '' };
+    payload = { title: 'Toneflix Music', body: event.data ? event.data.text() : '' };
   }
 
-  const { title = 'Toneflix Collab', ...options } = payload;
+  const { title = 'Toneflix Music', ...options } = payload;
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

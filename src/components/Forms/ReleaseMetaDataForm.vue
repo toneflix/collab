@@ -241,7 +241,7 @@
           Buyers can always download a paid release.
         </template>
         <template v-if="downloadsOff">
-          Downloads are turned off on Toneflix right now.
+          Downloads are turned off on Toneflix Music right now.
         </template>
       </p>
       <p class="text-sm text-negative" v-if="errors['release.downloadable']">

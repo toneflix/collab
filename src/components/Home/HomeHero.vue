@@ -8,13 +8,13 @@
           <span class="home-hero__bars" aria-hidden="true">
             <i :key="bar" v-for="bar in 4"></i>
           </span>
-          {{ signedIn ? `Welcome back, ${firstName}` : 'Write, produce and release together' }}
+          {{ signedIn ? `Welcome back, ${firstName}` : 'Listen, create and collaborate' }}
         </div>
 
         <h1 class="home-hero__title font-circlular-std">
           <template v-if="signedIn">What are we making today?</template>
           <template v-else>
-            Make music <span class="text-toneflix">together</span>, from anywhere.
+            Where music meets <span class="text-toneflix">community</span>.
           </template>
         </h1>
 
@@ -24,9 +24,9 @@
             is playing this week.
           </template>
           <template v-else>
-            Start a project, invite collaborators and build the track stem by
-            stem in your browser. When it's ready, release it to listeners and
-            get paid.
+            Stream new music, discover artists and producers, and make tracks
+            with other creators right in your browser. Release your music and
+            get paid when fans buy or tip.
           </template>
         </p>
 
@@ -63,7 +63,7 @@
               color="toneflix"
               text-color="dark"
               size="lg"
-              label="Start creating, it's free"
+              label="Join for free"
               class="!flex-none font-bold"
               :to="{ name: 'auth.register' }"
             />

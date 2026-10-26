@@ -329,7 +329,7 @@ useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
 
 useMeta(() => ({
   title: 'Earnings',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

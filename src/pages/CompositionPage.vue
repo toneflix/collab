@@ -247,9 +247,9 @@ useMeta(() => {
 
   return {
     title,
-    titleTemplate: (t) => `${t} - Toneflix Collab`,
+    titleTemplate: (t) => `${t} - Toneflix Music`,
     meta: {
-      description: { name: 'description', content: description || 'A composition on Toneflix Collab.' },
+      description: { name: 'description', content: description || 'A composition on Toneflix Music.' },
       ogTitle: { property: 'og:title', content: title },
       ogImage: { property: 'og:image', content: song.value?.imageUrl ?? '' },
     },

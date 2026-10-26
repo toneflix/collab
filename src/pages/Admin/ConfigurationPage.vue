@@ -217,7 +217,7 @@ onMounted(async () => {
 
 useMeta(() => ({
   title: 'Configuration',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

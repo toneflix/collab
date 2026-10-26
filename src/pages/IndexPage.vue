@@ -42,7 +42,7 @@
       <section v-if="shelves.creators.data?.list.length">
         <HomeShelfHeader
           title="Creators to follow"
-          subtitle="Producers, writers and artists making things on Toneflix."
+          subtitle="Producers, writers and artists making music on Toneflix Music."
           :to="{ name: 'creators' }"
         />
         <CreatorCategory hide-all-link v-model:category="shelves.creators" />
@@ -71,8 +71,8 @@
 
       <footer class="flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
         <div class="flex items-center gap-3 !flex-none">
-          <img src="~/assets/logo.png" alt="Toneflix" class="h-7 !flex-none" />
-          <span class="!flex-none">&copy; {{ year }} Toneflix</span>
+          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7 !flex-none" />
+          <span class="!flex-none">&copy; {{ year }} Toneflix Music</span>
         </div>
         <nav class="flex flex-wrap gap-x-5 gap-y-2 !flex-none">
           <router-link :key="link.label" :to="link.to" class="!flex-none hover:text-white" v-for="link in footerLinks">
@@ -182,20 +182,25 @@ const footerLinks = [
   { label: 'Artists', to: { name: 'artists' } },
   { label: 'Projects', to: { name: 'projects' } },
   { label: 'Premium', to: { name: 'premium' } },
+  { label: 'About', to: { name: 'about' } },
+  { label: 'Help', to: { name: 'help' } },
 ];
 
+const description =
+  'Stream and discover music, share your releases and make tracks with other creators on Toneflix Music.';
+
 useMeta(() => ({
-  title: 'Make music together',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  title: 'Where music meets community',
+  titleTemplate: (title) => `${title} - Toneflix Music`,
   meta: {
     description: {
       name: 'description',
-      content: 'Start a project, invite collaborators, build the track in your browser and release it on Toneflix Collab.',
+      content: description,
     },
-    ogTitle: { property: 'og:title', content: 'Make music together on Toneflix Collab' },
+    ogTitle: { property: 'og:title', content: 'Toneflix Music: where music meets community' },
     ogDescription: {
       property: 'og:description',
-      content: 'Start a project, invite collaborators, build the track in your browser and release it on Toneflix Collab.',
+      content: description,
     },
   },
 }));

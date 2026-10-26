@@ -15,12 +15,11 @@
           <h1
             class="text-2xl font-semibold tracking-wider text-gray-300 capitalize"
           >
-            Get started.
+            Welcome back.
           </h1>
 
           <p class="mt-8 text-lg text-gray-300">
-            Let’s get you all set up so you can verify your account and begin
-            collaborating.
+            Sign in to pick up your projects and the music you follow.
           </p>
 
           <q-form class="grid grid-cols-2 gap-6 mt-8" @submit="send($router)">

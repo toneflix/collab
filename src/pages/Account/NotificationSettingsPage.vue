@@ -117,7 +117,7 @@ const pushText = computed(() => {
   if (permission.value === 'denied') return 'Notifications are blocked for this site. Allow them in your browser settings, then reload.';
   if (pushOn.value) return 'This browser gets push notifications for the kinds you turn on below.';
 
-  return 'Get alerts in this browser even when Toneflix Collab is closed.';
+  return 'Get alerts in this browser even when Toneflix Music is closed.';
 });
 
 const togglePush = async () => {
@@ -150,7 +150,7 @@ const change = async (category: NotificationCategorySetting, channel: 'mail' | '
 
 useMeta(() => ({
   title: 'Notification settings',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>
 

@@ -502,6 +502,6 @@ const remove = (plan: Plan) => {
 
 useMeta(() => ({
   title: 'Plans',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

@@ -287,7 +287,7 @@ const togglePlay = () => {
 useMeta(() => {
   return {
     title: track.value.title,
-    titleTemplate: (title) => `${title} - Toneflix Collab`,
+    titleTemplate: (title) => `${title} - Toneflix Music`,
     meta: {
       description: { name: 'description', content: track.value.description },
       ogImage: { property: 'og:image', content: track.value.imageUrl },

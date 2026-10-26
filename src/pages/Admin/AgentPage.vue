@@ -20,6 +20,6 @@ import AgentWorkspace from 'src/components/Agent/AgentWorkspace.vue';
 
 useMeta(() => ({
   title: 'Content agent',
-  titleTemplate: (title) => `${title} - Toneflix Collab`,
+  titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

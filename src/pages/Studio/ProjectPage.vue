@@ -426,7 +426,7 @@ const flag = (id: string | number, index: number) => {
 useMeta(() => {
   return {
     title: project.value.title,
-    titleTemplate: (title) => `Project: ${title} - Toneflix Collab`,
+    titleTemplate: (title) => `Project: ${title} - Toneflix Music`,
     meta: {
       description: { name: 'description', content: project.value.description },
       ogImage: { property: 'og:image', content: project.value.imageUrl },

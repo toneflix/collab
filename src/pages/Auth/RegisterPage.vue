@@ -15,12 +15,11 @@
           <h1
             class="text-2xl font-semibold tracking-wider text-gray-300 capitalize"
           >
-            Get started.
+            Join Toneflix Music.
           </h1>
 
           <p class="mt-8 text-lg text-gray-300">
-            Let’s get you all set up so you can verify your account and begin
-            collaborating.
+            Listen, share your music and make tracks with other creators.
           </p>
 
           <q-form

@@ -6,12 +6,12 @@
       </h2>
       <p class="max-w-xl mt-2 leading-relaxed text-white/85">
         <template v-if="signedIn">
-          Premium lets you sell releases and stems, take tips, and gives you
+          Premium adds downloads, a profile badge and AI studio tools, with
           more storage, collaborators and AI credits.
         </template>
         <template v-else>
-          Create a free account to start projects, join collabs and follow the
-          creators you like.
+          Create a free account to save music, follow artists and creators,
+          start projects and join collabs.
         </template>
       </p>
     </div>
