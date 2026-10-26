@@ -150,6 +150,8 @@ export type RealtimeSettings = {
 export type Configuration = {
   app_name: string;
   app_email: string;
+  /** Community Discord invite; empty hides it */
+  discord_url?: string;
   app_currency: string;
   allow_default_images: boolean;
   prefered_sms_channel: string;
