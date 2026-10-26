@@ -5,7 +5,7 @@ export type ConfigurationValue = string | number | boolean | null;
 
 export type ConfigurationField = {
   title: string;
-  type: 'text' | 'email' | 'string' | 'number' | 'boolean';
+  type: 'text' | 'email' | 'url' | 'string' | 'number' | 'boolean';
   hint: string;
   value: ConfigurationValue;
   options?: string[];

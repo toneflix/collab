@@ -59,8 +59,8 @@
             Still need help?
           </h2>
           <p class="text-fg-muted">
-            Ask the community or write to us. We reply to emails within two
-            working days.
+            {{ discord ? 'Ask the community or write to us.' : 'Write to us.' }}
+            We reply to emails within two working days.
           </p>
         </div>
         <div class="help__contacts">
@@ -71,9 +71,10 @@
             color="primary"
             icon="lucide-message-circle"
             label="Join the Discord"
-            href="https://discord.gg/u7fQdqQt8c"
             target="_blank"
             rel="noopener"
+            :href="discord"
+            v-if="discord"
           />
           <q-btn
             outline
@@ -102,6 +103,7 @@ const search = ref('');
 const email = computed(() =>
   String(boot.configuration.app_email || 'support@toneflix.com.ng'),
 );
+const discord = computed(() => String(boot.configuration.discord_url || ''));
 const share = computed(() => Number(boot.configuration.creator_share || 85));
 
 const faq = computed(() => [
@@ -143,7 +145,9 @@ const faq = computed(() => [
       },
       {
         q: 'How can I get involved?',
-        a: 'Create a free account, follow the artists you like, and start a project or ask to join one that is open to collaborators. You can also join our Discord.',
+        a:
+          'Create a free account, follow the artists you like, and start a project or ask to join one that is open to collaborators.' +
+          (discord.value ? ' You can also join our Discord.' : ''),
       },
       {
         q: 'What is the mission behind Toneflix Music?',

@@ -107,8 +107,15 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     key: 'app',
     icon: 'lucide-settings',
     title: 'App',
-    caption: 'Name, contact email and sign-up checks.',
-    keys: ['app_name', 'app_email', 'verify_email', 'verify_phone', 'token_lifespan'],
+    caption: 'Name, contact links and sign-up checks.',
+    keys: [
+      'app_name',
+      'app_email',
+      'discord_url',
+      'verify_email',
+      'verify_phone',
+      'token_lifespan',
+    ],
   },
   {
     key: 'money',
@@ -167,7 +174,9 @@ const inputType = (field: ConfigurationField) =>
     ? 'number'
     : field.type === 'email'
       ? 'email'
-      : 'text';
+      : field.type === 'url'
+        ? 'url'
+        : 'text';
 
 const textValue = (key: string) => {
   const value = form[key];
