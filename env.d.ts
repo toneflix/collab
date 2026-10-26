@@ -6,6 +6,7 @@
  */
 interface ImportMetaEnv {
   readonly VITE_FRONT_URL?: string;
+  readonly VITE_DOCS_URL?: string;
   readonly VITE_DEV_API_BASE_URL?: string;
   readonly VITE_PROD_API_BASE_URL?: string;
   readonly VITE_STAGING_API_BASE_URL?: string;
