@@ -1234,7 +1234,7 @@ const onRecordingComplete = async (e: Event) => {
 
 const onRecordingError = (e: Event) => {
   console.warn('[stem editor] recording error', (e as CustomEvent).detail);
-  notify('Recording stopped because of an error.', 'error');
+  notify('Recording failed.', 'error');
   cleanupRecording(true);
 };
 

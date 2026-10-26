@@ -292,7 +292,7 @@ if (route.query.payouts === 'connected') {
     .then((body) => {
       account.value = body.data;
       if (body.data?.status === 'active') notify('Your payout account is ready.', 'success');
-      else notify('Your account isn\'t ready yet. Finish the remaining steps to start withdrawing.', 'warning');
+      else notify('Finish setting up your payout account first.', 'warning');
     })
     .catch(() => undefined);
 

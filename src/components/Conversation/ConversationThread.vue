@@ -461,7 +461,7 @@ const startRecording = async () => {
   if (readonly.value || recorder.recording.value) return;
   starting.value = true;
   const ok = await recorder.start(() => {
-    notify(`Voice notes can be up to ${MAX_RECORDING / 60} minutes. Sending it now.`, 'info');
+    notify(`Voice note limit reached. Sending.`, 'info');
     void sendVoice();
   });
   starting.value = false;
@@ -472,7 +472,7 @@ const sendVoice = async () => {
   const recording = await recorder.stop();
   if (!recording || recording.duration < 0.6) {
     if (recording) URL.revokeObjectURL(recording.url);
-    notify('That was too short to send. Tap the mic and talk.', 'info');
+    notify('Too short to send.', 'info');
     return;
   }
 
