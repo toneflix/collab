@@ -18,6 +18,7 @@
       </div>
       <p class="mb-8 text-sm text-grey-5">
         Your notepad for lyrics. Syllables, rhymes and word lookups sit beside every line, and songs save as you write.
+        <router-link class="text-toneflix" :to="{ name: 'songs' }">See songs others published</router-link>
       </p>
 
       <q-input
@@ -53,9 +54,13 @@
           v-intersection="(e: IntersectionObserverEntry) => onIntersect(e, i === songs.length - 1)"
           v-for="(song, i) in songs"
         >
-          <div class="flex items-start gap-2 no-wrap">
+          <div class="flex items-start gap-3 no-wrap">
+            <img :src="song.imageUrl" alt="" class="song-card__art !flex-none" v-if="song.hasArtwork" />
             <div class="min-w-0 flex-1">
-              <div class="font-semibold truncate">{{ song.title }}</div>
+              <div class="flex items-center gap-2 no-wrap">
+                <span class="font-semibold truncate">{{ song.title }}</span>
+                <span class="song-card__badge !flex-none" v-if="song.publishedAt">Published</span>
+              </div>
               <div class="text-xs text-grey-5">
                 {{ song.lineCount }} {{ song.lineCount === 1 ? 'line' : 'lines' }} · {{ song.wordCount }} words
                 <template v-if="song.bpm"> · {{ song.bpm }} BPM</template>
@@ -200,6 +205,21 @@ onMounted(() => void load(true));
 
   &:hover {
     border-color: rgba(244, 201, 93, 0.5);
+  }
+
+  &__art {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  &__badge {
+    padding: 1px 8px;
+    font-size: 11px;
+    color: #03bfff;
+    border-radius: 999px;
+    background: rgba(3, 191, 255, 0.12);
   }
 
   &__excerpt {

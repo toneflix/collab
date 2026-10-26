@@ -1,4 +1,4 @@
-import { alova } from 'src/boot/alova';
+import { alova, axios } from 'src/boot/alova';
 import type { PageMeta, Project, ResponseBody } from '../models';
 import type { Sound } from './sounds';
 
@@ -15,6 +15,15 @@ export type SongSettings = {
 export type Song = {
   id: number;
   title: string;
+  /** The public page's address, set the first time the song is published */
+  slug: string | null;
+  imageUrl: string;
+  hasArtwork: boolean;
+  publishedAt: string | null;
+  allowForks: boolean;
+  allowProjects: boolean;
+  /** The song this one was forked from; `slug` is set while that song is published */
+  forkedFrom?: { slug: string | null; title: string } | null;
   /** The first two sung lines, in lists only */
   excerpt?: string[];
   body?: string;
@@ -179,8 +188,80 @@ export const songProjectOptionsRequest = (search = '') =>
     cacheFor: 0,
   });
 
+/** The project and track a song was put on */
+export type SongProjectRef = { id: number; slug: string; title: string; trackId: number };
+
 export const songProjectRequest = (id: string | number, data: SongProjectInput) =>
-  alova.Post<ResponseBody<Song> & { aiJob: { id: number } | null }>(`creator/songs/${id}/project`, data);
+  alova.Post<ResponseBody<Song> & { aiJob: { id: number } | null; project: SongProjectRef }>(
+    `creator/songs/${id}/project`,
+    data,
+  );
 
 export const syncSongLyricsRequest = (id: string | number) =>
   alova.Post<ResponseBody<Song>>(`creator/songs/${id}/project/lyrics`);
+
+/** A published song as anyone sees it. Lists carry `excerpt` instead of `body`. */
+export type PublicSong = {
+  id: number;
+  slug: string;
+  title: string;
+  imageUrl: string;
+  excerpt?: string[];
+  body?: string;
+  bpm: number | null;
+  key: string | null;
+  mood: string | null;
+  language: string | null;
+  explicit: boolean;
+  writer?: { id: number; name: string; username: string; imageUrl: string };
+  forkedFrom?: { slug: string; title: string; writer: string | null };
+  /** The writer's project made from the song, when it is public */
+  project?: { slug: string; title: string };
+  forksCount?: number;
+  allowForks: boolean;
+  allowProjects: boolean;
+  isOwner: boolean;
+  lineCount: number;
+  wordCount: number;
+  publishedAt: string;
+  updatedAt: string;
+};
+
+export type PublicSongSort = 'latest' | 'forks';
+
+export const loadPublicSongsRequest = (
+  params: { page?: number; limit?: number; search?: string; sort?: PublicSongSort; user?: string } = {},
+) =>
+  alova.Get<Page<PublicSong>>('songs', {
+    params: Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== '')),
+    cacheFor: 0,
+  });
+
+export const loadPublicSongRequest = (slug: string) =>
+  alova.Get<ResponseBody<PublicSong>>(`songs/${encodeURIComponent(slug)}`, { cacheFor: 0 });
+
+export type SongPublishingInput = {
+  published?: boolean;
+  allow_forks?: boolean;
+  allow_projects?: boolean;
+};
+
+export const saveSongPublishingRequest = (id: string | number, data: SongPublishingInput) =>
+  alova.Put<ResponseBody<Song>>(`creator/songs/${id}/publishing`, data);
+
+export const uploadSongArtworkRequest = (id: string | number, image: File | Blob) => {
+  const data = new FormData();
+
+  data.append('image', image);
+
+  const request = axios.Post<ResponseBody<Song>>(`creator/songs/${id}/artwork`, data);
+  request.config.headers['Content-Type'] = 'multipart/form-data';
+
+  return request;
+};
+
+export const removeSongArtworkRequest = (id: string | number) =>
+  alova.Delete<ResponseBody<Song>>(`creator/songs/${id}/artwork`);
+
+export const forkSongRequest = (id: string | number) =>
+  alova.Post<ResponseBody<Song>>(`creator/songs/${id}/forks`);

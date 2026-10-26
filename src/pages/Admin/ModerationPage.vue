@@ -408,6 +408,7 @@ const typeOptions = [
   { label: 'Releases', value: 'release' },
   { label: 'Tracks', value: 'track' },
   { label: 'Sounds', value: 'sound' },
+  { label: 'Songs', value: 'song' },
   { label: 'Comments', value: 'comment' },
   { label: 'Accounts', value: 'user' },
 ];

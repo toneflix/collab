@@ -28,6 +28,15 @@
         <ProjectCategory hide-all-link v-model:category="shelves.projects" />
       </section>
 
+      <section class="min-w-0" v-if="songs.length">
+        <HomeShelfHeader
+          title="Fresh lyrics"
+          subtitle="New songs from Composer writers."
+          :to="{ name: 'songs' }"
+        />
+        <SongShelf :songs="songs" />
+      </section>
+
       <HomeSteps />
 
       <section v-if="shelves.creators.data?.list.length">
@@ -83,6 +92,7 @@ import HomeHero from 'src/components/Home/HomeHero.vue';
 import HomeJoin from 'src/components/Home/HomeJoin.vue';
 import HomeShelfHeader from 'src/components/Home/HomeShelfHeader.vue';
 import HomeSteps from 'src/components/Home/HomeSteps.vue';
+import SongShelf from 'src/components/Songs/SongShelf.vue';
 import ProjectCategory from 'src/components/Showcase/ProjectCategory.vue';
 import TrackCategory from 'src/components/Showcase/TrackCategory.vue';
 import { useMeta } from 'quasar';
@@ -108,6 +118,7 @@ defineOptions({
         top_projects: size,
         top_creators: size,
         latest_albums: size,
+        new_songs: size,
         ...(boot.user?.id ? { recently_played: size } : {}),
       }).send(),
       loadGenresRequest({ limit: 16 }).send(),
@@ -123,6 +134,7 @@ const explore = data.explore ?? {};
 
 const signedIn = computed(() => !!boot.user?.id);
 const trending = computed(() => shelves.trending.data?.list ?? []);
+const songs = explore.newSongs?.list ?? [];
 const genres = data.genres ?? [];
 const year = new Date().getFullYear();
 

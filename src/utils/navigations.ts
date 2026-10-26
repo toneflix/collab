@@ -33,6 +33,11 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Projects',
   },
   {
+    to: { name: 'songs' },
+    icon: 'lucide-quote',
+    title: 'Songs',
+  },
+  {
     to: { name: 'studio.composer' },
     icon: 'lucide-pen-tool',
     title: 'Composer',

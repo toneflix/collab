@@ -2,6 +2,7 @@ import type { ArtistClaim } from './requests/artists';
 import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
 import type { AudioTags } from './requests/tags';
+import type { PublicSong } from './requests/composer';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc';
 export type PriviPerm =
@@ -359,6 +360,8 @@ export interface ExploreData {
   recommendedArtists: ExploreItem<Artist>;
   recentlyPlayedAlbums: ExploreItem<Release>;
   recentlyPlayedArtists: ExploreItem<Artist>;
+  newSongs: ExploreItem<PublicSong>;
+  topSongs: ExploreItem<PublicSong>;
 }
 
 export interface Interaction {
