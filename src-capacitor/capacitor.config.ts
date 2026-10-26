@@ -10,7 +10,7 @@ export default defineCapacitorConfig({
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
-      backgroundColor: '#0a0c10',
+      backgroundColor: '#d5a301',
     },
   },
 });
