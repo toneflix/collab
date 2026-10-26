@@ -201,9 +201,13 @@ export const retireReleaseRequest = (id: string | number, retired: boolean) => {
  */
 export const createReleaseRequest = (f: Release) => {
   type Use = GenericData & { tracks: (Track & UploadData)[] }
-  const form: Use = Object.assign({ tracks: [] }, toRaw(f), {
+  const raw = toRaw(f) as Release & UploadData
+  const form: Use = Object.assign({ tracks: [] }, raw, {
     genre: undefined,
     artist: undefined,
+    // Multipart drops empty lists, so topics go as one comma-separated value.
+    topics: raw.topic_ids ? raw.topic_ids.join(',') : undefined,
+    topic_ids: undefined,
   }) as unknown as Use
 
   // delete form.tracks
@@ -229,7 +233,7 @@ export const createReleaseRequest = (f: Release) => {
   }, {
     name: 'create-release' + (f.slug || f.id || ''),
     params: {
-      with: 'artist,genre,release,tracks,project,streamUrl'
+      with: 'artist,genre,topics,release,tracks,project,streamUrl'
     }
   })
 

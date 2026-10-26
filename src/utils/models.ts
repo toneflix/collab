@@ -91,6 +91,8 @@ export type UploadData = {
   record_label?: string;
   contains_music?: boolean | 0 | 1;
   project_track_id?: string | number;
+  /** Topic ids the release form sends */
+  topic_ids?: number[];
 };
 
 export type Initialize = {
@@ -571,6 +573,8 @@ export interface Release extends Album {
   price?: number;
   /** The creator lets listeners with downloads in their plan save the tracks */
   downloadable?: boolean | 0 | 1;
+  /** Moods and subjects the creator tagged the release with */
+  topics?: Topic[];
   locked?: boolean;
   purchased?: boolean;
   takenDown?: boolean;
