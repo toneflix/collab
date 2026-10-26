@@ -16,6 +16,7 @@
     "worker:dev": "yarn build:worker && wrangler dev",
     "worker:deploy": "yarn build:worker && wrangler deploy",
     "typecheck": "vue-tsc --noEmit",
+    "icons:web": "icongenie generate -m spa,ssr -i src-icongenie/logo.png",
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
@@ -56,6 +57,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@quasar/app-vite": "^3.10.3",
+    "@quasar/icongenie": "^7.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/event-emitter": "^0.3.5",
     "@types/node": "^22.19.11",
