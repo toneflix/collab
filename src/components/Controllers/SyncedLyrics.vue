@@ -4,7 +4,7 @@
       <q-spinner-dots size="28px" color="grey-5" />
     </div>
     <div class="lyrics__state" v-else-if="!lyrics?.lines.length">
-      <q-icon :name="ionText" size="28px" class="mb-2" />
+      <q-icon name="lucide-type" size="28px" class="mb-2" />
       <div>No lyrics for this song yet.</div>
     </div>
     <template v-else>
@@ -32,7 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionText } from '@quasar/extras/ionicons-v8';
 import { computed, nextTick, ref, watch } from 'vue';
 import {
   activeLine,

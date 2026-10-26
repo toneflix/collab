@@ -8,10 +8,10 @@
         dense
         no-caps
         color="toneflix"
-        icon="add"
+        icon="lucide-plus"
         label="Add"
         :disable="readonly || modelValue.length >= 8"
-        dropdown-icon="expand_more"
+        dropdown-icon="lucide-chevron-down"
         @show="plugins && loadPlugins()"
       >
         <q-list dark dense class="fx__menu">
@@ -76,14 +76,14 @@
           no-caps
           size="sm"
           label="Open"
-          icon="tune"
+          icon="lucide-sliders-horizontal"
           :aria-label="`Open ${label(effect)}`"
           @click="emit('open', i)"
           v-if="plugins && isPlugin(effect)"
         />
-        <q-btn flat round dense size="sm" icon="arrow_upward" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
-        <q-btn flat round dense size="sm" icon="arrow_downward" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
-        <q-btn flat round dense size="sm" icon="close" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
+        <q-btn flat round dense size="sm" icon="lucide-arrow-up" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
+        <q-btn flat round dense size="sm" icon="lucide-arrow-down" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
+        <q-btn flat round dense size="sm" icon="lucide-x" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
       </div>
       <div class="fx__note" v-if="isPlugin(effect)">
         <template v-if="plugins">

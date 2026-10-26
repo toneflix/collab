@@ -7,7 +7,7 @@
       @click="toggle"
     >
       <q-spinner size="16px" v-if="loading" />
-      <q-icon :name="playing ? 'pause' : 'play_arrow'" size="22px" v-else />
+      <q-icon :name="playing ? 'lucide-pause:fill' : 'lucide-play:fill'" size="22px" v-else />
     </button>
 
     <div

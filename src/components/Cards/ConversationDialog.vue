@@ -1,6 +1,6 @@
 <template>
   <slot :toggle="open">
-    <q-btn icon="fas fa-info-circle" v-bind="$attrs" @click="open">
+    <q-btn icon="lucide-info" v-bind="$attrs" @click="open">
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
@@ -10,7 +10,7 @@
         <q-toolbar-title>
           <span class="text-bold">{{ title }}</span>
         </q-toolbar-title>
-        <q-btn flat round dense icon="close" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[60vh]">

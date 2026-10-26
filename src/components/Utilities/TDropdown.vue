@@ -21,7 +21,7 @@
     <template v-slot:label v-if="hasAlert || tooltip || label">
       <q-tooltip v-if="tooltip">{{ tooltip }}</q-tooltip>
       <q-icon
-        name="fa-solid fa-circle"
+        name="lucide-circle:fill"
         class="absolute-top-right text-red"
         size=".7em"
         v-if="!hideAlertIcon && hasAlert"
@@ -100,7 +100,7 @@ defineOptions({ name: 'TDropdown' });
 const props = defineProps({
   icon: {
     type: String,
-    default: 'fa-solid fa-ellipsis-vertical',
+    default: 'lucide-ellipsis-vertical',
   },
   color: {
     type: String,

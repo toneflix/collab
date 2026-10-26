@@ -94,7 +94,7 @@
             v-model="form.document"
             @rejected="notify('That file is too big or not a PDF, JPG or PNG.', 'error')"
           >
-            <template #prepend><q-icon name="fas fa-paperclip" size="xs" /></template>
+            <template #prepend><q-icon name="lucide-paperclip" size="xs" /></template>
           </q-file>
 
           <q-checkbox

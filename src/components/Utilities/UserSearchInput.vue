@@ -46,7 +46,7 @@
             <q-btn
               dense
               no-caps
-              icon="add"
+              icon="lucide-plus"
               color="primary"
               class="flex-none"
               label="Create Now"

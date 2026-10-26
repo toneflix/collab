@@ -49,7 +49,7 @@
                 color="primary"
                 class="w-full text-xl rounded-lg md:w-auto"
                 label="Proceed"
-                icon-right="chevron_right"
+                icon-right="lucide-chevron-right"
                 :loading="loading"
               />
 

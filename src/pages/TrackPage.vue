@@ -16,7 +16,7 @@
               color="dark-opaque"
               size="xl"
               class="!flex-none"
-              :icon="playing ? ionPause : ionPlay"
+              :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
           </template>
@@ -49,7 +49,7 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon color="white" name="fas fa-play" :fill="track.liked" />
+                <q-icon color="white" name="lucide-play:fill" :fill="track.liked" />
                 {{ intStr(track.streams) }}
               </span>
               <span class="!flex-none">•</span>
@@ -70,7 +70,7 @@
                   >
                     <q-icon
                       color="white"
-                      :name="active ? ionHeart : ionHeartOutline"
+                      :name="active ? 'lucide-heart:fill' : 'lucide-heart'"
                       :fill="active"
                     />
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
@@ -86,7 +86,7 @@
                   no-caps
                   rounded
                   size="sm"
-                  icon="fas fa-comments"
+                  icon="lucide-messages-square"
                   color="white"
                   padding="xs sm"
                   text-color="dark"
@@ -107,7 +107,7 @@
                     no-caps
                     @click="toggle"
                   >
-                    <q-icon color="white" name="eva-message-square" />
+                    <q-icon color="white" name="lucide-message-square" />
                     &nbsp;{{ intStr(track.commentsCount) }}
                   </q-btn>
                 </ConversationDialog>
@@ -125,7 +125,7 @@
               @update:tags="track.tags = $event"
             />
             <q-banner dense rounded class="mt-8 text-white bg-red-10 max-w-96" v-if="track.takenDown">
-              <template #avatar><q-icon name="fas fa-ban" /></template>
+              <template #avatar><q-icon name="lucide-ban" /></template>
               This track was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
@@ -180,12 +180,6 @@ import {
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import {
-  ionHeart,
-  ionHeartOutline,
-  ionPause,
-  ionPlay,
-} from '@quasar/extras/ionicons-v8';
 import { formatSeconds, intStr, subString } from 'src/utils/helpers';
 import { useMeta } from 'quasar';
 import { usePlayerStore } from 'src/stores/player-store';

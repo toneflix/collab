@@ -12,7 +12,7 @@
       :size="dense ? '5em' : '10rem'"
     >
       <q-icon
-        name="fas fa-circle-question"
+        name="lucide-circle-question-mark"
         color="grey-3"
         :size="dense ? '1em' : '6rem'"
       />
@@ -21,7 +21,7 @@
       type="QBtn"
       class="flex justify-center flex-none w-8 m-1 items-center !rounded-full absolute-top-right h-8"
     >
-      <q-icon name="fas fa-ellipsis" />
+      <q-icon name="lucide-ellipsis" />
     </q-skeleton>
 
     <q-card-section
@@ -49,7 +49,7 @@
       flat
       dense
       rounded
-      icon="fas fa-ellipsis"
+      icon="lucide-ellipsis"
       dropdown-icon="none"
       class="m-1 absolute-top-right"
       color="dark"

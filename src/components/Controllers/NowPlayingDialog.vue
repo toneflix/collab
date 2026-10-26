@@ -40,7 +40,7 @@
               <q-tab name="next" label="Up next" class="now-playing__tab" />
               <q-tab name="lyrics" label="Lyrics" class="now-playing__tab" />
             </q-tabs>
-            <q-btn flat round dense :icon="ionChevronDown" aria-label="Close" class="!flex-none" @click="open = false" />
+            <q-btn flat round dense icon="lucide-chevron-down" aria-label="Close" class="!flex-none" @click="open = false" />
           </div>
           <q-scroll-area class="now-playing__list" v-if="tab === 'lyrics'">
             <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />
@@ -60,7 +60,7 @@
                   <div class="relative">
                     <q-img no-spinner class="rounded bg-gray-700" width="40px" height="40px" :src="item.imageUrl" />
                     <div class="now-playing__badge" v-if="i === player.index">
-                      <q-icon :name="player.playing ? ionPause : ionPlay" size="18px" />
+                      <q-icon :name="player.playing ? 'lucide-pause:fill' : 'lucide-play:fill'" size="18px" />
                     </div>
                   </div>
                 </q-item-section>
@@ -81,7 +81,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionChevronDown, ionPause, ionPlay } from '@quasar/extras/ionicons-v8';
 import { computed, nextTick, ref, watch } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';

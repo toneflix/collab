@@ -8,7 +8,7 @@
       size="sm"
       padding="0 sm"
       color="toneflix"
-      icon="fas fa-hand-holding-heart"
+      icon="lucide-hand-heart"
       label="Tip"
       @click="open"
     />

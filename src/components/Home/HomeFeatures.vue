@@ -19,7 +19,7 @@
         <p class="mt-2 text-sm leading-relaxed text-gray-400">{{ feature.text }}</p>
         <span class="home-feature__more">
           {{ feature.action }}
-          <q-icon name="eva-arrow-forward" size="16px" />
+          <q-icon name="lucide-arrow-right" size="16px" />
         </span>
       </router-link>
     </div>
@@ -43,7 +43,7 @@ const features: Feature[] = [
   {
     title: 'A studio in your browser',
     text: 'Arrange stems on a multitrack editor, record takes, program drums and notes, and add effects. No installs.',
-    icon: 'eva-options-2',
+    icon: 'lucide-sliders-horizontal',
     color: '#03bfff',
     action: 'Open the studio',
     to: { name: 'studio.home' },
@@ -51,7 +51,7 @@ const features: Feature[] = [
   {
     title: 'Collaborate on projects',
     text: 'Invite producers, writers and vocalists to a project, chat beside the work and keep every version of every track.',
-    icon: 'eva-people',
+    icon: 'lucide-users',
     color: '#a78bfa',
     action: 'Browse projects',
     to: { name: 'projects' },
@@ -59,7 +59,7 @@ const features: Feature[] = [
   {
     title: 'AI that helps you finish',
     text: 'Split a song into stems, sketch ideas, transcribe lyrics and tag tempo and key, all from the same project.',
-    icon: 'eva-flash',
+    icon: 'lucide-zap',
     color: '#fbbf24',
     action: 'See the tools',
     to: { name: 'studio.home' },
@@ -67,7 +67,7 @@ const features: Feature[] = [
   {
     title: 'Release and get paid',
     text: 'Publish songs and albums, sell stems, receive tips from fans and withdraw your earnings to your bank.',
-    icon: 'eva-award',
+    icon: 'lucide-award',
     color: '#34d399',
     action: 'Start a release',
     to: { name: 'studio.releases' },

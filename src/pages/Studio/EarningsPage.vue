@@ -15,7 +15,7 @@
             <div class="mt-1 text-xs text-grey-5">
               <template v-if="wallet.clearing">
                 {{ price(wallet.clearing) }} clearing
-                <q-icon name="info" size="14px" class="cursor-help">
+                <q-icon name="lucide-info" size="14px" class="cursor-help">
                   <q-tooltip class="text-sm">
                     New earnings can be withdrawn {{ wallet.holdDays }} days after
                     the payment, in case it's refunded.
@@ -34,7 +34,7 @@
               rounded
               no-caps
               color="toneflix"
-              icon="fas fa-money-bill-transfer"
+              icon="lucide-banknote"
               label="Withdraw"
               :disable="!canWithdraw"
               @click="withdrawing = true"

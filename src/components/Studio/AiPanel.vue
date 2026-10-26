@@ -7,7 +7,7 @@
           flat
           round
           dense
-          icon="arrow_back"
+          icon="lucide-arrow-left"
           aria-label="Back to AI tools"
           class="!flex-none"
           v-if="current"
@@ -33,7 +33,7 @@
           flat
           round
           dense
-          icon="close"
+          icon="lucide-x"
           aria-label="Close AI tools"
           class="!flex-none"
           @click="open = false"
@@ -88,7 +88,7 @@
             @submit="generate"
           >
             <div class="ai__model">
-              <q-icon :name="ionSparkles" size="14px" class="!flex-none" />
+              <q-icon name="lucide-sparkles" size="14px" class="!flex-none" />
               <span class="min-w-0 truncate">{{ account.music.name }}</span>
               <span class="!flex-none text-grey-6">· {{ musicPrice(account.music) }}</span>
             </div>
@@ -179,14 +179,14 @@
                 v-if="referenceKinds.length > 1"
               />
               <div class="ai__reference" v-if="form.reference || form.reference_stem_id">
-                <q-icon :name="form.reference ? ionDocumentAttach : ionMusicalNote" size="18px" class="!flex-none" />
+                <q-icon :name="form.reference ? 'lucide-paperclip' : 'lucide-music-2'" size="18px" class="!flex-none" />
                 <div class="min-w-0 truncate text-sm">{{ referenceName }}</div>
                 <q-btn
                   flat
                   round
                   dense
                   size="sm"
-                  icon="close"
+                  icon="lucide-x"
                   aria-label="Remove the reference"
                   class="!flex-none"
                   @click="clearReference"
@@ -213,7 +213,7 @@
                   color="grey-4"
                   class="!flex-none"
                   label="Upload"
-                  :icon="ionCloudUpload"
+                  icon="lucide-cloud-upload"
                   :disable="disabled"
                   @click="referenceInput?.click()"
                 />
@@ -270,7 +270,7 @@
                 color="toneflix"
                 class="!flex-none"
                 label="Generate"
-                :icon="ionSparkles"
+                icon="lucide-sparkles"
                 :loading="starting === 'music'"
                 :disable="
                   disabled ||
@@ -355,7 +355,7 @@
                   v-else-if="job.choosing != null"
                 />
                 <q-icon
-                  :name="ionAlbums"
+                  name="lucide-library"
                   size="18px"
                   class="text-toneflix"
                   v-else-if="awaitingPick(job)"
@@ -363,8 +363,8 @@
                 <q-icon
                   :name="
                     job.status === 'failed'
-                      ? ionAlertCircle
-                      : ionCheckmarkCircle
+                      ? 'lucide-circle-alert'
+                      : 'lucide-circle-check'
                   "
                   size="18px"
                   v-else
@@ -404,7 +404,7 @@
                       flat
                       size="sm"
                       class="!flex-none"
-                      :icon="playing === versionKey(job, version) ? ionPause : ionPlay"
+                      :icon="playing === versionKey(job, version) ? 'lucide-pause:fill' : 'lucide-play:fill'"
                       :aria-label="`Play version ${version.index + 1}`"
                       :disable="!version.url"
                       @click="play(job, version)"
@@ -443,19 +443,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ionAlbums,
-  ionAlertCircle,
-  ionCheckmarkCircle,
-  ionCloudUpload,
-  ionDocumentAttach,
-  ionGitBranch,
-  ionMusicalNote,
-  ionMusicalNotes,
-  ionPause,
-  ionPlay,
-  ionSparkles,
-} from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
@@ -582,7 +569,7 @@ const tools = computed(() => {
         : acc?.music.instrumentalOnly
           ? 'Turn a prompt into a loop or an instrumental.'
           : 'Turn a prompt into a loop or a full track, with or without vocals.',
-      icon: ionMusicalNotes,
+      icon: 'lucide-music',
       cost: !acc
         ? ''
         : acc.music.pricing === 'per10s'
@@ -593,7 +580,7 @@ const tools = computed(() => {
       key: 'stems' as const,
       title: 'Split a stem',
       text: `Pull ${partsText.value} out of a full mix.`,
-      icon: ionGitBranch,
+      icon: 'lucide-git-branch',
       cost: acc ? `${acc.costs.stems} credits` : '',
     },
   ];

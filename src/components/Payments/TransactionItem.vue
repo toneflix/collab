@@ -56,17 +56,17 @@ const labels = {
 };
 
 const icons = {
-  premium: 'fas fa-crown',
-  release: 'fas fa-compact-disc',
-  stems: 'fas fa-layer-group',
-  tip: 'fas fa-hand-holding-heart',
-  credits: 'fas fa-wand-magic-sparkles',
-  adjustment: 'fas fa-scale-balanced',
+  premium: 'lucide-crown',
+  release: 'lucide-disc-3',
+  stems: 'lucide-layers',
+  tip: 'lucide-hand-heart',
+  credits: 'lucide-wand-sparkles',
+  adjustment: 'lucide-scale',
 };
 
 const label = computed(() => labels[props.transaction.purpose] || 'Payment');
 const icon = computed(
-  () => icons[props.transaction.purpose] || 'fas fa-receipt',
+  () => icons[props.transaction.purpose] || 'lucide-receipt',
 );
 
 const title = computed(() => {

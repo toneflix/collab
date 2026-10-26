@@ -95,7 +95,7 @@ export const accountLine = (account: Pick<PayoutAccount, 'method' | 'bankName' |
 }
 
 export const methodIcon = (method?: string | null) =>
-  method === 'mobile_money' ? 'fas fa-mobile-screen' : method === 'hosted' ? 'fas fa-globe' : 'fas fa-building-columns'
+  method === 'mobile_money' ? 'lucide-smartphone' : method === 'hosted' ? 'lucide-globe' : 'lucide-landmark'
 
 /**
  * An amount in a currency that may not be the app's.

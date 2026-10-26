@@ -15,7 +15,7 @@
             You have not collaborated with any creators yet.
           </h3>
           <template #avatar>
-            <q-icon name="info" />
+            <q-icon name="lucide-info" />
           </template>
         </q-banner>
         <q-item
@@ -37,13 +37,13 @@
               flat
               dense
               rounded
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               dropdown-icon="none"
               color="white"
               :links="[
                 {
                   label: 'Block',
-                  icon: 'fas fa-user-lock',
+                  icon: 'lucide-user-lock',
                   click: () => flag(artist.id, i),
                   loading: reporting,
                 },

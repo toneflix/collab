@@ -8,7 +8,7 @@
     "
   >
     <q-btn
-      icon="fas fa-info-circle"
+      icon="lucide-info"
       v-bind="$attrs"
       @click="toggle = !toggle"
       v-if="!hideBtn"
@@ -29,7 +29,7 @@
                 : 'Invite Collaber'
           }}
         </q-toolbar-title>
-        <q-btn flat round dense icon="close" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[60vh]">

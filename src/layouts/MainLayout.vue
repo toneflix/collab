@@ -11,7 +11,7 @@
           @click="leftDrawerOpen = !leftDrawerOpen"
           v-if="overlay"
         >
-          <t-icon name="eva-menu" />
+          <q-icon name="lucide-menu" />
         </q-btn>
 
         <q-btn
@@ -22,7 +22,7 @@
           v-if="!showSearch"
           @click="showSearch = !showSearch"
         >
-          <t-icon name="eva-search" />
+          <q-icon name="lucide-search" />
         </q-btn>
 
         <q-input
@@ -38,13 +38,13 @@
         >
           <template #prepend>
             <q-icon
-              name="clear"
+              name="lucide-x"
               size="xs"
               class="cursor-pointer"
               v-if="$q.screen.lt.sm"
               @click="showSearch = !showSearch"
             />
-            <t-icon name="eva-search" v-else />
+            <q-icon name="lucide-search" v-else />
           </template>
         </q-input>
         <!-- <q-toolbar-title class="text-center"> Title </q-toolbar-title> -->
@@ -59,7 +59,7 @@
           :to="{ name: 'messages' }"
           v-if="boot.user?.id"
         >
-          <t-icon name="eva-message-circle" />
+          <q-icon name="lucide-message-circle" />
           <q-badge floating rounded color="red-6" :label="unreadLabel" v-if="conversations.unread" />
           <q-tooltip>Messages</q-tooltip>
         </q-btn>
@@ -73,7 +73,7 @@
                 clickable
                 color="grey-9"
                 text-color="white"
-                :icon-right="`eva-chevron-${isShown ? 'up' : 'down'}-outline`"
+                :icon-right="isShown ? 'lucide-chevron-up' : 'lucide-chevron-down'"
               >
                 <q-avatar size="sm">
                   <img
@@ -118,7 +118,7 @@
           @click="toggleSidebar"
           v-if="!overlay"
         >
-          <t-icon :name="collapsed ? 'eva-chevron-right' : 'eva-chevron-left'" />
+          <q-icon :name="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-left'" />
           <q-tooltip anchor="center right" self="center left">{{ collapsed ? 'Expand menu' : 'Collapse menu' }}</q-tooltip>
         </q-btn>
       </q-toolbar>
@@ -162,7 +162,7 @@
               "
             >
               <q-item-section avatar>
-                <t-icon :name="link.icon" />
+                <q-icon :name="link.icon" />
               </q-item-section>
 
               <q-item-section> {{ link.title }} </q-item-section>
@@ -187,7 +187,7 @@
                 </q-item-section>
                 <q-item-section side v-if="link.button">
                   <q-btn dense outline size="sm" :to="link.button.action">
-                    <t-icon :name="link.button.icon" />
+                    <q-icon :name="link.button.icon" />
                   </q-btn>
                 </q-item-section>
               </q-item>
@@ -201,7 +201,7 @@
                 v-for="item in cache.mainLayoutGroups[link.group]"
               >
                 <q-item-section avatar>
-                  <t-icon name="eva-file" />
+                  <q-icon name="lucide-file" />
                 </q-item-section>
 
                 <q-item-section> {{ item.title }} </q-item-section>
@@ -217,7 +217,7 @@
         <q-list padding class="menu-list">
           <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
             <q-item-section avatar>
-              <t-icon name="eva-arrow-back" />
+              <q-icon name="lucide-arrow-left" />
             </q-item-section>
             <q-item-section>Back to app</q-item-section>
             <q-tooltip anchor="center right" self="center left" v-if="collapsed">Back to app</q-tooltip>
@@ -241,7 +241,6 @@
 import { LocalStorage, useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
-import TIcon from 'src/components/icons/TIcon.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -336,7 +335,7 @@ const notifications = useNotificationStore();
 /** Admin pages swap the menu for the admin links. */
 const adminMenu = computed(() => route.meta.adminMenu === true);
 const adminLinks = computed(() => [
-  { to: { name: 'admin' }, icon: 'fas fa-gauge', title: 'Overview', exact: true },
+  { to: { name: 'admin' }, icon: 'lucide-gauge', title: 'Overview', exact: true },
   ...allowedAdminLinks(boot.user?.permissions).map((link) => ({ ...link, exact: false })),
 ]);
 

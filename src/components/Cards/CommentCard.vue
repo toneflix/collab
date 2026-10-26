@@ -21,20 +21,20 @@
               flat
               dense
               rounded
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               color="white"
               item-name="collaber"
               dropdown-icon="none"
               :links="[
                 {
-                  icon: 'fas fa-user-lock',
+                  icon: 'lucide-user-lock',
                   label: 'Block User',
                   color: 'red',
                   loading: blocking,
                   click: () => flag(comment, 'user'),
                 },
                 {
-                  icon: 'fas fa-flag',
+                  icon: 'lucide-flag',
                   label: 'Report Comment',
                   color: 'white',
                   loading: reporting,
@@ -55,7 +55,7 @@
             dense
             no-caps
             padding="none"
-            icon="reply"
+            icon="lucide-reply"
             class="self-center flex-none text-sm font-semibold text-white"
             @click="showForm = !showForm"
           >
@@ -112,20 +112,20 @@
                     flat
                     dense
                     rounded
-                    icon="fas fa-ellipsis"
+                    icon="lucide-ellipsis"
                     color="white"
                     item-name="collaber"
                     dropdown-icon="none"
                     :links="[
                       {
-                        icon: 'fas fa-user-lock',
+                        icon: 'lucide-user-lock',
                         label: 'Block User',
                         color: 'red',
                         loading: blocking,
                         click: () => flag(reply, 'user'),
                       },
                       {
-                        icon: 'fas fa-flag',
+                        icon: 'lucide-flag',
                         label: 'Report Comment',
                         color: 'white',
                         loading: reporting,
@@ -185,7 +185,7 @@
               flat
               dense
               color="primary"
-              icon="send"
+              icon="lucide-send"
               :loading="loading"
               @click="formRef.submit()"
             />

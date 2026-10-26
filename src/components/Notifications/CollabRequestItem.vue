@@ -2,7 +2,7 @@
   <q-item class="rounded-lg">
     <q-item-section avatar top>
       <q-avatar size="34px" color="grey-9" text-color="light-blue-5">
-        <q-icon name="fas fa-user-group" size="15px" />
+        <q-icon name="lucide-users-round" size="15px" />
       </q-avatar>
     </q-item-section>
 

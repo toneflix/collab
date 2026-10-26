@@ -121,7 +121,7 @@
                 color="primary"
                 class="w-full text-xl rounded-lg md:w-auto"
                 label="Proceed"
-                icon-right="chevron_right"
+                icon-right="lucide-chevron-right"
                 :loading="loading"
               />
 
@@ -146,7 +146,7 @@
             v-else
             class="flex flex-col items-center justify-center gap-5 p-5 mt-12 text-center bg-gray-200 rounded-3xl text-success"
           >
-            <q-icon name="fas fa-check-circle" size="5em" />
+            <q-icon name="lucide-circle-check" size="5em" />
             <h5 class="text-2xl leading-none text-gray-600">{{ message }}</h5>
             <q-btn
               rounded

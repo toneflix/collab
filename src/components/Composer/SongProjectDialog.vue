@@ -6,7 +6,7 @@
           <div class="text-lg font-bold">Add this song to a project</div>
           <div class="text-xs text-grey-5">The song becomes a track, and the lyrics go on its lyric sheet.</div>
         </div>
-        <q-btn flat round dense icon="close" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
+        <q-btn flat round dense icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
       </header>
 
       <q-form class="flex flex-col gap-3 px-8 pb-2" @submit.prevent="submit">

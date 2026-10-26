@@ -23,42 +23,42 @@ const config = computed(() => useBootstrapStore().configuration);
 
 const links = [
   {
-    icon: 'fas fa-diagram-project',
+    icon: 'lucide-workflow',
     title: 'Start Project',
     to: { name: 'studio.projects.create' },
   },
   {
-    icon: 'fas fa-compact-disc',
+    icon: 'lucide-disc-3',
     title: 'New Release',
     to: { name: 'studio.release.create' },
   },
   {
-    icon: 'fas fa-list-check',
+    icon: 'lucide-list-checks',
     title: 'My Projects',
     to: { name: 'studio.projects' },
   },
   {
-    icon: 'fas fa-radio',
+    icon: 'lucide-radio',
     title: 'My Releases',
     to: { name: 'studio.releases' },
   },
   {
-    icon: 'fas fa-sack-dollar',
+    icon: 'lucide-circle-dollar-sign',
     title: 'Earnings',
     to: { name: 'studio.earnings' },
   },
   {
-    icon: 'fas fa-shield-halved',
+    icon: 'lucide-shield-half',
     title: 'Takedowns',
     to: { name: 'studio.takedowns' },
   },
   {
-    icon: 'fas fa-users-line',
+    icon: 'lucide-users',
     title: 'Artists & Collabers',
     to: { name: 'studio.collabers' },
   },
   {
-    icon: 'fas fa-gears',
+    icon: 'lucide-cog',
     title: 'Studio Settings',
     to: { name: 'studio.release.create' },
   },

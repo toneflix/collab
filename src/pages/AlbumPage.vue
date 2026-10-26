@@ -16,7 +16,7 @@
               color="dark-opaque"
               size="xl"
               class="!flex-none opacity-90"
-              :icon="playing ? ionPause : ionPlay"
+              :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
           </template>
@@ -43,7 +43,7 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon fill color="white" name="fas fa-play" />
+                <q-icon fill color="white" name="lucide-play:fill" />
                 {{ intStr(album.streams) }}
               </span>
               <span class="!flex-none">•</span>
@@ -63,7 +63,7 @@
                   >
                     <q-icon
                       color="white"
-                      :name="active ? ionHeart : ionHeartOutline"
+                      :name="active ? 'lucide-heart:fill' : 'lucide-heart'"
                       :fill="active"
                     />
                     <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
@@ -79,7 +79,7 @@
                   no-caps
                   rounded
                   size="sm"
-                  icon="fas fa-comments"
+                  icon="lucide-messages-square"
                   color="white"
                   padding="xs sm"
                   text-color="dark"
@@ -100,7 +100,7 @@
                     no-caps
                     @click="toggle"
                   >
-                    <q-icon color="white" name="eva-message-square" />
+                    <q-icon color="white" name="lucide-message-square" />
                     &nbsp;{{ intStr(album.commentsCount) }}
                   </q-btn>
                 </ConversationDialog>
@@ -111,7 +111,7 @@
               </span>
             </div>
             <q-banner dense rounded class="mt-8 text-white bg-red-10 max-w-96" v-if="album.takenDown">
-              <template #avatar><q-icon name="fas fa-ban" /></template>
+              <template #avatar><q-icon name="lucide-ban" /></template>
               This release was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
@@ -124,7 +124,7 @@
                   rounded
                   unelevated
                   color="toneflix"
-                  icon="fas fa-lock-open"
+                  icon="lucide-lock-open"
                   :label="`Buy for ${price(album.price)}`"
                   :amount="album.price"
                   :body="{ purpose: 'release', id: album.id }"
@@ -137,7 +137,7 @@
               <q-chip
                 dense
                 class="!flex-none"
-                icon="fas fa-check"
+                icon="lucide-check"
                 color="green-9"
                 text-color="white"
                 v-else-if="album.purchased"
@@ -189,12 +189,6 @@ import {
   Track,
 } from 'src/utils/models';
 import { useRoute } from 'vue-router';
-import {
-  ionHeart,
-  ionHeartOutline,
-  ionPause,
-  ionPlay,
-} from '@quasar/extras/ionicons-v8';
 import { countStr, formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
 import PayButton from 'src/components/Payments/PayButton.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';

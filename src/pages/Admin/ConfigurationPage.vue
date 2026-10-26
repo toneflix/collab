@@ -104,14 +104,14 @@ import {
 const groups: (SettingsSection & { keys: string[] })[] = [
   {
     key: 'app',
-    icon: 'fas fa-gear',
+    icon: 'lucide-settings',
     title: 'App',
     caption: 'Name, contact email and sign-up checks.',
     keys: ['app_name', 'app_email', 'verify_email', 'verify_phone'],
   },
   {
     key: 'money',
-    icon: 'fas fa-coins',
+    icon: 'lucide-coins',
     title: 'Money',
     caption: 'Currency, creator share and tips.',
     keys: [
@@ -123,21 +123,21 @@ const groups: (SettingsSection & { keys: string[] })[] = [
   },
   {
     key: 'withdrawals',
-    icon: 'fas fa-money-bill-transfer',
+    icon: 'lucide-banknote',
     title: 'Withdrawals',
     caption: 'Minimums, hold time and approval.',
     keys: ['min_payout_amount', 'payout_hold_days', 'payout_auto_approve'],
   },
   {
     key: 'releases',
-    icon: 'fas fa-compact-disc',
+    icon: 'lucide-disc-3',
     title: 'Releases',
     caption: 'Whether releases wait for a review.',
     keys: ['review_releases'],
   },
   {
     key: 'studio',
-    icon: 'fas fa-sliders',
+    icon: 'lucide-sliders-horizontal',
     title: 'Studio',
     caption: 'Plugins from other sites.',
     keys: ['studio_plugins'],

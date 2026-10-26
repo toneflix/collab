@@ -11,7 +11,7 @@
       <q-icon
         size="44px"
         class="release-art__badge"
-        :name="inReview ? 'fas fa-clock' : 'fas fa-circle-check'"
+        :name="inReview ? 'lucide-clock' : 'lucide-circle-check'"
         :color="inReview ? 'orange' : 'positive'"
       />
     </div>
@@ -35,7 +35,7 @@
         unelevated
         rounded
         color="primary"
-        icon="fas fa-play"
+        icon="lucide-play:fill"
         :label="inReview ? 'Preview Release' : 'View Release'"
         class="!flex-none"
         :to="{
@@ -49,7 +49,7 @@
         outline
         rounded
         color="primary"
-        icon="fas fa-share-nodes"
+        icon="lucide-share-2"
         label="Copy Link"
         class="!flex-none"
         @click="copyLink"
@@ -59,7 +59,7 @@
         no-caps
         flat
         rounded
-        icon="fas fa-compact-disc"
+        icon="lucide-disc-3"
         label="My Releases"
         class="!flex-none"
         :to="{ name: 'studio.releases' }"
@@ -68,7 +68,7 @@
         no-caps
         flat
         rounded
-        icon="fas fa-pen"
+        icon="lucide-pen"
         label="Edit Release"
         class="!flex-none"
         @click="emit('edit')"

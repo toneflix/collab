@@ -6,7 +6,7 @@
     aria-label="Notifications"
     :to="compact ? { name: 'notifications' } : undefined"
   >
-    <q-icon name="fas fa-bell" size="18px" />
+    <q-icon name="lucide-bell" size="18px" />
     <q-badge floating rounded color="red-6" :label="badgeLabel" v-if="store.badge" />
     <q-tooltip>Notifications</q-tooltip>
 
@@ -39,7 +39,7 @@
               round
               dense
               size="sm"
-              icon="settings"
+              icon="lucide-settings"
               color="grey-5"
               aria-label="Notification settings"
               class="!flex-none"
@@ -58,13 +58,13 @@
           v-if="store.pendingRequests"
         >
           <q-item-section avatar>
-            <q-icon name="fas fa-user-group" size="16px" color="light-blue-4" />
+            <q-icon name="lucide-users-round" size="16px" color="light-blue-4" />
           </q-item-section>
           <q-item-section>
             {{ store.pendingRequests }} collab {{ store.pendingRequests === 1 ? 'request' : 'requests' }} waiting for you
           </q-item-section>
           <q-item-section side>
-            <q-icon name="chevron_right" />
+            <q-icon name="lucide-chevron-right" />
           </q-item-section>
         </q-item>
 

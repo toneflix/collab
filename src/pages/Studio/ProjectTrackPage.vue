@@ -8,7 +8,7 @@
         dense
         class="!flex-none"
         aria-label="Back to the project"
-        :icon="ionArrowBack"
+        icon="lucide-arrow-left"
         :to="{ name: 'studio.project', params: { project_id: project.id } }"
       />
       <div class="studio-title">
@@ -68,7 +68,7 @@
           no-caps
           rounded
           color="primary"
-          :icon="ionSave"
+          icon="lucide-save"
           :label="$q.screen.gt.xs ? 'Save' : undefined"
           :loading="saving"
           :disable="(!stems.length && !tempoDirty) || !editorReady"
@@ -83,7 +83,7 @@
         <q-btn
           flat
           round
-          :icon="ionCloudUpload"
+          icon="lucide-cloud-upload"
           aria-label="Save with a preview"
           :loading="rendering"
           :disable="!stems.length || !editorReady || saving"
@@ -109,7 +109,7 @@
       />
       <ActionButton
         label="Add stems"
-        :icon="ionAddCircle"
+        icon="lucide-circle-plus"
         :expanded="expanded"
         :loading="uploading > 0"
         :disable="viewOnly"
@@ -128,7 +128,7 @@
         <template #default="{ toggle, open }">
           <ActionButton
             label="Sounds"
-            :icon="ionMusicalNotes"
+            icon="lucide-music"
             :expanded="expanded"
             :active="open"
             :disable="!editorReady"
@@ -151,7 +151,7 @@
         <template #default="{ toggle, open }">
           <ActionButton
             label="AI tools"
-            :icon="ionSparkles"
+            icon="lucide-sparkles"
             :expanded="expanded"
             :active="open"
             @click="toggle"
@@ -172,7 +172,7 @@
         <template #default="{ toggle, open }">
           <ActionButton
             label="Lyrics"
-            :icon="ionDocumentText"
+            icon="lucide-file-text"
             :expanded="expanded"
             :active="open"
             @click="toggle"
@@ -181,7 +181,7 @@
       </LyricsPanel>
       <ActionButton
         label="Instrument"
-        :icon="ionGrid"
+        icon="lucide-layout-grid"
         :expanded="expanded"
         :disable="!editorReady"
         @click="newInstrument"
@@ -200,7 +200,7 @@
         <template #default="{ toggle, open }">
           <ActionButton
             label="History"
-            :icon="ionTime"
+            icon="lucide-clock"
             :expanded="expanded"
             :active="open"
             @click="toggle"
@@ -216,7 +216,7 @@
         <template #default="{ toggle }">
           <ActionButton
             label="Assets"
-            :icon="ionFolderOpen"
+            icon="lucide-folder-open"
             :expanded="expanded"
             @click="toggle"
           />
@@ -230,7 +230,7 @@
         <template #default="{ toggle }">
           <ActionButton
             label="Conversation"
-            :icon="ionChatbubbles"
+            icon="lucide-messages-square"
             :expanded="expanded"
             @click="toggle"
           />
@@ -240,7 +240,7 @@
         <template #default="{ toggle }">
           <ActionButton
             label="Track info"
-            :icon="ionInformationCircle"
+            icon="lucide-info"
             :expanded="expanded"
             @click="toggle"
           />
@@ -248,7 +248,7 @@
       </ProjectTrackInfoDialog>
       <ActionButton
         :label="projectReleaseLabel(project)"
-        :icon="ionDisc"
+        icon="lucide-disc-3"
         :expanded="expanded"
         :disable="!!releaseBlocker"
         @click="router.push(projectReleaseLink(project))"
@@ -260,7 +260,7 @@
         dense
         class="!flex-none expand-toggle"
         :class="{ 'expand-toggle--open': expanded }"
-        :icon="ionChevronForward"
+        icon="lucide-chevron-right"
         :aria-label="expanded ? 'Hide labels' : 'Show labels'"
         :aria-expanded="expanded"
         @click="toggleExpanded"
@@ -328,22 +328,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ionAddCircle,
-  ionArrowBack,
-  ionChatbubbles,
-  ionChevronForward,
-  ionCloudUpload,
-  ionDisc,
-  ionDocumentText,
-  ionFolderOpen,
-  ionGrid,
-  ionInformationCircle,
-  ionMusicalNotes,
-  ionSave,
-  ionSparkles,
-  ionTime,
-} from '@quasar/extras/ionicons-v8';
 import { LocalStorage, useQuasar, type QNotifyUpdateOptions } from 'quasar';
 import {
   computed,

@@ -39,7 +39,7 @@
               color="toneflix"
               text-color="dark"
               size="lg"
-              icon="eva-plus"
+              icon="lucide-plus"
               label="New project"
               class="!flex-none font-bold"
               :to="{ name: 'studio.projects.create' }"
@@ -49,7 +49,7 @@
               rounded
               no-caps
               size="lg"
-              icon="eva-edit-2"
+              icon="lucide-pencil-line"
               label="Write a song"
               class="!flex-none"
               :to="{ name: 'studio.composer' }"
@@ -86,7 +86,7 @@
           v-if="tracks.length"
         >
           <span class="home-hero__play-icon">
-            <q-icon :name="playing ? 'eva-pause-circle' : 'eva-play-circle'" size="22px" />
+            <q-icon :name="playing ? 'lucide-circle-pause' : 'lucide-circle-play'" size="22px" />
           </span>
           {{ playing ? 'Pause' : 'Play' }} what's trending this week
         </button>
@@ -120,7 +120,7 @@ const props = defineProps({
 
 const source = 'home.trending';
 const player = usePlayerStore();
-const fallbackIcons = ['eva-music', 'eva-mic', 'eva-headphones', 'eva-radio', 'eva-speaker'];
+const fallbackIcons = ['lucide-music', 'lucide-mic', 'lucide-headphones', 'lucide-radio', 'lucide-speaker'];
 
 const firstName = computed(() => props.name.split(' ')[0] || 'there');
 const playing = computed(() => player.isPlayingSource(source));

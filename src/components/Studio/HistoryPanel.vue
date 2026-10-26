@@ -7,7 +7,7 @@
           <div class="text-lg font-bold">Version history</div>
           <div class="text-xs text-grey-5">Every save and stem change, and who made it</div>
         </div>
-        <q-btn flat round dense icon="close" aria-label="Close version history" class="!flex-none" @click="open = false" />
+        <q-btn flat round dense icon="lucide-x" aria-label="Close version history" class="!flex-none" @click="open = false" />
       </header>
 
       <div class="history__list">
@@ -24,7 +24,7 @@
               <div class="flex items-start gap-2 no-wrap">
                 <q-avatar size="26px" class="!flex-none version__avatar">
                   <img :src="v.user?.imageUrl || avatarFallback" :alt="v.user?.name || ''" v-if="v.user" />
-                  <q-icon :name="ionTime" size="16px" v-else />
+                  <q-icon name="lucide-clock" size="16px" v-else />
                 </q-avatar>
                 <div class="min-w-0">
                   <div class="text-sm version__text">
@@ -58,7 +58,7 @@
                   no-caps
                   size="sm"
                   class="!flex-none ml-auto version__restore"
-                  :icon="ionArrowUndo"
+                  icon="lucide-undo-2"
                   :label="$q.screen.gt.xs ? 'Restore' : undefined"
                   :aria-label="`Restore the version from ${fullDate(v.createdAt)}`"
                   :loading="restoring === v.id"
@@ -87,7 +87,6 @@
 </template>
 
 <script setup lang="ts">
-import { ionArrowUndo, ionTime } from '@quasar/extras/ionicons-v8';
 import { date, useQuasar } from 'quasar';
 import { computed, ref } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';

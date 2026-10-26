@@ -41,10 +41,10 @@ const heading = computed(() => {
 });
 
 const icon = computed(() => ({
-  decided: props.review.decision === 'approve' ? 'fas fa-circle-check' : 'fas fa-circle-xmark',
-  flagged: 'fas fa-flag',
-  failed: 'fas fa-triangle-exclamation',
-  skipped: 'fas fa-forward',
+  decided: props.review.decision === 'approve' ? 'lucide-circle-check' : 'lucide-circle-x',
+  flagged: 'lucide-flag',
+  failed: 'lucide-triangle-alert',
+  skipped: 'lucide-fast-forward',
   queued: '',
 })[props.review.status]);
 

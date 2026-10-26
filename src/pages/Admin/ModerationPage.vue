@@ -21,7 +21,7 @@
             :placeholder="searchHint"
             v-model="search"
           >
-            <template #prepend><q-icon name="fas fa-magnifying-glass" size="xs" /></template>
+            <template #prepend><q-icon name="lucide-search" size="xs" /></template>
           </q-input>
           <template v-if="tab === 'queue'">
             <q-select
@@ -53,7 +53,7 @@
 
           <div class="py-10 text-center" v-if="loading && !queue.length"><q-spinner size="md" /></div>
           <div class="py-12 text-center text-grey-5" v-else-if="!queue.length">
-            <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" />
+            <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'Nothing matches your search.' : 'Nothing waiting for review.' }}</div>
           </div>
 
@@ -87,7 +87,7 @@
                   <div class="report" :key="report.id" v-for="report in row.reports">
                     <template v-if="report.type === 'match'">
                       <div class="flex items-center gap-2 mb-1 text-xs text-grey-5">
-                        <q-icon name="fas fa-wave-square" color="orange-6" class="!flex-none" />
+                        <q-icon name="lucide-audio-waveform" color="orange-6" class="!flex-none" />
                         <span>
                           Audio check · {{ report.claim?.kind === 'exact' ? 'same file' : 'sounds the same' }} ·
                           {{ Math.round((report.claim?.score || 0) * 100) }}% match
@@ -102,7 +102,7 @@
                     </template>
                     <template v-else-if="report.type === 'lyrics'">
                       <div class="flex items-center gap-2 mb-1 text-xs text-grey-5">
-                        <q-icon name="fas fa-align-left" color="orange-6" class="!flex-none" />
+                        <q-icon name="lucide-text-align-start" color="orange-6" class="!flex-none" />
                         <span>Lyrics check · {{ timeAgoStamp(report.createdAt) }}</span>
                       </div>
                       The lyrics use words to review:
@@ -135,7 +135,7 @@
                     no-caps
                     size="sm"
                     color="red-9"
-                    icon="fas fa-ban"
+                    icon="lucide-ban"
                     label="Take down"
                     class="!flex-none"
                     v-if="row.item.canTakeDown && !row.item.takenDown"
@@ -147,7 +147,7 @@
                     no-caps
                     size="sm"
                     color="white"
-                    icon="fas fa-check"
+                    icon="lucide-check"
                     label="Mark handled"
                     class="!flex-none"
                     v-if="!row.item.canTakeDown || row.item.takenDown"
@@ -160,7 +160,7 @@
                     no-caps
                     size="sm"
                     color="white"
-                    icon="fas fa-xmark"
+                    icon="lucide-x"
                     label="Dismiss"
                     class="!flex-none"
                     :loading="busy === `dismiss:${row.key}`"
@@ -177,7 +177,7 @@
         <template v-else-if="tab === 'releases'">
           <div class="py-10 text-center" v-if="loading && !reviews.length"><q-spinner size="md" /></div>
           <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
-            <q-icon name="fas fa-circle-check" size="32px" class="mb-4" color="green-6" />
+            <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
             <div>{{ search ? 'No releases match your search.' : 'No releases waiting for approval.' }}</div>
           </div>
 
@@ -227,7 +227,7 @@
                     no-caps
                     size="sm"
                     color="green-9"
-                    icon="fas fa-check"
+                    icon="lucide-check"
                     label="Approve"
                     class="!flex-none"
                     :loading="busy === `approve:${release.id}`"
@@ -239,7 +239,7 @@
                     no-caps
                     size="sm"
                     color="white"
-                    icon="fas fa-rotate-left"
+                    icon="lucide-rotate-ccw"
                     label="Send back"
                     class="!flex-none"
                     :disable="!reviewNotes[release.id]?.trim()"
@@ -252,7 +252,7 @@
                     no-caps
                     size="sm"
                     color="purple-3"
-                    icon="fas fa-wand-magic-sparkles"
+                    icon="lucide-wand-sparkles"
                     label="Send to AI moderator"
                     class="!flex-none"
                     v-if="stats.aiModerator"
@@ -308,7 +308,7 @@
                       no-caps
                       size="sm"
                       color="green-9"
-                      icon="fas fa-rotate-left"
+                      icon="lucide-rotate-ccw"
                       label="Restore"
                       class="!flex-none"
                       :loading="busy === `restore:${takedown.id}`"
@@ -443,7 +443,7 @@ const sections = computed(() =>
     [
       {
         key: 'queue',
-        icon: 'fas fa-inbox',
+        icon: 'lucide-inbox',
         title: 'Queue',
         caption: 'Reports and content the checks flagged.',
         count: stats.value.pending,
@@ -451,7 +451,7 @@ const sections = computed(() =>
       boot.configuration.review_releases || stats.value.releases
         ? {
             key: 'releases',
-            icon: 'fas fa-compact-disc',
+            icon: 'lucide-disc-3',
             title: 'Releases',
             caption: 'Releases waiting for approval.',
             count: stats.value.releases,
@@ -459,14 +459,14 @@ const sections = computed(() =>
         : null,
       {
         key: 'claims',
-        icon: 'fas fa-id-badge',
+        icon: 'lucide-id-card',
         title: 'Artist claims',
         caption: 'People asking to manage an artist profile.',
         count: stats.value.claims,
       },
       {
         key: 'appealed',
-        icon: 'fas fa-scale-balanced',
+        icon: 'lucide-scale',
         title: 'Appeals',
         caption: 'Owners asking for a takedown to be lifted.',
         count: stats.value.appeals,
@@ -474,13 +474,13 @@ const sections = computed(() =>
       },
       {
         key: 'active',
-        icon: 'fas fa-eye-slash',
+        icon: 'lucide-eye-off',
         title: 'Taken down',
         caption: 'Content hidden from everyone but its owner.',
       },
       {
         key: 'restored',
-        icon: 'fas fa-rotate-left',
+        icon: 'lucide-rotate-ccw',
         title: 'Restored',
         caption: 'Takedowns that were lifted.',
       },

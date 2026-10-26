@@ -20,7 +20,7 @@
           class="ml-auto min-w-64"
           v-model="search"
         >
-          <template #prepend><q-icon name="search" /></template>
+          <template #prepend><q-icon name="lucide-search" /></template>
         </q-input>
         <q-select
           dark
@@ -39,13 +39,13 @@
           <q-item-section avatar>
             <q-avatar size="40px" color="grey-9">
               <img :src="user.imageUrl" v-if="user.imageUrl" />
-              <q-icon name="eva-person" v-else />
+              <q-icon name="lucide-user" v-else />
             </q-avatar>
           </q-item-section>
           <q-item-section>
             <q-item-label class="font-bold">
               {{ user.fullname || user.username }}
-              <q-icon name="fas fa-circle-check" color="toneflix" size="12px" class="ml-1" v-if="user.verified" />
+              <q-icon name="lucide-circle-check" color="toneflix" size="12px" class="ml-1" v-if="user.verified" />
               <q-badge rounded color="red-9" label="Banned" class="ml-1" v-if="user.suspended && !user.suspendedUntil" />
               <q-badge rounded color="orange-9" label="Suspended" class="ml-1" v-else-if="user.suspended" />
             </q-item-label>

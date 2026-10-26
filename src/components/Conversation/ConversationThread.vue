@@ -12,7 +12,7 @@
         </div>
 
         <div class="thread__empty" v-if="loaded && !messages.length">
-          <q-icon name="forum" size="40px" color="grey-7" />
+          <q-icon name="lucide-messages-square" size="40px" color="grey-7" />
           <div class="mt-2 text-base font-bold">No messages yet</div>
           <div class="text-sm text-grey-6">Say hello. Everyone on this {{ noun }} will see it.</div>
         </div>
@@ -58,8 +58,8 @@
                   >
                     <span class="msg__quote-name">{{ row.message.parent.user?.name || 'Someone' }}</span>
                     <span class="msg__quote-body">
-                      <q-icon name="mic" size="14px" class="mr-1" v-if="row.message.parent.hasVoice" />
-                      <q-icon name="graphic_eq" size="14px" class="mr-1" v-else-if="row.message.parent.region" />
+                      <q-icon name="lucide-mic" size="14px" class="mr-1" v-if="row.message.parent.hasVoice" />
+                      <q-icon name="lucide-audio-lines" size="14px" class="mr-1" v-else-if="row.message.parent.region" />
                       {{ row.message.parent.body || (row.message.parent.region ? regionLabel(row.message.parent.region) : '') }}
                     </span>
                   </button>
@@ -70,12 +70,12 @@
                     v-if="row.message.region"
                     @click="openRegion(row.message.region)"
                   >
-                    <q-icon name="graphic_eq" size="18px" class="!flex-none" />
+                    <q-icon name="lucide-audio-lines" size="18px" class="!flex-none" />
                     <span class="msg__region-text">
                       <span class="msg__region-label">{{ regionLabel(row.message.region) }}</span>
                       <span class="msg__region-hint">Show in the editor</span>
                     </span>
-                    <q-icon name="arrow_outward" size="16px" class="!flex-none" />
+                    <q-icon name="lucide-arrow-up-right" size="16px" class="!flex-none" />
                   </button>
                   <VoiceNote :voice="row.message.voice" :mine="row.mine" v-if="row.message.voice" />
                   <div class="msg__body" :class="{ 'mt-1': row.message.voice }" v-if="row.message.body">{{ row.message.body }}</div>
@@ -83,15 +83,15 @@
                   <q-menu touch-position context-menu v-if="!row.message.pending">
                     <q-list dense dark class="min-w-40">
                       <q-item clickable v-close-popup @click="startReply(row.message)">
-                        <q-item-section avatar><q-icon name="reply" /></q-item-section>
+                        <q-item-section avatar><q-icon name="lucide-reply" /></q-item-section>
                         <q-item-section>Reply</q-item-section>
                       </q-item>
                       <q-item clickable v-close-popup @click="copy(row.message.body)" v-if="row.message.body">
-                        <q-item-section avatar><q-icon name="content_copy" /></q-item-section>
+                        <q-item-section avatar><q-icon name="lucide-copy" /></q-item-section>
                         <q-item-section>Copy text</q-item-section>
                       </q-item>
                       <q-item clickable v-close-popup @click="remove(row.message)" v-if="canDelete(row.message)">
-                        <q-item-section avatar><q-icon name="delete_outline" color="red-4" /></q-item-section>
+                        <q-item-section avatar><q-icon name="lucide-trash-2" color="red-4" /></q-item-section>
                         <q-item-section class="text-red-4">Delete</q-item-section>
                       </q-item>
                     </q-list>
@@ -99,7 +99,7 @@
                 </div>
 
                 <div class="msg__actions" v-if="!row.message.pending && !row.message.failed">
-                  <q-btn flat round dense size="sm" icon="reply" aria-label="Reply" @click="startReply(row.message)">
+                  <q-btn flat round dense size="sm" icon="lucide-reply" aria-label="Reply" @click="startReply(row.message)">
                     <q-tooltip>Reply</q-tooltip>
                   </q-btn>
                 </div>
@@ -125,27 +125,27 @@
     <transition name="fade">
       <button type="button" class="thread__new" v-if="newBelow" @click="scrollToBottom(true)">
         {{ newBelow }} new message{{ newBelow === 1 ? '' : 's' }}
-        <q-icon name="arrow_downward" size="16px" />
+        <q-icon name="lucide-arrow-down" size="16px" />
       </button>
     </transition>
 
     <form class="composer" @submit.prevent="send">
       <div class="composer__reply" v-if="replyTo">
-        <q-icon name="reply" size="18px" class="!flex-none" color="grey-5" />
+        <q-icon name="lucide-reply" size="18px" class="!flex-none" color="grey-5" />
         <div class="composer__reply-text">
           <div class="text-xs font-bold">Replying to {{ replyTo.user?.name || 'Someone' }}</div>
           <div class="text-xs truncate text-grey-5">{{ replyTo.body || (replyTo.voice ? 'Voice note' : '') }}</div>
         </div>
-        <q-btn flat round dense size="sm" icon="close" class="!flex-none" aria-label="Cancel reply" @click="replyTo = null" />
+        <q-btn flat round dense size="sm" icon="lucide-x" class="!flex-none" aria-label="Cancel reply" @click="replyTo = null" />
       </div>
 
       <div class="composer__reply composer__reply--region" v-if="region">
-        <q-icon name="graphic_eq" size="18px" class="!flex-none" color="amber-5" />
+        <q-icon name="lucide-audio-lines" size="18px" class="!flex-none" color="amber-5" />
         <div class="composer__reply-text">
           <div class="text-xs font-bold">About this part of the track</div>
           <div class="text-xs truncate text-grey-5">{{ regionLabel(region) }}</div>
         </div>
-        <q-btn flat round dense size="sm" icon="close" class="!flex-none" aria-label="Remove the part of the track" @click="region = null" />
+        <q-btn flat round dense size="sm" icon="lucide-x" class="!flex-none" aria-label="Remove the part of the track" @click="region = null" />
       </div>
 
       <div class="composer__row composer__row--recording" v-if="recorder.recording.value">
@@ -153,7 +153,7 @@
           flat
           round
           dense
-          icon="delete_outline"
+          icon="lucide-trash-2"
           class="!flex-none text-grey-5"
           aria-label="Discard recording"
           @click="recorder.cancel()"
@@ -175,7 +175,7 @@
         <q-btn
           round
           unelevated
-          icon="send"
+          icon="lucide-send"
           size="sm"
           class="!flex-none composer__send"
           aria-label="Send voice note"
@@ -200,7 +200,7 @@
           round
           unelevated
           type="submit"
-          icon="send"
+          icon="lucide-send"
           size="sm"
           class="!flex-none composer__send"
           :disable="readonly"
@@ -210,7 +210,7 @@
         <q-btn
           round
           unelevated
-          icon="mic"
+          icon="lucide-mic"
           size="sm"
           class="!flex-none composer__send composer__send--mic"
           :disable="readonly || starting"

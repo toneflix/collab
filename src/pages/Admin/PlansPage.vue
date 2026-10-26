@@ -14,7 +14,7 @@
           no-caps
           class="!flex-none"
           color="toneflix"
-          icon="add"
+          icon="lucide-plus"
           label="New plan"
           @click="edit()"
         />
@@ -88,11 +88,11 @@
               <span class="!flex-none">
                 <template v-if="feature.type === 'toggle'">
                   <q-icon
-                    name="fas fa-check"
+                    name="lucide-check"
                     color="green-5"
                     v-if="plan.features[feature.key]"
                   />
-                  <q-icon name="fas fa-xmark" color="grey-6" v-else />
+                  <q-icon name="lucide-x" color="grey-6" v-else />
                 </template>
                 <template v-else>
                   {{
@@ -200,7 +200,7 @@
                 dense
                 no-caps
                 size="sm"
-                icon="add"
+                icon="lucide-plus"
                 label="Add option"
                 class="!flex-none"
                 @click="
@@ -265,7 +265,7 @@
                 round
                 dense
                 size="sm"
-                icon="close"
+                icon="lucide-x"
                 class="mt-1 !flex-none"
                 @click="form.billing_options.splice(i, 1)"
               />

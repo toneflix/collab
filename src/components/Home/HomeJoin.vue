@@ -25,7 +25,7 @@
           size="lg"
           color="white"
           text-color="dark"
-          icon="fas fa-crown"
+          icon="lucide-crown"
           label="See Premium plans"
           class="!flex-none font-bold"
           :to="{ name: 'premium' }"

@@ -7,7 +7,7 @@
           <q-btn
             dense
             no-caps
-            icon="add"
+            icon="lucide-plus"
             size="md"
             label="Create Project"
             color="white"
@@ -22,8 +22,8 @@
             color="secondary"
             label="Own Projects"
             class="!flex-none"
-            checked-icon="person"
-            unchecked-icon="group"
+            checked-icon="lucide-user"
+            unchecked-icon="lucide-users"
             v-model="own"
           />
         </div>
@@ -37,7 +37,7 @@
         >
           <h3 class="text-3xl font-bold">You do not have any projects yet.</h3>
           <template #avatar>
-            <q-icon name="info" />
+            <q-icon name="lucide-info" />
           </template>
         </q-banner>
         <q-item
@@ -62,17 +62,17 @@
               class="flex !flex-none flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
             >
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="fas fa-users" size=".6rem" />
+                <q-icon name="lucide-users" size=".6rem" />
                 {{ intStr(project.collaboratorsCount) }}
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon :name="ionHandLeft" size=".7rem" />
+                <q-icon name="lucide-hand:fill" size=".7rem" />
                 {{ intStr(project.props) }}
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="fas fa-compact-disc" size=".7rem" />
+                <q-icon name="lucide-disc-3" size=".7rem" />
                 {{ intStr(project.tracksCount) }}
               </span>
               <span class="!flex-none" v-if="project.released">•</span>
@@ -81,10 +81,9 @@
                 v-if="project.released"
               >
                 <q-icon
-                  name="fas fa-check-circle"
+                  name="lucide-circle-check"
                   size=".7rem"
                   color="success"
-                  class="icon-fill"
                 />
               </span>
             </q-item-label>
@@ -98,14 +97,14 @@
               flat
               dense
               rounded
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               item-name="Project"
               dropdown-icon="none"
               color="white"
               :links="[
                 {
                   label: 'Project Home',
-                  icon: 'fas fa-home',
+                  icon: 'lucide-house',
                   to: {
                     name: 'project',
                     params: { project_id: project.slug },
@@ -113,7 +112,7 @@
                 },
                 {
                   label: 'Edit Project',
-                  icon: 'fas fa-edit',
+                  icon: 'lucide-pencil',
                   to: {
                     name: 'studio.projects.create',
                     params: { project_id: project.slug },
@@ -122,13 +121,13 @@
                 {
                   show: project.isOwner && !projectReleaseBlocker(project),
                   label: projectReleaseLabel(project),
-                  icon: 'fas fa-compact-disc',
+                  icon: 'lucide-disc-3',
                   to: projectReleaseLink(project),
                 },
                 {
                   show: project.isOwner,
                   label: 'Delete Project',
-                  icon: 'fas fa-trash',
+                  icon: 'lucide-trash-2',
                   color: 'negative',
                   target: `creator/projects/${project.id}`,
                   action: 'delete',
@@ -152,7 +151,6 @@
 
 <script setup lang="ts">
 import { usePagination } from 'alova/client';
-import { ionHandLeft } from '@quasar/extras/ionicons-v8';
 import { date } from 'quasar';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

@@ -33,7 +33,7 @@
             class="!flex-none flex items-center gap-1"
             :content="`${intStr(project.collaboratorsCount)} collaborators are working on this project`"
           >
-            <q-icon name="fas fa-users" size=".8rem" />
+            <q-icon name="lucide-users" size=".8rem" />
             {{ intStr(project.collaboratorsCount) }}
           </HoverCard>
           <span class="!flex-none">•</span>
@@ -43,7 +43,7 @@
             class="!flex-none flex items-center gap-1"
             :content="`This project has ${intStr(project.props)} props`"
           >
-            <q-icon :name="ionHandLeft" size=".9rem" />
+            <q-icon name="lucide-hand:fill" size=".9rem" />
             {{ intStr(project.props) }}
           </HoverCard>
           <span class="!flex-none">•</span>
@@ -53,7 +53,7 @@
             class="!flex-none flex items-center gap-1"
             :content="`This project has ${intStr(project.tracksCount)} tracks`"
           >
-            <q-icon name="fas fa-compact-disc" size=".9rem" />
+            <q-icon name="lucide-disc-3" size=".9rem" />
             {{ intStr(project.tracksCount) }}
           </HoverCard>
           <span class="!flex-none">•</span>
@@ -61,7 +61,7 @@
             <q-btn
               flat
               dense
-              icon="fas fa-edit"
+              icon="lucide-pencil"
               size="sm"
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
@@ -74,7 +74,7 @@
             unelevated
             color="primary"
             class="!flex-none"
-            icon="fas fa-compact-disc"
+            icon="lucide-disc-3"
             :label="projectReleaseLabel(project)"
             :disable="!!releaseBlocker"
             :to="projectReleaseLink(project)"
@@ -119,7 +119,7 @@
             <q-btn
               dense
               no-caps
-              icon="add"
+              icon="lucide-plus"
               label="Add Track"
               class="!flex-none"
               color="white"
@@ -133,7 +133,7 @@
         <q-btn
           dense
           no-caps
-          icon="add"
+          icon="lucide-plus"
           class="!flex-none"
           color="white"
           text-color="dark"
@@ -154,7 +154,7 @@
             <q-avatar
               color="secondary"
               text-color="white"
-              icon="fas fa-compact-disc"
+              icon="lucide-disc-3"
             />
           </q-item-section>
 
@@ -170,11 +170,11 @@
                 class="!flex-none flex items-center gap-1"
                 v-if="track.artist"
               >
-                <q-icon name="fas fa-user" size=".6rem" />
+                <q-icon name="lucide-user" size=".6rem" />
                 {{ track.artist.name }}
               </span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="fas fa-wave-square" size=".6rem" />
+                <q-icon name="lucide-audio-waveform" size=".6rem" />
                 {{ intStr(track.stemsCount) }}
               </span>
             </q-item-label>
@@ -187,7 +187,7 @@
               flat
               dense
               rounded
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               color="white"
               item-name="Track"
               dropdown-icon="none"
@@ -196,7 +196,7 @@
                   show:
                     (!!track.userId && track.userId === user.id) ||
                     project.isOwner,
-                  icon: 'fas fa-trash',
+                  icon: 'lucide-trash-2',
                   label: 'Delete Track',
                   color: 'red',
                   action: 'delete',
@@ -226,7 +226,7 @@
             <q-btn
               dense
               no-caps
-              icon="add"
+              icon="lucide-plus"
               label="Add Collaber"
               class="!flex-none"
               color="white"
@@ -243,7 +243,7 @@
         <q-btn
           dense
           no-caps
-          icon="add"
+          icon="lucide-plus"
           class="!flex-none"
           color="white"
           text-color="dark"
@@ -276,20 +276,20 @@
               flat
               dense
               rounded
-              icon="fas fa-ellipsis"
+              icon="lucide-ellipsis"
               color="white"
               item-name="collaber"
               dropdown-icon="none"
               :links="[
                 {
                   show: project.isOwner,
-                  icon: 'fas fa-user-edit',
+                  icon: 'lucide-user-pen',
                   label: 'Edit Role',
                   color: 'primary',
                   click: () => collaberDialogRef.toggle(artist),
                 },
                 {
-                  icon: 'fas fa-user-lock',
+                  icon: 'lucide-user-lock',
                   label: 'Block',
                   color: 'red',
                   click: () => flag(artist.id, i),
@@ -297,7 +297,7 @@
                 },
                 {
                   show: project.isOwner,
-                  icon: 'fas fa-user-times',
+                  icon: 'lucide-user-x',
                   label: 'Remove from Project',
                   color: 'red',
                   action: 'delete',
@@ -316,7 +316,7 @@
           dense
           no-caps
           color="negative"
-          icon="fas fa-trash"
+          icon="lucide-trash-2"
           label="Delete Project"
           class="!flex-none"
           base-url="creator/projects"
@@ -339,7 +339,6 @@ import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
 import ContentRemover from 'src/components/Utilities/ContentRemover.vue';
 import HoverCard from 'src/components/Cards/HoverCard.vue';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
-import { ionHandLeft } from '@quasar/extras/ionicons-v8';
 import { useWatcher } from 'alova/client';
 import { useMeta } from 'quasar';
 import placeholder from 'src/assets/placeholder.svg';

@@ -4,7 +4,7 @@
       <q-btn
         dense
         no-caps
-        icon="arrow_back"
+        icon="lucide-arrow-left"
         label="Return to Project"
         :to="{
           name: 'studio.project',
@@ -79,13 +79,13 @@
                     @update:model-value="processUpload"
                   >
                     <template v-slot:prepend>
-                      <q-icon name="cloud_upload" @click.stop.prevent />
+                      <q-icon name="lucide-cloud-upload" @click.stop.prevent />
                     </template>
                     <template v-slot:append>
                       <q-btn
                         outline
                         color="primary"
-                        icon-right="chevron_right"
+                        icon-right="lucide-chevron-right"
                         label="Retry"
                         :loading="loading"
                         @click="processUpload()"
@@ -107,7 +107,7 @@
                       <template v-slot:header>
                         <q-item-section avatar>
                           <q-avatar
-                            icon="fas fa-compact-disc"
+                            icon="lucide-disc-3"
                             color="white"
                             text-color="dark"
                             class="bg-white !bg-contain !bg-no-repeat !bg-center"
@@ -126,7 +126,7 @@
                               dense
                               round
                               size="md"
-                              icon="clear"
+                              icon="lucide-x"
                               color="red"
                               :id="track.id"
                               :list="(() => tracks as unknown as GenericData[])()"
@@ -159,7 +159,7 @@
                                 flat
                                 dense
                                 round
-                                icon="refresh"
+                                icon="lucide-refresh-cw"
                                 class="m-2 absolute-top-right"
                                 v-if="streamUrls[i]"
                                 @click="resetTrack(i)"
@@ -179,7 +179,7 @@
                                 rounded
                                 padding="xs none"
                                 unelevated
-                                icon="fas fa-file-audio"
+                                icon="lucide-file-music"
                                 class="w-full mt-2 overflow-hidden text-ellipsis"
                                 color="primary"
                                 :label="
@@ -319,7 +319,7 @@
                   no-caps
                   color="primary"
                   class="text-xl rounded-lg !flex-none"
-                  icon="fas fa-check-circle"
+                  icon="lucide-circle-check"
                   :label="reviewsOn ? 'Submit for Review' : 'Publish Now'"
                   :loading="saving && !!form.publish"
                   @click="saveRelease(true)"

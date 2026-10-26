@@ -17,7 +17,7 @@
         <img class="cover cover--sm" :src="subject?.imageUrl || conversation.imageUrl || imageFallback" alt="" />
         <span class="dock-pill__title">{{ title }}</span>
         <q-badge rounded color="red-6" :label="unread" v-if="unread" />
-        <q-icon name="expand_less" size="20px" class="!flex-none" />
+        <q-icon name="lucide-chevron-up" size="20px" class="!flex-none" />
       </button>
 
       <section
@@ -41,16 +41,16 @@
               round
               dense
               size="sm"
-              icon="open_in_full"
+              icon="lucide-maximize-2"
               aria-label="Open full page"
               :to="{ name: 'messages', params: { type: conversation.type, id: conversation.id } }"
             >
               <q-tooltip>Open full page</q-tooltip>
             </q-btn>
-            <q-btn flat round dense size="sm" icon="remove" aria-label="Minimize" @click="store.toggleMinimized()">
+            <q-btn flat round dense size="sm" icon="lucide-minus" aria-label="Minimize" @click="store.toggleMinimized()">
               <q-tooltip>Minimize</q-tooltip>
             </q-btn>
-            <q-btn flat round dense size="sm" icon="close" aria-label="Close" @click="store.closeDock()">
+            <q-btn flat round dense size="sm" icon="lucide-x" aria-label="Close" @click="store.closeDock()">
               <q-tooltip>Close</q-tooltip>
             </q-btn>
           </div>

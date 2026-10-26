@@ -17,7 +17,7 @@
           flat
           round
           dense
-          icon="close"
+          icon="lucide-x"
           aria-label="Close lyrics"
           class="!flex-none"
           @click="open = false"
@@ -56,7 +56,7 @@
                 color="toneflix"
                 class="!flex-none"
                 label="Transcribe"
-                :icon="ionSparkles"
+                icon="lucide-sparkles"
                 :loading="starting"
                 :disable="
                   disabled ||
@@ -93,7 +93,7 @@
               no-caps
               size="sm"
               class="!flex-none"
-              :icon="textMode ? ionList : ionCreate"
+              :icon="textMode ? 'lucide-list' : 'lucide-square-pen'"
               :label="textMode ? 'Done' : 'Edit as text'"
               @click="toggleTextMode"
               v-if="!readonly"
@@ -156,7 +156,7 @@
                   size="sm"
                   class="!flex-none"
                   aria-label="Sync to the playhead"
-                  :icon="ionLocate"
+                  icon="lucide-locate-fixed"
                   @click="syncToPlayhead(i)"
                 >
                   <q-tooltip>Start this line at the playhead</q-tooltip>
@@ -168,7 +168,7 @@
                   size="sm"
                   class="!flex-none"
                   aria-label="Remove line"
-                  :icon="ionTrash"
+                  icon="lucide-trash-2"
                   @click="remove(i)"
                 />
               </div>
@@ -182,7 +182,7 @@
               size="sm"
               class="mt-2 !flex-none"
               label="Add line"
-              :icon="ionAdd"
+              icon="lucide-plus"
               @click="insertAfter(lines.length - 1)"
               v-if="!readonly"
             />
@@ -202,7 +202,7 @@
           color="primary"
           class="!flex-none"
           label="Save lyrics"
-          :icon="ionSave"
+          icon="lucide-save"
           :loading="saving"
           :disable="!dirty"
           @click="save"
@@ -213,15 +213,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ionAdd,
-  ionCreate,
-  ionList,
-  ionLocate,
-  ionSave,
-  ionSparkles,
-  ionTrash,
-} from '@quasar/extras/ionicons-v8';
 import { useQuasar } from 'quasar';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';

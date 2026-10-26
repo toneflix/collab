@@ -15,7 +15,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['prototypes', 'main', 'alova', 'i18n', 'images'],
+    boot: ['prototypes', 'main', 'icons', 'alova', 'i18n', 'images'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: [
@@ -27,13 +27,8 @@ export default defineConfig((ctx) => {
       'tailwind.css',
     ],
 
-    // https://github.com/quasarframework/quasar/tree/dev/extras
-    extras: [
-      'fontawesome-v7',
-      'eva-icons',
-      'material-icons-outlined',
-      'material-icons', // optional, you are not bound to it
-    ],
+    // Icons come from Lucide (src/icons), so no icon fonts are loaded
+    extras: [],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {

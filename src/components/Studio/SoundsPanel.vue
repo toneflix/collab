@@ -4,7 +4,7 @@
     <q-card dark class="sounds" :class="{ 'sounds--mobile': $q.screen.lt.sm }">
       <header class="sounds__head">
         <div class="text-lg font-bold">Sounds</div>
-        <q-btn flat round dense icon="close" aria-label="Close sounds" class="!flex-none" @click="open = false" />
+        <q-btn flat round dense icon="lucide-x" aria-label="Close sounds" class="!flex-none" @click="open = false" />
       </header>
 
       <q-tabs dense no-caps align="justify" active-color="toneflix" indicator-color="toneflix" v-model="tab">
@@ -23,7 +23,7 @@
           :placeholder="tab === 'freesound' ? 'Search Freesound, like “drum loop”' : 'Search sounds'"
           v-model="search"
         >
-          <template #prepend><q-icon name="search" /></template>
+          <template #prepend><q-icon name="lucide-search" /></template>
         </q-input>
       </div>
 
@@ -69,7 +69,7 @@
           no-caps
           color="white"
           text-color="dark"
-          icon="upload"
+          icon="lucide-upload"
           label="Upload sounds"
           class="w-full mt-2"
           :loading="uploading > 0"
@@ -154,7 +154,7 @@
                 no-caps
                 size="sm"
                 color="toneflix"
-                icon="add"
+                icon="lucide-plus"
                 label="Add"
                 :loading="busy === item.key"
                 :disable="disabled"
@@ -167,7 +167,7 @@
                 round
                 dense
                 size="sm"
-                icon="delete_outline"
+                icon="lucide-trash-2"
                 :aria-label="`Delete ${item.name}`"
                 @click="remove(item)"
                 v-if="item.kind === 'mine'"

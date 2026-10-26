@@ -29,7 +29,7 @@
                       rounded
                       padding="xs md"
                       unelevated
-                      icon="fas fa-camera"
+                      icon="lucide-camera"
                       label="Upload Image"
                       color="primary"
                       @click="open"

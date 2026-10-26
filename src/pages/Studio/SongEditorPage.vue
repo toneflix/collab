@@ -7,7 +7,7 @@
         dense
         class="!flex-none"
         aria-label="Back to your songs"
-        :icon="ionArrowBack"
+        icon="lucide-arrow-left"
         :to="{ name: 'studio.composer' }"
       />
       <div class="min-w-0 flex-1">
@@ -50,14 +50,14 @@
           label="Save"
           class="!flex-none px-4"
           title="Save (Ctrl+S)"
-          :icon="ionSaveOutline"
+          icon="lucide-save"
           :loading="status === 'saving'"
           :disable="!dirty"
           @click="save"
         />
         <ActionButton
           :label="beatPlaying ? 'Pause beat' : 'Play beat'"
-          :icon="beatPlaying ? ionPause : ionPlay"
+          :icon="beatPlaying ? 'lucide-pause:fill' : 'lucide-play:fill'"
           :expanded="showLabels"
           :active="beatPlaying"
           @click="toggleBeat"
@@ -65,30 +65,30 @@
         />
         <ActionButton
           label="Rhyme colours"
-          :icon="ionColorPalette"
+          icon="lucide-palette"
           :expanded="showLabels"
           :active="song.settings.rhymeColours"
           @click="toggleColours"
         />
         <ActionButton
           label="Write with AI"
-          :icon="ionSparkles"
+          icon="lucide-sparkles"
           :expanded="showLabels"
           :active="panels.write"
           @click="panels.write = !panels.write"
         />
         <ActionButton
           :label="song.project ? 'Open the project' : 'Add to a project'"
-          :icon="ionAlbums"
+          icon="lucide-library"
           :expanded="showLabels"
           @click="song.project ? openProject() : (projectDialog = true)"
         />
-        <ActionButton label="Lookup" :icon="ionSearch" :expanded="showLabels" :active="panels.lookup" @click="toggleLookup" />
-        <ActionButton label="Notes" :icon="ionDocumentText" :expanded="showLabels" :active="panels.notes" @click="panels.notes = !panels.notes" />
-        <ActionButton label="Versions" :icon="ionTime" :expanded="showLabels" :active="panels.versions" @click="panels.versions = !panels.versions" />
+        <ActionButton label="Lookup" icon="lucide-search" :expanded="showLabels" :active="panels.lookup" @click="toggleLookup" />
+        <ActionButton label="Notes" icon="lucide-file-text" :expanded="showLabels" :active="panels.notes" @click="panels.notes = !panels.notes" />
+        <ActionButton label="Versions" icon="lucide-clock" :expanded="showLabels" :active="panels.versions" @click="panels.versions = !panels.versions" />
         <ActionButton
           label="How it works"
-          :icon="ionInformationCircleOutline"
+          icon="lucide-info"
           :expanded="showLabels"
           :active="panels.help"
           @click="panels.help = !panels.help"
@@ -100,7 +100,7 @@
           class="!flex-none expand-toggle"
           v-if="!narrow"
           :class="{ 'expand-toggle--open': expanded }"
-          :icon="ionChevronForward"
+          icon="lucide-chevron-right"
           :aria-label="expanded ? 'Hide labels' : 'Show labels'"
           :aria-expanded="expanded"
           @click="toggleExpanded"
@@ -188,20 +188,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ionArrowBack,
-  ionChevronForward,
-  ionColorPalette,
-  ionDocumentText,
-  ionInformationCircleOutline,
-  ionPause,
-  ionPlay,
-  ionSaveOutline,
-  ionAlbums,
-  ionSearch,
-  ionSparkles,
-  ionTime,
-} from '@quasar/extras/ionicons-v8';
 import { date, LocalStorage, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
