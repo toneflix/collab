@@ -102,27 +102,22 @@
                   :base-url="`projects/${project.id}`"
                   @done="project.props = $event.props"
                 >
-                  <q-btn
-                    flat
-                    no-caps
+                  <IconBtn
+                    icon="lucide-hand"
+                    :label="active ? 'Take back your props' : 'Give props'"
+                    :active="active"
+                    :count="`${intStr(project.props)} Props`"
                     @click="submit"
-                  >
-                    <q-icon
-                      color="white"
-                      :name="active ? 'lucide-hand:fill' : 'lucide-hand'"
-                      :fill="active"
-                    />
-                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
-                      &nbsp;{{ intStr(project.props) }} Props
-                    </span>
-                  </q-btn>
+                  />
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
-              <span class="!flex-none">
-                <q-icon color="white" name="lucide-message-square" />
-                &nbsp;{{ intStr(project.commentsCount) }}
-              </span>
+              <IconBtn
+                plain
+                icon="lucide-message-square"
+                label="Comments"
+                :count="intStr(project.commentsCount)"
+              />
             </div>
             <p class="mt-8 text-sm max-w-96">
               {{ project.description }}
@@ -170,6 +165,7 @@
 </template>
 
 <script setup lang="ts">
+import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import CommentSection from 'src/components/Sections/CommentSection.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
@@ -206,19 +202,19 @@ defineOptions({
         id,
         { with: 'comments_count,pending_data' },
         true,
-      ).send(),
+      ).send().catch(missing),
       loadCommentsRequest(
         id,
         undefined,
         {
           with: 'user',
         },
-      ).send(),
+      ).send().catch(emptyPage),
       loadUsersRequest({
         project_id: id,
         filters: 'creator',
         limit: 30,
-      }).send(),
+      }).send().catch(emptyPage),
     ]);
 
     boot.pageData.current = {

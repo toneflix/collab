@@ -81,9 +81,9 @@
           @click="emit('open', i)"
           v-if="plugins && isPlugin(effect)"
         />
-        <q-btn flat round dense size="sm" icon="lucide-arrow-up" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
-        <q-btn flat round dense size="sm" icon="lucide-arrow-down" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
-        <q-btn flat round dense size="sm" icon="lucide-x" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
+        <IconBtn size="sm" icon="lucide-arrow-up" aria-label="Move up" :disable="readonly || i === 0" @click="move(i, -1)" />
+        <IconBtn size="sm" icon="lucide-arrow-down" aria-label="Move down" :disable="readonly || i === modelValue.length - 1" @click="move(i, 1)" />
+        <IconBtn size="sm" icon="lucide-x" :aria-label="`Remove ${label(effect)}`" :disable="readonly" @click="remove(i)" />
       </div>
       <div class="fx__note" v-if="isPlugin(effect)">
         <template v-if="plugins">
@@ -224,9 +224,16 @@ const setParam = (i: number, key: string, value: number | null) => {
 };
 </script>
 
+<style lang="scss">
+.q-dialog__inner > .fx-card {
+  flex: none;
+  width: min(440px, 92vw);
+}
+</style>
+
 <style lang="scss" scoped>
 .fx {
-  width: min(360px, 92vw);
+  width: 100%;
   max-height: 70vh;
   padding: 12px;
   overflow-y: auto;

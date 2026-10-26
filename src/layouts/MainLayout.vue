@@ -59,7 +59,7 @@
           :to="{ name: 'messages' }"
           v-if="boot.user?.id"
         >
-          <q-icon name="lucide-message-circle" />
+          <q-icon name="lucide-message-circle" size="19px" />
           <q-badge floating rounded color="red-6" :label="unreadLabel" v-if="conversations.unread" />
           <q-tooltip>Messages</q-tooltip>
         </q-btn>

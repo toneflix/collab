@@ -1,16 +1,13 @@
 <template>
   <q-page class="p-3 md:p-4">
-    <div class="flex items-center gap-x-3 gap-y-2 mb-4" :class="narrow ? 'flex-wrap' : 'no-wrap'">
-      <q-btn
-        flat
-        round
-        dense
+    <div class="flex items-center gap-x-3 gap-y-3 mb-4" :class="narrow || showLabels ? 'flex-wrap' : 'no-wrap'">
+      <IconBtn
         class="!flex-none"
         aria-label="Back to your songs"
         icon="lucide-arrow-left"
         :to="{ name: 'studio.composer' }"
       />
-      <div class="min-w-0 flex-1">
+      <div class="song-head">
         <input
           class="song-title"
           aria-label="Song title"
@@ -39,7 +36,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 no-wrap" :class="narrow ? 'song-actions--narrow' : 'ml-auto !flex-none'" v-if="song">
+      <div class="flex items-center gap-2 no-wrap" :class="narrow || showLabels ? 'song-actions--narrow' : 'ml-auto !flex-none'" v-if="song">
         <q-btn
           unelevated
           rounded
@@ -93,10 +90,7 @@
           :active="panels.help"
           @click="panels.help = !panels.help"
         />
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           class="!flex-none expand-toggle"
           v-if="!narrow"
           :class="{ 'expand-toggle--open': expanded }"
@@ -721,6 +715,11 @@ onBeforeUnmount(() => {
   &::placeholder {
     color: rgba(255, 255, 255, 0.35);
   }
+}
+
+.song-head {
+  flex: 1 1 240px !important;
+  min-width: 0;
 }
 
 .song-actions--narrow {

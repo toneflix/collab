@@ -5,8 +5,6 @@
     :round="!expanded"
     :rounded="expanded"
     :flat="!expanded"
-    :color="expanded ? 'white' : undefined"
-    :text-color="expanded ? 'dark' : 'white'"
     :padding="expanded ? '6px 14px 6px 10px' : '8px'"
     class="action-btn !flex-none"
     :class="{ 'action-btn--open': expanded, 'action-btn--active': active }"
@@ -61,6 +59,21 @@ const emit = defineEmits<{ click: [] }>();
   &--active:not(&--open) {
     background: rgba(3, 191, 255, 0.18);
     color: #03bfff !important;
+  }
+
+  &--open {
+    background: var(--tf-surface-2);
+    box-shadow: inset 0 0 0 1px var(--tf-border);
+
+    &:hover {
+      background: var(--tf-surface-3);
+    }
+  }
+
+  &--open#{&}--active {
+    color: var(--q-primary) !important;
+    background: var(--tf-primary-soft);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--q-primary) 40%, transparent);
   }
 
   &--open &__label {

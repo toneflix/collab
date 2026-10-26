@@ -36,9 +36,7 @@
             v-model="form.comment"
           >
             <template #append>
-              <q-btn
-                flat
-                dense
+              <IconBtn
                 color="primary"
                 icon="lucide-send"
                 :loading="loading"

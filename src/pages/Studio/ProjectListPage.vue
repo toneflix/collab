@@ -67,7 +67,7 @@
               </span>
               <span class="!flex-none">•</span>
               <span class="!flex-none flex items-center gap-1">
-                <q-icon name="lucide-hand:fill" size=".7rem" />
+                <q-icon name="lucide-hand" size=".7rem" />
                 {{ intStr(project.props) }}
               </span>
               <span class="!flex-none">•</span>

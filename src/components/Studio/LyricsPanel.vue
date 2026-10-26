@@ -13,10 +13,7 @@
             <template v-else>The words of this track, timed to the music</template>
           </div>
         </div>
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-x"
           aria-label="Close lyrics"
           class="!flex-none"
@@ -149,23 +146,15 @@
                 @keydown.enter.prevent="insertAfter(i)"
               />
               <div class="line__actions" v-if="!readonly">
-                <q-btn
-                  flat
-                  round
-                  dense
-                  size="sm"
+                <IconBtn size="sm"
                   class="!flex-none"
                   aria-label="Sync to the playhead"
                   icon="lucide-locate-fixed"
                   @click="syncToPlayhead(i)"
                 >
                   <q-tooltip>Start this line at the playhead</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  size="sm"
+                </IconBtn>
+                <IconBtn size="sm"
                   class="!flex-none"
                   aria-label="Remove line"
                   icon="lucide-trash-2"

@@ -7,7 +7,7 @@
           <div class="text-lg font-bold">Version history</div>
           <div class="text-xs text-grey-5">Every save and stem change, and who made it</div>
         </div>
-        <q-btn flat round dense icon="lucide-x" aria-label="Close version history" class="!flex-none" @click="open = false" />
+        <IconBtn icon="lucide-x" aria-label="Close version history" class="!flex-none" @click="open = false" />
       </header>
 
       <div class="history__list">

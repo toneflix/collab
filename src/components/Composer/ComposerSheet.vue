@@ -6,10 +6,7 @@
           <div class="text-lg font-bold">{{ title }}</div>
           <div class="text-xs text-grey-5" v-if="caption">{{ caption }}</div>
         </div>
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-x"
           class="!flex-none"
           :aria-label="`Close ${title.toLowerCase()}`"

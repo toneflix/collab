@@ -9,9 +9,9 @@
     <!-- Transport, editing and zoom -->
     <div class="stem-editor__toolbar">
       <div class="stem-editor__group">
-        <q-btn flat round dense icon="lucide-skip-back:fill" aria-label="Back to start" :disable="!ready" @click="toStart">
+        <IconBtn icon="lucide-skip-back:fill" aria-label="Back to start" :disable="!ready" @click="toStart">
           <q-tooltip>Back to start</q-tooltip>
-        </q-btn>
+        </IconBtn>
         <q-btn
           round
           unelevated
@@ -24,13 +24,10 @@
           <q-icon size="22px" :name="playing ? 'lucide-pause:fill' : 'lucide-play:fill'" />
           <q-tooltip>{{ playing ? 'Pause' : 'Play' }} (Space)</q-tooltip>
         </q-btn>
-        <q-btn flat round dense icon="lucide-square:fill" aria-label="Stop" :disable="!ready" @click="stop">
+        <IconBtn icon="lucide-square:fill" aria-label="Stop" :disable="!ready" @click="stop">
           <q-tooltip>Stop</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          dense
+        </IconBtn>
+        <IconBtn
           class="record-btn"
           :class="{ 'record-btn--on': recording }"
           :icon="recording ? 'lucide-square:fill' : 'lucide-circle-dot'"
@@ -41,14 +38,11 @@
           v-if="!readonly"
         >
           <q-tooltip>{{ recording ? 'Stop recording' : canRecord ? 'Record from your microphone onto a new stem' : 'This browser can\'t record' }}</q-tooltip>
-        </q-btn>
+        </IconBtn>
         <div class="stem-editor__clock" aria-live="off">
           {{ formatClock(time) }} <span class="text-grey-6">/ {{ formatClock(duration) }}</span>
         </div>
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-repeat"
           :class="{ 'text-toneflix': loop }"
           :aria-label="loop ? 'Stop looping the selection' : 'Loop the selection'"
@@ -56,11 +50,8 @@
           @click="toggleLoop"
         >
           <q-tooltip>{{ hasSelection ? (loop ? 'Looping the selection' : 'Loop the selection') : 'Drag across the timeline to select a part to loop' }}</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          dense
+        </IconBtn>
+        <IconBtn
           icon="lucide-message-circle-more"
           aria-label="Message about the selected part"
           :disable="!ready || !hasSelection"
@@ -68,19 +59,19 @@
           v-if="commentable"
         >
           <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
-        </q-btn>
+        </IconBtn>
       </div>
 
       <div class="stem-editor__group" v-if="!readonly">
-        <q-btn flat round dense icon="lucide-scissors" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
+        <IconBtn icon="lucide-scissors" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
           <q-tooltip>Split the selected stem at the playhead (S)</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="lucide-undo-2" aria-label="Undo" :disable="!canUndo" @click="undo">
+        </IconBtn>
+        <IconBtn icon="lucide-undo-2" aria-label="Undo" :disable="!canUndo" @click="undo">
           <q-tooltip>Undo (Ctrl+Z)</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="lucide-redo-2" aria-label="Redo" :disable="!canRedo" @click="redo">
+        </IconBtn>
+        <IconBtn icon="lucide-redo-2" aria-label="Redo" :disable="!canRedo" @click="redo">
           <q-tooltip>Redo (Ctrl+Shift+Z)</q-tooltip>
-        </q-btn>
+        </IconBtn>
       </div>
 
       <div class="stem-editor__group stem-editor__tempo">
@@ -113,10 +104,7 @@
           :disable="!ready || readonly || recording"
           @update:model-value="setMeter"
         />
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-grid-3x3"
           :class="{ 'text-toneflix': grid }"
           :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
@@ -125,7 +113,7 @@
           @click="setGrid(!grid)"
         >
           <q-tooltip>{{ grid ? 'Hide the beat grid' : 'Show bars and beats, and snap clips to them' }}</q-tooltip>
-        </q-btn>
+        </IconBtn>
         <q-select
           dense
           borderless
@@ -142,10 +130,7 @@
         >
           <q-tooltip>What clips snap to when you move them</q-tooltip>
         </q-select>
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-timer"
           :class="{ 'text-toneflix': metronome }"
           :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
@@ -154,11 +139,8 @@
           @click="setMetronome(!metronome)"
         >
           <q-tooltip>Metronome {{ metronome ? 'on' : 'off' }}</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          dense
+        </IconBtn>
+        <IconBtn
           icon="lucide-hourglass"
           :class="{ 'text-toneflix': countIn }"
           :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
@@ -168,23 +150,20 @@
           v-if="!readonly"
         >
           <q-tooltip>Count in one bar before recording: {{ countIn ? 'on' : 'off' }}</q-tooltip>
-        </q-btn>
+        </IconBtn>
       </div>
 
       <div class="stem-editor__group">
-        <q-btn flat round dense icon="lucide-minus" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
+        <IconBtn icon="lucide-minus" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
           <q-tooltip>Zoom out</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
+        </IconBtn>
+        <IconBtn icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
           <q-tooltip>Fit everything on screen</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="lucide-plus" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
+        </IconBtn>
+        <IconBtn icon="lucide-plus" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
           <q-tooltip>Zoom in</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          dense
+        </IconBtn>
+        <IconBtn
           icon="lucide-locate"
           :class="{ 'text-toneflix': follow }"
           :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
@@ -193,7 +172,7 @@
           @click="setFollow(!follow)"
         >
           <q-tooltip>{{ follow ? 'Following the playhead while it plays' : 'Follow the playhead while it plays' }}</q-tooltip>
-        </q-btn>
+        </IconBtn>
       </div>
 
       <div class="stem-editor__group stem-editor__master">
@@ -226,7 +205,7 @@
           aria-label="Master volume"
           @update:model-value="setMasterVolume"
         />
-        <q-btn flat round dense icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:!hidden">
+        <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:!hidden">
           <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
             <div class="mb-2 font-bold">Using the editor</div>
             <ul class="pl-8 space-y-1 text-sm list-disc">
@@ -243,7 +222,7 @@
               <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
             </ul>
           </q-menu>
-        </q-btn>
+        </IconBtn>
       </div>
     </div>
 
@@ -282,11 +261,7 @@
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
           @click="effectsOpen = true"
         />
-        <q-btn
-          flat
-          round
-          dense
-          size="sm"
+        <IconBtn size="sm"
           color="grey-4"
           class="!flex-none"
           icon="lucide-copy"
@@ -294,7 +269,7 @@
           @click="duplicate(selected.id)"
         >
           <q-tooltip>Duplicate this stem (Ctrl+D)</q-tooltip>
-        </q-btn>
+        </IconBtn>
         <q-btn
           outline
           rounded
@@ -340,11 +315,7 @@
             label="Replace audio"
             @click="pickReplacement(stem)"
           />
-          <q-btn
-            flat
-            round
-            dense
-            size="sm"
+          <IconBtn size="sm"
             color="grey-5"
             class="!flex-none"
             icon="lucide-trash-2"
@@ -362,12 +333,13 @@
       />
     </div>
 
-    <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
-
-    <div ref="host" class="stem-editor__host" />
+    <div class="stem-editor__stage">
+      <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
+      <div ref="host" class="stem-editor__host" />
+    </div>
 
     <q-dialog v-model="effectsOpen">
-      <q-card dark class="bg-[#1c1c1c]">
+      <q-card dark class="fx-card">
         <EffectsPanel
           :plugins="pluginsOn"
           :name="selected.name"
@@ -378,13 +350,13 @@
           @open="openPlugin(selected!.id, $event)"
           v-if="selected"
         >
-          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
+          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
         </EffectsPanel>
       </q-card>
     </q-dialog>
 
     <q-dialog v-model="masterEffectsOpen">
-      <q-card dark class="bg-[#1c1c1c]">
+      <q-card dark class="fx-card">
         <EffectsPanel
           name="the master"
           :readonly="readonly"
@@ -393,13 +365,13 @@
           @param="setMasterEffectParams"
           @commit="checkDirty"
         >
-          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
+          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
         </EffectsPanel>
       </q-card>
     </q-dialog>
 
     <q-dialog v-model="colorsOpen">
-      <q-card dark class="bg-[#1c1c1c]">
+      <q-card dark>
         <q-card-section class="py-4">
           <div class="font-bold">Colour of {{ selected?.name }}</div>
         </q-card-section>
@@ -424,11 +396,11 @@
     </q-dialog>
 
     <q-dialog v-model="pluginOpen" @hide="closePlugin">
-      <q-card dark class="bg-[#1c1c1c] max-w-[95vw]">
+      <q-card dark class="max-w-[95vw]">
         <q-card-section class="flex items-center gap-2 py-2">
           <div class="font-bold">{{ pluginTitle }}</div>
           <q-space />
-          <q-btn flat round dense icon="lucide-x" aria-label="Close" v-close-popup />
+          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
         </q-card-section>
         <div ref="pluginHost" class="stem-editor__plugin" />
       </q-card>
@@ -2144,6 +2116,15 @@ defineExpose({
     .q-slider {
       width: 120px;
     }
+  }
+
+  /* Holds the timeline; loading progress floats over its top edge. */
+  &__stage {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
   }
 
   /* Fills what's left of the editor; the timeline scrolls its stems. */

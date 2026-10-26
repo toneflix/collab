@@ -90,7 +90,7 @@
             </q-popup-edit>
           </div>
         </q-toolbar-title>
-        <q-btn flat round dense icon="lucide-x" v-close-popup />
+        <IconBtn icon="lucide-x" v-close-popup />
       </q-toolbar>
       <q-separator />
       <q-card-section class="scroll max-h-[50vh]">
@@ -120,10 +120,8 @@
           >
             <template #title>
               <div>
-                <q-btn
-                  flat
-                  dense
-                  size="xs"
+                <IconBtn
+                  size="sm"
                   icon="lucide-pencil"
                   color="white"
                   :disable="readonly"

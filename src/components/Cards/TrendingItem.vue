@@ -40,24 +40,11 @@
       <q-item-section side>
         <div class="flex flex-row items-center gap-2">
           {{ formatSeconds(track.duration) }}
-          <q-btn
-            flat
-            no-caps
+          <IconBtn
+            :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"
+            :label="track.locked ? 'Part of a paid release' : player.isPlaying(track) ? 'Pause' : 'Play'"
             @click.prevent="togglePlay"
-          >
-            <q-icon
-              :name="
-                track.locked
-                  ? 'lucide-lock'
-                  : player.isPlaying(track)
-                    ? 'lucide-circle-pause'
-                    : 'lucide-circle-play'
-              "
-            />
-            <q-tooltip v-if="track.locked">
-              Part of a paid release
-            </q-tooltip>
-          </q-btn>
+          />
         </div>
       </q-item-section>
     </q-item>

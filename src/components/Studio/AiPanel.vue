@@ -3,10 +3,7 @@
   <StudioSheet :dock="dock" v-model="open" @show="refresh" @hide="tool = null">
     <q-card dark class="ai" :class="{ 'ai--mobile': $q.screen.lt.sm }">
       <header class="ai__head">
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-arrow-left"
           aria-label="Back to AI tools"
           class="!flex-none"
@@ -29,10 +26,7 @@
             </template>
           </div>
         </div>
-        <q-btn
-          flat
-          round
-          dense
+        <IconBtn
           icon="lucide-x"
           aria-label="Close AI tools"
           class="!flex-none"
@@ -181,11 +175,7 @@
               <div class="ai__reference" v-if="form.reference || form.reference_stem_id">
                 <q-icon :name="form.reference ? 'lucide-paperclip' : 'lucide-music-2'" size="18px" class="!flex-none" />
                 <div class="min-w-0 truncate text-sm">{{ referenceName }}</div>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  size="sm"
+                <IconBtn size="sm"
                   icon="lucide-x"
                   aria-label="Remove the reference"
                   class="!flex-none"
@@ -398,11 +388,7 @@
                     Pick the version that goes on the track. The other one is deleted.
                   </div>
                   <div class="version" :key="version.index" v-for="version in job.versions">
-                    <q-btn
-                      round
-                      dense
-                      flat
-                      size="sm"
+                    <IconBtn size="sm"
                       class="!flex-none"
                       :icon="playing === versionKey(job, version) ? 'lucide-pause:fill' : 'lucide-play:fill'"
                       :aria-label="`Play version ${version.index + 1}`"

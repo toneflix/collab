@@ -58,10 +58,7 @@
     <section class="chat" v-if="!narrow || current">
       <template v-if="current && params">
         <header class="chat__head">
-          <q-btn
-            flat
-            round
-            dense
+          <IconBtn
             icon="lucide-arrow-left"
             aria-label="All conversations"
             class="!flex-none"

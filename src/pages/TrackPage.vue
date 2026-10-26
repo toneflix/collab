@@ -48,10 +48,7 @@
                 {{ formatSeconds(track.duration) }}
               </span>
               <span class="!flex-none">•</span>
-              <span class="!flex-none flex items-center gap-1">
-                <q-icon color="white" name="lucide-play:fill" :fill="track.liked" />
-                {{ intStr(track.streams) }}
-              </span>
+              <IconBtn plain icon="lucide-play" label="Plays" :count="intStr(track.streams)" />
               <span class="!flex-none">•</span>
               <span class="!flex-none">
                 <TInteraction
@@ -63,20 +60,13 @@
                   :signature="`track:${track.id}`"
                   @done="track.likes = $event.likes"
                 >
-                  <q-btn
-                    flat
-                    no-caps
+                  <IconBtn
+                    :icon="active ? 'lucide-heart:fill' : 'lucide-heart'"
+                    :label="active ? 'Unlike' : 'Like'"
+                    :active="active"
+                    :count="intStr(track.likes)"
                     @click="submit"
-                  >
-                    <q-icon
-                      color="white"
-                      :name="active ? 'lucide-heart:fill' : 'lucide-heart'"
-                      :fill="active"
-                    />
-                    <span :class="`text-sm font-${active ? 'bold' : 'medium'}`">
-                      &nbsp;{{ intStr(track.likes) }}
-                    </span>
-                  </q-btn>
+                  />
                 </TInteraction>
               </span>
               <span class="!flex-none">•</span>
@@ -102,14 +92,12 @@
                   "
                   v-slot="{ toggle }"
                 >
-                  <q-btn
-                    flat
-                    no-caps
+                  <IconBtn
+                    icon="lucide-message-square"
+                    label="Comments"
+                    :count="intStr(track.commentsCount)"
                     @click="toggle"
-                  >
-                    <q-icon color="white" name="lucide-message-square" />
-                    &nbsp;{{ intStr(track.commentsCount) }}
-                  </q-btn>
+                  />
                 </ConversationDialog>
               </span>
               <span class="!flex-none">•</span>
@@ -169,6 +157,7 @@
 </template>
 
 <script setup lang="ts">
+import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { computed, ref } from 'vue';
@@ -206,20 +195,20 @@ defineOptions({
     const aid = String(currentRoute.params.artist_id);
 
     const [artist, track, { data: related, meta: relatedMeta }, { data: releases, meta: releaseMeta }] = await Promise.all([
-      loadArtistRequest(aid, {}, true).send(),
+      loadArtistRequest(aid, {}, true).send().catch(missing),
       loadTrackRequest(id, {
         artist_id: aid,
         with: 'comments_count,artist,release,stems',
-      }).send(),
+      }).send().catch(missing),
       loadTracksRequest({
         artist_id: aid,
         limit: 8,
-      }).send(),
+      }).send().catch(emptyPage),
       loadReleasesRequest({
         artist_id: aid,
         limit: 30,
         with: 'artist',
-      }).send(),
+      }).send().catch(emptyPage),
     ]);
 
     boot.pageData.current = {

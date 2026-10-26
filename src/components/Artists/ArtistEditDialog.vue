@@ -4,7 +4,7 @@
       <q-form @submit="save">
         <q-card-section class="flex items-center justify-between flex-nowrap">
           <div class="text-lg font-bold">Edit artist profile</div>
-          <q-btn flat round dense icon="lucide-x" class="!flex-none" v-close-popup />
+          <IconBtn icon="lucide-x" class="!flex-none" v-close-popup />
         </q-card-section>
 
         <q-card-section class="pt-0">

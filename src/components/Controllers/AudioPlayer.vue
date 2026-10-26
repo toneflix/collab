@@ -10,10 +10,7 @@
     <div class="player-bar__row">
       <!-- Transport: previous, play/pause, next and time -->
       <div class="player-bar__transport">
-        <q-btn
-          flat
-          round
-          size="md"
+        <IconBtn
           class="!flex-none max-sm:!hidden"
           aria-label="Previous track"
           icon="lucide-skip-back:fill"
@@ -32,10 +29,7 @@
           <q-spinner size="24px" color="white" v-if="player.loading" />
           <q-icon size="26px" :name="player.playing ? 'lucide-pause:fill' : 'lucide-play:fill'" v-else />
         </q-btn>
-        <q-btn
-          flat
-          round
-          size="md"
+        <IconBtn
           class="!flex-none"
           aria-label="Next track"
           icon="lucide-skip-forward:fill"
@@ -93,10 +87,7 @@
             :signature="`track:${track.id}`"
             @done="track.likes = $event.likes"
           >
-            <q-btn
-              flat
-              round
-              size="md"
+            <IconBtn
               class="!flex-none"
               :aria-label="active ? 'Unlike' : 'Like'"
               :icon="active ? 'lucide-heart:fill' : 'lucide-heart'"
@@ -105,7 +96,7 @@
             />
           </TInteraction>
 
-          <q-btn flat round size="md" class="!flex-none" aria-label="More" icon="lucide-ellipsis-vertical">
+          <IconBtn class="!flex-none" aria-label="More" icon="lucide-ellipsis-vertical">
             <q-menu dark anchor="top middle" self="bottom middle" :offset="[0, 8]">
               <q-list dense class="min-w-48">
                 <q-item clickable v-close-popup :to="trackLink">
@@ -134,7 +125,7 @@
                 </q-item>
               </q-list>
             </q-menu>
-          </q-btn>
+          </IconBtn>
         </div>
       </div>
 
@@ -153,10 +144,7 @@
               @update:model-value="(v) => player.setVolume(v ?? 0)"
             />
           </div>
-          <q-btn
-            flat
-            round
-            size="md"
+          <IconBtn
             class="!flex-none"
             :aria-label="player.muted ? 'Unmute' : 'Mute'"
             :icon="volumeIcon"
@@ -175,10 +163,7 @@
           <q-icon :name="player.repeat === 'one' ? 'lucide-repeat-1' : 'lucide-repeat'" />
           <q-tooltip>{{ repeatLabel }}</q-tooltip>
         </q-btn>
-        <q-btn
-          flat
-          round
-          size="md"
+        <IconBtn
           class="!flex-none max-sm:!hidden"
           :class="{ 'text-toneflix': player.shuffle }"
           :aria-label="player.shuffle ? 'Turn shuffle off' : 'Turn shuffle on'"
@@ -186,11 +171,8 @@
           @click="player.toggleShuffle()"
         >
           <q-tooltip>{{ player.shuffle ? 'Shuffle on' : 'Shuffle off' }}</q-tooltip>
-        </q-btn>
-        <q-btn
-          flat
-          round
-          size="md"
+        </IconBtn>
+        <IconBtn
           class="!flex-none"
           :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
           :icon="queueOpen ? 'lucide-chevron-down' : 'lucide-chevron-up'"

@@ -45,15 +45,14 @@
                   v-slot="{ submit, following }"
                 >
                   <q-btn
-                    dense
                     no-caps
                     rounded
                     unelevated
-                    size="sm"
-                    padding="0 sm"
+                    padding="6px 16px"
+                    :outline="following"
                     :icon="following ? undefined : 'lucide-plus'"
                     :label="following ? 'Unfollow' : 'Follow'"
-                    :color="following ? 'primary' : undefined"
+                    :color="following ? undefined : 'primary'"
                     @click="submit"
                   />
                 </ToggleFollow>
@@ -96,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import { Artist, Category, PageMeta, Project } from 'src/utils/models';
@@ -121,9 +121,9 @@ defineOptions({
     const boot = useBootstrapStore(store);
     const id = String(currentRoute.params.artist_id);
 
-    const artist = await loadUserRequest(id, { with: 'tracks' }).send();
+    const artist = await loadUserRequest(id, { with: 'tracks' }).send().catch(missing);
 
-    const { data: projects, meta: projectsMeta } = await loadProjectsRequest(
+    const { data: projects, meta: projectsMeta } = !artist ? emptyPage() : await loadProjectsRequest(
       {
         creator_id: artist.id,
         limit: 30,

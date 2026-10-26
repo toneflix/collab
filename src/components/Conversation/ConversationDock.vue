@@ -36,23 +36,19 @@
             <span class="dock__title-sub" v-if="subtitle">{{ subtitle }}</span>
           </button>
           <div class="dock__buttons">
-            <q-btn
-              flat
-              round
-              dense
-              size="sm"
+            <IconBtn size="sm"
               icon="lucide-maximize-2"
               aria-label="Open full page"
               :to="{ name: 'messages', params: { type: conversation.type, id: conversation.id } }"
             >
               <q-tooltip>Open full page</q-tooltip>
-            </q-btn>
-            <q-btn flat round dense size="sm" icon="lucide-minus" aria-label="Minimize" @click="store.toggleMinimized()">
+            </IconBtn>
+            <IconBtn size="sm" icon="lucide-minus" aria-label="Minimize" @click="store.toggleMinimized()">
               <q-tooltip>Minimize</q-tooltip>
-            </q-btn>
-            <q-btn flat round dense size="sm" icon="lucide-x" aria-label="Close" @click="store.closeDock()">
+            </IconBtn>
+            <IconBtn size="sm" icon="lucide-x" aria-label="Close" @click="store.closeDock()">
               <q-tooltip>Close</q-tooltip>
-            </q-btn>
+            </IconBtn>
           </div>
         </header>
 

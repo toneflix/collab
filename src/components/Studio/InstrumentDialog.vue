@@ -16,7 +16,7 @@
             {{ patternSeconds(pattern).toFixed(1) }}s
           </div>
         </div>
-        <q-btn flat round dense icon="lucide-x" aria-label="Close" class="!flex-none" v-close-popup />
+        <IconBtn icon="lucide-x" aria-label="Close" class="!flex-none" v-close-popup />
       </header>
 
       <q-tabs
@@ -73,9 +73,9 @@
           v-if="pattern.kind === 'keys'"
         />
         <div class="flex items-center gap-1 no-wrap" v-if="pattern.kind === 'keys'">
-          <q-btn flat round dense icon="lucide-chevron-down" aria-label="Lower octave" :disable="octave <= 1" @click="octave--" />
+          <IconBtn icon="lucide-chevron-down" aria-label="Lower octave" :disable="octave <= 1" @click="octave--" />
           <span class="text-sm tabular-nums">Octave {{ octave }}</span>
-          <q-btn flat round dense icon="lucide-chevron-up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
+          <IconBtn icon="lucide-chevron-up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
         </div>
         <label class="flex items-center gap-2 no-wrap w-40">
           <q-icon name="lucide-volume-2" size="18px" class="!flex-none" />

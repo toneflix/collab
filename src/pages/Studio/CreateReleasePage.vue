@@ -155,10 +155,7 @@
                             @error-cleared="delete track.hasError"
                           >
                             <template #avatar-bottom v-if="streamUrls[i]">
-                              <q-btn
-                                flat
-                                dense
-                                round
+                              <IconBtn
                                 icon="lucide-refresh-cw"
                                 class="m-2 absolute-top-right"
                                 v-if="streamUrls[i]"

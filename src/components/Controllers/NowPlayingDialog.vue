@@ -40,7 +40,7 @@
               <q-tab name="next" label="Up next" class="now-playing__tab" />
               <q-tab name="lyrics" label="Lyrics" class="now-playing__tab" />
             </q-tabs>
-            <q-btn flat round dense icon="lucide-chevron-down" aria-label="Close" class="!flex-none" @click="open = false" />
+            <IconBtn icon="lucide-chevron-down" aria-label="Close" class="!flex-none" @click="open = false" />
           </div>
           <q-scroll-area class="now-playing__list" v-if="tab === 'lyrics'">
             <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />

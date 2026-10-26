@@ -1,14 +1,6 @@
 <template>
   <slot :open="open">
-    <q-btn
-      flat
-      no-caps
-      :aria-label="`Report this ${label}`"
-      @click="open"
-    >
-      <q-icon color="white" name="lucide-flag" />
-      <q-tooltip>Report</q-tooltip>
-    </q-btn>
+    <IconBtn icon="lucide-flag" :label="`Report this ${label}`" @click="open" />
   </slot>
 
   <q-dialog v-model="show">

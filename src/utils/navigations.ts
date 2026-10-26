@@ -34,7 +34,7 @@ export const mainNavigationLinks: NavigationLink[] = [
   },
   {
     to: { name: 'studio.composer' },
-    icon: 'lucide-pencil-line',
+    icon: 'lucide-pen-tool',
     title: 'Composer',
     requiresAuth: true,
   },
@@ -54,7 +54,7 @@ export const mainNavigationLinks: NavigationLink[] = [
   {
     to: { name: 'library.page', params: { type: 'liked' } },
     icon: 'lucide-heart',
-    title: 'liked',
+    title: 'Liked',
   },
   {
     to: { name: 'library.page', params: { type: 'collabs' } },

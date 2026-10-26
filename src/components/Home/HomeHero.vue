@@ -49,7 +49,7 @@
               rounded
               no-caps
               size="lg"
-              icon="lucide-pencil-line"
+              icon="lucide-pen-tool"
               label="Write a song"
               class="!flex-none"
               :to="{ name: 'studio.composer' }"
