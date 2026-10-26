@@ -51,7 +51,8 @@
 
             <template v-for="group in options">
               <q-item-label
-                class="p-2 capitalize"
+                header
+                class="px-3 pt-3 pb-1 text-xs uppercase tracking-wider"
                 :key="group.name + 'label'"
                 v-if="group.name"
               >
@@ -59,20 +60,17 @@
               </q-item-label>
               <q-item
                 dense
-                v-ripple
                 clickable
-                active-class="text-grey-5"
+                active-class="text-primary"
                 :to="link.to"
                 :key="i + group.name"
                 v-for="(link, i) in group.list"
               >
-                <q-item-section avatar>
-                  <q-avatar size="sm" color="grey-8">
-                    <q-icon :name="link.icon" />
-                  </q-avatar>
+                <q-item-section avatar class="min-w-0 pr-3">
+                  <q-icon :name="link.icon" size="18px" class="text-fg-muted" />
                 </q-item-section>
-                <q-item-section class="text-weight-bold">
-                  {{ link.name }}
+                <q-item-section>
+                  <span class="block first-letter:uppercase">{{ link.name }}</span>
                 </q-item-section>
               </q-item>
 

@@ -7,11 +7,11 @@
   color: var(--q-primary) !important;
 }
 
+// Frosted surface for the player bar and now-playing card
 .bg-glass {
-  /* From https://css.glass */
-  background: rgb(17 20 25 / 65%);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: rgb(17 20 25 / 80%);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
   &.white-glass {
     background: rgb(30 35 44 / 60%);
   }

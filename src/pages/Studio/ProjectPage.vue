@@ -1,103 +1,104 @@
 <template>
   <q-page :class="{ 'flex flex-col justify-center': !project?.id }">
-    <div class="flex w-full bg-white dark:!bg-gray-500" v-if="project?.id">
+    <section class="project-hero" v-if="project?.id">
       <div
-        class="!flex-none h-28 w-28 md:w-40 m-2 md:h-40 overflow-hidden bg-gradient-to-tr from-red-100 to-slate-200 text-center bg-cover rounded-t lg:rounded-t-none lg:rounded-l"
-        :style="{
-          backgroundImage: `url(${project.imageUrl || placeholder})`,
-        }"
-      >
-        <img
-          width="0"
-          height="0"
-          class="hidden w-0 h-0"
-          :src="project.imageUrl"
-          @error="project.imageUrl = placeholder"
-        />
-      </div>
-      <div
-        class="flex flex-col justify-center flex-1 p-4 leading-normal border-b border-l border-r border-gray-400 rounded-b g:border-l-0 lg:border-t lg:border-gray-400 lg:rounded-b-none lg:rounded-r"
-      >
-        <h3 class="text-2xl !flex-none font-bold text-gray-900 dark:text-white">
-          {{ subString(project.title, 18) }}
-        </h3>
-        <p class="mb-2 text-sm !flex-none text-gray-900 dark:text-white">
-          {{ project.description }}
-        </p>
-        <q-no-ssr
-          class="flex !flex-none flex-row items-center justify-start gap-4 font-semibold text-gray-900 dark:text-white"
+        class="project-hero__backdrop"
+        :style="{ backgroundImage: `url(${project.imageUrl || placeholder})` }"
+      ></div>
+      <div class="relative flex flex-col gap-5 p-4 mx-auto max-w-3xl md:flex-row md:flex-nowrap md:items-end md:py-8">
+        <div
+          class="!flex-none overflow-hidden bg-cover rounded-xl size-32 md:size-44 bg-surface-3 shadow-lg"
+          :style="{ backgroundImage: `url(${project.imageUrl || placeholder})` }"
         >
-          <HoverCard
-            tag="span"
-            trigger="mouseenter click"
-            class="!flex-none flex items-center gap-1"
-            :content="`${intStr(project.collaboratorsCount)} collaborators are working on this project`"
-          >
-            <q-icon name="lucide-users" size=".8rem" />
-            {{ intStr(project.collaboratorsCount) }}
-          </HoverCard>
-          <span class="!flex-none">•</span>
-          <HoverCard
-            tag="span"
-            trigger="mouseenter click"
-            class="!flex-none flex items-center gap-1"
-            :content="`This project has ${intStr(project.props)} props`"
-          >
-            <q-icon name="lucide-hand:fill" size=".9rem" />
-            {{ intStr(project.props) }}
-          </HoverCard>
-          <span class="!flex-none">•</span>
-          <HoverCard
-            tag="span"
-            trigger="mouseenter click"
-            class="!flex-none flex items-center gap-1"
-            :content="`This project has ${intStr(project.tracksCount)} tracks`"
-          >
-            <q-icon name="lucide-disc-3" size=".9rem" />
-            {{ intStr(project.tracksCount) }}
-          </HoverCard>
-          <span class="!flex-none">•</span>
-          <span class="!flex-none flex items-center gap-1">
+          <img
+            width="0"
+            height="0"
+            class="hidden w-0 h-0"
+            :src="project.imageUrl"
+            @error="project.imageUrl = placeholder"
+          />
+        </div>
+        <div class="flex flex-col flex-1 min-w-0 gap-3">
+          <div class="flex items-center gap-2 !flex-none">
+            <span class="text-xs font-semibold tracking-wider uppercase text-fg-muted !flex-none">Project</span>
             <q-btn
               flat
+              round
               dense
-              icon="lucide-pencil"
               size="sm"
+              icon="lucide-pencil"
+              aria-label="Edit project"
+              class="!flex-none text-fg-muted"
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
-          </span>
-        </q-no-ssr>
-        <q-no-ssr class="flex items-center gap-2 mt-4 !flex-none" v-if="project.isOwner">
-          <q-btn
-            no-caps
-            rounded
-            unelevated
-            color="primary"
-            class="!flex-none"
-            icon="lucide-disc-3"
-            :label="projectReleaseLabel(project)"
-            :disable="!!releaseBlocker"
-            :to="projectReleaseLink(project)"
-          />
-          <q-badge
-            rounded
-            color="positive"
-            label="Released"
-            class="!flex-none"
-            v-if="project.released"
-          />
-          <span class="text-sm text-grey-6 !flex-none" v-else-if="releaseBlocker">
-            {{ releaseBlocker }}
-          </span>
-        </q-no-ssr>
+          </div>
+          <h1 class="text-3xl font-bold leading-tight md:text-5xl !flex-none break-words">
+            {{ project.title }}
+          </h1>
+          <p class="max-w-2xl text-fg-muted !flex-none" v-if="project.description">
+            {{ project.description }}
+          </p>
+          <q-no-ssr class="flex flex-wrap items-center gap-2 !flex-none">
+            <HoverCard
+              tag="span"
+              trigger="mouseenter click"
+              class="project-hero__stat"
+              :content="`${intStr(project.collaboratorsCount)} collaborators are working on this project`"
+            >
+              <q-icon name="lucide-users" size="14px" />
+              {{ intStr(project.collaboratorsCount) }}
+            </HoverCard>
+            <HoverCard
+              tag="span"
+              trigger="mouseenter click"
+              class="project-hero__stat"
+              :content="`This project has ${intStr(project.props)} props`"
+            >
+              <q-icon name="lucide-hand" size="14px" />
+              {{ intStr(project.props) }}
+            </HoverCard>
+            <HoverCard
+              tag="span"
+              trigger="mouseenter click"
+              class="project-hero__stat"
+              :content="`This project has ${intStr(project.tracksCount)} tracks`"
+            >
+              <q-icon name="lucide-disc-3" size="14px" />
+              {{ intStr(project.tracksCount) }}
+            </HoverCard>
+          </q-no-ssr>
+          <q-no-ssr class="flex flex-wrap items-center gap-3 mt-1 !flex-none" v-if="project.isOwner">
+            <q-btn
+              no-caps
+              rounded
+              unelevated
+              color="primary"
+              class="!flex-none"
+              icon="lucide-disc-3"
+              :label="projectReleaseLabel(project)"
+              :disable="!!releaseBlocker"
+              :to="projectReleaseLink(project)"
+            />
+            <q-badge
+              rounded
+              color="positive"
+              label="Released"
+              class="!flex-none"
+              v-if="project.released"
+            />
+            <span class="text-sm text-fg-subtle !flex-none" v-else-if="releaseBlocker">
+              {{ releaseBlocker }}
+            </span>
+          </q-no-ssr>
+        </div>
       </div>
-    </div>
+    </section>
     <div
       class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl"
       v-if="project?.id"
     >
-      <div class="flex justify-start gap-4 mb-2">
-        <h4 class="text-xl !flex-none font-semibold md:text-2xl">Tracklist</h4>
+      <div class="flex items-center justify-start gap-4 mb-2">
+        <h2 class="text-xl !flex-none font-semibold md:text-2xl">Tracklist</h2>
         <ProjectTrackInfoDialog
           ref="trackInfoDialogRef"
           :project="project"
@@ -122,8 +123,9 @@
               icon="lucide-plus"
               label="Add Track"
               class="!flex-none"
-              color="white"
-              text-color="dark"
+              outline
+              rounded
+              padding="2px 12px"
               @click="toggle()"
             />
           </template>
@@ -135,8 +137,9 @@
           no-caps
           icon="lucide-plus"
           class="!flex-none"
-          color="white"
-          text-color="dark"
+          outline
+          rounded
+          padding="2px 12px"
           @click="trackInfoDialogRef.toggle()"
         />
       </SimpleInfo>
@@ -152,9 +155,9 @@
         >
           <q-item-section avatar>
             <q-avatar
-              color="secondary"
-              text-color="white"
+              rounded
               icon="lucide-disc-3"
+              class="bg-primary-soft text-primary"
             />
           </q-item-section>
 
@@ -210,8 +213,8 @@
         </q-item>
       </q-list>
 
-      <div class="flex justify-start gap-4 mt-8 mb-2">
-        <h4 class="text-xl !flex-none font-semibold md:text-2xl">Collabers</h4>
+      <div class="flex items-center justify-start gap-4 mt-8 mb-2">
+        <h2 class="text-xl !flex-none font-semibold md:text-2xl">Collabers</h2>
         <AddCollaberDialog
           ref="collaberDialogRef"
           :project="project"
@@ -229,8 +232,9 @@
               icon="lucide-plus"
               label="Add Collaber"
               class="!flex-none"
-              color="white"
-              text-color="dark"
+              outline
+              rounded
+              padding="2px 12px"
               @click="toggle"
             />
           </template>
@@ -245,8 +249,9 @@
           no-caps
           icon="lucide-plus"
           class="!flex-none"
-          color="white"
-          text-color="dark"
+          outline
+          rounded
+          padding="2px 12px"
           @click="collaberDialogRef.toggle()"
         />
       </SimpleInfo>
@@ -313,7 +318,8 @@
       <q-separator class="my-12" v-if="project.isOwner" />
       <div class="text-center" v-if="project.isOwner">
         <ContentRemover
-          dense
+          outline
+          rounded
           no-caps
           color="negative"
           icon="lucide-trash-2"
@@ -344,7 +350,7 @@ import { useMeta } from 'quasar';
 import placeholder from 'src/assets/placeholder.svg';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { formatSeconds, intStr, subString } from 'src/utils/helpers';
+import { formatSeconds, intStr } from 'src/utils/helpers';
 import { Project, Collaber, ProjectTrack } from 'src/utils/models';
 import { loadProjectRequest } from 'src/utils/requests/requests';
 import { computed, ref, watch } from 'vue';
@@ -437,3 +443,40 @@ useMeta(() => {
   };
 });
 </script>
+
+<style scoped lang="scss">
+.project-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--tf-border);
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(60px) saturate(1.3);
+    opacity: 0.45;
+    transform: scale(1.3);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent, var(--tf-bg));
+    }
+  }
+
+  &__stat {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--tf-radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    background: rgb(255 255 255 / 8%);
+  }
+}
+</style>
