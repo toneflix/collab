@@ -63,6 +63,11 @@ function render(this: Controls) {
     send('tf-track-effects');
   };
 
+  const openColors = (e: Event) => {
+    e.stopPropagation();
+    send('tf-track-color');
+  };
+
   return html`
     <div class="tc ${selected ? 'tc--selected' : ''}" style="--tc-color: ${color}" @pointerdown=${() => send('tf-track-select')}>
       <div class="tc__main">
@@ -98,6 +103,11 @@ function render(this: Controls) {
                 @click=${openEffects}
               >
                 FX${effects ? html`<b>${effects}</b>` : nothing}
+              </button>`
+            : nothing}
+          ${editable
+            ? html`<button class="tc__btn tc__btn--color" title="Colour" aria-label="Colour of ${name}" @click=${openColors}>
+                <i></i>
               </button>`
             : nothing}
         </div>
@@ -234,6 +244,19 @@ const controlStyles = css`
     color: #1a1b1e;
     border-color: #ffc93c;
     background: #ffc93c;
+  }
+
+  .tc__btn--color {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tc__btn--color i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--tc-color);
   }
 
   .tc__btn--fx b {

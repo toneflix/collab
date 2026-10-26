@@ -13,7 +13,7 @@
         dropdown-icon="expand_more"
         @show="plugins && loadPlugins()"
       >
-        <q-list dark dense class="min-w-64 max-h-[60vh]">
+        <q-list dark dense class="fx__menu">
           <template :key="group" v-for="group in EFFECT_GROUPS">
             <q-item-label header class="!py-2 !text-xs uppercase tracking-wider">{{ group }}</q-item-label>
             <q-item
@@ -25,7 +25,7 @@
             >
               <q-item-section>
                 <q-item-label>{{ e.label }}</q-item-label>
-                <q-item-label caption>{{ e.description }}</q-item-label>
+                <q-item-label caption lines="2">{{ e.description }}</q-item-label>
               </q-item-section>
             </q-item>
           </template>
@@ -34,7 +34,7 @@
             <q-item clickable v-close-popup :key="p.url" v-for="p in library" @click="addPlugin(p.url, p.name)">
               <q-item-section>
                 <q-item-label>{{ p.name }}</q-item-label>
-                <q-item-label caption>{{ [p.vendor, p.description].filter(Boolean).join(' · ') }}</q-item-label>
+                <q-item-label caption lines="2" :title="p.description">{{ [p.vendor, p.description].filter(Boolean).join(' · ') }}</q-item-label>
               </q-item-section>
             </q-item>
             <q-item v-if="loadingLibrary">
@@ -263,6 +263,11 @@ const setParam = (i: number, key: string, value: number | null) => {
     align-items: center;
     gap: 8px;
     font-size: 0.8rem;
+  }
+
+  &__menu {
+    width: min(320px, 90vw);
+    max-height: 60vh;
   }
 
   &__note {
