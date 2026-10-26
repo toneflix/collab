@@ -6,7 +6,7 @@ export type CreditPack = { credits: number; discount: number; price: number };
 export type ReferenceKind = 'song' | 'voice' | 'instrumental';
 
 /** A service AI tools run on */
-export type AiEngine = 'replicate' | 'suno';
+export type AiEngine = 'replicate' | 'suno' | 'cloudflare';
 
 /** A music generation model, what it can do and what it costs */
 export type MusicModel = {
@@ -143,6 +143,8 @@ export type AiAdminSettings = {
     /** Kinds of Suno stem splits, id to label */
     sunoStemTypes: Record<string, string>;
     engines: Record<AiEngine, string>;
+    /** The engines each switchable tool can run on, by its setting */
+    toolEngines?: Record<string, AiEngine[]>;
     /** Where Composer's word lookups come from, id to label */
     wordSources?: Record<string, string>;
     /** Music models that sing lyrics, which Composer songs can use */

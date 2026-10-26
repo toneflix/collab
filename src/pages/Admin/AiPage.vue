@@ -33,7 +33,7 @@
           <template #engines>
             <p class="mb-4 text-sm text-grey-5">
               Keys go in the API's .env. Replicate runs every tool unless you
-              switch Music generation or Stem splitting to Suno.
+              switch it to Suno or Cloudflare Workers AI in its section.
             </p>
             <div class="engines">
               <div class="engine">
@@ -72,6 +72,30 @@
                   at sunoapi.org/api-key.
                 </p>
                 <EnvKeys :keys="settings.keys.suno" />
+              </div>
+              <div class="engine">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-bold !flex-none"
+                    >Cloudflare Workers AI</span
+                  >
+                  <q-badge
+                    rounded
+                    class="!flex-none"
+                    :color="
+                      settings.client.engines.cloudflare ? 'green-9' : 'grey-8'
+                    "
+                    :label="
+                      settings.client.engines.cloudflare ? 'Ready' : 'No key'
+                    "
+                  />
+                </div>
+                <p class="mb-2 text-xs text-grey-5">
+                  ElevenLabs and MiniMax music, Whisper lyrics, Composer and the
+                  AI moderator. No stem splitting. Create a token with the
+                  Workers AI permission at
+                  dash.cloudflare.com/profile/api-tokens.
+                </p>
+                <EnvKeys :keys="settings.keys.cloudflare" />
               </div>
             </div>
           </template>
@@ -264,8 +288,9 @@
           <template #credits>
             <p class="mb-4 text-sm text-grey-5">
               A Demucs split costs us about $0.03, a 30 second ElevenLabs track
-              about $0.08 and a Suno song about $0.06. The defaults sell a
-              credit for about four times what it costs us.
+              about $0.08, a MiniMax 2.6 song on Workers AI $0.15 and a Suno
+              song about $0.06. The defaults sell a credit for about four times
+              what it costs us.
             </p>
             <div class="grid gap-3 sm:grid-cols-2">
               <q-input
@@ -320,10 +345,11 @@
 
           <template #lyrics>
             <p class="mb-4 text-sm text-grey-5">
-              Whisper writes out lyrics for about $0.001 a track. Released
-              tracks show synced lyrics in the player and can be found by their
-              words. Explicit words mark a track explicit, and words to review
-              send it to the moderation queue.
+              Whisper writes out lyrics for about $0.001 a track, on Replicate
+              or Cloudflare Workers AI. Released tracks show synced lyrics in
+              the player and can be found by their words. Explicit words mark a
+              track explicit, and words to review send it to the moderation
+              queue.
             </p>
             <div class="toggle-card mb-4">
               <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
@@ -335,6 +361,25 @@
               </div>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.ai_lyrics_engine?.title"
+                :hint="fields.ai_lyrics_engine?.hint"
+                :options="engineOptions('ai_lyrics_engine')"
+                v-model="form.ai_lyrics_engine"
+              >
+                <template #append>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    label="Needs its key"
+                    v-if="needsKey(form.ai_lyrics_engine)"
+                  />
+                </template>
+              </q-select>
               <q-input
                 dark
                 outlined
@@ -344,7 +389,6 @@
                 :hint="fields.ai_lyrics_credits?.hint"
                 v-model.number="form.ai_lyrics_credits"
               />
-              <div class="max-sm:!hidden" />
               <q-input
                 dark
                 outlined
@@ -384,8 +428,8 @@
 
           <template #composer>
             <p class="mb-4 text-sm text-grey-5">
-              Composer is the lyrics notepad in the studio. Its suggestions use
-              the Replicate token from Engines and need a plan with AI tools.
+              Composer is the lyrics notepad in the studio. Its suggestions run
+              on the engine picked here and need a plan with AI tools.
             </p>
             <div class="flex flex-col gap-3">
               <div class="grid gap-3 sm:grid-cols-2">
@@ -402,12 +446,40 @@
                 <div class="text-sm" v-if="settings?.keys.datamuse">
                   <EnvKeys :keys="settings.keys.datamuse" />
                 </div>
+                <q-select
+                  dark
+                  outlined
+                  emit-value
+                  map-options
+                  :label="fields.ai_composer_engine?.title"
+                  :hint="fields.ai_composer_engine?.hint"
+                  :options="engineOptions('ai_composer_engine')"
+                  v-model="form.ai_composer_engine"
+                >
+                  <template #append>
+                    <q-badge
+                      rounded
+                      color="orange-9"
+                      label="Needs its key"
+                      v-if="needsKey(form.ai_composer_engine)"
+                    />
+                  </template>
+                </q-select>
+                <q-input
+                  dark
+                  outlined
+                  :label="fields.ai_composer_cloudflare_model?.title"
+                  :hint="fields.ai_composer_cloudflare_model?.hint"
+                  v-model="form.ai_composer_cloudflare_model"
+                  v-if="form.ai_composer_engine === 'cloudflare'"
+                />
                 <q-input
                   dark
                   outlined
                   :label="fields.ai_composer_model?.title"
                   :hint="fields.ai_composer_model?.hint"
                   v-model="form.ai_composer_model"
+                  v-else
                 />
                 <q-select
                   dark
@@ -442,7 +514,7 @@
               can send any of them from the moderation queue, and those always
               get a decision. Items sent automatically are only decided when the
               moderator is confident enough; the rest stay in the queue, flagged
-              for a person. It uses the Replicate token from Engines.
+              for a person. It runs on the engine picked here.
             </p>
             <div class="flex flex-col gap-3">
               <div
@@ -457,6 +529,25 @@
                 </div>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
+                <q-select
+                  dark
+                  outlined
+                  emit-value
+                  map-options
+                  :label="fields.ai_moderator_engine?.title"
+                  :hint="fields.ai_moderator_engine?.hint"
+                  :options="engineOptions('ai_moderator_engine')"
+                  v-model="form.ai_moderator_engine"
+                >
+                  <template #append>
+                    <q-badge
+                      rounded
+                      color="orange-9"
+                      label="Needs its key"
+                      v-if="needsKey(form.ai_moderator_engine)"
+                    />
+                  </template>
+                </q-select>
                 <q-input
                   dark
                   outlined
@@ -508,6 +599,7 @@ import {
   loadAiSettingsRequest,
   saveAiSettingsRequest,
   type AiAdminSettings,
+  type AiEngine,
   type MusicModel,
 } from 'src/utils/requests/ai';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
@@ -530,6 +622,7 @@ const form = reactive({
   ai_stems_suno_type: 'split_stem',
   ai_stems_suno_credits: 50 as number | string,
   ai_music_max_seconds: 300 as number | string,
+  ai_lyrics_engine: 'replicate' as AiEngine,
   ai_lyrics_auto: true,
   ai_lyrics_credits: 2 as number | string,
   ai_lyrics_explicit_words: '',
@@ -537,9 +630,12 @@ const form = reactive({
   ai_tags_auto: true,
   ai_moderator_claims_auto: false,
   ai_moderator_releases_auto: false,
+  ai_moderator_engine: 'replicate' as AiEngine,
   ai_moderator_confidence: 80 as number | string,
   composer_word_source: 'datamuse',
+  ai_composer_engine: 'replicate' as AiEngine,
   ai_composer_model: '',
+  ai_composer_cloudflare_model: '',
   ai_composer_music_model: '',
   ai_composer_line_credits: 1 as number | string,
   ai_composer_block_credits: 1 as number | string,
@@ -581,7 +677,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     key: 'engines',
     icon: 'lucide-plug',
     title: 'Engines',
-    caption: 'Replicate and Suno, and the keys they need.',
+    caption: 'Replicate, Suno and Workers AI, and the keys they need.',
     fields: [],
     hideFooter: true,
   },
@@ -617,6 +713,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     title: 'Lyrics',
     caption: 'Transcription and the words that flag a track.',
     fields: [
+      'ai_lyrics_engine',
       'ai_lyrics_auto',
       'ai_lyrics_credits',
       'ai_lyrics_explicit_words',
@@ -637,7 +734,9 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     caption: 'Word lookups, lyric suggestions and songs from lyrics.',
     fields: [
       'composer_word_source',
+      'ai_composer_engine',
       'ai_composer_model',
+      'ai_composer_cloudflare_model',
       'ai_composer_music_model',
       ...composerCosts,
     ],
@@ -650,6 +749,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     fields: [
       'ai_moderator_claims_auto',
       'ai_moderator_releases_auto',
+      'ai_moderator_engine',
       'ai_moderator_confidence',
     ],
   },
@@ -685,6 +785,19 @@ const sunoStemTypes = computed(() =>
   toOptions(settings.value?.options.sunoStemTypes),
 );
 
+/** The engines a switchable tool can run on, as select options */
+const engineOptions = (setting: string) =>
+  (settings.value?.options.toolEngines?.[setting] ?? ['replicate']).map(
+    (engine) => ({
+      value: engine,
+      label: settings.value?.options.engines[engine] ?? engine,
+    }),
+  );
+
+/** Whether an engine's key is still missing from the API's .env */
+const needsKey = (engine: AiEngine) =>
+  !!settings.value && !settings.value.client.engines[engine];
+
 const fill = (data: AiAdminSettings) => {
   settings.value = data;
   const f = data.fields;
@@ -705,6 +818,8 @@ const fill = (data: AiAdminSettings) => {
   form.ai_stems_suno_type = f.ai_stems_suno_type?.value ?? 'split_stem';
   form.ai_stems_suno_credits = Number(f.ai_stems_suno_credits?.value ?? 50);
   form.ai_music_max_seconds = Number(f.ai_music_max_seconds?.value ?? 300);
+  form.ai_lyrics_engine = (f.ai_lyrics_engine?.value ??
+    'replicate') as AiEngine;
   form.ai_lyrics_auto = f.ai_lyrics_auto?.value === '1';
   form.ai_lyrics_credits = Number(f.ai_lyrics_credits?.value ?? 2);
   form.ai_lyrics_explicit_words = f.ai_lyrics_explicit_words?.value ?? '';
@@ -712,9 +827,15 @@ const fill = (data: AiAdminSettings) => {
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
   form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';
+  form.ai_moderator_engine = (f.ai_moderator_engine?.value ??
+    'replicate') as AiEngine;
   form.ai_moderator_confidence = Number(f.ai_moderator_confidence?.value ?? 80);
   form.composer_word_source = f.composer_word_source?.value ?? 'datamuse';
+  form.ai_composer_engine = (f.ai_composer_engine?.value ??
+    'replicate') as AiEngine;
   form.ai_composer_model = f.ai_composer_model?.value ?? '';
+  form.ai_composer_cloudflare_model =
+    f.ai_composer_cloudflare_model?.value ?? '';
   form.ai_composer_music_model = f.ai_composer_music_model?.value ?? '';
   for (const key of composerCosts) {
     form[key] = Number(f[key]?.value ?? data.client.costs.composer?.[key.split('_')[2] as 'line'] ?? 1);
