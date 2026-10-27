@@ -3,6 +3,8 @@ name: Android
 # A push to the playstore branch builds a signed app bundle and sends it to Google Play.
 # A manual run builds the same signed bundle and APK and keeps them as run artifacts;
 # it uploads to Google Play only when "deploy" is ticked.
+# A test build has debug logging on and only ever goes to the internal track.
+# The api choice picks which VITE_*_API_BASE_URL the app talks to.
 # Pull requests that touch the app only check that the Android project builds.
 on:
   push:
@@ -16,6 +18,16 @@ on:
       - .github/workflows/android.yml
   workflow_dispatch:
     inputs:
+      build:
+        description: Which build to make
+        type: choice
+        options: [production, test]
+        default: production
+      api:
+        description: Which API the app talks to
+        type: choice
+        options: [production, staging, development]
+        default: production
       deploy:
         description: Upload the bundle to Google Play
         type: boolean
@@ -35,6 +47,8 @@ jobs:
       VITE_API_ENVIRONMENT: production
       RELEASE: ${{ github.event_name != 'pull_request' }}
       DEPLOY: ${{ github.event_name == 'push' || inputs.deploy == true }}
+      BUILD: ${{ inputs.build || 'production' }}
+      API: ${{ inputs.api || 'production' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -65,6 +79,24 @@ jobs:
         env:
           VARS: ${{ toJSON(vars) }}
         run: echo "$VARS" | jq -r 'to_entries[] | select(.key | startswith("VITE_")) | "\(.key)=\(.value)"' >> "$GITHUB_ENV"
+
+      # Set after the VITE_* variables so the choices win over them
+      - name: Apply the build and API choices
+        env:
+          DEV_URL: ${{ vars.VITE_DEV_API_BASE_URL }}
+          STAGING_URL: ${{ vars.VITE_STAGING_API_BASE_URL }}
+        run: |
+          echo "VITE_API_ENVIRONMENT=$API" >> "$GITHUB_ENV"
+          if [ "$BUILD" = test ]; then
+            echo "VITE_APP_ENVIRONMENT=staging" >> "$GITHUB_ENV"
+            echo "VITE_DEBUG=true" >> "$GITHUB_ENV"
+          fi
+          if [ "$API" = staging ] && [ -z "$STAGING_URL" ]; then
+            echo "::warning::VITE_STAGING_API_BASE_URL is not set, so the app talks to VITE_API_BASE_URL."
+          fi
+          if [ "$API" = development ] && [ -z "$DEV_URL" ]; then
+            echo "::warning::VITE_DEV_API_BASE_URL is not set, so the app uses the address in .env, which a phone can't reach."
+          fi
 
       # Builds the UI into src-capacitor/www and syncs it into the Android project
       - name: Build the app
@@ -99,7 +131,9 @@ jobs:
           NAME: ${{ vars.ANDROID_VERSION_NAME }}
         run: |
           echo "ANDROID_VERSION_CODE=$(( ${{ github.run_number }} + OFFSET ))" >> "$GITHUB_ENV"
-          echo "ANDROID_VERSION_NAME=${NAME:-$(jq -r .version package.json)}" >> "$GITHUB_ENV"
+          NAME="${NAME:-$(jq -r .version package.json)}"
+          if [ "$BUILD" = test ]; then NAME="$NAME-test"; fi
+          echo "ANDROID_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
 
       - name: Check the Android build
         if: env.RELEASE != 'true'
@@ -120,7 +154,7 @@ jobs:
         if: env.RELEASE == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: toneflix-music-${{ env.ANDROID_VERSION_CODE }}
+          name: toneflix-music-${{ env.BUILD }}-${{ env.ANDROID_VERSION_CODE }}
           path: |
             src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
             src-capacitor/android/app/build/outputs/apk/release/app-release.apk
@@ -133,5 +167,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.toneflix.music.app
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
-          track: ${{ vars.PLAY_TRACK || 'internal' }}
+          track: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
