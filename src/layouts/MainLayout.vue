@@ -6,7 +6,7 @@
         <q-btn
           flat
           round
-          class="!flex-none mr-2"
+          class="flex-none! mr-2"
           :aria-label="leftDrawerOpen ? 'Close menu' : 'Open menu'"
           @click="leftDrawerOpen = !leftDrawerOpen"
           v-if="overlay && adminMenu"
@@ -15,7 +15,7 @@
         </q-btn>
 
         <router-link
-          class="!flex-none sm:!hidden"
+          class="flex-none! sm:hidden!"
           aria-label="Home"
           :to="{ name: 'home' }"
           v-if="!isSearchRoute"
@@ -26,7 +26,7 @@
         <q-btn
           flat
           round
-          class="!flex-none bg-surface-2 max-sm:!hidden"
+          class="flex-none! bg-surface-2 max-sm:hidden!"
           aria-label="Search"
           v-if="!showSearch && !isSearchRoute"
           @click="showSearch = !showSearch"
@@ -41,7 +41,7 @@
           placeholder="Search songs, lyrics and creators"
           aria-label="Search"
           class="header-search"
-          :class="{ 'max-sm:!hidden': !isSearchRoute }"
+          :class="{ 'max-sm:hidden!': !isSearchRoute }"
           v-model="searchText"
           @keyup.enter="search"
           v-if="showSearch || isSearchRoute"
@@ -64,7 +64,7 @@
         <q-btn
           flat
           round
-          class="!flex-none sm:!hidden"
+          class="flex-none! sm:hidden!"
           aria-label="Search"
           :to="{ name: 'search' }"
           v-if="!isSearchRoute"
@@ -75,8 +75,8 @@
         <q-btn
           flat
           round
-          class="!flex-none sm:mr-2"
-          :class="{ 'max-sm:!hidden': isSearchRoute }"
+          class="flex-none! sm:mr-2"
+          :class="{ 'max-sm:hidden!': isSearchRoute }"
           aria-label="Messages"
           :to="{ name: 'messages' }"
           v-if="boot.user?.id"
@@ -86,9 +86,9 @@
           <q-tooltip>Messages</q-tooltip>
         </q-btn>
 
-        <NotificationBell :class="{ 'max-sm:!hidden': isSearchRoute }" v-if="boot.user?.id" />
+        <NotificationBell :class="{ 'max-sm:hidden!': isSearchRoute }" v-if="boot.user?.id" />
 
-        <div :class="{ 'max-sm:!hidden': isSearchRoute }">
+        <div :class="{ 'max-sm:hidden!': isSearchRoute }">
           <ProfileDropdown>
             <template #anchor="{ isShown }">
               <q-chip
@@ -125,10 +125,10 @@
       v-model="leftDrawerOpen"
     >
       <q-toolbar
-        class="!items-start !flex-nowrap py-4 mb-10 h-28 bg-dark absolute-top"
-        :class="{ '!justify-center !px-0': collapsed }"
+        class="items-start! flex-nowrap! py-4 mb-10 h-28 bg-dark absolute-top"
+        :class="{ 'justify-center! px-0!': collapsed }"
       >
-        <div class="!flex-none" v-if="!collapsed">
+        <div class="flex-none!" v-if="!collapsed">
           <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
         </div>
         <q-space v-if="!collapsed" />
@@ -136,7 +136,7 @@
           flat
           round
           dense
-          class="!flex-none mt-1"
+          class="flex-none! mt-1"
           :aria-label="collapsed ? 'Expand menu' : 'Collapse menu'"
           @click="toggleSidebar"
           v-if="!overlay"
@@ -264,7 +264,7 @@
 
     <q-footer class="text-white bg-glass">
       <!-- On phones the player bar only shows once something is queued -->
-      <AudioPlayer :class="{ 'max-sm:!hidden': !hasTrack }" v-if="!$route.meta.hidePlayer" />
+      <AudioPlayer :class="{ 'max-sm:hidden!': !hasTrack }" v-if="!$route.meta.hidePlayer" />
       <!-- Phones get tabs instead of the side menu -->
       <BottomNav v-if="!adminMenu" />
     </q-footer>

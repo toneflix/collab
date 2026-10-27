@@ -36,10 +36,10 @@
             <div class="engines">
               <div class="engine">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class="font-bold !flex-none">Replicate</span>
+                  <span class="font-bold flex-none!">Replicate</span>
                   <q-badge
                     rounded
-                    class="!flex-none"
+                    class="flex-none!"
                     :color="
                       settings.client.engines.replicate ? 'green-9' : 'grey-8'
                     "
@@ -56,10 +56,10 @@
               </div>
               <div class="engine">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class="font-bold !flex-none">Suno</span>
+                  <span class="font-bold flex-none!">Suno</span>
                   <q-badge
                     rounded
-                    class="!flex-none"
+                    class="flex-none!"
                     :color="settings.client.engines.suno ? 'green-9' : 'grey-8'"
                     :label="settings.client.engines.suno ? 'Ready' : 'No key'"
                   />
@@ -73,12 +73,12 @@
               </div>
               <div class="engine">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class="font-bold !flex-none"
+                  <span class="font-bold flex-none!"
                     >Cloudflare Workers AI</span
                   >
                   <q-badge
                     rounded
-                    class="!flex-none"
+                    class="flex-none!"
                     :color="
                       settings.client.engines.cloudflare ? 'green-9' : 'grey-8'
                     "
@@ -115,20 +115,20 @@
                   dense
                   dark
                   color="toneflix"
-                  class="!flex-none"
+                  class="flex-none!"
                   :val="model.id"
                   v-model="form.ai_music_model"
                 />
                 <div class="min-w-0 model__body">
                   <div class="flex items-baseline gap-2">
-                    <span class="font-bold !flex-none">{{ model.name }}</span>
-                    <code class="text-xs text-grey-6 !flex-none">{{
+                    <span class="font-bold flex-none!">{{ model.name }}</span>
+                    <code class="text-xs text-grey-6 flex-none!">{{
                       model.id
                     }}</code>
                     <q-badge
                       rounded
                       color="orange-9"
-                      class="!flex-none"
+                      class="flex-none!"
                       label="Needs its key"
                       v-if="!settings.client.engines[model.engine]"
                     />
@@ -140,7 +140,7 @@
                       square
                       dark
                       color="grey-9"
-                      class="!flex-none"
+                      class="flex-none!"
                       :key="tag"
                       v-for="tag in modelTags(model)"
                       >{{ tag }}</q-chip
@@ -203,7 +203,7 @@
                   dense
                   dark
                   color="toneflix"
-                  class="!flex-none"
+                  class="flex-none!"
                   val="replicate"
                   v-model="form.ai_stems_engine"
                 />
@@ -234,17 +234,17 @@
                   dense
                   dark
                   color="toneflix"
-                  class="!flex-none"
+                  class="flex-none!"
                   val="suno"
                   v-model="form.ai_stems_engine"
                 />
                 <div class="min-w-0 model__body">
                   <div class="flex items-baseline gap-2">
-                    <span class="font-bold !flex-none">Suno</span>
+                    <span class="font-bold flex-none!">Suno</span>
                     <q-badge
                       rounded
                       color="orange-9"
-                      class="!flex-none"
+                      class="flex-none!"
                       label="Needs its key"
                       v-if="!settings.client.engines.suno"
                     />
@@ -336,7 +336,7 @@
                 <q-chip
                   dark
                   square
-                  class="!flex-none"
+                  class="flex-none!"
                   :key="pack.credits"
                   v-for="pack in settings.client.packs"
                 >
@@ -630,7 +630,7 @@
               type="submit"
               color="toneflix"
               label="Save"
-              class="!flex-none"
+              class="flex-none!"
               :loading="saving"
               :disable="!changed"
             />

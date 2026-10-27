@@ -11,7 +11,7 @@
       <!-- Transport: previous, play/pause, next and time -->
       <div class="player-bar__transport">
         <IconBtn
-          class="!flex-none max-sm:!hidden"
+          class="flex-none! max-sm:hidden!"
           aria-label="Previous track"
           icon="lucide-skip-back:fill"
           @click="player.previous()"
@@ -21,7 +21,7 @@
           unelevated
           size="md"
           color="glass"
-          class="!flex-none mx-1 white-glass"
+          class="flex-none! mx-1 white-glass"
           :aria-label="player.playing ? 'Pause' : 'Play'"
           :disable="!track.id"
           @click="player.toggle()"
@@ -30,19 +30,19 @@
           <q-icon size="26px" :name="player.playing ? 'lucide-pause:fill' : 'lucide-play:fill'" v-else />
         </q-btn>
         <IconBtn
-          class="!flex-none"
+          class="flex-none!"
           aria-label="Next track"
           icon="lucide-skip-forward:fill"
           @click="player.next()"
         />
-        <div class="ml-2 text-xs whitespace-nowrap text-grey-5 !flex-none max-md:!hidden">
+        <div class="ml-2 text-xs whitespace-nowrap text-grey-5 flex-none! max-md:hidden!">
           {{ formatSeconds(player.position) }} / {{ formatSeconds(player.duration) }}
         </div>
       </div>
 
       <!-- Now playing: artwork, title, artist and actions -->
       <div class="player-bar__now">
-        <RouterLink :to="trackLink" class="!flex-none" v-if="track.id">
+        <RouterLink :to="trackLink" class="flex-none!" v-if="track.id">
           <q-img
             no-spinner
             class="rounded bg-gray-700"
@@ -52,13 +52,13 @@
           />
         </RouterLink>
 
-        <div class="min-w-0 !flex-auto md:!flex-initial">
+        <div class="min-w-0 flex-auto! md:flex-initial!">
           <RouterLink :to="trackLink" class="block font-bold truncate">
             {{ track.title || 'Nothing playing' }}
           </RouterLink>
           <div class="flex items-center gap-1 text-sm truncate text-grey-5 no-wrap">
             <span
-              class="explicit !flex-none"
+              class="explicit flex-none!"
               title="Explicit"
               v-if="track.explicit"
             >E</span>
@@ -77,7 +77,7 @@
           </div>
         </div>
 
-        <div class="flex items-center !flex-none no-wrap max-sm:!hidden" v-if="track.id">
+        <div class="flex items-center flex-none! no-wrap max-sm:hidden!" v-if="track.id">
           <TInteraction
             v-slot="{ submit, active }"
             type="like"
@@ -88,7 +88,7 @@
             @done="track.likes = $event.likes"
           >
             <IconBtn
-              class="!flex-none"
+              class="flex-none!"
               :aria-label="active ? 'Unlike' : 'Like'"
               :icon="active ? 'lucide-heart:fill' : 'lucide-heart'"
               :color="active ? 'toneflix' : undefined"
@@ -96,7 +96,7 @@
             />
           </TInteraction>
 
-          <IconBtn class="!flex-none" aria-label="More" icon="lucide-ellipsis-vertical">
+          <IconBtn class="flex-none!" aria-label="More" icon="lucide-ellipsis-vertical">
             <q-menu dark anchor="top middle" self="bottom middle" :offset="[0, 8]">
               <q-list dense class="min-w-48">
                 <q-item clickable v-close-popup :to="trackLink">
@@ -131,7 +131,7 @@
 
       <!-- Volume, repeat, shuffle and the queue -->
       <div class="player-bar__extras">
-        <div class="volume max-md:!hidden">
+        <div class="volume max-md:hidden!">
           <div class="volume__slider">
             <q-slider
               dense
@@ -145,7 +145,7 @@
             />
           </div>
           <IconBtn
-            class="!flex-none"
+            class="flex-none!"
             :aria-label="player.muted ? 'Unmute' : 'Mute'"
             :icon="volumeIcon"
             @click="player.toggleMute()"
@@ -155,7 +155,7 @@
           flat
           round
           size="md"
-          class="!flex-none max-sm:!hidden"
+          class="flex-none! max-sm:hidden!"
           :class="{ 'text-toneflix': player.repeat !== 'off' }"
           :aria-label="`Repeat: ${player.repeat}`"
           @click="player.cycleRepeat()"
@@ -164,7 +164,7 @@
           <q-tooltip>{{ repeatLabel }}</q-tooltip>
         </q-btn>
         <IconBtn
-          class="!flex-none max-sm:!hidden"
+          class="flex-none! max-sm:hidden!"
           :class="{ 'text-toneflix': player.shuffle }"
           :aria-label="player.shuffle ? 'Turn shuffle off' : 'Turn shuffle on'"
           icon="lucide-shuffle"
@@ -173,7 +173,7 @@
           <q-tooltip>{{ player.shuffle ? 'Shuffle on' : 'Shuffle off' }}</q-tooltip>
         </IconBtn>
         <IconBtn
-          class="!flex-none"
+          class="flex-none!"
           :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
           :icon="queueOpen ? 'lucide-chevron-down' : 'lucide-chevron-up'"
           @click="queueOpen = !queueOpen"

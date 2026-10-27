@@ -3,14 +3,14 @@
     <div class="max-w-2xl mx-auto">
       <div class="flex items-center justify-between mb-8">
         <h1 class="text-2xl font-bold">Notifications</h1>
-        <div class="flex !flex-none gap-2">
+        <div class="flex flex-none! gap-2">
           <q-btn
             rounded
             outline
             no-caps
             size="sm"
             label="Mark all read"
-            class="!flex-none"
+            class="flex-none!"
             @click="store.markAllRead()"
             v-if="tab === 'activity' && store.unread"
           />
@@ -21,7 +21,7 @@
             size="sm"
             icon="lucide-settings"
             label="Settings"
-            class="!flex-none"
+            class="flex-none!"
             :to="{ name: 'account.notifications' }"
           />
         </div>
@@ -53,7 +53,7 @@
         />
 
         <div class="flex justify-center mt-8" v-if="store.page < store.lastPage">
-          <q-btn rounded outline no-caps label="Load more" class="!flex-none" :loading="store.loading" @click="store.loadMore()" />
+          <q-btn rounded outline no-caps label="Load more" class="flex-none!" :loading="store.loading" @click="store.loadMore()" />
         </div>
       </template>
 

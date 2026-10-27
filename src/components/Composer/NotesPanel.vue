@@ -9,7 +9,7 @@
           dense
           type="number"
           label="BPM"
-          class="!flex-none w-24"
+          class="flex-none! w-24"
           :model-value="song.bpm ?? undefined"
           @update:model-value="change({ bpm: $event ? Number($event) : null })"
         />
@@ -34,12 +34,12 @@
     <div class="mb-8">
       <div class="label">Beat</div>
       <div class="flex items-center gap-2 no-wrap" v-if="song.beat">
-        <q-icon name="lucide-music" size="20px" class="!flex-none text-toneflix" />
+        <q-icon name="lucide-music" size="20px" class="flex-none! text-toneflix" />
         <div class="min-w-0">
           <div class="text-sm truncate">{{ song.beat.name }}</div>
           <div class="text-xs text-grey-5">Play it on a loop from the toolbar</div>
         </div>
-        <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
+        <IconBtn icon="lucide-x" class="flex-none! ml-auto" aria-label="Remove the beat" @click="setBeat(null)" />
       </div>
       <q-select
         dark

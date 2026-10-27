@@ -13,7 +13,7 @@
     <q-card
       flat
       square
-      class="relative overflow-hidden bg-transparent cursor-pointer !rounded-2xl md:w-44 w-32 h-32 md:h-44 border-4 border-solid border-white hover:scale-105 transition-all"
+      class="relative overflow-hidden bg-transparent cursor-pointer rounded-2xl! md:w-44 w-32 h-32 md:h-44 border-4 border-solid border-white hover:scale-105 transition-all"
     >
       <q-avatar rounded class="w-32 h-32 md:w-44 md:h-44">
         <q-img

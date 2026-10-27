@@ -7,7 +7,7 @@
       ></div>
       <div class="relative flex flex-col gap-5 p-4 mx-auto max-w-3xl md:flex-row md:flex-nowrap md:items-end md:py-8">
         <div
-          class="!flex-none overflow-hidden bg-cover rounded-xl size-32 md:size-44 bg-surface-3 shadow-lg"
+          class="flex-none! overflow-hidden bg-cover rounded-xl size-32 md:size-44 bg-surface-3 shadow-lg"
           :style="{ backgroundImage: `url(${project.imageUrl || placeholder})` }"
         >
           <img
@@ -19,22 +19,22 @@
           />
         </div>
         <div class="flex flex-col flex-1 min-w-0 gap-3">
-          <div class="flex items-center gap-2 !flex-none">
-            <span class="text-xs font-semibold tracking-wider uppercase text-fg-muted !flex-none">Project</span>
+          <div class="flex items-center gap-2 flex-none!">
+            <span class="text-xs font-semibold tracking-wider uppercase text-fg-muted flex-none!">Project</span>
             <IconBtn size="sm"
               icon="lucide-pencil"
               aria-label="Edit project"
-              class="!flex-none text-fg-muted"
+              class="flex-none! text-fg-muted"
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
           </div>
-          <h1 class="text-3xl font-bold leading-tight md:text-5xl !flex-none break-words">
+          <h1 class="text-3xl font-bold leading-tight md:text-5xl flex-none! break-words">
             {{ project.title }}
           </h1>
-          <p class="max-w-2xl text-fg-muted !flex-none" v-if="project.description">
+          <p class="max-w-2xl text-fg-muted flex-none!" v-if="project.description">
             {{ project.description }}
           </p>
-          <q-no-ssr class="flex flex-wrap items-center gap-2 !flex-none">
+          <q-no-ssr class="flex flex-wrap items-center gap-2 flex-none!">
             <HoverCard
               tag="span"
               trigger="mouseenter click"
@@ -63,13 +63,13 @@
               {{ intStr(project.tracksCount) }}
             </HoverCard>
           </q-no-ssr>
-          <q-no-ssr class="flex flex-wrap items-center gap-3 mt-1 !flex-none" v-if="project.isOwner">
+          <q-no-ssr class="flex flex-wrap items-center gap-3 mt-1 flex-none!" v-if="project.isOwner">
             <q-btn
               no-caps
               rounded
               unelevated
               color="primary"
-              class="!flex-none"
+              class="flex-none!"
               icon="lucide-disc-3"
               :label="projectReleaseLabel(project)"
               :disable="!!releaseBlocker"
@@ -79,10 +79,10 @@
               rounded
               color="positive"
               label="Released"
-              class="!flex-none"
+              class="flex-none!"
               v-if="project.released"
             />
-            <span class="text-sm text-fg-subtle !flex-none" v-else-if="releaseBlocker">
+            <span class="text-sm text-fg-subtle flex-none!" v-else-if="releaseBlocker">
               {{ releaseBlocker }}
             </span>
           </q-no-ssr>
@@ -94,7 +94,7 @@
       v-if="project?.id"
     >
       <div class="flex items-center justify-start gap-4 mb-2">
-        <h2 class="text-xl !flex-none font-semibold md:text-2xl">Tracklist</h2>
+        <h2 class="text-xl flex-none! font-semibold md:text-2xl">Tracklist</h2>
         <ProjectTrackInfoDialog
           ref="trackInfoDialogRef"
           :project="project"
@@ -118,7 +118,7 @@
               no-caps
               icon="lucide-plus"
               label="Add Track"
-              class="!flex-none"
+              class="flex-none!"
               outline
               rounded
               padding="2px 12px"
@@ -132,7 +132,7 @@
           dense
           no-caps
           icon="lucide-plus"
-          class="!flex-none"
+          class="flex-none!"
           outline
           rounded
           padding="2px 12px"
@@ -163,16 +163,16 @@
             </q-item-label>
             <q-item-label
               caption
-              class="flex !flex-none flex-row items-center justify-start gap-2"
+              class="flex flex-none! flex-row items-center justify-start gap-2"
             >
               <span
-                class="!flex-none flex items-center gap-1"
+                class="flex-none! flex items-center gap-1"
                 v-if="track.artist"
               >
                 <q-icon name="lucide-user" size=".6rem" />
                 {{ track.artist.name }}
               </span>
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-audio-waveform" size=".6rem" />
                 {{ intStr(track.stemsCount) }}
               </span>
@@ -210,7 +210,7 @@
       </q-list>
 
       <div class="flex items-center justify-start gap-4 mt-8 mb-2">
-        <h2 class="text-xl !flex-none font-semibold md:text-2xl">Collabers</h2>
+        <h2 class="text-xl flex-none! font-semibold md:text-2xl">Collabers</h2>
         <AddCollaberDialog
           ref="collaberDialogRef"
           :project="project"
@@ -227,7 +227,7 @@
               no-caps
               icon="lucide-plus"
               label="Add Collaber"
-              class="!flex-none"
+              class="flex-none!"
               outline
               rounded
               padding="2px 12px"
@@ -244,7 +244,7 @@
           dense
           no-caps
           icon="lucide-plus"
-          class="!flex-none"
+          class="flex-none!"
           outline
           rounded
           padding="2px 12px"
@@ -320,7 +320,7 @@
           color="negative"
           icon="lucide-trash-2"
           label="Delete Project"
-          class="!flex-none"
+          class="flex-none!"
           base-url="creator/projects"
           :id="project.id"
           @deleted="$router.replace({ name: 'studio.releases' })"

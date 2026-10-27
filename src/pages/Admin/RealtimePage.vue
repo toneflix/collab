@@ -66,7 +66,7 @@
             type="submit"
             color="toneflix"
             label="Save"
-            class="!flex-none"
+            class="flex-none!"
             :loading="saving"
           />
           <q-btn
@@ -75,7 +75,7 @@
             no-caps
             color="white"
             label="Send a test"
-            class="!flex-none"
+            class="flex-none!"
             :loading="testing"
             :disable="settings.driver === 'none' || changed"
             @click="test"

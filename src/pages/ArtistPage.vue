@@ -10,7 +10,7 @@
       ></div>
       <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
+          class="flex-none! w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="artist.imageUrl"
         >
           <template #button>
@@ -18,7 +18,7 @@
               round
               color="dark-opaque"
               :size="$q.screen.lt.sm ? 'lg' : 'xl'"
-              class="!flex-none opacity-90"
+              class="flex-none! opacity-90"
               :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
@@ -42,7 +42,7 @@
             <div
               class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
-              <span class="!flex-none">
+              <span class="flex-none!">
                 <ToggleFollow
                   :following="artist.youFollow"
                   :base-url="`artists/${artist.id}`"
@@ -67,14 +67,14 @@
                   />
                 </ToggleFollow>
               </span>
-              <span class="!flex-none">
+              <span class="flex-none!">
                 {{ intStr(artist.followers) }} Followers
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 {{ intStr(artist.reputation) }} Reps.
               </span>
-              <span class="!flex-none" v-if="artist.canEdit">
+              <span class="flex-none!" v-if="artist.canEdit">
                 <q-btn
                   no-caps
                   rounded
@@ -85,7 +85,7 @@
                   @click="editing = true"
                 />
               </span>
-              <span class="!flex-none" v-else-if="artist.claimable && artist.yourClaim?.status !== 'pending'">
+              <span class="flex-none!" v-else-if="artist.claimable && artist.yourClaim?.status !== 'pending'">
                 <q-btn
                   no-caps
                   rounded
@@ -103,11 +103,11 @@
             </p>
             <div class="claim-status" v-if="artist.claimable && artist.yourClaim">
               <template v-if="artist.yourClaim.status === 'pending'">
-                <q-icon name="lucide-hourglass" color="orange-5" class="!flex-none" />
+                <q-icon name="lucide-hourglass" color="orange-5" class="flex-none!" />
                 <span>Your claim is being reviewed. We'll let you know when a moderator decides.</span>
               </template>
               <template v-else-if="artist.yourClaim.status === 'rejected'">
-                <q-icon name="lucide-circle-x" color="red-5" class="!flex-none" />
+                <q-icon name="lucide-circle-x" color="red-5" class="flex-none!" />
                 <span>
                   Your claim was declined<template v-if="artist.yourClaim.reviewNote">: {{ artist.yourClaim.reviewNote }}</template>.
                   You can send a new one with more proof.

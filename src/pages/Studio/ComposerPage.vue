@@ -2,7 +2,7 @@
   <q-page class="p-4">
     <div class="max-w-full mx-auto md:max-w-3xl lg:max-w-4xl">
       <div class="flex items-center gap-3 mb-1 no-wrap">
-        <h4 class="text-xl font-semibold md:text-2xl !flex-none">Composer</h4>
+        <h4 class="text-xl font-semibold md:text-2xl flex-none!">Composer</h4>
         <q-btn
           unelevated
           rounded
@@ -10,7 +10,7 @@
           color="toneflix"
           text-color="dark"
           label="New composition"
-          class="!flex-none ml-auto"
+          class="flex-none! ml-auto"
           icon="lucide-plus"
           :loading="creating"
           @click="newSong"
@@ -55,11 +55,11 @@
           v-for="(song, i) in songs"
         >
           <div class="flex items-start gap-3 no-wrap">
-            <img :src="song.imageUrl" alt="" class="song-card__art !flex-none" v-if="song.hasArtwork" />
+            <img :src="song.imageUrl" alt="" class="song-card__art flex-none!" v-if="song.hasArtwork" />
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 no-wrap">
                 <span class="font-semibold truncate">{{ song.title }}</span>
-                <span class="song-card__badge !flex-none" v-if="song.publishedAt">Published</span>
+                <span class="song-card__badge flex-none!" v-if="song.publishedAt">Published</span>
               </div>
               <div class="text-xs text-grey-5">
                 {{ song.lineCount }} {{ song.lineCount === 1 ? 'line' : 'lines' }} · {{ song.wordCount }} words
@@ -68,7 +68,7 @@
               </div>
             </div>
             <IconBtn size="sm"
-              class="!flex-none"
+              class="flex-none!"
               aria-label="Delete composition"
               icon="lucide-trash-2"
               @click.stop.prevent="remove(song, i)"

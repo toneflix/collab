@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="open" @show="reset">
-    <q-card dark class="project-dialog !flex-none" style="width: 480px; max-width: 100vw">
+    <q-card dark class="project-dialog flex-none!" style="width: 480px; max-width: 100vw">
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">{{ own ? 'Add this composition to a project' : 'Start a project with this composition' }}</div>
@@ -8,7 +8,7 @@
             {{ own ? 'The composition becomes a track, and the lyrics go on its lyric sheet.' : 'The lyrics go on a new track\'s lyric sheet, credited to the writer.' }}
           </div>
         </div>
-        <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
+        <IconBtn icon="lucide-x" class="flex-none! ml-auto" aria-label="Close" v-close-popup />
       </header>
 
       <q-form class="flex flex-col gap-3 px-8 pb-2" @submit.prevent="submit">
@@ -147,7 +147,7 @@
         <div class="text-xs text-negative" v-if="errors.song">{{ errors.song }}</div>
 
         <div class="flex justify-end gap-2 py-2 no-wrap">
-          <q-btn flat rounded no-caps class="!flex-none" label="Cancel" v-close-popup />
+          <q-btn flat rounded no-caps class="flex-none!" label="Cancel" v-close-popup />
           <q-btn
             unelevated
             rounded
@@ -155,7 +155,7 @@
             type="submit"
             color="toneflix"
             text-color="dark"
-            class="!flex-none"
+            class="flex-none!"
             :label="target === 'existing' ? 'Add track' : 'Make project'"
             :loading="saving"
             :disable="!form.genreId || !form.artistId || (target === 'existing' && !project) || (form.generate && !form.prompt.trim())"

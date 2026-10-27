@@ -17,7 +17,7 @@
   <q-dialog v-model="show">
     <q-card class="w-full max-w-sm bg-dark">
       <q-card-section class="flex items-center gap-3">
-        <q-avatar size="48px" class="!flex-none">
+        <q-avatar size="48px" class="flex-none!">
           <img :src="creator.imageUrl" />
         </q-avatar>
         <div>
@@ -31,7 +31,7 @@
       <q-card-section class="pt-0">
         <div class="flex flex-wrap gap-2 mb-4">
           <q-chip
-            class="!flex-none"
+            class="flex-none!"
             clickable
             :key="preset"
             v-for="preset in presets"

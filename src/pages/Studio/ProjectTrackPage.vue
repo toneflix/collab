@@ -3,7 +3,7 @@
     <!-- Track header and actions -->
     <div class="flex items-center gap-2 mb-2 no-wrap">
       <IconBtn
-        class="!flex-none"
+        class="flex-none!"
         aria-label="Back to the project"
         icon="lucide-arrow-left"
         :to="{ name: 'studio.project', params: { project_id: project.id } }"
@@ -32,7 +32,7 @@
           dense
           no-caps
           size="sm"
-          class="!flex-none text-grey-4 max-sm:!hidden"
+          class="flex-none! text-grey-4 max-sm:hidden!"
           :label="`Use ${Math.round(track.tags?.bpm || 0)} BPM`"
           title="Set the studio tempo to the detected tempo"
           @click="useTagTempo"
@@ -40,13 +40,13 @@
         />
       </div>
       <div
-        class="flex items-center gap-2 ml-auto !flex-none no-wrap"
+        class="flex items-center gap-2 ml-auto flex-none! no-wrap"
         v-if="!viewOnly"
       >
         <q-badge
           rounded
           color="grey-9"
-          class="mix-badge max-sm:!hidden"
+          class="mix-badge max-sm:hidden!"
           v-if="rendering"
         >
           <q-spinner-audio size="11px" color="toneflix" class="mr-1" />
@@ -56,7 +56,7 @@
         <q-badge
           rounded
           color="orange"
-          class="max-sm:!hidden"
+          class="max-sm:hidden!"
           v-if="dirty || tempoDirty"
           >Unsaved changes</q-badge
         >
@@ -257,7 +257,7 @@
         v-if="project.isOwner"
       />
       <IconBtn
-        class="!flex-none expand-toggle"
+        class="flex-none! expand-toggle"
         :class="{ 'expand-toggle--open': expanded }"
         icon="lucide-chevron-right"
         :aria-label="expanded ? 'Hide labels' : 'Show labels'"

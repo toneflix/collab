@@ -11,7 +11,7 @@
     v-intersection="onIntersect"
   >
     <q-card flat square class="w-28 bg-transparent cursor-pointer sm:w-32 md:w-44">
-      <q-avatar rounded class="!rounded-2xl w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44">
+      <q-avatar rounded class="rounded-2xl! w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44">
         <q-img
           no-spinner
           class="bg-gray-400"
@@ -23,7 +23,7 @@
 
       <q-card-section align="center" class="p-1">
         <h6
-          class="!text-gray-300 text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
+          class="text-gray-300! text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ track.title }}
         </h6>

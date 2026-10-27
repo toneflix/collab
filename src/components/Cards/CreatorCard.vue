@@ -11,7 +11,7 @@
     <q-card flat square class="w-full bg-transparent cursor-pointer">
       <q-avatar
         round
-        class="!rounded-full md:w-44 md:h-44"
+        class="rounded-full! md:w-44 md:h-44"
         :class="{ 'w-24 h-24 sm:w-28 sm:h-28': dense, 'w-28 h-28 sm:w-32 sm:h-32': !dense }"
       >
         <q-img
@@ -25,7 +25,7 @@
 
       <q-card-section align="center" class="p-1">
         <h6
-          class="!text-gray-300 text-sm sm:text-base md:text-lg w-full md:w-40 break-words"
+          class="text-gray-300! text-sm sm:text-base md:text-lg w-full md:w-40 break-words"
         >
           <q-icon
             name="lucide-badge-check"
@@ -45,7 +45,7 @@
               ? intStr(creator.projectsCount) + ' Projects'
               : ''
           }}
-          <span class="!flex-none" v-if="creator.type === 'user'">•</span>
+          <span class="flex-none!" v-if="creator.type === 'user'">•</span>
           {{
             intStr(
               creator.type === 'artist'

@@ -3,7 +3,7 @@
     <q-card class="w-full max-w-xl bg-dark">
       <q-card-section class="flex items-center justify-between flex-nowrap">
         <div class="text-lg font-bold">Generate artwork</div>
-        <IconBtn icon="lucide-x" class="!flex-none" v-close-popup />
+        <IconBtn icon="lucide-x" class="flex-none!" v-close-popup />
       </q-card-section>
 
       <q-card-section class="pt-0" v-if="!ai.access">
@@ -43,7 +43,7 @@
               rounded
               no-caps
               color="toneflix"
-              class="!flex-none"
+              class="flex-none!"
               icon="lucide-sparkles"
               :label="images.length ? 'Generate again' : 'Generate'"
               :loading="starting || busy"
@@ -121,7 +121,7 @@
                 unelevated
                 toggle-color="toneflix"
                 color="grey-9"
-                class="!flex-none"
+                class="flex-none!"
                 padding="xs md"
                 :options="coverTextPositions"
                 v-model="text.position"
@@ -133,7 +133,7 @@
                 unelevated
                 toggle-color="toneflix"
                 color="grey-9"
-                class="!flex-none"
+                class="flex-none!"
                 padding="xs md"
                 :options="coverTextStyles"
                 v-model="text.style"

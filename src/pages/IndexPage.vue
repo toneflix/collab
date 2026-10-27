@@ -22,7 +22,7 @@
         <TrackCategory hide-all-link v-model:category="shelves.trending" />
       </section>
 
-      <HomeFeatures class="max-sm:!hidden" />
+      <HomeFeatures class="max-sm:hidden!" />
 
       <section v-if="shelves.projects.data?.list.length">
         <HomeShelfHeader
@@ -42,7 +42,7 @@
         <CompositionShelf :songs="songs" />
       </section>
 
-      <HomeSteps class="max-sm:!hidden" />
+      <HomeSteps class="max-sm:hidden!" />
 
       <section v-if="shelves.creators.data?.list.length">
         <HomeShelfHeader
@@ -63,7 +63,7 @@
         <div class="flex flex-wrap gap-2">
           <router-link
             :key="genre.id"
-            class="home-genre !flex-none"
+            class="home-genre flex-none!"
             :to="{ name: 'explore', query: { genre: genre.slug } }"
             v-for="genre in genres"
           >
@@ -72,15 +72,15 @@
         </div>
       </section>
 
-      <HomeJoin class="max-sm:!hidden" :signed-in="signedIn" />
+      <HomeJoin class="max-sm:hidden!" :signed-in="signedIn" />
 
-      <footer class="max-sm:!hidden flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
-        <div class="flex items-center gap-3 !flex-none">
-          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7 !flex-none" />
-          <span class="!flex-none">&copy; {{ year }} Toneflix Music</span>
+      <footer class="max-sm:hidden! flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
+        <div class="flex items-center gap-3 flex-none!">
+          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7 flex-none!" />
+          <span class="flex-none!">&copy; {{ year }} Toneflix Music</span>
         </div>
-        <nav class="flex flex-wrap gap-x-5 gap-y-2 !flex-none">
-          <router-link :key="link.label" :to="link.to" class="!flex-none hover:text-white" v-for="link in footerLinks">
+        <nav class="flex flex-wrap gap-x-5 gap-y-2 flex-none!">
+          <router-link :key="link.label" :to="link.to" class="flex-none! hover:text-white" v-for="link in footerLinks">
             {{ link.label }}
           </router-link>
         </nav>

@@ -12,7 +12,7 @@
         <q-icon class="settings__icon" size="18px" :name="section.icon" />
         <div class="min-w-0 settings__text">
           <div class="flex items-center gap-2 font-bold">
-            <span class="!flex-none">{{ section.title }}</span>
+            <span class="flex-none!">{{ section.title }}</span>
             <span
               class="settings__dot"
               title="Unsaved changes"
@@ -20,7 +20,7 @@
             />
             <q-badge
               rounded
-              class="!flex-none"
+              class="flex-none!"
               :color="section.countColor ?? 'toneflix'"
               :label="section.count"
               v-if="section.count"

@@ -11,7 +11,7 @@
     <q-card flat square class="w-full bg-transparent cursor-pointer">
       <q-avatar
         round
-        class="!rounded-2xl md:w-44 md:h-44"
+        class="rounded-2xl! md:w-44 md:h-44"
         :class="{ 'w-24 h-24 sm:w-28 sm:h-28': dense, 'w-28 h-28 sm:w-32 sm:h-32': !dense }"
       >
         <q-img
@@ -25,13 +25,13 @@
 
       <q-card-section align="left" class="p-1">
         <h6
-          class="!text-gray-300 text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
+          class="text-gray-300! text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ project.title }}
         </h6>
         <div class="text-gray-400 text-subtitle2">
           {{ project.collaboratorsCount }} Collabers
-          <span class="!flex-none">•</span>
+          <span class="flex-none!">•</span>
           {{ project.props }} Props.
         </div>
       </q-card-section>

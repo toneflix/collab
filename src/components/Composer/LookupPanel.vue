@@ -25,7 +25,7 @@
           dense
           no-caps
           size="sm"
-          class="!flex-none px-2"
+          class="flex-none! px-2"
           :key="option.value"
           :label="option.label"
           :color="mode === option.value ? 'toneflix' : 'grey-9'"

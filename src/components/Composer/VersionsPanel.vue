@@ -11,7 +11,7 @@
           color="toneflix"
           text-color="dark"
           label="Save"
-          class="!flex-none"
+          class="flex-none!"
           :loading="naming"
           :disable="!name.trim()"
         />
@@ -34,7 +34,7 @@
           no-caps
           size="sm"
           label="Restore"
-          class="!flex-none ml-auto"
+          class="flex-none! ml-auto"
           :loading="restoring === v.id"
           :disable="!!restoring"
           @click="confirmRestore(v)"

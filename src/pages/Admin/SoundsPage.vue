@@ -47,7 +47,7 @@
             </p>
             <div class="callback">
               <code class="truncate">{{ callbackUrl }}</code>
-              <IconBtn size="sm" icon="lucide-copy" aria-label="Copy the callback URL" class="!flex-none" @click="copyCallback" />
+              <IconBtn size="sm" icon="lucide-copy" aria-label="Copy the callback URL" class="flex-none!" @click="copyCallback" />
             </div>
             <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
           </template>
@@ -98,7 +98,7 @@
                   no-caps
                   size="sm"
                   color="white"
-                  class="!flex-none"
+                  class="flex-none!"
                   :label="settings.me.connected ? `Connected as ${settings.me.username || 'you'}` : 'Connect my Freesound account'"
                   :icon="settings.me.connected ? 'check' : 'link'"
                   :disable="settings.me.connected || !settings.configured"
@@ -111,7 +111,7 @@
                   no-caps
                   size="sm"
                   color="white"
-                  class="!flex-none"
+                  class="flex-none!"
                   label="Use my account for the library"
                   :disable="!settings.me.connected || settings.downloads.isMe"
                   @click="useMine"
@@ -125,7 +125,7 @@
                   color="white"
                   icon="lucide-refresh-cw"
                   :label="settings.syncing ? 'Syncing…' : 'Sync now'"
-                  class="!flex-none"
+                  class="flex-none!"
                   :loading="syncing"
                   :disable="!settings.configured || changed || settings.syncing || syncPaused"
                   @click="sync"
@@ -150,7 +150,7 @@
                   <template #prepend><q-icon name="lucide-search" /></template>
                 </q-input>
                 <input ref="fileInput" type="file" multiple class="hidden" accept="audio/*" @change="onFiles" />
-                <q-btn unelevated rounded no-caps color="white" text-color="dark" icon="lucide-upload" label="Upload" class="!flex-none" :loading="uploading > 0" @click="fileInput?.click()" />
+                <q-btn unelevated rounded no-caps color="white" text-color="dark" icon="lucide-upload" label="Upload" class="flex-none!" :loading="uploading > 0" @click="fileInput?.click()" />
               </div>
             </div>
 
@@ -184,7 +184,7 @@
 
           <template #footer>
             <span class="text-sm text-grey-5" v-if="changed">Unsaved changes</span>
-            <q-btn unelevated rounded no-caps type="submit" color="toneflix" label="Save" class="!flex-none" :disable="!changed" :loading="saving" />
+            <q-btn unelevated rounded no-caps type="submit" color="toneflix" label="Save" class="flex-none!" :disable="!changed" :loading="saving" />
           </template>
         </SettingsSections>
       </q-form>

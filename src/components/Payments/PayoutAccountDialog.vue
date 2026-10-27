@@ -138,9 +138,9 @@
             </template>
 
             <div class="flex items-center gap-2 px-4 py-2 rounded note" v-if="method.lookup === 'resolve' && (resolving || resolved || resolveError)">
-              <q-spinner size="16px" class="!flex-none" v-if="resolving" />
-              <q-icon name="lucide-circle-check" color="green-5" class="!flex-none" v-else-if="resolved" />
-              <q-icon name="lucide-circle-alert" color="red-4" class="!flex-none" v-else />
+              <q-spinner size="16px" class="flex-none!" v-if="resolving" />
+              <q-icon name="lucide-circle-check" color="green-5" class="flex-none!" v-else-if="resolved" />
+              <q-icon name="lucide-circle-alert" color="red-4" class="flex-none!" v-else />
               <span class="text-sm" :class="{ 'text-red-4': resolveError && !resolving }">
                 {{ resolving ? 'Checking the account…' : resolved?.accountName || resolveError }}
               </span>
@@ -153,14 +153,14 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat no-caps label="Remove account" color="red-4" class="!flex-none mr-auto" :loading="removing" @click="remove" v-if="account" />
-          <q-btn flat no-caps label="Cancel" class="!flex-none" v-close-popup />
+          <q-btn flat no-caps label="Remove account" color="red-4" class="flex-none! mr-auto" :loading="removing" @click="remove" v-if="account" />
+          <q-btn flat no-caps label="Cancel" class="flex-none!" v-close-popup />
           <q-btn
             unelevated
             rounded
             no-caps
             color="toneflix"
-            class="!flex-none"
+            class="flex-none!"
             icon-right="lucide-external-link"
             :label="`Continue to ${providerNames[country!.provider]}`"
             :loading="saving"
@@ -174,7 +174,7 @@
             type="submit"
             color="toneflix"
             label="Save"
-            class="!flex-none"
+            class="flex-none!"
             :disable="!method || (method.lookup === 'resolve' && !resolved)"
             :loading="saving"
             v-else

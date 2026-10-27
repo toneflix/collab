@@ -12,7 +12,7 @@
           unelevated
           rounded
           no-caps
-          class="!flex-none"
+          class="flex-none!"
           color="toneflix"
           icon="lucide-plus"
           label="New plan"
@@ -38,14 +38,14 @@
                 rounded
                 color="green-9"
                 label="Default"
-                class="!flex-none"
+                class="flex-none!"
                 v-if="plan.isDefault"
               />
               <q-badge
                 rounded
                 color="grey-8"
                 label="Inactive"
-                class="!flex-none"
+                class="flex-none!"
                 v-if="!plan.active"
               />
             </div>
@@ -66,7 +66,7 @@
               <q-badge
                 outline
                 color="green-5"
-                class="!flex-none"
+                class="flex-none!"
                 :key="option.cycles"
                 :label="`${billingLabel(plan, option.cycles)} -${option.discount}%`"
                 v-for="option in plan.billingOptions.slice(1)"
@@ -85,7 +85,7 @@
               v-for="feature in features"
             >
               <span class="text-grey-4">{{ feature.title }}</span>
-              <span class="!flex-none">
+              <span class="flex-none!">
                 <template v-if="feature.type === 'toggle'">
                   <q-icon
                     name="lucide-check"
@@ -175,7 +175,7 @@
               dense
               type="number"
               label="Every"
-              class="w-20 !flex-none"
+              class="w-20 flex-none!"
               v-model.number="form.interval_count"
               :min="1"
             />
@@ -202,7 +202,7 @@
                 size="sm"
                 icon="lucide-plus"
                 label="Add option"
-                class="!flex-none"
+                class="flex-none!"
                 @click="
                   form.billing_options.push({
                     cycles: nextCycles(),
@@ -226,7 +226,7 @@
                 dense
                 hide-bottom-space
                 type="number"
-                class="w-36 !flex-none"
+                class="w-36 flex-none!"
                 :label="`Number of ${form.interval}s`"
                 v-model.number="option.cycles"
                 :min="2"
@@ -239,7 +239,7 @@
                 dense
                 hide-bottom-space
                 type="number"
-                class="w-36 !flex-none"
+                class="w-36 flex-none!"
                 label="Discount"
                 suffix="%"
                 v-model.number="option.discount"
@@ -262,7 +262,7 @@
               </div>
               <IconBtn size="sm"
                 icon="lucide-x"
-                class="mt-1 !flex-none"
+                class="mt-1 flex-none!"
                 @click="form.billing_options.splice(i, 1)"
               />
             </div>
@@ -320,7 +320,7 @@
             </div>
             <q-toggle
               dark
-              class="!flex-none"
+              class="flex-none!"
               v-model="form.features[feature.key]"
               v-if="feature.type === 'toggle'"
             />
@@ -329,7 +329,7 @@
               filled
               dense
               type="number"
-              class="w-28 !flex-none"
+              class="w-28 flex-none!"
               :suffix="feature.unit || undefined"
               :min="0"
               :model-value="Number(form.features[feature.key] || 0)"

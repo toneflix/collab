@@ -16,7 +16,7 @@
           round
           unelevated
           color="glass"
-          class="white-glass !flex-none"
+          class="white-glass flex-none!"
           :aria-label="playing ? 'Pause' : 'Play'"
           :disable="!ready"
           @click="togglePlay"
@@ -192,7 +192,7 @@
           no-caps
           size="sm"
           color="grey-4"
-          class="!flex-none px-2 mr-1"
+          class="flex-none! px-2 mr-1"
           icon="lucide-sliders-horizontal"
           :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
           :disable="!ready"
@@ -201,7 +201,7 @@
           <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
         </q-btn>
         <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
-        <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="!flex-none" />
+        <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="flex-none!" />
         <q-slider
           dense
           color="toneflix"
@@ -214,7 +214,7 @@
           aria-label="Master volume"
           @update:model-value="setMasterVolume"
         />
-        <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:!hidden">
+        <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:hidden!">
           <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
             <div class="mb-2 font-bold">Using the editor</div>
             <ul class="pl-8 space-y-1 text-sm list-disc">
@@ -239,7 +239,7 @@
     <!-- Fades for the selected stem. Always shown, so the timeline doesn't jump. -->
     <div class="stem-editor__selected" v-if="!readonly">
       <template v-if="selected">
-        <div class="flex items-center gap-2 !flex-none max-w-48">
+        <div class="flex items-center gap-2 flex-none! max-w-48">
           <button
             type="button"
             class="stem-dot"
@@ -266,14 +266,14 @@
           no-caps
           size="sm"
           color="grey-4"
-          class="!flex-none px-4"
+          class="flex-none! px-4"
           icon="lucide-sliders-horizontal"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
           @click="effectsOpen = true"
         />
         <IconBtn size="sm"
           color="grey-4"
-          class="!flex-none"
+          class="flex-none!"
           icon="lucide-copy"
           aria-label="Duplicate stem"
           @click="duplicate(selected.id)"
@@ -287,7 +287,7 @@
           no-caps
           size="sm"
           color="grey-4"
-          class="!flex-none px-4"
+          class="flex-none! px-4"
           :icon="selectedPattern.kind === 'drums' ? 'lucide-layout-grid' : 'lucide-piano'"
           label="Edit pattern"
           @click="emit('edit-instrument', tracks.get(selected.id)!)"
@@ -305,7 +305,7 @@
 
     <div class="stem-editor__missing" v-if="missing.length">
       <div class="stem-editor__missing-row" :key="stem.id" v-for="stem in missing">
-        <q-icon name="lucide-circle-alert" size="18px" class="text-amber-5 !flex-none" />
+        <q-icon name="lucide-circle-alert" size="18px" class="text-amber-5 flex-none!" />
         <div class="flex-1 min-w-0">
           <div class="text-sm font-bold truncate">{{ stem.title || stem.name }}</div>
           <div class="text-xs text-grey-5">
@@ -320,14 +320,14 @@
             no-caps
             size="sm"
             color="grey-4"
-            class="!flex-none px-4"
+            class="flex-none! px-4"
             icon="lucide-cloud-upload"
             label="Replace audio"
             @click="pickReplacement(stem)"
           />
           <IconBtn size="sm"
             color="grey-5"
-            class="!flex-none"
+            class="flex-none!"
             icon="lucide-trash-2"
             aria-label="Remove stem"
             @click="emit('remove', stem)"

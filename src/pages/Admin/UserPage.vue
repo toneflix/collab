@@ -2,7 +2,7 @@
   <q-page padding>
     <div class="max-w-5xl mx-auto">
       <div class="py-2">
-        <q-btn flat dense no-caps icon="lucide-arrow-left" label="Users" class="!flex-none" :to="{ name: 'admin.users' }" />
+        <q-btn flat dense no-caps icon="lucide-arrow-left" label="Users" class="flex-none!" :to="{ name: 'admin.users' }" />
       </div>
 
       <div class="flex flex-col gap-4" v-if="loading && !detail">
@@ -13,7 +13,7 @@
 
       <div class="flex flex-col gap-4" v-else>
         <div class="profile">
-          <q-avatar size="72px" color="grey-9" class="!flex-none">
+          <q-avatar size="72px" color="grey-9" class="flex-none!">
             <img :src="user.imageUrl" v-if="user.imageUrl" />
             <q-icon name="lucide-user" v-else />
           </q-avatar>
@@ -24,33 +24,33 @@
             </h1>
             <div class="text-grey-5 truncate">@{{ user.username }} · {{ user.email }}</div>
             <div class="flex flex-wrap gap-1 mt-2">
-              <q-badge rounded class="!flex-none" color="red-9" label="Banned" v-if="user.suspended && !user.suspendedUntil" />
-              <q-badge rounded class="!flex-none" color="orange-9" label="Suspended" v-else-if="user.suspended" />
-              <q-badge rounded class="!flex-none" outline color="grey-5" :key="role" :label="role" v-for="role in user.roles" />
-              <q-badge rounded class="!flex-none" color="toneflix" :label="user.plan?.name" v-if="user.plan && !user.plan.isDefault" />
-              <q-badge rounded class="!flex-none" outline color="grey-6" :label="`Joined ${date.formatDate(user.createdAt, 'MMM D, YYYY')}`" />
+              <q-badge rounded class="flex-none!" color="red-9" label="Banned" v-if="user.suspended && !user.suspendedUntil" />
+              <q-badge rounded class="flex-none!" color="orange-9" label="Suspended" v-else-if="user.suspended" />
+              <q-badge rounded class="flex-none!" outline color="grey-5" :key="role" :label="role" v-for="role in user.roles" />
+              <q-badge rounded class="flex-none!" color="toneflix" :label="user.plan?.name" v-if="user.plan && !user.plan.isDefault" />
+              <q-badge rounded class="flex-none!" outline color="grey-6" :label="`Joined ${date.formatDate(user.createdAt, 'MMM D, YYYY')}`" />
             </div>
           </div>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-pencil" label="Edit" @click="mode = 'edit'" v-if="can.update" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-pencil" label="Edit" @click="mode = 'edit'" v-if="can.update" />
           <q-btn
             outline
             rounded
             no-caps
             padding="4px 14px"
-            class="!flex-none"
+            class="flex-none!"
             :icon="user.verified ? 'lucide-circle-x' : 'lucide-circle-check'"
             :label="user.verified ? 'Remove badge' : 'Verify'"
             :loading="busy === 'verify'"
             @click="toggleVerified"
             v-if="can.verify"
           />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-shield-user" label="Roles" @click="mode = 'roles'" v-if="can.roles" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-layers" label="Give plan" @click="mode = 'plan'" v-if="can.plan" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-wallet" label="Funds" @click="mode = 'funds'" v-if="can.funds" />
-          <q-btn outline rounded no-caps padding="4px 14px" class="!flex-none" icon="lucide-wand-sparkles" label="AI credits" @click="mode = 'credits'" v-if="can.credits" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-shield-user" label="Roles" @click="mode = 'roles'" v-if="can.roles" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-layers" label="Give plan" @click="mode = 'plan'" v-if="can.plan" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-wallet" label="Funds" @click="mode = 'funds'" v-if="can.funds" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-wand-sparkles" label="AI credits" @click="mode = 'credits'" v-if="can.credits" />
           <template v-if="can.suspend">
             <q-btn
               outline
@@ -58,14 +58,14 @@
               no-caps
               padding="4px 14px"
               color="green-5"
-              class="!flex-none"
+              class="flex-none!"
               icon="lucide-lock-open"
               label="Lift suspension"
               :loading="busy === 'unsuspend'"
               @click="unsuspend"
               v-if="user.suspended"
             />
-            <q-btn outline rounded no-caps padding="4px 14px" color="red-4" class="!flex-none" icon="lucide-ban" label="Suspend" @click="mode = 'suspend'" v-else />
+            <q-btn outline rounded no-caps padding="4px 14px" color="red-4" class="flex-none!" icon="lucide-ban" label="Suspend" @click="mode = 'suspend'" v-else />
           </template>
         </div>
 
@@ -167,7 +167,7 @@
             <div class="py-8 text-center text-grey-5" v-else>Nothing here yet.</div>
 
             <div class="flex justify-center py-4" v-if="listPages > 1">
-              <q-pagination class="!flex-none" v-model="listPage" :max="listPages" :max-pages="7" direction-links />
+              <q-pagination class="flex-none!" v-model="listPage" :max="listPages" :max-pages="7" direction-links />
             </div>
           </template>
         </SettingsSections>

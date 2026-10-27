@@ -4,14 +4,14 @@
   <q-form class="flex flex-col gap-4" @submit="save" v-else-if="settings">
     <div class="section" :key="provider.key" v-for="provider in providers">
       <div class="flex items-center gap-3 no-wrap">
-        <q-toggle color="toneflix" class="!flex-none" :aria-label="`Pay creators with ${provider.name}`" v-model="toggles[`${provider.key}_payouts_enabled`]" />
+        <q-toggle color="toneflix" class="flex-none!" :aria-label="`Pay creators with ${provider.name}`" v-model="toggles[`${provider.key}_payouts_enabled`]" />
         <div class="min-w-0 grow">
           <div class="font-bold">{{ provider.name }}</div>
           <div class="text-sm text-grey-5">{{ fields[`${provider.key}_payouts_enabled`]?.hint }}</div>
         </div>
         <q-badge
           rounded
-          class="!flex-none"
+          class="flex-none!"
           :color="countsFor(provider.key) ? 'green-9' : 'grey-8'"
           :label="countsFor(provider.key) ? `${countsFor(provider.key)} ${countsFor(provider.key) === 1 ? 'country' : 'countries'}` : 'Off'"
         />
@@ -44,7 +44,7 @@
         </div>
         <div class="callback">
           <code class="truncate">{{ settings.webhooks[provider.key] }}</code>
-          <IconBtn size="sm" icon="lucide-copy" :aria-label="`Copy the ${provider.name} webhook URL`" class="!flex-none" @click="copy(settings.webhooks[provider.key])" />
+          <IconBtn size="sm" icon="lucide-copy" :aria-label="`Copy the ${provider.name} webhook URL`" class="flex-none!" @click="copy(settings.webhooks[provider.key])" />
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@
     </q-banner>
 
     <div>
-      <q-btn unelevated rounded no-caps type="submit" color="toneflix" label="Save" class="!flex-none" :loading="saving" />
+      <q-btn unelevated rounded no-caps type="submit" color="toneflix" label="Save" class="flex-none!" :loading="saving" />
     </div>
   </q-form>
 </template>

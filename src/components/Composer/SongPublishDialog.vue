@@ -1,18 +1,18 @@
 <template>
   <q-dialog v-model="open" @show="reset">
-    <q-card dark class="publish-dialog !flex-none" style="width: 480px; max-width: 100vw">
+    <q-card dark class="publish-dialog flex-none!" style="width: 480px; max-width: 100vw">
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">Artwork and sharing</div>
         </div>
-        <IconBtn icon="lucide-x" class="!flex-none ml-auto" aria-label="Close" v-close-popup />
+        <IconBtn icon="lucide-x" class="flex-none! ml-auto" aria-label="Close" v-close-popup />
       </header>
 
       <div class="flex flex-col gap-4 px-5 pb-4">
         <div class="flex items-center gap-4 no-wrap">
           <ImageCropper :aspect-ratio="1" :buttons="{ cancel: 'Cancel', crop: 'Use this' }" @result="upload">
             <template #default="{ open: pick }">
-              <button type="button" class="artwork !flex-none" aria-label="Change the artwork" @click="pick">
+              <button type="button" class="artwork flex-none!" aria-label="Change the artwork" @click="pick">
                 <img :src="song.imageUrl" alt="" class="artwork__img" />
                 <q-inner-loading dark :showing="uploading" />
               </button>
@@ -29,7 +29,7 @@
                     rounded
                     no-caps
                     dense
-                    class="px-3 !flex-none"
+                    class="px-3 flex-none!"
                     icon="lucide-image-up"
                     :label="song.hasArtwork ? 'Replace' : 'Upload'"
                     :disable="uploading"
@@ -39,7 +39,7 @@
               </ImageCropper>
               <AiArtworkButton
                 outline
-                class="px-3 !flex-none"
+                class="px-3 flex-none!"
                 kind="song"
                 label="AI"
                 :title="song.title"
@@ -52,7 +52,7 @@
                 rounded
                 no-caps
                 dense
-                class="px-3 !flex-none"
+                class="px-3 flex-none!"
                 label="Remove"
                 :disable="uploading"
                 @click="removeArtwork"
@@ -65,21 +65,21 @@
         <q-separator dark />
 
         <div class="option">
-          <q-toggle dark color="toneflix" class="!flex-none" v-model="form.published" />
+          <q-toggle dark color="toneflix" class="flex-none!" v-model="form.published" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Publish this composition</div>
             <div class="text-xs text-grey-5">Your notes stay private.</div>
           </div>
         </div>
         <div class="option" :class="{ 'option--off': !form.published }">
-          <q-toggle dark color="toneflix" class="!flex-none" :disable="!form.published" v-model="form.allowForks" />
+          <q-toggle dark color="toneflix" class="flex-none!" :disable="!form.published" v-model="form.allowForks" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Let others fork it</div>
             <div class="text-xs text-grey-5">Others get their own copy to edit.</div>
           </div>
         </div>
         <div class="option" :class="{ 'option--off': !form.published }">
-          <q-toggle dark color="toneflix" class="!flex-none" :disable="!form.published" v-model="form.allowProjects" />
+          <q-toggle dark color="toneflix" class="flex-none!" :disable="!form.published" v-model="form.allowProjects" />
           <div class="min-w-0">
             <div class="text-sm font-semibold">Let others start a project with it</div>
             <div class="text-xs text-grey-5">Others can use the lyrics in a project.</div>
@@ -87,22 +87,22 @@
         </div>
 
         <div class="link-row" v-if="song.publishedAt && song.slug">
-          <q-icon name="lucide-globe" size="16px" class="!flex-none text-toneflix" />
+          <q-icon name="lucide-globe" size="16px" class="flex-none! text-toneflix" />
           <router-link class="truncate" :to="{ name: 'composition', params: { slug: song.slug } }">{{ link }}</router-link>
-          <IconBtn size="sm" icon="lucide-copy" class="!flex-none ml-auto" aria-label="Copy the link" @click="copy" />
+          <IconBtn size="sm" icon="lucide-copy" class="flex-none! ml-auto" aria-label="Copy the link" @click="copy" />
         </div>
 
         <div class="text-xs text-negative" v-if="error">{{ error }}</div>
 
         <div class="flex justify-end gap-2 no-wrap">
-          <q-btn flat rounded no-caps class="!flex-none" label="Cancel" v-close-popup />
+          <q-btn flat rounded no-caps class="flex-none!" label="Cancel" v-close-popup />
           <q-btn
             unelevated
             rounded
             no-caps
             color="toneflix"
             text-color="dark"
-            class="!flex-none"
+            class="flex-none!"
             :label="form.published && !song.publishedAt ? 'Publish' : 'Save'"
             :loading="saving"
             :disable="!changed"

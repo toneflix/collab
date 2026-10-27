@@ -2,7 +2,7 @@
   <q-page class="p-3 md:p-4">
     <div class="flex items-center gap-x-3 gap-y-3 mb-4" :class="narrow || showLabels ? 'flex-wrap' : 'no-wrap'">
       <IconBtn
-        class="!flex-none"
+        class="flex-none!"
         aria-label="Back to your compositions"
         icon="lucide-arrow-left"
         :to="{ name: 'studio.composer' }"
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2 no-wrap" :class="narrow || showLabels ? 'song-actions--narrow' : 'ml-auto !flex-none'" v-if="song">
+      <div class="flex items-center gap-2 no-wrap" :class="narrow || showLabels ? 'song-actions--narrow' : 'ml-auto flex-none!'" v-if="song">
         <q-btn
           unelevated
           rounded
@@ -56,7 +56,7 @@
           :color="dirty ? 'toneflix' : 'grey-8'"
           :text-color="dirty ? 'dark' : 'grey-5'"
           label="Save"
-          class="!flex-none px-4"
+          class="flex-none! px-4"
           title="Save (Ctrl+S)"
           icon="lucide-save"
           :loading="status === 'saving'"
@@ -109,7 +109,7 @@
           @click="panels.help = !panels.help"
         />
         <IconBtn
-          class="!flex-none expand-toggle"
+          class="flex-none! expand-toggle"
           v-if="!narrow"
           :class="{ 'expand-toggle--open': expanded }"
           icon="lucide-chevron-right"
@@ -180,7 +180,7 @@
       <HelpPanel dock="#composer-dock" v-model="panels.help" @section="insertSection" />
       <VersionsPanel dock="#composer-dock" :song-id="song.id" :flush="flush" v-model="panels.versions" @restored="onRestored" />
       <q-dialog persistent v-model="leaving">
-        <q-card dark class="!flex-none leave-card">
+        <q-card dark class="flex-none! leave-card">
           <q-card-section>
             <div class="text-base font-semibold">Save your changes?</div>
             <div class="mt-1 text-sm text-grey-5">

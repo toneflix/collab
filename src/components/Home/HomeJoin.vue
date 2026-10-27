@@ -16,7 +16,7 @@
       </p>
     </div>
 
-    <div class="flex flex-wrap gap-3 !flex-none">
+    <div class="flex flex-wrap gap-3 flex-none!">
       <template v-if="signedIn">
         <q-btn
           unelevated
@@ -27,7 +27,7 @@
           text-color="dark"
           icon="lucide-crown"
           label="See Premium plans"
-          class="!flex-none font-bold"
+          class="flex-none! font-bold"
           :to="{ name: 'premium' }"
         />
       </template>
@@ -40,7 +40,7 @@
           color="white"
           text-color="dark"
           label="Create a free account"
-          class="!flex-none font-bold"
+          class="flex-none! font-bold"
           :to="{ name: 'auth.register' }"
         />
         <q-btn
@@ -50,7 +50,7 @@
           size="lg"
           text-color="white"
           label="Sign in"
-          class="!flex-none"
+          class="flex-none!"
           :to="{ name: 'auth.login' }"
         />
       </template>

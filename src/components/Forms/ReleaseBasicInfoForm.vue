@@ -133,7 +133,7 @@
                 }).href
               }}{{ editingSlug ? '/' : '' }}
             </span>
-            <span class="block ml-2" :class="{ '!flex-1': editingSlug }">
+            <span class="block ml-2" :class="{ 'flex-1!': editingSlug }">
               <q-btn
                 dense
                 outline

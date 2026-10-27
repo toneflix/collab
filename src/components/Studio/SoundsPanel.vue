@@ -4,7 +4,7 @@
     <q-card dark class="sounds" :class="{ 'sounds--mobile': $q.screen.lt.sm }">
       <header class="sounds__head">
         <div class="text-lg font-bold">Sounds</div>
-        <IconBtn icon="lucide-x" aria-label="Close sounds" class="!flex-none" @click="open = false" />
+        <IconBtn icon="lucide-x" aria-label="Close sounds" class="flex-none!" @click="open = false" />
       </header>
 
       <q-tabs dense no-caps align="justify" active-color="toneflix" indicator-color="toneflix" v-model="tab">

@@ -20,7 +20,7 @@
             rounded
             no-caps
             color="toneflix"
-            class="mt-4 !flex-none"
+            class="mt-4 flex-none!"
             label="See plans"
             :to="{ name: 'premium' }"
           />
@@ -87,7 +87,7 @@
                   <q-badge
                     rounded
                     color="green-8"
-                    class="!flex-none"
+                    class="flex-none!"
                     :label="`Save ${pack.discount}%`"
                     v-if="pack.discount > 0"
                   />
@@ -145,7 +145,7 @@
           <q-pagination
             direction-links
             boundary-numbers
-            class="!flex-none"
+            class="flex-none!"
             :max="lastPage"
             :max-pages="7"
             :model-value="page"

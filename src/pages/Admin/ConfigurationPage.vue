@@ -72,7 +72,7 @@
               color="toneflix"
               type="submit"
               label="Save"
-              class="!flex-none"
+              class="flex-none!"
               :loading="saving"
               :disable="!changed"
             />

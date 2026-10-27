@@ -2,8 +2,8 @@
   <q-page>
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
       <div class="flex justify-start gap-4 mb-2">
-        <h4 class="text-xl !flex-none font-semibold md:text-2xl">Releases</h4>
-        <div class="!flex-none">
+        <h4 class="text-xl flex-none! font-semibold md:text-2xl">Releases</h4>
+        <div class="flex-none!">
           <q-btn
             dense
             no-caps
@@ -45,14 +45,14 @@
               </span>
             </q-item-label>
             <q-item-label
-              class="flex !flex-none flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
+              class="flex flex-none! flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
             >
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-play:fill" size=".6rem" />
                 {{ intStr(release.streams) }}
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none!">•</span>
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-disc-3" size=".7rem" />
                 {{ intStr(release.tracksCount) }}
               </span>
@@ -60,7 +60,7 @@
                 rounded
                 color="red-9"
                 label="Changes needed"
-                class="!flex-none"
+                class="flex-none!"
                 v-if="release.draft && release.reviewStatus === 'rejected'"
               >
                 <q-tooltip max-width="280px" v-if="release.reviewNote">{{ release.reviewNote }}</q-tooltip>
@@ -69,26 +69,26 @@
                 rounded
                 color="grey-7"
                 label="Draft"
-                class="!flex-none"
+                class="flex-none!"
                 v-else-if="release.draft"
               />
               <q-badge
                 rounded
                 color="orange-9"
                 label="In review"
-                class="!flex-none"
+                class="flex-none!"
                 v-else-if="release.reviewStatus === 'pending'"
               />
               <q-badge
                 rounded
                 color="orange"
                 label="Retired"
-                class="!flex-none"
+                class="flex-none!"
                 v-else-if="release.retired"
               />
-              <span class="!flex-none" v-if="isLive(release)">•</span>
+              <span class="flex-none!" v-if="isLive(release)">•</span>
               <span
-                class="!flex-none flex items-center gap-1"
+                class="flex-none! flex items-center gap-1"
                 v-if="isLive(release)"
               >
                 <q-icon

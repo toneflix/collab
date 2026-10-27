@@ -68,12 +68,12 @@
                     v-if="row.message.region"
                     @click="openRegion(row.message.region)"
                   >
-                    <q-icon name="lucide-audio-lines" size="18px" class="!flex-none" />
+                    <q-icon name="lucide-audio-lines" size="18px" class="flex-none!" />
                     <span class="msg__region-text">
                       <span class="msg__region-label">{{ regionLabel(row.message.region) }}</span>
                       <span class="msg__region-hint">Show in the editor</span>
                     </span>
-                    <q-icon name="lucide-arrow-up-right" size="16px" class="!flex-none" />
+                    <q-icon name="lucide-arrow-up-right" size="16px" class="flex-none!" />
                   </button>
                   <VoiceNote :voice="row.message.voice" :mine="row.mine" v-if="row.message.voice" />
                   <div class="msg__body" :class="{ 'mt-1': row.message.voice }" v-if="row.message.body">{{ row.message.body }}</div>
@@ -129,27 +129,27 @@
 
     <form class="composer" @submit.prevent="send">
       <div class="composer__reply" v-if="replyTo">
-        <q-icon name="lucide-reply" size="18px" class="!flex-none" color="grey-5" />
+        <q-icon name="lucide-reply" size="18px" class="flex-none!" color="grey-5" />
         <div class="composer__reply-text">
           <div class="text-xs font-bold">Replying to {{ replyTo.user?.name || 'Someone' }}</div>
           <div class="text-xs truncate text-grey-5">{{ replyTo.body || (replyTo.voice ? 'Voice note' : '') }}</div>
         </div>
-        <IconBtn size="sm" icon="lucide-x" class="!flex-none" aria-label="Cancel reply" @click="replyTo = null" />
+        <IconBtn size="sm" icon="lucide-x" class="flex-none!" aria-label="Cancel reply" @click="replyTo = null" />
       </div>
 
       <div class="composer__reply composer__reply--region" v-if="region">
-        <q-icon name="lucide-audio-lines" size="18px" class="!flex-none" color="amber-5" />
+        <q-icon name="lucide-audio-lines" size="18px" class="flex-none!" color="amber-5" />
         <div class="composer__reply-text">
           <div class="text-xs font-bold">About this part of the track</div>
           <div class="text-xs truncate text-grey-5">{{ regionLabel(region) }}</div>
         </div>
-        <IconBtn size="sm" icon="lucide-x" class="!flex-none" aria-label="Remove the part of the track" @click="region = null" />
+        <IconBtn size="sm" icon="lucide-x" class="flex-none!" aria-label="Remove the part of the track" @click="region = null" />
       </div>
 
       <div class="composer__row composer__row--recording" v-if="recorder.recording.value">
         <IconBtn
           icon="lucide-trash-2"
-          class="!flex-none text-grey-5"
+          class="flex-none! text-grey-5"
           aria-label="Discard recording"
           @click="recorder.cancel()"
         >
@@ -172,7 +172,7 @@
           unelevated
           icon="lucide-send"
           size="sm"
-          class="!flex-none composer__send"
+          class="flex-none! composer__send"
           aria-label="Send voice note"
           @click="sendVoice"
         />
@@ -197,7 +197,7 @@
           type="submit"
           icon="lucide-send"
           size="sm"
-          class="!flex-none composer__send"
+          class="flex-none! composer__send"
           :disable="readonly"
           aria-label="Send"
           v-if="draft.trim() || !recorder.supported"
@@ -207,7 +207,7 @@
           unelevated
           icon="lucide-mic"
           size="sm"
-          class="!flex-none composer__send composer__send--mic"
+          class="flex-none! composer__send composer__send--mic"
           :disable="readonly || starting"
           aria-label="Record a voice note"
           @click="startRecording"

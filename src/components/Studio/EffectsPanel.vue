@@ -16,7 +16,7 @@
       >
         <q-list dark dense class="fx__menu">
           <template :key="group" v-for="group in EFFECT_GROUPS">
-            <q-item-label header class="!py-2 !text-xs uppercase tracking-wider">{{ group }}</q-item-label>
+            <q-item-label header class="py-2! text-xs! uppercase tracking-wider">{{ group }}</q-item-label>
             <q-item
               clickable
               v-close-popup
@@ -31,7 +31,7 @@
             </q-item>
           </template>
           <template v-if="plugins">
-            <q-item-label header class="!py-2 !text-xs uppercase tracking-wider">Plugins</q-item-label>
+            <q-item-label header class="py-2! text-xs! uppercase tracking-wider">Plugins</q-item-label>
             <q-item clickable v-close-popup :key="p.url" v-for="p in library" @click="addPlugin(p.url, p.name)">
               <q-item-section>
                 <q-item-label>{{ p.name }}</q-item-label>

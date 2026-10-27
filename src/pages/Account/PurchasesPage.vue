@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between mb-8">
         <h1 class="text-2xl font-bold">Purchases</h1>
         <q-btn
-          class="!flex-none"
+          class="flex-none!"
           rounded
           outline
           no-caps
@@ -44,7 +44,7 @@
       />
 
       <div class="flex justify-center mt-8" v-if="pageCount > 1">
-        <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
+        <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
       </div>
     </div>
   </q-page>

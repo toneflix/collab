@@ -7,7 +7,7 @@
       ></div>
       <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
+          class="flex-none! w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="album.imageUrl"
         >
           <template #button>
@@ -15,7 +15,7 @@
               round
               color="dark-opaque"
               :size="$q.screen.lt.sm ? 'lg' : 'xl'"
-              class="!flex-none opacity-90"
+              class="flex-none! opacity-90"
               :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
@@ -34,17 +34,17 @@
             <div
               class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
-              <span class="!flex-none">
+              <span class="flex-none!">
                 {{ countStr(album.tracksCount, 'Track') }}
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 {{ formatSeconds(album.duration) }}
               </span>
-              <span class="!flex-none">•</span>
+              <span class="flex-none!">•</span>
               <IconBtn plain icon="lucide-play" label="Plays" :count="intStr(album.streams)" />
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 <TInteraction
                   v-slot="{ submit, active }"
                   type="like"
@@ -62,8 +62,8 @@
                   />
                 </TInteraction>
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 <ConversationDialog
                   dense
                   no-caps
@@ -93,8 +93,8 @@
                   />
                 </ConversationDialog>
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 <ReportDialog type="release" label="release" :id="album.id" />
               </span>
             </div>
@@ -118,13 +118,13 @@
                   :body="{ purpose: 'release', id: album.id }"
                   @paid="() => reload()"
                 />
-                <span class="text-xs !flex-none">
+                <span class="text-xs flex-none!">
                   Buy this release to listen in full.
                 </span>
               </template>
               <q-chip
                 dense
-                class="!flex-none"
+                class="flex-none!"
                 icon="lucide-check"
                 color="green-9"
                 text-color="white"

@@ -6,7 +6,7 @@
     :rounded="expanded"
     :flat="!expanded"
     :padding="expanded ? '6px 14px 6px 10px' : '8px'"
-    class="action-btn !flex-none"
+    class="action-btn flex-none!"
     :class="{
       'action-btn--open': expanded,
       'action-btn--active': active,

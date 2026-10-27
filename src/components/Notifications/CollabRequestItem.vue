@@ -8,8 +8,8 @@
 
     <q-item-section>
       <q-item-label class="font-bold">{{ request.title }}</q-item-label>
-      <q-item-label caption class="!text-grey-5">{{ request.message }}</q-item-label>
-      <q-item-label caption class="!text-grey-6 !mt-1">{{ timeAgoStamp(request.createdAt) }}</q-item-label>
+      <q-item-label caption class="text-grey-5!">{{ request.message }}</q-item-label>
+      <q-item-label caption class="text-grey-6! mt-1!">{{ timeAgoStamp(request.createdAt) }}</q-item-label>
       <div class="flex gap-2 mt-2">
         <q-btn
           rounded
@@ -18,7 +18,7 @@
           size="sm"
           color="light-blue-8"
           label="Accept"
-          class="!flex-none"
+          class="flex-none!"
           :loading="busy === 'accept'"
           :disable="!!busy"
           @click="answer(true)"
@@ -30,7 +30,7 @@
           size="sm"
           color="grey-5"
           label="Decline"
-          class="!flex-none"
+          class="flex-none!"
           :loading="busy === 'decline'"
           :disable="!!busy"
           @click="answer(false)"

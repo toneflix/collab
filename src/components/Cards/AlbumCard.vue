@@ -25,13 +25,13 @@
 
       <q-card-section align="left" class="p-1">
         <h6
-          class="!text-gray-300 text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
+          class="text-gray-300! text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ album.title }}
         </h6>
         <div class="text-gray-400 text-subtitle2">
           {{ countStr(album.tracksCount, 'Track') }}
-          <span class="!flex-none">•</span>
+          <span class="flex-none!">•</span>
           {{ formatSeconds(album.duration) }}
         </div>
       </q-card-section>

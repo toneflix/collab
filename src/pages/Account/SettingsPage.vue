@@ -29,7 +29,7 @@
 
         <div class="flex items-center gap-4 mb-6 flex-nowrap">
           <ImageCropper
-            class="!flex-none"
+            class="flex-none!"
             :aspect-ratio="1"
             :buttons="{ cancel: 'Cancel', crop: 'Use photo' }"
             @result="savePhoto"

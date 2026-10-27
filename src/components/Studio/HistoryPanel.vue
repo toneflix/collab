@@ -7,7 +7,7 @@
           <div class="text-lg font-bold">Version history</div>
           <div class="text-xs text-grey-5">Every save and stem change, and who made it</div>
         </div>
-        <IconBtn icon="lucide-x" aria-label="Close version history" class="!flex-none" @click="open = false" />
+        <IconBtn icon="lucide-x" aria-label="Close version history" class="flex-none!" @click="open = false" />
       </header>
 
       <div class="history__list">
@@ -22,7 +22,7 @@
             <div class="version__rail"><span class="version__dot" /></div>
             <div class="version__body">
               <div class="flex items-start gap-2 no-wrap">
-                <q-avatar size="26px" class="!flex-none version__avatar">
+                <q-avatar size="26px" class="flex-none! version__avatar">
                   <img :src="v.user?.imageUrl || avatarFallback" :alt="v.user?.name || ''" v-if="v.user" />
                   <q-icon name="lucide-clock" size="16px" v-else />
                 </q-avatar>
@@ -48,7 +48,7 @@
                     </span>
                   </div>
                 </div>
-                <q-badge rounded color="toneflix" text-color="dark" class="!flex-none ml-auto" v-if="v.id === currentId">
+                <q-badge rounded color="toneflix" text-color="dark" class="flex-none! ml-auto" v-if="v.id === currentId">
                   Current
                 </q-badge>
                 <q-btn
@@ -57,7 +57,7 @@
                   rounded
                   no-caps
                   size="sm"
-                  class="!flex-none ml-auto version__restore"
+                  class="flex-none! ml-auto version__restore"
                   icon="lucide-undo-2"
                   :label="$q.screen.gt.xs ? 'Restore' : undefined"
                   :aria-label="`Restore the version from ${fullDate(v.createdAt)}`"

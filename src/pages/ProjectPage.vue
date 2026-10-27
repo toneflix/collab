@@ -7,7 +7,7 @@
       ></div>
       <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
+          class="flex-none! w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="project.imageUrl"
         >
           <template #button>
@@ -20,7 +20,7 @@
               icon="lucide-hash"
               dropdown-icon="none"
               color="dark-opaque"
-              class="!flex-none opacity-90 rounded-full"
+              class="flex-none! opacity-90 rounded-full"
               :class="{
                 'border-2 border-solid border-orange-400': project.pendingData,
               }"
@@ -89,11 +89,11 @@
             <div
               class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
-              <span class="!flex-none">
+              <span class="flex-none!">
                 {{ intStr(project.collaboratorsCount) }} Collabers
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 <TInteraction
                   v-slot="{ submit, active }"
                   type="prop"
@@ -111,7 +111,7 @@
                   />
                 </TInteraction>
               </span>
-              <span class="!flex-none">•</span>
+              <span class="flex-none!">•</span>
               <IconBtn
                 plain
                 icon="lucide-message-square"

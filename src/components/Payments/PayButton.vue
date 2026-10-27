@@ -14,7 +14,7 @@
         <slot :pay="() => start(pay)" :loading="loading">
           <q-btn
             no-caps
-            class="!flex-none"
+            class="flex-none!"
             v-bind="$attrs"
             :loading="loading"
             :label="label"
@@ -27,7 +27,7 @@
       <q-btn
         no-caps
         disable
-        class="!flex-none"
+        class="flex-none!"
         v-bind="$attrs"
         :label="label"
       />

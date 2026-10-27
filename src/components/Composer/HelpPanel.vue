@@ -12,7 +12,7 @@
         <li>Tags and blank lines are left off a project's lyric sheet. AI singing gets them, to shape the song it sings.</li>
       </ul>
       <div class="flex flex-wrap gap-2 mt-2">
-        <button type="button" class="help__chip !flex-none" :key="tag" @click="emit('section', tag)" v-for="tag in tags">
+        <button type="button" class="help__chip flex-none!" :key="tag" @click="emit('section', tag)" v-for="tag in tags">
           {{ tag }}
         </button>
       </div>

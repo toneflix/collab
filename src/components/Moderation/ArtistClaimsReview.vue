@@ -8,7 +8,7 @@
         unelevated
         toggle-color="toneflix"
         color="grey-10"
-        class="!flex-none"
+        class="flex-none!"
         :options="statusOptions"
         v-model="status"
       />
@@ -35,12 +35,12 @@
             @keydown.space.prevent="toggle(claim.id)"
           >
             <div class="flex items-center gap-3 flex-nowrap min-w-0">
-              <q-avatar size="48px" class="!flex-none">
+              <q-avatar size="48px" class="flex-none!">
                 <img :src="claim.artist?.imageUrl" :alt="claim.artist?.name" />
               </q-avatar>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <q-badge rounded color="grey-8" class="!flex-none" label="artist" />
+                  <q-badge rounded color="grey-8" class="flex-none!" label="artist" />
                   <router-link
                     class="font-bold truncate hover:underline"
                     :to="{ name: 'artist', params: { artist_id: claim.artist.username } }"
@@ -57,7 +57,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex items-center gap-3 text-xs text-grey-5 !flex-none">
+            <div class="flex items-center gap-3 text-xs text-grey-5 flex-none!">
               {{ timeAgoStamp(claim.createdAt) }}
               <q-icon name="lucide-chevron-down" size="12px" class="transition-transform" :class="{ 'rotate-180': expanded[claim.id] }" />
             </div>
@@ -83,7 +83,7 @@
                     :key="link"
                     v-for="link in claim.links"
                   >
-                    <q-icon name="lucide-link" size="10px" class="!flex-none" /> {{ link }}
+                    <q-icon name="lucide-link" size="10px" class="flex-none!" /> {{ link }}
                   </a>
                 </div>
                 <div v-if="claim.hasDocument">
@@ -95,7 +95,7 @@
                     color="white"
                     icon="lucide-paperclip"
                     label="Open supporting document"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="busy === `document:${claim.id}`"
                     @click="openDocument(claim)"
                   />
@@ -133,7 +133,7 @@
                     color="green-9"
                     icon="lucide-check"
                     label="Approve and link artist"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="busy === `approve:${claim.id}`"
                     @click="review(claim, 'approve')"
                   />
@@ -145,7 +145,7 @@
                     color="white"
                     icon="lucide-x"
                     label="Decline"
-                    class="!flex-none"
+                    class="flex-none!"
                     :disable="!notes[claim.id]?.trim()"
                     :loading="busy === `reject:${claim.id}`"
                     @click="review(claim, 'reject')"
@@ -158,7 +158,7 @@
                     color="purple-3"
                     icon="lucide-wand-sparkles"
                     label="Send to AI moderator"
-                    class="!flex-none"
+                    class="flex-none!"
                     v-if="aiModerator"
                     :disable="claim.aiReview?.status === 'queued'"
                     :loading="busy === `ai:${claim.id}`"

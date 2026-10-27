@@ -6,7 +6,7 @@
       unelevated
       color="toneflix"
       icon="lucide-lock-open"
-      :label="`Buy ${track.release?.title || 'release'} for ${price(track.price)}`"
+      :label="buyLabel"
       :amount="track.price"
       :body="{ purpose: 'release', id: track.release?.id || '' }"
       @paid="emit('changed')"
@@ -72,10 +72,8 @@
         <q-list separator>
           <q-item
             clickable
-            tag="a"
-            target="_blank"
-            :href="stem.url"
             :key="stem.id"
+            @click="downloadFile(stem.url, stem.title)"
             v-for="stem in stems"
           >
             <q-item-section avatar>
@@ -104,7 +102,9 @@
 import { computed, ref } from 'vue';
 import PayButton from './PayButton.vue';
 import { usePayments } from 'src/composables/usePayments';
+import { downloadFile } from 'src/utils/download';
 import { formatBytes } from 'src/utils/helpers';
+import { useQuasar } from 'quasar';
 import { Track } from 'src/utils/models';
 import {
   loadStemDownloadsRequest,
@@ -119,7 +119,15 @@ const emit = defineEmits<{
   changed: [];
 }>();
 
+const $q = useQuasar();
 const { price, isPremium } = usePayments();
+
+// Release titles can be long, so phones get the short version
+const buyLabel = computed(() =>
+  $q.screen.lt.sm
+    ? `Buy release for ${price(props.track.price)}`
+    : `Buy ${props.track.release?.title || 'release'} for ${price(props.track.price)}`,
+);
 
 // Owners and buyers can always download; premium listeners can when the creator allowed it.
 const canDownload = computed(
@@ -134,11 +142,7 @@ const download = async () => {
   downloading.value = true;
   try {
     const { data } = await loadTrackDownloadRequest(props.track.id).send();
-    const link = document.createElement('a');
-    link.href = data.url;
-    link.download = data.filename;
-    link.target = '_blank';
-    link.click();
+    await downloadFile(data.url, data.filename);
   } finally {
     downloading.value = false;
   }

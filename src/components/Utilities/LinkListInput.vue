@@ -13,7 +13,7 @@
         v-model="links[i]"
       />
       <IconBtn
-        class="!flex-none mt-1"
+        class="flex-none! mt-1"
         icon="lucide-x"
         :aria-label="`Remove link ${i + 1}`"
         v-if="links.length > 1"
@@ -28,7 +28,7 @@
       size="sm"
       icon="lucide-plus"
       label="Add another link"
-      class="!flex-none self-start"
+      class="flex-none! self-start"
       v-if="links.length < max"
       @click="links.push('')"
     />

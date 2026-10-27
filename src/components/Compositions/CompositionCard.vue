@@ -5,7 +5,7 @@
     </div>
     <div class="min-w-0">
       <div class="flex items-center gap-1 no-wrap">
-        <span class="explicit !flex-none" title="Explicit" v-if="song.explicit">E</span>
+        <span class="explicit flex-none!" title="Explicit" v-if="song.explicit">E</span>
         <span class="font-semibold truncate">{{ song.title }}</span>
       </div>
       <div class="text-xs truncate text-grey-5">{{ song.writer?.name }}</div>
@@ -14,12 +14,12 @@
       <div class="truncate" :key="n" v-for="(line, n) in song.excerpt">{{ line }}</div>
     </div>
     <div class="flex items-center gap-3 text-[11px] text-grey-6 no-wrap">
-      <span class="flex items-center gap-1 !flex-none" v-if="song.forksCount">
+      <span class="flex items-center gap-1 flex-none!" v-if="song.forksCount">
         <q-icon name="lucide-git-fork" size="12px" />
         {{ song.forksCount }}
       </span>
-      <span class="!flex-none" v-if="song.bpm">{{ song.bpm }} BPM</span>
-      <span class="!flex-none" v-if="song.key">{{ song.key }}</span>
+      <span class="flex-none!" v-if="song.bpm">{{ song.bpm }} BPM</span>
+      <span class="flex-none!" v-if="song.key">{{ song.key }}</span>
       <span class="truncate" v-if="song.mood">{{ song.mood }}</span>
     </div>
   </router-link>

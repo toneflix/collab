@@ -11,7 +11,7 @@
       :aria-expanded="open"
       @click="open = !open"
     >
-      <q-spinner-audio size="16px" color="toneflix" class="!flex-none" />
+      <q-spinner-audio size="16px" color="toneflix" class="flex-none!" />
       <span class="font-bold">{{ heading }}</span>
       <span class="text-grey-5" v-if="bytes.total"
         >{{ formatBytes(bytes.loaded) }} of {{ formatBytes(bytes.total) }}</span
@@ -36,7 +36,7 @@
         <q-icon
           :name="icons[item.phase]"
           size="16px"
-          class="text-grey-5 !flex-none"
+          class="text-grey-5 flex-none!"
         />
         <div class="stem-activity__name">{{ item.name }}</div>
         <q-linear-progress

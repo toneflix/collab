@@ -27,7 +27,7 @@
           toggle-color="toneflix"
           color="grey-10"
           text-color="grey-4"
-          class="!flex-none border border-gray-700"
+          class="flex-none! border border-gray-700"
           v-model="selectedPeriod"
           :options="
             periods.map((p) => ({ label: p.label, value: p.key, slot: p.key }))
@@ -61,13 +61,13 @@
                 rounded
                 color="amber-8"
                 label="Your plan"
-                class="!flex-none"
+                class="flex-none!"
                 v-if="plan.id === current?.id"
               />
               <q-badge
                 rounded
                 color="green-8"
-                class="!flex-none"
+                class="flex-none!"
                 :label="`Save ${option.discount}%`"
                 v-if="option.discount > 0"
               />
@@ -88,7 +88,7 @@
               {{ plan.description }}
             </div>
           </q-card-section>
-          <q-card-actions class="mt-auto !flex-none">
+          <q-card-actions class="mt-auto flex-none!">
             <PayButton
               unelevated
               rounded

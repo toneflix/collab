@@ -20,7 +20,7 @@
             <div class="flex items-start justify-between gap-3 flex-nowrap">
               <ModeratedItemRow hide-status :item="takedown.item" v-if="takedown.item" />
               <div class="text-grey-5" v-else>This content was deleted.</div>
-              <q-badge rounded class="!flex-none" :color="statusColor[takedown.status]" :label="statusLabel[takedown.status]" />
+              <q-badge rounded class="flex-none!" :color="statusColor[takedown.status]" :label="statusLabel[takedown.status]" />
             </div>
 
             <div class="text-sm">
@@ -62,7 +62,7 @@
                   color="white"
                   icon="lucide-scale"
                   label="Appeal"
-                  class="!flex-none"
+                  class="flex-none!"
                   v-if="appealing !== takedown.id"
                   @click="appealing = takedown.id"
                 />
@@ -74,12 +74,12 @@
                     size="sm"
                     color="toneflix"
                     label="Send appeal"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="sending"
                     :disable="(appeals[takedown.id] || '').trim().length < 20"
                     @click="appeal(takedown)"
                   />
-                  <q-btn flat rounded no-caps size="sm" label="Cancel" class="!flex-none" @click="appealing = null" />
+                  <q-btn flat rounded no-caps size="sm" label="Cancel" class="flex-none!" @click="appealing = null" />
                 </template>
               </div>
             </template>

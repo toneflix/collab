@@ -7,7 +7,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3 mb-4">
-        <q-tabs dense no-caps align="left" active-color="toneflix" class="!flex-none" v-model="status">
+        <q-tabs dense no-caps align="left" active-color="toneflix" class="flex-none!" v-model="status">
           <q-tab :key="option.value" :name="option.value" :label="option.label" v-for="option in statuses" />
         </q-tabs>
         <q-input
@@ -28,7 +28,7 @@
           outlined
           emit-value
           map-options
-          class="w-36 !flex-none"
+          class="w-36 flex-none!"
           :options="sorts"
           v-model="sort"
         />
@@ -56,13 +56,13 @@
               <q-badge
                 rounded
                 outline
-                class="!flex-none"
+                class="flex-none!"
                 color="grey-5"
                 :key="role"
                 :label="role"
                 v-for="role in (user.roles || []).filter((r) => r !== 'user')"
               />
-              <q-badge rounded color="toneflix" class="!flex-none" :label="user.plan.name" v-if="user.plan && !user.plan.isDefault" />
+              <q-badge rounded color="toneflix" class="flex-none!" :label="user.plan.name" v-if="user.plan && !user.plan.isDefault" />
             </div>
             <q-item-label caption class="mt-1">
               {{ user.projectsCount }} projects · {{ user.releasesCount || 0 }} releases · joined
@@ -75,7 +75,7 @@
       <SimpleInfo v-else text="No users match." />
 
       <div class="flex justify-center mt-8" v-if="pageCount > 1">
-        <q-pagination class="!flex-none" v-model="page" :max="pageCount" :max-pages="7" direction-links boundary-numbers />
+        <q-pagination class="flex-none!" v-model="page" :max="pageCount" :max-pages="7" direction-links boundary-numbers />
       </div>
     </div>
   </q-page>

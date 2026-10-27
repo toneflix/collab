@@ -42,7 +42,7 @@
           no-caps
           color="primary"
           label="Explore music"
-          class="!flex-none"
+          class="flex-none!"
           :to="{ name: 'explore' }"
         />
         <q-btn
@@ -50,7 +50,7 @@
           rounded
           no-caps
           label="Read the FAQ"
-          class="!flex-none"
+          class="flex-none!"
           :to="{ name: 'help', hash: '#faq' }"
         />
       </div>

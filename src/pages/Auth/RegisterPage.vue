@@ -161,7 +161,7 @@
 
         <div>
           <div class="flex items-start gap-2 no-wrap">
-            <q-checkbox dense color="primary" class="!flex-none mt-0.5" v-model="form.accept" />
+            <q-checkbox dense color="primary" class="flex-none! mt-0.5" v-model="form.accept" />
             <p class="m-0 text-sm leading-relaxed text-fg-muted">
               <span class="cursor-pointer" @click="form.accept = !form.accept">{{ t('terms_before') }}</span>
               {{ ' ' }}

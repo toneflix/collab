@@ -20,8 +20,8 @@
     <template v-else>
       <div class="write__section">
         <div class="flex items-center justify-between gap-2 mb-1 no-wrap">
-          <div class="text-xs text-grey-5 !flex-none">{{ account.balance.total }} {{ plural(account.balance.total) }} left</div>
-          <router-link class="text-xs text-toneflix !flex-none" :to="{ name: 'studio.credits' }">Get credits</router-link>
+          <div class="text-xs text-grey-5 flex-none!">{{ account.balance.total }} {{ plural(account.balance.total) }} left</div>
+          <router-link class="text-xs text-toneflix flex-none!" :to="{ name: 'studio.credits' }">Get credits</router-link>
         </div>
         <q-toggle
           dark

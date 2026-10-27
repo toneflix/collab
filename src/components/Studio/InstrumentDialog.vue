@@ -16,7 +16,7 @@
             {{ patternSeconds(pattern).toFixed(1) }}s
           </div>
         </div>
-        <IconBtn icon="lucide-x" aria-label="Close" class="!flex-none" v-close-popup />
+        <IconBtn icon="lucide-x" aria-label="Close" class="flex-none!" v-close-popup />
       </header>
 
       <q-tabs
@@ -40,7 +40,7 @@
           unelevated
           color="toneflix"
           text-color="dark"
-          class="!flex-none"
+          class="flex-none!"
           :icon="previewing ? 'stop' : 'play_arrow'"
           :aria-label="previewing ? 'Stop the preview' : 'Play the pattern'"
           @click="togglePreview"
@@ -78,7 +78,7 @@
           <IconBtn icon="lucide-chevron-up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
         </div>
         <label class="flex items-center gap-2 no-wrap w-40">
-          <q-icon name="lucide-volume-2" size="18px" class="!flex-none" />
+          <q-icon name="lucide-volume-2" size="18px" class="flex-none!" />
           <q-slider
             dense
             color="toneflix"
@@ -90,7 +90,7 @@
             @update:model-value="setVolume"
           />
         </label>
-        <q-btn flat dense no-caps icon="lucide-trash" label="Clear" class="!flex-none" @click="clear" />
+        <q-btn flat dense no-caps icon="lucide-trash" label="Clear" class="flex-none!" @click="clear" />
       </div>
 
       <!-- Drum machine -->

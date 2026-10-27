@@ -16,7 +16,7 @@
       <SimpleInfo v-else text="Nothing here." />
 
       <div class="flex justify-center mt-8" v-if="pageCount > 1">
-        <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
+        <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
       </div>
     </template>
   </SettingsSections>

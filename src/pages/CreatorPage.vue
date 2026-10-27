@@ -9,7 +9,7 @@
       ></div>
       <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
+          class="flex-none! w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="artist.imageUrl"
         >
         </AtroposViewer>
@@ -32,7 +32,7 @@
             <div
               class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
-              <span class="!flex-none" v-if="!isMe">
+              <span class="flex-none!" v-if="!isMe">
                 <ToggleFollow
                   :following="artist.youFollow"
                   :base-url="`users/${artist.id}`"
@@ -57,17 +57,17 @@
                   />
                 </ToggleFollow>
               </span>
-              <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
+              <span class="flex-none!" v-if="artist.type === 'user' && !isMe">
                 <TipDialog :creator="artist" v-if="artist.acceptsTips !== false" />
               </span>
-              <span class="!flex-none" v-if="artist.type === 'user' && !isMe">
+              <span class="flex-none!" v-if="artist.type === 'user' && !isMe">
                 <ReportDialog type="user" label="account" :id="artist.id" />
               </span>
-              <span class="!flex-none">
+              <span class="flex-none!">
                 {{ intStr(artist.followers) }} Followers
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none">
+              <span class="flex-none!">•</span>
+              <span class="flex-none!">
                 {{ intStr(artist.reputation) }} Reps.
               </span>
               <q-btn
@@ -77,7 +77,7 @@
                 padding="6px 16px"
                 icon="lucide-pen"
                 label="Edit profile"
-                class="!flex-none"
+                class="flex-none!"
                 :to="{ name: 'account.settings' }"
                 v-if="isMe"
               />

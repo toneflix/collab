@@ -6,7 +6,7 @@
         <q-badge rounded color="red-6" :label="store.unread" v-if="store.unread" />
       </div>
       <div class="inbox__search">
-        <q-icon name="lucide-search" size="18px" color="grey-6" class="!flex-none" />
+        <q-icon name="lucide-search" size="18px" color="grey-6" class="flex-none!" />
         <input type="search" placeholder="Search conversations" aria-label="Search conversations" v-model="search" />
       </div>
 
@@ -59,7 +59,7 @@
           <IconBtn
             icon="lucide-arrow-left"
             aria-label="All conversations"
-            class="!flex-none"
+            class="flex-none!"
             :to="{ name: 'messages' }"
             v-if="narrow"
           />
@@ -74,7 +74,7 @@
             no-caps
             size="sm"
             color="grey-4"
-            class="!flex-none"
+            class="flex-none!"
             icon-right="lucide-arrow-up-right"
             :label="narrow ? 'Open' : `Open ${noun}`"
             :to="link"

@@ -46,7 +46,7 @@
             dense
             no-caps
             color="primary"
-            class="!flex-none"
+            class="flex-none!"
             :label="wait > 0 ? t('resend_wait', { seconds: wait }) : t('resend')"
             :disable="wait > 0"
             :loading="sending"

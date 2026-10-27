@@ -14,17 +14,17 @@
 
     <q-item-section>
       <q-item-label class="font-bold">{{ notification.title }}</q-item-label>
-      <q-item-label caption class="!text-grey-5" :lines="dense ? 2 : 3">{{ notification.message }}</q-item-label>
-      <q-item-label caption class="!text-grey-6 !mt-1">{{ timeAgoStamp(notification.createdAt) }}</q-item-label>
+      <q-item-label caption class="text-grey-5!" :lines="dense ? 2 : 3">{{ notification.message }}</q-item-label>
+      <q-item-label caption class="text-grey-6! mt-1!">{{ timeAgoStamp(notification.createdAt) }}</q-item-label>
     </q-item-section>
 
-    <q-item-section side top class="!pl-2">
+    <q-item-section side top class="pl-2!">
       <span class="notification-item__dot" aria-label="Unread" v-if="!notification.readAt" />
       <IconBtn size="sm"
         icon="lucide-x"
         color="grey-6"
         aria-label="Remove notification"
-        class="!flex-none mt-2"
+        class="flex-none! mt-2"
         @click.stop="emit('remove', notification)"
         v-if="removable"
       />

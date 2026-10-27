@@ -115,7 +115,7 @@
         no-caps
         type="submit"
         color="toneflix"
-        class="!flex-none"
+        class="flex-none!"
         icon="lucide-list-plus"
         label="Queue prompt"
         :loading="saving"

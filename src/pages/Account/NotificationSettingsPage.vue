@@ -18,8 +18,8 @@
 
       <template v-else-if="settings">
         <section class="push-card">
-          <div class="flex !flex-nowrap items-start gap-3">
-            <q-icon name="lucide-smartphone" size="22px" class="!flex-none mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
+          <div class="flex flex-nowrap! items-start gap-3">
+            <q-icon name="lucide-smartphone" size="22px" class="flex-none! mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
             <div>
               <div class="font-bold">Push on this device</div>
               <div class="text-sm text-grey-5">{{ pushText }}</div>
@@ -29,7 +29,7 @@
               no-caps
               unelevated
               size="sm"
-              class="!flex-none ml-auto"
+              class="flex-none! ml-auto"
               :color="pushOn ? 'grey-8' : 'light-blue-8'"
               :label="pushOn ? 'Turn off' : 'Turn on'"
               :loading="pushBusy"
@@ -46,8 +46,8 @@
             <span role="columnheader" class="text-center">Push</span>
           </div>
           <div class="settings-grid__row" role="row" :key="c.key" v-for="c in settings.categories">
-            <div role="cell" class="flex !flex-nowrap items-start gap-3">
-              <q-icon :name="categoryLook[c.key].icon" :color="categoryLook[c.key].color" size="16px" class="!flex-none mt-1" />
+            <div role="cell" class="flex flex-nowrap! items-start gap-3">
+              <q-icon :name="categoryLook[c.key].icon" :color="categoryLook[c.key].color" size="16px" class="flex-none! mt-1" />
               <div>
                 <div class="font-bold">{{ c.title }}</div>
                 <div class="text-sm text-grey-5">{{ c.description }}</div>

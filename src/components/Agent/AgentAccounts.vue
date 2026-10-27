@@ -54,7 +54,7 @@
             size="sm"
             color="red-4"
             label="Remove"
-            class="!flex-none"
+            class="flex-none!"
             :loading="busy === account.id"
             @click="remove(account)"
           />
@@ -65,7 +65,7 @@
     <SimpleInfo v-else text="No agent accounts yet. Add one to start queuing prompts." />
 
     <div class="flex justify-center" v-if="pageCount > 1">
-      <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
+      <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
     </div>
   </div>
 </template>

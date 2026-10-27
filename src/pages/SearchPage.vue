@@ -56,7 +56,7 @@
           dense
           color="primary"
           label="Keys that mix with it"
-          class="!flex-none"
+          class="flex-none!"
           :disable="!filters.key"
           :model-value="filters.compatible"
           @update:model-value="setFilter('compatible', $event ? '1' : null)"
@@ -72,7 +72,7 @@
           <h2 class="mb-4 text-lg font-bold">Creators</h2>
           <div class="flex flex-wrap gap-3">
             <router-link
-              class="artist !flex-none"
+              class="artist flex-none!"
               :key="artist.id"
               :to="{ name: 'artist', params: { artist_id: artist.username } }"
               v-for="artist in artists"
@@ -95,7 +95,7 @@
               dense
               label="See all"
               icon-right="lucide-arrow-right"
-              class="!flex-none px-3"
+              class="flex-none! px-3"
               :to="{ name: 'compositions', query: { search: q } }"
               v-if="lyricsMore"
             />
@@ -130,23 +130,23 @@
               <q-item-section>
                 <q-item-label lines="1" class="font-bold">{{ track.title }}</q-item-label>
                 <q-item-label caption lines="1" class="flex items-center gap-1 no-wrap">
-                  <span class="explicit !flex-none" title="Explicit" v-if="track.explicit">E</span>
+                  <span class="explicit flex-none!" title="Explicit" v-if="track.explicit">E</span>
                   <span class="truncate">{{ track.artist?.name || 'Unknown' }}</span>
                 </q-item-label>
-                <AudioTagChips class="mt-1 sm:!hidden" :tags="track.tags" />
+                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" />
                 <q-item-label lines="2" class="song__lyric" v-if="track.lyricMatch">
                   <q-icon name="lucide-type" size="14px" class="mr-1" />
                   “<span v-html="highlight(track.lyricMatch)" />”
                 </q-item-label>
               </q-item-section>
-              <q-item-section side class="max-sm:!hidden" v-if="track.tags?.bpm || track.tags?.key">
+              <q-item-section side class="max-sm:hidden!" v-if="track.tags?.bpm || track.tags?.key">
                 <AudioTagChips :tags="track.tags" />
               </q-item-section>
               <q-item-section side class="text-xs">
                 <div class="flex items-center gap-2 no-wrap">
                   {{ formatSeconds(track.duration) }}
                   <IconBtn
-                    class="!flex-none"
+                    class="flex-none!"
                     :aria-label="player.isPlaying(track) ? 'Pause' : 'Play'"
                     :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"
                     @click.prevent.stop="player.toggleTrack(track, tracks, `search:${q}`)"

@@ -28,7 +28,7 @@
             </div>
           </div>
 
-          <div class="!flex-none">
+          <div class="flex-none!">
             <q-btn
               unelevated
               rounded
@@ -139,7 +139,7 @@
         <SimpleInfo v-else text="No withdrawals yet. When you withdraw, it shows up here with its status." />
 
         <div class="flex justify-center mt-8" v-if="payoutPages > 1">
-          <q-pagination class="!flex-none" v-model="payoutPage" :max="payoutPages" direction-links />
+          <q-pagination class="flex-none!" v-model="payoutPage" :max="payoutPages" direction-links />
         </div>
       </template>
 
@@ -158,7 +158,7 @@
         />
 
         <div class="flex justify-center mt-8" v-if="pageCount > 1">
-          <q-pagination class="!flex-none" v-model="page" :max="pageCount" direction-links />
+          <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
         </div>
       </template>
     </div>

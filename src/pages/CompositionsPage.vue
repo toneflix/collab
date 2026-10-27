@@ -32,7 +32,7 @@
           toggle-color="toneflix"
           toggle-text-color="dark"
           color="transparent"
-          class="sort !flex-none"
+          class="sort flex-none!"
           :options="sortOptions"
           :model-value="sort"
           @update:model-value="setQuery('sort', $event === 'latest' ? null : $event)"

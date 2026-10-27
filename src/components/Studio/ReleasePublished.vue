@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center gap-4 px-8 py-12 text-center">
-    <div class="release-art !flex-none">
+    <div class="release-art flex-none!">
       <q-img
         no-spinner
         :ratio="1"
@@ -16,7 +16,7 @@
       />
     </div>
 
-    <div class="!flex-none">
+    <div class="flex-none!">
       <div class="text-3xl font-bold">
         {{ inReview ? 'Submitted for review' : 'Your release is live' }}
       </div>
@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap justify-center gap-2 mt-2 !flex-none">
+    <div class="flex flex-wrap justify-center gap-2 mt-2 flex-none!">
       <q-btn
         no-caps
         unelevated
@@ -37,7 +37,7 @@
         color="primary"
         icon="lucide-play:fill"
         :label="inReview ? 'Preview Release' : 'View Release'"
-        class="!flex-none"
+        class="flex-none!"
         :to="{
           name: 'artist.album',
           params: { artist_id: release.artist?.username, album_id: release.slug },
@@ -51,7 +51,7 @@
         color="primary"
         icon="lucide-share-2"
         label="Copy Link"
-        class="!flex-none"
+        class="flex-none!"
         @click="copyLink"
         v-if="release.artist?.username && !inReview"
       />
@@ -61,7 +61,7 @@
         rounded
         icon="lucide-disc-3"
         label="My Releases"
-        class="!flex-none"
+        class="flex-none!"
         :to="{ name: 'studio.releases' }"
       />
       <q-btn
@@ -70,7 +70,7 @@
         rounded
         icon="lucide-pen"
         label="Edit Release"
-        class="!flex-none"
+        class="flex-none!"
         @click="emit('edit')"
       />
     </div>

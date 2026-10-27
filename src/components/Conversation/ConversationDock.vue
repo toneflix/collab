@@ -17,7 +17,7 @@
         <img class="cover cover--sm" :src="subject?.imageUrl || conversation.imageUrl || imageFallback" alt="" />
         <span class="dock-pill__title">{{ title }}</span>
         <q-badge rounded color="red-6" :label="unread" v-if="unread" />
-        <q-icon name="lucide-chevron-up" size="20px" class="!flex-none" />
+        <q-icon name="lucide-chevron-up" size="20px" class="flex-none!" />
       </button>
 
       <section

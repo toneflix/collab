@@ -30,7 +30,7 @@
               outlined
               emit-value
               map-options
-              class="min-w-36 !flex-none"
+              class="min-w-36 flex-none!"
               label="Content"
               :options="typeOptions"
               v-model="filters.type"
@@ -41,7 +41,7 @@
               outlined
               emit-value
               map-options
-              class="min-w-36 !flex-none"
+              class="min-w-36 flex-none!"
               label="From"
               :options="sourceOptions"
               v-model="filters.source"
@@ -63,7 +63,7 @@
                 <div class="flex items-start justify-between gap-3 flex-nowrap">
                   <ModeratedItemRow show-owner :item="row.item" v-if="row.item" />
                   <div class="text-grey-5" v-else>This content was deleted.</div>
-                  <div class="text-xs text-right text-grey-5 !flex-none">
+                  <div class="text-xs text-right text-grey-5 flex-none!">
                     {{ row.reportsCount }} {{ row.reportsCount === 1 ? 'report' : 'reports' }}<br />
                     {{ timeAgoStamp(row.lastReportedAt) }}
                   </div>
@@ -73,7 +73,7 @@
                   <q-chip
                     dense
                     square
-                    class="!flex-none"
+                    class="flex-none!"
                     text-color="white"
                     :color="isCopyrightReason(reason) ? 'red-10' : 'grey-9'"
                     :key="reason"
@@ -87,7 +87,7 @@
                   <div class="report" :key="report.id" v-for="report in row.reports">
                     <template v-if="report.type === 'match'">
                       <div class="flex items-center gap-2 mb-1 text-xs text-grey-5">
-                        <q-icon name="lucide-audio-waveform" color="orange-6" class="!flex-none" />
+                        <q-icon name="lucide-audio-waveform" color="orange-6" class="flex-none!" />
                         <span>
                           Audio check · {{ report.claim?.kind === 'exact' ? 'same file' : 'sounds the same' }} ·
                           {{ Math.round((report.claim?.score || 0) * 100) }}% match
@@ -102,7 +102,7 @@
                     </template>
                     <template v-else-if="report.type === 'lyrics'">
                       <div class="flex items-center gap-2 mb-1 text-xs text-grey-5">
-                        <q-icon name="lucide-text-align-start" color="orange-6" class="!flex-none" />
+                        <q-icon name="lucide-text-align-start" color="orange-6" class="flex-none!" />
                         <span>Lyrics check · {{ timeAgoStamp(report.createdAt) }}</span>
                       </div>
                       The lyrics use words to review:
@@ -137,7 +137,7 @@
                     color="red-9"
                     icon="lucide-ban"
                     label="Take down"
-                    class="!flex-none"
+                    class="flex-none!"
                     v-if="row.item.canTakeDown && !row.item.takenDown"
                     @click="openTakedown(row)"
                   />
@@ -149,7 +149,7 @@
                     color="white"
                     icon="lucide-check"
                     label="Mark handled"
-                    class="!flex-none"
+                    class="flex-none!"
                     v-if="!row.item.canTakeDown || row.item.takenDown"
                     :loading="busy === `resolve:${row.key}`"
                     @click="close(row, 'resolve')"
@@ -162,7 +162,7 @@
                     color="white"
                     icon="lucide-x"
                     label="Dismiss"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="busy === `dismiss:${row.key}`"
                     @click="close(row, 'dismiss')"
                   />
@@ -185,7 +185,7 @@
             <q-card flat bordered class="bg-dark" :key="release.id" v-for="release in reviews">
               <q-card-section class="flex flex-col gap-3">
                 <div class="flex items-start gap-3 flex-nowrap">
-                  <q-img no-spinner :ratio="1" :src="release.imageUrl" class="w-16 rounded-lg !flex-none" />
+                  <q-img no-spinner :ratio="1" :src="release.imageUrl" class="w-16 rounded-lg flex-none!" />
                   <div class="min-w-0">
                     <router-link
                       class="font-bold hover:underline"
@@ -229,7 +229,7 @@
                     color="green-9"
                     icon="lucide-check"
                     label="Approve"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="busy === `approve:${release.id}`"
                     @click="review(release, 'approve')"
                   />
@@ -241,7 +241,7 @@
                     color="white"
                     icon="lucide-rotate-ccw"
                     label="Send back"
-                    class="!flex-none"
+                    class="flex-none!"
                     :disable="!reviewNotes[release.id]?.trim()"
                     :loading="busy === `reject:${release.id}`"
                     @click="review(release, 'reject')"
@@ -254,7 +254,7 @@
                     color="purple-3"
                     icon="lucide-wand-sparkles"
                     label="Send to AI moderator"
-                    class="!flex-none"
+                    class="flex-none!"
                     v-if="stats.aiModerator"
                     :disable="release.aiReview?.status === 'queued'"
                     :loading="busy === `ai:${release.id}`"
@@ -310,7 +310,7 @@
                       color="green-9"
                       icon="lucide-rotate-ccw"
                       label="Restore"
-                      class="!flex-none"
+                      class="flex-none!"
                       :loading="busy === `restore:${takedown.id}`"
                       @click="decide(takedown, 'restore')"
                     />
@@ -321,7 +321,7 @@
                       size="sm"
                       color="white"
                       label="Keep it down"
-                      class="!flex-none"
+                      class="flex-none!"
                       v-if="takedown.status === 'appealed'"
                       :loading="busy === `uphold:${takedown.id}`"
                       @click="decide(takedown, 'uphold')"

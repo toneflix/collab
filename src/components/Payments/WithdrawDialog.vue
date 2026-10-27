@@ -26,12 +26,12 @@
             v-model.number="amount"
           >
             <template #append>
-              <q-btn flat dense no-caps size="sm" label="Max" class="!flex-none" @click="amount = summary.available" />
+              <q-btn flat dense no-caps size="sm" label="Max" class="flex-none!" @click="amount = summary.available" />
             </template>
           </q-input>
 
           <div class="flex items-center gap-3 px-4 py-2 rounded destination">
-            <q-icon :name="methodIcon(account.method)" class="!flex-none text-grey-5" />
+            <q-icon :name="methodIcon(account.method)" class="flex-none! text-grey-5" />
             <div>
               <div class="text-sm font-bold">{{ account.accountName }}</div>
               <div class="text-xs text-grey-5">{{ accountLine(account) }}</div>
@@ -43,14 +43,14 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat no-caps label="Cancel" class="!flex-none" v-close-popup />
+          <q-btn flat no-caps label="Cancel" class="flex-none!" v-close-popup />
           <q-btn
             unelevated
             rounded
             no-caps
             type="submit"
             color="toneflix"
-            class="!flex-none"
+            class="flex-none!"
             :label="`Withdraw ${price(amount)}`"
             :loading="sending"
           />

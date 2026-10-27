@@ -1,13 +1,13 @@
 <template>
   <div class="ai-review" :class="`ai-review--${review.status}`">
     <div class="flex flex-wrap items-center gap-x-2 mb-1 text-xs">
-      <q-spinner-dots size="14px" color="toneflix" class="!flex-none" v-if="review.status === 'queued'" />
-      <q-icon :name="icon" :color="color" size="14px" class="!flex-none" v-else />
-      <span class="font-bold !flex-none">{{ heading }}</span>
-      <span class="text-grey-5 !flex-none" v-if="review.confidence !== null && review.confidence !== undefined && review.status !== 'queued'">
+      <q-spinner-dots size="14px" color="toneflix" class="flex-none!" v-if="review.status === 'queued'" />
+      <q-icon :name="icon" :color="color" size="14px" class="flex-none!" v-else />
+      <span class="font-bold flex-none!">{{ heading }}</span>
+      <span class="text-grey-5 flex-none!" v-if="review.confidence !== null && review.confidence !== undefined && review.status !== 'queued'">
         · {{ review.confidence }}% sure
       </span>
-      <span class="text-grey-5 !flex-none">· {{ review.mode === 'auto' ? 'sent automatically' : 'sent by an admin' }}</span>
+      <span class="text-grey-5 flex-none!">· {{ review.mode === 'auto' ? 'sent automatically' : 'sent by an admin' }}</span>
     </div>
     <div v-if="review.summary">{{ review.summary }}</div>
     <div class="mt-1 text-xs text-grey-4" v-if="review.note && review.status !== 'queued'">

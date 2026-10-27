@@ -19,13 +19,13 @@
           </router-link>
 
           <div class="facts">
-            <span class="explicit !flex-none" title="Explicit" v-if="song.explicit">E</span>
-            <span class="!flex-none">{{ song.lineCount }} {{ song.lineCount === 1 ? 'line' : 'lines' }}</span>
-            <span class="!flex-none" v-if="song.bpm">{{ song.bpm }} BPM</span>
-            <span class="!flex-none" v-if="song.key">{{ song.key }}</span>
-            <span class="!flex-none" v-if="song.mood">{{ song.mood }}</span>
-            <span class="!flex-none" v-if="song.language">{{ song.language }}</span>
-            <span class="flex items-center gap-1 !flex-none" v-if="song.forksCount">
+            <span class="explicit flex-none!" title="Explicit" v-if="song.explicit">E</span>
+            <span class="flex-none!">{{ song.lineCount }} {{ song.lineCount === 1 ? 'line' : 'lines' }}</span>
+            <span class="flex-none!" v-if="song.bpm">{{ song.bpm }} BPM</span>
+            <span class="flex-none!" v-if="song.key">{{ song.key }}</span>
+            <span class="flex-none!" v-if="song.mood">{{ song.mood }}</span>
+            <span class="flex-none!" v-if="song.language">{{ song.language }}</span>
+            <span class="flex items-center gap-1 flex-none!" v-if="song.forksCount">
               <q-icon name="lucide-git-fork" size="13px" />
               {{ song.forksCount }} {{ song.forksCount === 1 ? 'fork' : 'forks' }}
             </span>
@@ -57,7 +57,7 @@
               text-color="dark"
               icon="lucide-pencil"
               label="Edit in Composer"
-              class="!flex-none"
+              class="flex-none!"
               :to="{ name: 'studio.composer.song', params: { song_id: song.id } }"
               v-if="song.isOwner"
             />
@@ -70,7 +70,7 @@
                 text-color="dark"
                 icon="lucide-git-fork"
                 label="Fork"
-                class="!flex-none"
+                class="flex-none!"
                 :loading="forking"
                 @click="fork"
                 v-if="song.allowForks"
@@ -81,12 +81,12 @@
                 no-caps
                 icon="lucide-library"
                 label="Start a project"
-                class="!flex-none"
+                class="flex-none!"
                 @click="startProject"
                 v-if="song.allowProjects"
               />
             </template>
-            <IconBtn class="!flex-none" icon="lucide-share-2" aria-label="Copy the link" @click="share" />
+            <IconBtn class="flex-none!" icon="lucide-share-2" aria-label="Copy the link" @click="share" />
             <ReportDialog type="song" label="composition" :id="song.id" v-if="!song.isOwner" />
           </div>
         </div>

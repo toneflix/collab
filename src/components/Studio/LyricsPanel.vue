@@ -16,7 +16,7 @@
         <IconBtn
           icon="lucide-x"
           aria-label="Close lyrics"
-          class="!flex-none"
+          class="flex-none!"
           @click="open = false"
         />
       </header>
@@ -54,7 +54,7 @@
                 rounded
                 no-caps
                 color="toneflix"
-                class="!flex-none"
+                class="flex-none!"
                 label="Transcribe"
                 icon="lucide-sparkles"
                 :loading="starting === 'replace'"
@@ -72,7 +72,7 @@
                 rounded
                 no-caps
                 color="grey-9"
-                class="!flex-none"
+                class="flex-none!"
                 label="Sync times"
                 icon="lucide-timer"
                 :loading="starting === 'sync'"
@@ -109,14 +109,14 @@
         <!-- The sheet -->
         <div class="sheet__section">
           <div class="flex items-center justify-between mb-2 no-wrap">
-            <div class="sheet__label !mb-0">Lyric sheet</div>
+            <div class="sheet__label mb-0!">Lyric sheet</div>
             <q-btn
               flat
               dense
               rounded
               no-caps
               size="sm"
-              class="!flex-none"
+              class="flex-none!"
               :icon="textMode ? 'lucide-list' : 'lucide-square-pen'"
               :label="textMode ? 'Done' : 'Edit as text'"
               @click="toggleTextMode"
@@ -174,7 +174,7 @@
               />
               <div class="line__actions" v-if="!readonly">
                 <IconBtn size="sm"
-                  class="!flex-none"
+                  class="flex-none!"
                   aria-label="Sync to the playhead"
                   icon="lucide-locate-fixed"
                   @click="syncToPlayhead(i)"
@@ -182,7 +182,7 @@
                   <q-tooltip>Start this line at the playhead</q-tooltip>
                 </IconBtn>
                 <IconBtn size="sm"
-                  class="!flex-none"
+                  class="flex-none!"
                   aria-label="Remove line"
                   icon="lucide-trash-2"
                   @click="remove(i)"
@@ -196,7 +196,7 @@
               rounded
               no-caps
               size="sm"
-              class="mt-2 !flex-none"
+              class="mt-2 flex-none!"
               label="Add line"
               icon="lucide-plus"
               @click="insertAfter(lines.length - 1)"
@@ -216,7 +216,7 @@
           rounded
           no-caps
           color="primary"
-          class="!flex-none"
+          class="flex-none!"
           label="Save lyrics"
           icon="lucide-save"
           :loading="saving"

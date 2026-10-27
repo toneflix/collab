@@ -2,7 +2,7 @@
   <q-btn
     flat
     round
-    class="!flex-none mr-2"
+    class="flex-none! mr-2"
     aria-label="Notifications"
     :to="compact ? { name: 'notifications' } : undefined"
   >
@@ -22,7 +22,7 @@
       <div class="w-[min(92vw,380px)] p-2">
         <div class="flex items-center justify-between px-2 py-1">
           <div class="text-base font-bold">Notifications</div>
-          <div class="flex !flex-none gap-1">
+          <div class="flex flex-none! gap-1">
             <q-btn
               flat
               dense
@@ -30,7 +30,7 @@
               size="sm"
               color="light-blue-4"
               label="Mark all read"
-              class="!flex-none"
+              class="flex-none!"
               @click="store.markAllRead()"
               v-if="store.unread"
             />
@@ -38,7 +38,7 @@
               icon="lucide-settings"
               color="grey-5"
               aria-label="Notification settings"
-              class="!flex-none"
+              class="flex-none!"
               :to="{ name: 'account.notifications' }"
               @click="open = false"
             />

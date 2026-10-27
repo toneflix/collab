@@ -107,14 +107,14 @@
             no-caps
             outline
             color="primary"
-            class="mb-12 text-xl rounded-lg md:!mb-0"
+            class="mb-12 text-xl rounded-lg md:mb-0!"
             label="Cancel"
           />
           <q-btn
             no-caps
             type="submit"
             color="primary"
-            class="mb-12 text-xl rounded-lg md:!mb-0"
+            class="mb-12 text-xl rounded-lg md:mb-0!"
             label="Save"
             :loading="saving"
           />

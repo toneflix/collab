@@ -10,13 +10,13 @@
         <div class="text-lg font-bold">Run #{{ runId }}</div>
         <q-badge
           rounded
-          class="!flex-none"
+          class="flex-none!"
           :color="runStatusLabels[run.status].color"
           :label="runStatusLabels[run.status].label"
           v-if="run"
         />
         <q-space />
-        <IconBtn size="sm" icon="lucide-x" aria-label="Close" class="!flex-none" @click="emit('close')" />
+        <IconBtn size="sm" icon="lucide-x" aria-label="Close" class="flex-none!" @click="emit('close')" />
       </q-card-section>
 
       <q-card-section class="grid content-start gap-5" v-if="run">
@@ -47,7 +47,7 @@
 
         <div class="text-grey-5" v-if="run.status === 'queued'">Waiting for the runs before it.</div>
         <div class="flex items-center gap-2 text-grey-5" v-else-if="run.status === 'planning'">
-          <q-spinner-dots class="!flex-none" color="toneflix" /> Planning artists, albums and tracks.
+          <q-spinner-dots class="flex-none!" color="toneflix" /> Planning artists, albums and tracks.
         </div>
 
         <div class="grid gap-2" v-if="artists.length">
@@ -56,7 +56,7 @@
             <q-chip
               dark
               clickable
-              class="!flex-none"
+              class="flex-none!"
               icon="lucide-mic-vocal"
               :key="artist.key"
               :label="artist.name"
@@ -68,7 +68,7 @@
 
         <div class="album" :key="album.key" v-for="album in albums">
           <div class="flex items-start gap-2 album__head">
-            <q-icon name="lucide-disc-3" size="20px" class="!flex-none mt-1" />
+            <q-icon name="lucide-disc-3" size="20px" class="flex-none! mt-1" />
             <div class="min-w-0">
               <div class="font-bold">{{ album.title }}</div>
               <div class="text-sm text-grey-5">{{ album.artist }} · {{ countStr(album.tracks.length, 'track') }}</div>
@@ -77,7 +77,7 @@
               </div>
             </div>
             <q-space />
-            <StepState class="!flex-none" :step="album.release" />
+            <StepState class="flex-none!" :step="album.release" />
           </div>
 
           <q-list dense>
@@ -100,7 +100,7 @@
               dense
               no-caps
               size="sm"
-              class="!flex-none"
+              class="flex-none!"
               :key="link.label"
               :icon="link.icon"
               :label="link.label"
@@ -135,7 +135,7 @@
         <q-btn
           flat
           no-caps
-          class="!flex-none"
+          class="flex-none!"
           color="red-4"
           label="Cancel run"
           :loading="busy"
@@ -146,7 +146,7 @@
           unelevated
           rounded
           no-caps
-          class="!flex-none"
+          class="flex-none!"
           color="toneflix"
           icon="lucide-rotate-ccw"
           label="Retry"

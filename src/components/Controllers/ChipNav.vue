@@ -1,6 +1,6 @@
 <template>
   <!-- A row of page shortcuts for phones, where the side menu is hidden -->
-  <nav class="chip-nav sm:!hidden" :aria-label="label">
+  <nav class="chip-nav sm:hidden!" :aria-label="label">
     <router-link
       :key="link.label"
       :to="link.to"

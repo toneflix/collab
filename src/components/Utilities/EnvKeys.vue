@@ -7,11 +7,11 @@
       <li class="env-keys__row" :key="key.env" v-for="key in keys">
         <q-icon
           size="16px"
-          class="!flex-none"
+          class="flex-none!"
           :name="key.isSet ? 'lucide-circle-check' : key.required ? 'lucide-circle-alert' : 'lucide-circle'"
           :color="key.isSet ? 'green-5' : key.required ? 'orange-5' : 'grey-6'"
         />
-        <code class="!flex-none">{{ key.env }}</code>
+        <code class="flex-none!">{{ key.env }}</code>
         <span class="min-w-0 text-xs truncate text-grey-5">
           {{ key.title }}{{ key.isSet ? '' : key.required ? ' · not set' : ' · optional' }}
         </span>

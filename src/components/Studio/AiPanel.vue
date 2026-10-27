@@ -6,7 +6,7 @@
         <IconBtn
           icon="lucide-arrow-left"
           aria-label="Back to AI tools"
-          class="!flex-none"
+          class="flex-none!"
           v-if="current"
           @click="tool = null"
         />
@@ -29,7 +29,7 @@
         <IconBtn
           icon="lucide-x"
           aria-label="Close AI tools"
-          class="!flex-none"
+          class="flex-none!"
           @click="open = false"
         />
       </header>
@@ -53,7 +53,7 @@
               rounded
               no-caps
               color="toneflix"
-              class="mt-4 !flex-none"
+              class="mt-4 flex-none!"
               label="See plans"
               :to="{ name: 'premium' }"
             />
@@ -82,7 +82,7 @@
             @submit="generate"
           >
             <div class="ai__model">
-              <q-icon name="lucide-sparkles" size="14px" class="!flex-none" />
+              <q-icon name="lucide-sparkles" size="14px" class="flex-none!" />
               <span>{{ musicPrice(account.music) }}</span>
             </div>
             <q-input
@@ -172,12 +172,12 @@
                 v-if="referenceKinds.length > 1"
               />
               <div class="ai__reference" v-if="form.reference || form.reference_stem_id">
-                <q-icon :name="form.reference ? 'lucide-paperclip' : 'lucide-music-2'" size="18px" class="!flex-none" />
+                <q-icon :name="form.reference ? 'lucide-paperclip' : 'lucide-music-2'" size="18px" class="flex-none!" />
                 <div class="min-w-0 truncate text-sm">{{ referenceName }}</div>
                 <IconBtn size="sm"
                   icon="lucide-x"
                   aria-label="Remove the reference"
-                  class="!flex-none"
+                  class="flex-none!"
                   @click="clearReference"
                 />
               </div>
@@ -200,7 +200,7 @@
                   no-caps
                   rounded
                   color="grey-4"
-                  class="!flex-none"
+                  class="flex-none!"
                   label="Upload"
                   icon="lucide-cloud-upload"
                   :disable="disabled"
@@ -257,7 +257,7 @@
                 no-caps
                 type="submit"
                 color="toneflix"
-                class="!flex-none"
+                class="flex-none!"
                 label="Generate"
                 icon="lucide-sparkles"
                 :loading="starting === 'music'"
@@ -300,7 +300,7 @@
                 rounded
                 no-caps
                 color="grey-9"
-                class="!flex-none"
+                class="flex-none!"
                 label="Split"
                 :loading="starting === 'stems'"
                 :disable="
@@ -320,14 +320,14 @@
             @submit="startEdit"
           >
             <div class="ai__model">
-              <q-icon name="lucide-wand-sparkles" size="14px" class="!flex-none" />
+              <q-icon name="lucide-wand-sparkles" size="14px" class="flex-none!" />
               <span>{{ account.costs.edit }} credits per edit</span>
             </div>
             <div class="ai__notice mb-3" v-if="!editEngineReady">
               Section edits aren't available right now.
             </div>
             <div class="ai__part" v-if="section">
-              <q-icon name="lucide-audio-lines" size="18px" class="!flex-none text-toneflix" />
+              <q-icon name="lucide-audio-lines" size="18px" class="flex-none! text-toneflix" />
               <div class="min-w-0">
                 <div class="text-sm truncate">{{ stemTitle(section.stem) }}</div>
                 <div class="text-xs text-grey-6">
@@ -393,7 +393,7 @@
             <div class="flex items-center justify-between">
               <div class="ai__label">On this track</div>
               <router-link
-                class="text-xs !flex-none"
+                class="text-xs flex-none!"
                 :to="{ name: 'studio.credits' }"
                 >Credits and history</router-link
               >
@@ -463,7 +463,7 @@
                   </div>
                   <div class="version" :key="version.index" v-for="version in job.versions">
                     <IconBtn size="sm"
-                      class="!flex-none"
+                      class="flex-none!"
                       :icon="playing === versionKey(job, version) ? 'lucide-pause:fill' : 'lucide-play:fill'"
                       :aria-label="`Play version ${version.index + 1}`"
                       :disable="!version.url"
@@ -485,7 +485,7 @@
                       dense
                       no-caps
                       color="toneflix"
-                      class="!flex-none px-4"
+                      class="flex-none! px-4"
                       label="Use this"
                       :loading="picking === versionKey(job, version)"
                       :disable="disabled || !version.url || !!picking"

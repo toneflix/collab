@@ -1,5 +1,5 @@
 <template>
-  <nav class="bottom-nav sm:!hidden" aria-label="Main">
+  <nav class="bottom-nav sm:hidden!" aria-label="Main">
     <component
       :is="tab.to ? 'router-link' : 'button'"
       :key="tab.key"

@@ -8,7 +8,7 @@
         </div>
         <IconBtn
           icon="lucide-x"
-          class="!flex-none"
+          class="flex-none!"
           :aria-label="`Close ${title.toLowerCase()}`"
           @click="open = false"
         />

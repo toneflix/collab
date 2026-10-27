@@ -41,7 +41,7 @@
               size="lg"
               icon="lucide-plus"
               label="New project"
-              class="!flex-none font-bold"
+              class="flex-none! font-bold"
               :to="{ name: 'studio.projects.create' }"
             />
             <q-btn
@@ -51,7 +51,7 @@
               size="lg"
               icon="lucide-pen-tool"
               label="Write a song"
-              class="!flex-none"
+              class="flex-none!"
               :to="{ name: 'studio.composer' }"
             />
           </template>
@@ -64,7 +64,7 @@
               text-color="dark"
               size="lg"
               label="Join for free"
-              class="!flex-none font-bold"
+              class="flex-none! font-bold"
               :to="{ name: 'auth.register' }"
             />
             <q-btn
@@ -73,7 +73,7 @@
               no-caps
               size="lg"
               label="Explore music"
-              class="!flex-none"
+              class="flex-none!"
               :to="{ name: 'explore' }"
             />
           </template>

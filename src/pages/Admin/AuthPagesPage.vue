@@ -48,7 +48,7 @@
                     outline
                     no-caps
                     icon="lucide-upload"
-                    class="!flex-none"
+                    class="flex-none!"
                     :label="settings.banner ? 'Replace' : 'Upload'"
                     :loading="uploading"
                     @click="picker?.click()"
@@ -59,7 +59,7 @@
                     color="negative"
                     icon="lucide-trash-2"
                     label="Remove"
-                    class="!flex-none"
+                    class="flex-none!"
                     :loading="removing"
                     @click="removeBanner"
                     v-if="settings.banner"
@@ -106,7 +106,7 @@
               color="toneflix"
               type="submit"
               label="Save"
-              class="!flex-none"
+              class="flex-none!"
               :loading="saving"
               :disable="!changed"
             />

@@ -2,7 +2,7 @@
   <q-page class="flex flex-col justify-center">
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
       <div class="flex justify-start gap-4 mb-2">
-        <h4 class="text-xl !flex-none font-semibold md:text-2xl">Projects</h4>
+        <h4 class="text-xl flex-none! font-semibold md:text-2xl">Projects</h4>
         <div class="flex justify-between">
           <q-btn
             dense
@@ -12,7 +12,7 @@
             label="Create Project"
             color="white"
             text-color="dark"
-            class="!flex-none"
+            class="flex-none!"
             :to="{
               name: 'studio.projects.create',
             }"
@@ -21,7 +21,7 @@
             dense
             color="secondary"
             label="Own Projects"
-            class="!flex-none"
+            class="flex-none!"
             checked-icon="lucide-user"
             unchecked-icon="lucide-users"
             v-model="own"
@@ -59,25 +59,25 @@
           <q-item-section>
             <q-item-label>{{ project.title }}</q-item-label>
             <q-item-label
-              class="flex !flex-none flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
+              class="flex flex-none! flex-row items-center justify-start gap-2 text-xs font-semibold text-gray-900 dark:text-white"
             >
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-users" size=".6rem" />
                 {{ intStr(project.collaboratorsCount) }}
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none!">•</span>
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-hand" size=".7rem" />
                 {{ intStr(project.props) }}
               </span>
-              <span class="!flex-none">•</span>
-              <span class="!flex-none flex items-center gap-1">
+              <span class="flex-none!">•</span>
+              <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-disc-3" size=".7rem" />
                 {{ intStr(project.tracksCount) }}
               </span>
-              <span class="!flex-none" v-if="project.released">•</span>
+              <span class="flex-none!" v-if="project.released">•</span>
               <span
-                class="!flex-none flex items-center gap-1"
+                class="flex-none! flex items-center gap-1"
                 v-if="project.released"
               >
                 <q-icon

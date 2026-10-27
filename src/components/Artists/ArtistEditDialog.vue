@@ -4,7 +4,7 @@
       <q-form @submit="save">
         <q-card-section class="flex items-center justify-between flex-nowrap">
           <div class="text-lg font-bold">Edit artist profile</div>
-          <IconBtn icon="lucide-x" class="!flex-none" v-close-popup />
+          <IconBtn icon="lucide-x" class="flex-none!" v-close-popup />
         </q-card-section>
 
         <q-card-section class="pt-0">
@@ -41,7 +41,7 @@
 
           <div class="flex items-end gap-3 -mt-10 flex-nowrap px-4">
             <ImageCropper
-              class="!flex-none"
+              class="flex-none!"
               :aspect-ratio="1 / 1"
               :buttons="{ cancel: 'Cancel', crop: 'Use photo' }"
               @result="(e: CropResult) => pick('image', e)"

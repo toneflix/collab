@@ -74,7 +74,7 @@
             no-caps
             color="primary"
             label="Save"
-            class="!flex-none"
+            class="flex-none!"
             :loading="saving === 'save'"
             :disable="!!saving || (!form.bpm && !form.key)"
             @click="save(false)"

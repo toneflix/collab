@@ -110,7 +110,7 @@
                             icon="lucide-disc-3"
                             color="white"
                             text-color="dark"
-                            class="bg-white !bg-contain !bg-no-repeat !bg-center"
+                            class="bg-white bg-contain! bg-no-repeat! bg-center!"
                             :style="{
                               backgroundImage: `linear-gradient(#da000066, #f6f6f6d9), url(${track.imageUrl}) !important`,
                             }"
@@ -297,7 +297,7 @@
                   no-caps
                   outline
                   color="primary"
-                  class="text-xl rounded-lg !flex-none"
+                  class="text-xl rounded-lg flex-none!"
                   label="Save Draft"
                   :loading="saving && !form.publish"
                   @click="saveDraft"
@@ -306,7 +306,7 @@
                 <q-btn
                   no-caps
                   color="primary"
-                  class="text-xl rounded-lg !flex-none"
+                  class="text-xl rounded-lg flex-none!"
                   :label="form.draft ? 'Save Draft' : 'Save Changes'"
                   :loading="saving"
                   @click="form.draft ? saveDraft() : saveRelease(false)"
@@ -315,7 +315,7 @@
                 <q-btn
                   no-caps
                   color="primary"
-                  class="text-xl rounded-lg !flex-none"
+                  class="text-xl rounded-lg flex-none!"
                   icon="lucide-circle-check"
                   :label="reviewsOn ? 'Submit for Review' : 'Publish Now'"
                   :loading="saving && !!form.publish"
@@ -334,7 +334,7 @@
               no-caps
               outline
               color="primary"
-              class="mb-12 text-xl rounded-lg md:!mb-0"
+              class="mb-12 text-xl rounded-lg md:mb-0!"
               label="Back"
               @click="back"
               v-if="tab !== 'basic'"
@@ -342,7 +342,7 @@
             <q-btn
               no-caps
               color="primary"
-              class="mb-12 text-xl rounded-lg md:!mb-0"
+              class="mb-12 text-xl rounded-lg md:mb-0!"
               label="Next"
               @click="next"
             />

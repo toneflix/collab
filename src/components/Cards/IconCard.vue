@@ -19,7 +19,7 @@
     </q-avatar>
     <q-skeleton
       type="QBtn"
-      class="flex justify-center flex-none w-8 m-1 items-center !rounded-full absolute-top-right h-8"
+      class="flex justify-center flex-none w-8 m-1 items-center rounded-full! absolute-top-right h-8"
     >
       <q-icon name="lucide-ellipsis" />
     </q-skeleton>
