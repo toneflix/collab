@@ -118,6 +118,13 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     ],
   },
   {
+    key: 'accounts',
+    icon: 'lucide-user-x',
+    title: 'Accounts',
+    caption: 'How long deleted accounts wait.',
+    keys: ['account_deletion_days'],
+  },
+  {
     key: 'money',
     icon: 'lucide-coins',
     title: 'Money',
