@@ -37,9 +37,9 @@ jobs:
       DEPLOY: ${{ github.event_name == 'push' || inputs.deploy == true }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: yarn
@@ -48,7 +48,7 @@ jobs:
             src-ssr/yarn.lock
             src-capacitor/yarn.lock
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -118,7 +118,7 @@ jobs:
       # The bundle is what Google Play takes; the APK installs directly on a phone
       - name: Keep the bundle and APK
         if: env.RELEASE == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: toneflix-music-${{ env.ANDROID_VERSION_CODE }}
           path: |
