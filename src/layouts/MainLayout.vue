@@ -1,7 +1,10 @@
 <template>
   <q-layout view="lHh Lpr fFf">
     <!-- lHh Lpr lff -->
-    <q-header class="text-white bg-dark" :class="{ 'header--wide': isSearchRoute }">
+    <q-header
+      class="text-white bg-dark"
+      :class="{ 'header--wide': isSearchRoute }"
+    >
       <q-toolbar>
         <q-btn
           flat
@@ -20,7 +23,7 @@
           :to="{ name: 'home' }"
           v-if="!isSearchRoute"
         >
-          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7" />
+          <AppLogo :size="28" />
         </router-link>
 
         <q-btn
@@ -72,11 +75,20 @@
           v-if="boot.user?.id"
         >
           <q-icon name="lucide-message-circle" size="19px" />
-          <q-badge floating rounded color="red-6" :label="unreadLabel" v-if="conversations.unread" />
+          <q-badge
+            floating
+            rounded
+            color="red-6"
+            :label="unreadLabel"
+            v-if="conversations.unread"
+          />
           <q-tooltip>Messages</q-tooltip>
         </q-btn>
 
-        <NotificationBell :class="{ 'max-sm:hidden!': isSearchRoute }" v-if="boot.user?.id" />
+        <NotificationBell
+          :class="{ 'max-sm:hidden!': isSearchRoute }"
+          v-if="boot.user?.id"
+        />
 
         <div :class="{ 'max-sm:hidden!': isSearchRoute }">
           <ProfileDropdown>
@@ -85,7 +97,9 @@
                 clickable
                 color="grey-9"
                 text-color="white"
-                :icon-right="isShown ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+                :icon-right="
+                  isShown ? 'lucide-chevron-up' : 'lucide-chevron-down'
+                "
               >
                 <q-avatar size="sm">
                   <img
@@ -119,7 +133,7 @@
         :class="{ 'justify-center! px-0!': collapsed }"
       >
         <div class="flex-none!" v-if="!collapsed">
-          <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
+          <AppLogo :size="34" class="cursor-pointer" />
         </div>
         <q-space v-if="!collapsed" />
         <q-btn
@@ -131,12 +145,19 @@
           @click="toggleSidebar"
           v-if="!overlay"
         >
-          <q-icon :name="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-left'" />
-          <q-tooltip anchor="center right" self="center left">{{ collapsed ? 'Expand menu' : 'Collapse menu' }}</q-tooltip>
+          <q-icon
+            :name="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-left'"
+          />
+          <q-tooltip anchor="center right" self="center left">{{
+            collapsed ? 'Expand menu' : 'Collapse menu'
+          }}</q-tooltip>
         </q-btn>
       </q-toolbar>
 
-      <q-scroll-area class="mt-28" :class="adminMenu ? 'h-[calc(100%-169px)]' : 'h-[calc(100%-112px)]'">
+      <q-scroll-area
+        class="mt-28"
+        :class="adminMenu ? 'h-[calc(100%-169px)]' : 'h-[calc(100%-112px)]'"
+      >
         <q-list padding class="menu-list" v-if="adminMenu">
           <q-item dense class="label" v-if="!collapsed">
             <q-item-section class="text-gray-400">Admin</q-item-section>
@@ -155,7 +176,12 @@
               <q-icon :name="link.icon" size="18px" />
             </q-item-section>
             <q-item-section>{{ link.title }}</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ link.title }}</q-tooltip>
+            <q-tooltip
+              anchor="center right"
+              self="center left"
+              v-if="collapsed"
+              >{{ link.title }}</q-tooltip
+            >
           </q-item>
         </q-list>
 
@@ -180,10 +206,22 @@
               </q-item-section>
 
               <q-item-section> {{ link.title }} </q-item-section>
-              <q-item-section side v-if="!collapsed && link.badge === 'messages' && conversations.unread">
+              <q-item-section
+                side
+                v-if="
+                  !collapsed &&
+                  link.badge === 'messages' &&
+                  conversations.unread
+                "
+              >
                 <q-badge rounded color="red-6" :label="unreadLabel" />
               </q-item-section>
-              <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ link.title }}</q-tooltip>
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                v-if="collapsed"
+                >{{ link.title }}</q-tooltip
+              >
             </q-item>
 
             <q-separator
@@ -219,7 +257,12 @@
                 </q-item-section>
 
                 <q-item-section> {{ item.title }} </q-item-section>
-                <q-tooltip anchor="center right" self="center left" v-if="collapsed">{{ item.title }}</q-tooltip>
+                <q-tooltip
+                  anchor="center right"
+                  self="center left"
+                  v-if="collapsed"
+                  >{{ item.title }}</q-tooltip
+                >
               </q-item>
             </template>
           </template>
@@ -229,19 +272,31 @@
       <div class="absolute-bottom bg-dark" v-if="adminMenu">
         <q-separator />
         <q-list padding class="menu-list">
-          <q-item dense clickable v-ripple :href="docsUrl" target="_blank" rel="noopener" v-if="docsUrl">
+          <q-item
+            dense
+            clickable
+            v-ripple
+            :href="docsUrl"
+            target="_blank"
+            rel="noopener"
+            v-if="docsUrl"
+          >
             <q-item-section avatar>
               <q-icon name="lucide-book-open" />
             </q-item-section>
             <q-item-section>Setup docs</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Setup docs</q-tooltip>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed"
+              >Setup docs</q-tooltip
+            >
           </q-item>
           <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
             <q-item-section avatar>
               <q-icon name="lucide-arrow-left" />
             </q-item-section>
             <q-item-section>Back to app</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed">Back to app</q-tooltip>
+            <q-tooltip anchor="center right" self="center left" v-if="collapsed"
+              >Back to app</q-tooltip
+            >
           </q-item>
         </q-list>
       </div>
@@ -254,7 +309,10 @@
 
     <q-footer class="text-white bg-glass">
       <!-- On phones the player bar only shows once something is queued -->
-      <AudioPlayer :class="{ 'max-sm:hidden!': !hasTrack }" v-if="!$route.meta.hidePlayer" />
+      <AudioPlayer
+        :class="{ 'max-sm:hidden!': !hasTrack }"
+        v-if="!$route.meta.hidePlayer"
+      />
       <!-- Phones get tabs instead of the side menu -->
       <BottomNav v-if="!adminMenu && !$route.meta.hideTabs" />
     </q-footer>
@@ -270,12 +328,18 @@ import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
+import {
+  conversationKey,
+  useConversationStore,
+} from 'src/stores/conversation-store';
 import { useNotificationStore } from 'src/stores/notification-store';
 import { usePlayerStore } from 'src/stores/player-store';
 import type { AppNotification } from 'src/utils/requests/notifications';
 import { useRealtimeChannel } from 'src/utils/realtime';
-import type { ChatMessage, Conversation } from 'src/utils/requests/conversations';
+import type {
+  ChatMessage,
+  Conversation,
+} from 'src/utils/requests/conversations';
 import { allowedAdminLinks, mainNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
@@ -286,12 +350,18 @@ import { docsUrl } from 'src/utils/env';
 defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
-    const loaded = boot.pageData.cache as unknown as { mainLayoutUser?: number | null };
+    const loaded = boot.pageData.cache as unknown as {
+      mainLayoutUser?: number | null;
+    };
     const userId = boot.user?.id ?? null;
 
     // Pages with route params run this again on each visit; in the browser the
     // settings and menu only need loading again when the signed-in account changes.
-    if (!import.meta.env.SSR && boot.ready && loaded.mainLayoutUser === userId) {
+    if (
+      !import.meta.env.SSR &&
+      boot.ready &&
+      loaded.mainLayoutUser === userId
+    ) {
       return;
     }
 
@@ -300,7 +370,9 @@ defineOptions({
     });
 
     const data = {} as Record<string, GenericData>;
-    const groups = mainNavigationLinks.filter((e) => !!e.group && (!e.requiresAuth || boot.user?.id));
+    const groups = mainNavigationLinks.filter(
+      (e) => !!e.group && (!e.requiresAuth || boot.user?.id),
+    );
 
     await Promise.all(
       groups.map(async ({ group, params }) => {
@@ -315,7 +387,10 @@ defineOptions({
       }),
     );
 
-    boot.setCache({ mainLayoutGroups: data, mainLayoutUser: boot.user?.id ?? null } as unknown as GenericData);
+    boot.setCache({
+      mainLayoutGroups: data,
+      mainLayoutUser: boot.user?.id ?? null,
+    } as unknown as GenericData);
   },
 });
 
@@ -346,7 +421,11 @@ const isSearchRoute = computed(() => route.name === 'search');
 /** History position of the search page when it was opened from another page. */
 let searchStart: number | null = null;
 const stopTrackingSearch = router.afterEach((to, from) => {
-  if (typeof window !== 'undefined' && to.name === 'search' && from.name !== 'search') {
+  if (
+    typeof window !== 'undefined' &&
+    to.name === 'search' &&
+    from.name !== 'search'
+  ) {
     const position = window.history.state?.position;
     searchStart = typeof position === 'number' ? position : null;
   }
@@ -394,15 +473,25 @@ watch(
   { immediate: true },
 );
 const conversations = useConversationStore();
-const unreadLabel = computed(() => (conversations.unread > 99 ? '99+' : conversations.unread));
+const unreadLabel = computed(() =>
+  conversations.unread > 99 ? '99+' : conversations.unread,
+);
 
 const notifications = useNotificationStore();
 
 /** Admin pages swap the menu for the admin links. */
 const adminMenu = computed(() => route.meta.adminMenu === true);
 const adminLinks = computed(() => [
-  { to: { name: 'admin' }, icon: 'lucide-gauge', title: 'Overview', exact: true },
-  ...allowedAdminLinks(boot.user?.permissions).map((link) => ({ ...link, exact: false })),
+  {
+    to: { name: 'admin' },
+    icon: 'lucide-gauge',
+    title: 'Overview',
+    exact: true,
+  },
+  ...allowedAdminLinks(boot.user?.permissions).map((link) => ({
+    ...link,
+    exact: false,
+  })),
 ]);
 
 // Pages like the DAW start with the menu collapsed to make room; others use the saved choice.
@@ -445,12 +534,20 @@ watch(
 
 /** New messages anywhere the user takes part, for the unread counts and a nudge. */
 useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
-  'conversation.posted': ({ conversation, message }: { conversation: Conversation; message: ChatMessage }) => {
+  'conversation.posted': ({
+    conversation,
+    message,
+  }: {
+    conversation: Conversation;
+    message: ChatMessage;
+  }) => {
     const key = conversation.key || conversationKey(conversation);
     const onScreen = conversations.visible.includes(key);
     conversations.receive(conversation, message);
     // The corner window already shows its own unread count.
-    const inDock = conversations.dock.conversation && conversationKey(conversations.dock.conversation) === key;
+    const inDock =
+      conversations.dock.conversation &&
+      conversationKey(conversations.dock.conversation) === key;
     if (onScreen || inDock || !message) return;
 
     $q.notify({
@@ -460,7 +557,10 @@ useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
       position: 'top-right',
       avatar: message.user?.imageUrl || undefined,
       message: `${message.user?.name || 'Someone'} · ${conversation.title}`,
-      caption: message.body.length > 90 ? `${message.body.slice(0, 90)}…` : message.body,
+      caption:
+        message.body.length > 90
+          ? `${message.body.slice(0, 90)}…`
+          : message.body,
       actions: [
         {
           label: 'Reply',
@@ -468,7 +568,10 @@ useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
           noCaps: true,
           handler: () => {
             if (route.name === 'messages' || $q.screen.lt.sm) {
-              void router.push({ name: 'messages', params: { type: conversation.type, id: conversation.id } });
+              void router.push({
+                name: 'messages',
+                params: { type: conversation.type, id: conversation.id },
+              });
             } else conversations.openDock(conversation);
           },
         },
@@ -476,7 +579,11 @@ useRealtimeChannel(() => (boot.user?.id ? `user.${boot.user.id}` : null), {
     });
   },
   'conversation.deleted': () => conversations.removed(),
-  'notification.created': ({ notification }: { notification: AppNotification }) => notifications.receive(notification),
+  'notification.created': ({
+    notification,
+  }: {
+    notification: AppNotification;
+  }) => notifications.receive(notification),
 });
 
 const routeBuilder = (item: GenericData, group: string) => {

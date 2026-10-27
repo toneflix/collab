@@ -1,15 +1,25 @@
 <template>
   <q-page class="home-page">
     <div class="flex flex-col gap-12 mx-auto max-w-[1400px] md:gap-14">
-      <HomeHero :tracks="trending" :signed-in="signedIn" :name="boot.user.name" />
+      <HomeHero
+        :tracks="trending"
+        :signed-in="signedIn"
+        :name="boot.user.name"
+      />
 
       <section v-if="signedIn && shelves.recent.data?.list.length">
-        <HomeShelfHeader title="Jump back in" :to="{ name: 'library.page', params: { type: 'recent' } }" />
+        <HomeShelfHeader
+          title="Jump back in"
+          :to="{ name: 'library.page', params: { type: 'recent' } }"
+        />
         <TrackCategory hide-all-link v-model:category="shelves.recent" />
       </section>
 
       <section v-if="signedIn && shelves.forYou.data?.list.length">
-        <HomeShelfHeader title="Made for you" subtitle="Picked from the genres you like." />
+        <HomeShelfHeader
+          title="Made for you"
+          subtitle="Picked from the genres you like."
+        />
         <TrackCategory hide-all-link v-model:category="shelves.forYou" />
       </section>
 
@@ -74,13 +84,20 @@
 
       <HomeJoin class="max-sm:hidden!" :signed-in="signedIn" />
 
-      <footer class="max-sm:hidden! flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
+      <footer
+        class="max-sm:hidden! flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500"
+      >
         <div class="flex items-center gap-3 flex-none!">
-          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7 flex-none!" />
+          <AppLogo :size="24" />
           <span class="flex-none!">&copy; {{ year }} Toneflix Music</span>
         </div>
         <nav class="flex flex-wrap gap-x-5 gap-y-2 flex-none!">
-          <router-link :key="link.label" :to="link.to" class="flex-none! hover:text-white" v-for="link in footerLinks">
+          <router-link
+            :key="link.label"
+            :to="link.to"
+            class="flex-none! hover:text-white"
+            v-for="link in footerLinks"
+          >
             {{ link.label }}
           </router-link>
         </nav>
@@ -102,7 +119,15 @@ import ProjectCategory from 'src/components/Showcase/ProjectCategory.vue';
 import TrackCategory from 'src/components/Showcase/TrackCategory.vue';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { Category, ExploreData, Genre, Project, Release, Track, User } from 'src/utils/models';
+import {
+  Category,
+  ExploreData,
+  Genre,
+  Project,
+  Release,
+  Track,
+  User,
+} from 'src/utils/models';
 import { exploreRequest, loadGenresRequest } from 'src/utils/requests/requests';
 import { computed, reactive } from 'vue';
 
@@ -211,7 +236,10 @@ useMeta(() => ({
       name: 'description',
       content: description,
     },
-    ogTitle: { property: 'og:title', content: 'Toneflix Music: where music meets community' },
+    ogTitle: {
+      property: 'og:title',
+      content: 'Toneflix Music: where music meets community',
+    },
     ogDescription: {
       property: 'og:description',
       content: description,

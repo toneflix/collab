@@ -2,11 +2,18 @@
   <div
     class="auth-shell"
     :class="{ 'auth-shell--form-only': !split.banner }"
-    :style="{ '--auth-form': `${split.form}%`, '--auth-banner': `${split.banner}%` }"
+    :style="{
+      '--auth-form': `${split.form}%`,
+      '--auth-banner': `${split.banner}%`,
+    }"
   >
     <section class="auth-shell__form">
-      <router-link :to="{ name: 'index' }" class="auth-shell__logo" aria-label="Home">
-        <img src="~/assets/logo.png" alt="Toneflix Music" />
+      <router-link
+        :to="{ name: 'index' }"
+        class="auth-shell__logo"
+        aria-label="Home"
+      >
+        <AppLogo :size="32" />
       </router-link>
 
       <div class="auth-shell__body">
@@ -33,8 +40,12 @@
       </div>
 
       <div class="auth-shell__copy">
-        <span class="auth-shell__eyebrow" v-if="text('eyebrow')">{{ text('eyebrow') }}</span>
-        <h2 class="auth-shell__title font-display" v-if="text('title')">{{ text('title') }}</h2>
+        <span class="auth-shell__eyebrow" v-if="text('eyebrow')">{{
+          text('eyebrow')
+        }}</span>
+        <h2 class="auth-shell__title font-display" v-if="text('title')">
+          {{ text('title') }}
+        </h2>
         <p class="auth-shell__text" v-if="text('text')">{{ text('text') }}</p>
         <ul class="auth-shell__points" v-if="points.length">
           <li :key="point" v-for="point in points">
@@ -85,10 +96,6 @@ const points = computed(() =>
 
 .auth-shell--form-only .auth-shell__form {
   flex-basis: 100%;
-}
-
-.auth-shell__logo img {
-  height: 32px;
 }
 
 .auth-shell__body {
@@ -227,7 +234,12 @@ const points = computed(() =>
 .auth-shell__shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(5 7 10 / 92%), rgb(5 7 10 / 50%) 50%, transparent 80%);
+  background: linear-gradient(
+    to top,
+    rgb(5 7 10 / 92%),
+    rgb(5 7 10 / 50%) 50%,
+    transparent 80%
+  );
 }
 
 .auth-shell__art {

@@ -4,25 +4,15 @@
       <q-toolbar class="py-4 bg-dark">
         <q-toolbar-title>
           <div>
-            <img src="~/assets/logo.png" class="h-10 cursor-pointer" />
+            <AppLogo :size="34" class="cursor-pointer" />
           </div>
         </q-toolbar-title>
         <q-space />
         <div class="flex gap-4">
-          <q-btn
-            flat
-            no-caps
-            :to="{ name: 'auth.register' }"
-          >
+          <q-btn flat no-caps :to="{ name: 'auth.register' }">
             Create Account
           </q-btn>
-          <q-btn
-            flat
-            no-caps
-            :to="{ name: 'auth.login' }"
-          >
-            Login
-          </q-btn>
+          <q-btn flat no-caps :to="{ name: 'auth.login' }"> Login </q-btn>
         </div>
       </q-toolbar>
     </q-header>

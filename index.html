@@ -45,8 +45,85 @@
       sizes="180x180"
       href="icons/apple-icon-180x180.png"
     />
+    <% if (!ctx.mode.ssr) { %>
+    <!--
+      The launch splash, drawn like the Android one (gold glow, logo, MUSIC), until
+      the first page is ready. Plain HTML and CSS, so it shows before any script runs.
+    -->
+    <style>
+      #app-splash {
+        --mark: min(18vw, 11vh);
+
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #c28e00;
+        background-image: radial-gradient(
+          circle farthest-corner at 50% 50%,
+          #f7c400 0%,
+          #eab700 20%,
+          #e4b100 30%,
+          #dba800 45%,
+          #d29f00 60%,
+          #c99500 75%,
+          #c28e00 90%
+        );
+        transition: opacity 0.35s ease;
+      }
+
+      #app-splash.app-splash--hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .app-splash__brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: calc(var(--mark) * 0.27);
+      }
+
+      .app-splash__brand img {
+        display: block;
+        width: var(--mark);
+        height: auto;
+      }
+
+      .app-splash__brand span {
+        /* Letter spacing adds space after the last letter, so pad the start to keep it centred */
+        padding-left: 0.42em;
+        color: #fff;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-size: calc(var(--mark) * 0.3);
+        font-weight: 600;
+        letter-spacing: 0.42em;
+        line-height: 1;
+      }
+    </style>
+    <% } %>
   </head>
   <body>
+    <% if (!ctx.mode.ssr) { %>
+    <div id="app-splash" aria-hidden="true">
+      <div class="app-splash__brand">
+        <picture>
+          <source srcset="/logo-mark.webp" type="image/webp" />
+          <img src="/logo-mark.png" alt="" width="240" height="434" />
+        </picture>
+        <span>MUSIC</span>
+      </div>
+    </div>
+    <script>
+      // Never leave it up if the app can't start
+      setTimeout(function () {
+        var splash = document.getElementById('app-splash');
+        if (splash) splash.remove();
+      }, 20000);
+    </script>
+    <% } %>
     <!-- quasar:entry-point -->
   </body>
 </html>
