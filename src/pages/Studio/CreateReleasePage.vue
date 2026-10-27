@@ -74,7 +74,7 @@
                     label="Select Files"
                     input-class="custom-input-class"
                     max-files="1"
-                    :accept="allowedAudioExts.join(', ')"
+                    :accept="acceptFor(audioExts())"
                     v-model="file"
                     @update:model-value="processUpload"
                   >
@@ -194,7 +194,7 @@
                                   (e) =>
                                     (fileInputRefs[i] = e as HTMLInputElement)
                                 "
-                                :accept="allowedAudioExts.join(', ')"
+                                :accept="acceptFor(audioExts())"
                                 @change="(e) => setFile(e as HTMLInputEvent, i)"
                               />
                             </template>
@@ -386,7 +386,7 @@ import { releaseFormFields, trackFormFields } from 'src/utils/release-form';
 import { useRoute, useRouter } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify, subString } from 'src/utils/helpers';
-import { allowedAudioExts } from 'src/utils/presets';
+import { acceptFor, audioExts } from 'src/utils/presets';
 import { getAudioDuration } from 'src/utils/requests/content';
 import { date } from 'quasar';
 

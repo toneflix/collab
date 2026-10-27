@@ -210,7 +210,7 @@
                   ref="referenceInput"
                   type="file"
                   class="hidden"
-                  accept=".mp3,.wav,audio/mpeg,audio/wav"
+                  :accept="acceptFor(['.mp3', '.wav'])"
                   @change="pickReference"
                 />
               </div>
@@ -503,6 +503,7 @@
 </template>
 
 <script setup lang="ts">
+import { acceptFor } from 'src/utils/presets';
 import { date, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';

@@ -14,11 +14,20 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { realtimeOrigin } from 'src/utils/realtime';
 import { AuthSession } from 'src/utils/auth-session';
 import { requestPinia } from 'src/utils/request-context';
+import { isUpload, uploadEnded, uploadStarted } from 'src/utils/uploads';
 
 const baseURL = apiUrl;
 
-/** Requests give up after this long, so a stuck API call can't hold a page change forever. */
+/**
+ * Requests give up after this long, so a stuck API call can't hold a page change
+ * forever. Uploads have no limit: a big file on a phone can take minutes.
+ */
 const timeout = 30000;
+
+/** Ends the count of a finished upload, however it finished. */
+const onComplete = (method: { meta?: { upload?: boolean } }) => {
+  if (method.meta?.upload) uploadEnded();
+};
 
 /** The browser's router, set once the app boots there. */
 let clientRouter: Router | undefined;
@@ -112,7 +121,7 @@ const responded = async (
 const alova = createAlova({
   baseURL,
   timeout,
-  responded,
+  responded: { onSuccess: responded, onComplete },
   statesHook: VueHook,
   requestAdapter: adapterFetch(),
 });
@@ -124,6 +133,7 @@ const axios = createAlova({
   statesHook: VueHook,
   requestAdapter: axiosRequestAdapter(),
   responded: {
+    onComplete,
     onSuccess (
       response: AxiosResponse,
       method
@@ -198,6 +208,13 @@ export default defineBoot(({ app, router }) => {
       method.config.headers['Content-Type'] !== 'multipart/form-data'
     ) {
       method.config.headers['Content-Type'] = 'application/json; charset=utf-8';
+    }
+
+    // Files can take minutes on a phone: no time limit, and keep the app alive meanwhile
+    if (isUpload(method.data, method.config.headers['Content-Type'])) {
+      method.config.timeout = 0;
+      method.meta = { ...method.meta, upload: true };
+      uploadStarted();
     }
 
     boot.token = token;

@@ -62,7 +62,7 @@
           :value="status.storage.limit ? Math.min(1, status.storage.used / status.storage.limit) : 0"
           v-if="status.storage.limit"
         />
-        <input ref="fileInput" type="file" multiple class="hidden" :accept="allowedAudioExts.join(', ')" @change="onFiles" />
+        <input ref="fileInput" type="file" multiple class="hidden" :accept="acceptFor(audioExts())" @change="onFiles" />
         <q-btn
           unelevated
           rounded
@@ -185,7 +185,7 @@ import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { notify } from 'src/utils/helpers';
-import { allowedAudioExts } from 'src/utils/presets';
+import { acceptFor, audioExts } from 'src/utils/presets';
 import { usePlayerStore } from 'src/stores/player-store';
 import type { Stem } from 'src/utils/daw';
 import {

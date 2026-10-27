@@ -39,6 +39,12 @@
         android:resource="@xml/file_paths"></meta-data>
     </provider>
 
+    <!-- Keeps uploads going when the app is in the background -->
+    <service
+      android:name=".UploadService"
+      android:exported="false"
+      android:foregroundServiceType="dataSync" />
+
     <!-- Push notifications shown by the system while the app is closed -->
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_icon"
@@ -65,6 +71,9 @@
   <!-- Music keeps playing in the background, with lock screen and notification controls -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+  <!-- Uploads keep going in the background (UploadService) -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
   <!-- Recording vocals and voice notes in the studio -->
   <uses-permission android:name="android.permission.RECORD_AUDIO" />

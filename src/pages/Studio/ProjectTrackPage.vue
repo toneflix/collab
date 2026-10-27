@@ -102,7 +102,7 @@
         type="file"
         class="hidden"
         ref="fileInput"
-        :accept="allowedAudioExts.join(', ')"
+        :accept="acceptFor(audioExts())"
         @change="onFilesPicked"
       />
       <ActionButton
@@ -382,7 +382,7 @@ import {
   ResponseBody,
   UploadData,
 } from 'src/utils/models';
-import { allowedAudioExts } from 'src/utils/presets';
+import { acceptFor, audioExts } from 'src/utils/presets';
 import {
   projectReleaseBlocker,
   projectReleaseLabel,

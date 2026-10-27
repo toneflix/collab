@@ -368,7 +368,7 @@
         ref="replaceInput"
         type="file"
         class="hidden"
-        :accept="allowedAudioExts.join(', ')"
+        :accept="acceptFor(audioExts())"
         @change="onReplacementPicked"
       />
     </div>
@@ -501,7 +501,7 @@ import {
   stemToTrack,
   trackToMeta,
 } from 'src/utils/daw';
-import { allowedAudioExts } from 'src/utils/presets';
+import { acceptFor, audioExts, hasExtension } from 'src/utils/presets';
 
 /**
  * A multi-track stem editor built on the dawcore web components
@@ -1939,7 +1939,7 @@ const onDrop = (e: DragEvent) => {
   dropping.value = false;
   if (props.readonly) return;
   const files = Array.from(e.dataTransfer?.files || []).filter((f) =>
-    allowedAudioExts.some((ext) => f.name.toLowerCase().endsWith(ext)),
+    hasExtension(f.name, audioExts()),
   );
   if (files.length) emit('files', files);
   else notify('Only audio files can be added as stems.', 'info');

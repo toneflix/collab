@@ -15,6 +15,7 @@ public class MainActivity extends BridgeActivity {
         // Plugins that live in this app, not in an npm package
         registerPlugin(PushSupportPlugin.class);
         registerPlugin(ScreenPlugin.class);
+        registerPlugin(UploadsPlugin.class);
         super.onCreate(savedInstanceState);
 
         // Edge to edge on every Android version (15+ forces it); the web app pads

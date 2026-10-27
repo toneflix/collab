@@ -85,7 +85,7 @@
             filled
             dense
             clearable
-            accept=".pdf,.jpg,.jpeg,.png"
+            :accept="acceptFor(['.pdf', '.jpg', '.jpeg', '.png'])"
             max-file-size="10485760"
             label="Supporting document (optional)"
             hint="A management or label contract, or a distributor statement. PDF, JPG or PNG up to 10 MB. Only moderators see it."
@@ -126,6 +126,7 @@
 </template>
 
 <script setup lang="ts">
+import { acceptFor } from 'src/utils/presets';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LinkListInput from 'src/components/Utilities/LinkListInput.vue';

@@ -57,7 +57,7 @@
                   label="File"
                   class="custom-q-class no-fill"
                   input-class="custom-input-class"
-                  :accept="allowedAssetsExts.join(', ')"
+                  :accept="acceptFor(assetsExts())"
                   :error="!!errors.file"
                   :error-message="errors.file"
                   v-model="form.file"
@@ -219,7 +219,7 @@ import {
   saveProjectTrackAssetRequest,
 } from 'src/utils/requests/requests';
 import { useForm } from 'alova/client';
-import { allowedAssetsExts } from 'src/utils/presets';
+import { acceptFor, assetsExts } from 'src/utils/presets';
 
 const emit = defineEmits<{
   stemUpdated: [value: UploadData];
