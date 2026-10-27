@@ -23,9 +23,11 @@ android {
             def keystore = System.getenv("ANDROID_KEYSTORE_FILE")
             if (keystore) {
                 storeFile file(keystore)
-                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                def storePass = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                storePassword storePass
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
-                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                // PKCS12 keystores use the store password for the key too
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD") ?: storePass
             }
         }
     }
