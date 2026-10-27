@@ -1,38 +1,42 @@
 <template>
-  <q-page class="flex flex-col justify-center">
+  <q-page>
     <div class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl">
-      <div class="flex justify-start gap-4 mb-2">
-        <h4 class="text-xl flex-none! font-semibold md:text-2xl">Projects</h4>
-        <div class="flex justify-between">
-          <q-btn
-            dense
-            no-caps
-            icon="lucide-plus"
-            size="md"
-            label="Create Project"
-            color="white"
-            text-color="dark"
-            class="flex-none!"
-            :to="{
-              name: 'studio.projects.create',
-            }"
-          />
-          <q-toggle
-            dense
-            color="secondary"
-            label="Own Projects"
-            class="flex-none!"
-            checked-icon="lucide-user"
-            unchecked-icon="lucide-users"
-            v-model="own"
-          />
-        </div>
+      <div class="flex items-center gap-3 mb-3 flex-nowrap!">
+        <h4 class="text-xl font-semibold md:text-2xl">Projects</h4>
+        <q-space />
+        <q-btn
+          rounded
+          unelevated
+          no-caps
+          icon="lucide-plus"
+          :label="$q.screen.gt.xs ? 'Create project' : 'New'"
+          color="white"
+          text-color="dark"
+          class="flex-none!"
+          :to="{ name: 'studio.projects.create' }"
+        />
       </div>
+      <!-- Whose projects to list -->
+      <q-btn-toggle
+        rounded
+        unelevated
+        no-caps
+        toggle-color="primary"
+        toggle-text-color="dark"
+        color="grey-10"
+        text-color="grey-4"
+        class="mb-3"
+        :options="[
+          { label: 'Mine', value: true },
+          { label: 'Collabs', value: false },
+        ]"
+        v-model="own"
+      />
       <q-list class="grid grid-cols-1 md:grid-cols-2">
         <q-banner
           inline-actions
           rounded
-          class="col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
+          class="md:col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
           v-if="!projects.length"
         >
           <h3 class="text-3xl font-bold">You do not have any projects yet.</h3>
@@ -138,7 +142,7 @@
             />
           </q-item-section>
         </q-item>
-        <ListSkeleton class="col-span-2" avatar="square" :rows="4" v-if="fetching || loading" />
+        <ListSkeleton class="md:col-span-2" avatar="square" :rows="4" v-if="(fetching || loading) && !projects.length" />
       </q-list>
     </div>
   </q-page>

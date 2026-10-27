@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <BlockSkeleton variant="form" v-if="loading" />
+      <BlockSkeleton variant="form" v-if="loading && !settings" />
 
       <q-form class="flex flex-col gap-6" @submit="save" v-else-if="settings">
         <div class="grid gap-3 sm:grid-cols-2">

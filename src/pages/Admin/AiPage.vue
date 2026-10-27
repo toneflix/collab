@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <BlockSkeleton variant="form" :count="6" v-if="loading" />
+      <BlockSkeleton variant="form" :count="6" v-if="loading && !settings" />
 
       <q-form @submit="save" v-else-if="settings">
         <SettingsSections :sections="sections" :marked="unsaved">

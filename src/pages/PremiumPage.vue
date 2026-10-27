@@ -7,7 +7,7 @@
         <p class="mt-2 text-grey-5">
           Pick the plan that fits how you listen and create.
         </p>
-        <BlockSkeleton variant="stats" :count="2" class="mt-4 text-left" v-if="loading" />
+        <BlockSkeleton variant="stats" :count="2" class="mt-4 text-left" v-if="loading && !data?.plans?.length" />
         <q-chip
           icon="lucide-check"
           color="green-9"

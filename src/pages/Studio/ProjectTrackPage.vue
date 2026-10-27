@@ -1,5 +1,5 @@
 <template>
-  <q-page class="p-3 md:p-4">
+  <q-page class="p-2 sm:p-3 md:p-4">
     <!-- Track header and actions -->
     <div class="flex items-center gap-2 mb-2 no-wrap">
       <IconBtn
@@ -20,8 +20,9 @@
           <template v-if="project.released"> • Released</template>
           <template v-if="viewOnly"> • View only</template>
         </div>
+        <!-- On phones the tags sit at the end of the tools row instead -->
         <AudioTagChips
-          class="studio-title__tags"
+          class="studio-title__tags max-sm:hidden!"
           :tags="track.tags"
           :editable="!viewOnly"
           :target="{ projectId: project.id, trackId: track.id }"
@@ -94,8 +95,8 @@
       </div>
     </div>
 
-    <!-- Stems, assets and conversation -->
-    <div class="flex flex-wrap items-center gap-1 mb-4">
+    <!-- Stems, assets and conversation. One row that scrolls sideways on phones. -->
+    <div class="studio-tools">
       <input
         multiple
         type="file"
@@ -256,8 +257,15 @@
         @click="router.push(projectReleaseLink(project))"
         v-if="project.isOwner"
       />
+      <AudioTagChips
+        class="flex-nowrap! sm:hidden!"
+        :tags="track.tags"
+        :editable="!viewOnly"
+        :target="{ projectId: project.id, trackId: track.id }"
+        @update:tags="track.tags = $event"
+      />
       <IconBtn
-        class="flex-none! expand-toggle"
+        class="flex-none! expand-toggle max-sm:hidden!"
         :class="{ 'expand-toggle--open': expanded }"
         icon="lucide-chevron-right"
         :aria-label="expanded ? 'Hide labels' : 'Show labels'"
@@ -1301,6 +1309,30 @@ onBeforeUnmount(() => {
   color: #b8bcc4;
   border-radius: 10px;
   background: rgba(3, 191, 255, 0.08);
+}
+
+.studio-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+
+  @media (max-width: 639.98px) {
+    flex-wrap: nowrap;
+    margin: 0 -8px 8px;
+    padding: 0 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    > * {
+      flex: none;
+    }
+  }
 }
 
 .expand-toggle :deep(.q-icon) {

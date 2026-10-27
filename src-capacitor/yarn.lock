@@ -12,11 +12,6 @@
   resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-8.1.2.tgz#3f39b7b02d2277b3ef6f659747d0d6e56b60a1cc"
   integrity sha512-uKBlsrXH0IdvUn69e/KKYbZ32A06pcrUdG8LWuZ/6y33YMXZXLEEdNSwl+jKS/SrsTWqnePs8EqSWaiQM3mUGA==
 
-"@capacitor/browser@^8.0.5":
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/@capacitor/browser/-/browser-8.0.5.tgz#c3b2e2ec38ac37c929a1f476b2ffa7cdfd981266"
-  integrity sha512-qqcEjUqs9kG1naF+tsD8rERuZ3wuIfXzvoIJEERHI4RNWwNSUqAHHduaKhkyb+t01VyVPa0ydx0mZ/eOskk2Ug==
-
 "@capacitor/cli@^8.0.0":
   version "8.5.3"
   resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-8.5.3.tgz#5eb66608123befc4890a6d92394358a0e2bb68d7"
@@ -48,6 +43,20 @@
   dependencies:
     tslib "^2.1.0"
 
+"@capacitor/file-transfer@^2.0.6":
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/@capacitor/file-transfer/-/file-transfer-2.0.6.tgz#785b1969767396e4b969e124fa9886529ec83036"
+  integrity sha512-1KBmDqhz8iFCzJyuxp+0Xm2VlUzhq7Hy0png3Nl0H6659P2qd04nYISb1BdnnkdmiQwyLq7R86QYgrQOwVSrEQ==
+  dependencies:
+    "@capacitor/synapse" "^1.0.4"
+
+"@capacitor/filesystem@^8.1.5":
+  version "8.1.5"
+  resolved "https://registry.yarnpkg.com/@capacitor/filesystem/-/filesystem-8.1.5.tgz#dffeafd3e012b8eb31d59044bca2b56c60b2de6a"
+  integrity sha512-m1RkI8L83NJeppEKyRWioK3MDp2vjlA+QfUQcF8/xRlcXNC2HYxqoyYJ+K4M0EcVovy+g+4F24S05+bhK4Vgdg==
+  dependencies:
+    "@capacitor/synapse" "^1.0.4"
+
 "@capacitor/push-notifications@^8.0.0":
   version "8.1.3"
   resolved "https://registry.yarnpkg.com/@capacitor/push-notifications/-/push-notifications-8.1.3.tgz#00ae8fbc8347e733d9292df025a5a95201cf8551"
@@ -57,6 +66,16 @@
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@capacitor/splash-screen/-/splash-screen-8.0.2.tgz#52b5fac8a1178167f344f1330b6f607426a56b39"
   integrity sha512-0C6rYScr13WfAE9nPl4ScOQynmjFv9NT3Th+RZkD4ezYHmER6mcl1/lDYsv7jg3Rj3FOvLrlTlmNkUrr83kZzQ==
+
+"@capacitor/synapse@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@capacitor/synapse/-/synapse-1.0.4.tgz#c6beb33119d9656b1f04cb7783989fb78933ef6d"
+  integrity sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==
+
+"@capgo/capacitor-media-session@^8.1.6":
+  version "8.1.6"
+  resolved "https://registry.yarnpkg.com/@capgo/capacitor-media-session/-/capacitor-media-session-8.1.6.tgz#b70f0a68c30011302a001c0a301933938a8f8f89"
+  integrity sha512-0RKHS2gHLn0VK03AUsV1V95CHiC/E6faMCGvQM+7oIQPYeGV7tPC4hPGTLgT+rUwPhnpBKPvunVS4ktL6n6D6w==
 
 "@ionic/cli-framework-output@^2.2.8":
   version "2.2.8"

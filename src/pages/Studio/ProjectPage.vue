@@ -1,13 +1,37 @@
 <template>
   <q-page :class="{ 'flex flex-col justify-center': !project?.id }">
+    <!-- The release action: in the details on wider screens, its own row on phones -->
+    <DefineRelease>
+      <q-btn
+        no-caps
+        rounded
+        unelevated
+        color="primary"
+        class="flex-none!"
+        icon="lucide-disc-3"
+        :label="projectReleaseLabel(project)"
+        :disable="!!releaseBlocker"
+        :to="projectReleaseLink(project)"
+      />
+      <q-badge
+        rounded
+        color="positive"
+        label="Released"
+        class="flex-none!"
+        v-if="project.released"
+      />
+      <span class="text-sm text-fg-subtle flex-none!" v-else-if="releaseBlocker">
+        {{ releaseBlocker }}
+      </span>
+    </DefineRelease>
     <section class="project-hero" v-if="project?.id">
       <div
         class="project-hero__backdrop"
         :style="{ backgroundImage: `url(${project.imageUrl || placeholder})` }"
       ></div>
-      <div class="relative flex flex-col gap-5 p-4 mx-auto max-w-3xl md:flex-row md:flex-nowrap md:items-end md:py-8">
+      <div class="relative flex flex-row flex-wrap gap-x-4 gap-y-3 p-4 mx-auto max-w-3xl md:flex-nowrap md:items-end md:gap-5 md:py-8">
         <div
-          class="flex-none! overflow-hidden bg-cover rounded-xl size-32 md:size-44 bg-surface-3 shadow-lg"
+          class="flex-none! overflow-hidden bg-cover rounded-xl size-20 sm:size-32 md:size-44 bg-surface-3 shadow-lg"
           :style="{ backgroundImage: `url(${project.imageUrl || placeholder})` }"
         >
           <img
@@ -18,7 +42,7 @@
             @error="project.imageUrl = placeholder"
           />
         </div>
-        <div class="flex flex-col flex-1 min-w-0 gap-3">
+        <div class="flex flex-col flex-1 min-w-0 gap-2 md:gap-3">
           <div class="flex items-center gap-2 flex-none!">
             <span class="text-xs font-semibold tracking-wider uppercase text-fg-muted flex-none!">Project</span>
             <IconBtn size="sm"
@@ -28,7 +52,7 @@
               :to="{ name: 'studio.projects.create', params: $route.params }"
             />
           </div>
-          <h1 class="text-3xl font-bold leading-tight md:text-5xl flex-none! break-words">
+          <h1 class="text-2xl font-bold leading-tight sm:text-3xl md:text-5xl flex-none! break-words">
             {{ project.title }}
           </h1>
           <p class="max-w-2xl text-fg-muted flex-none!" v-if="project.description">
@@ -63,29 +87,13 @@
               {{ intStr(project.tracksCount) }}
             </HoverCard>
           </q-no-ssr>
-          <q-no-ssr class="flex flex-wrap items-center gap-3 mt-1 flex-none!" v-if="project.isOwner">
-            <q-btn
-              no-caps
-              rounded
-              unelevated
-              color="primary"
-              class="flex-none!"
-              icon="lucide-disc-3"
-              :label="projectReleaseLabel(project)"
-              :disable="!!releaseBlocker"
-              :to="projectReleaseLink(project)"
-            />
-            <q-badge
-              rounded
-              color="positive"
-              label="Released"
-              class="flex-none!"
-              v-if="project.released"
-            />
-            <span class="text-sm text-fg-subtle flex-none!" v-else-if="releaseBlocker">
-              {{ releaseBlocker }}
-            </span>
-          </q-no-ssr>
+          <div class="flex flex-wrap items-center gap-3 mt-1 flex-none! max-md:hidden!" v-if="project.isOwner">
+            <q-no-ssr><ReuseRelease /></q-no-ssr>
+          </div>
+        </div>
+        <!-- Phones: the release action gets its own full-width row under the artwork -->
+        <div class="flex flex-wrap items-center gap-3 flex-none! w-full md:hidden!" v-if="project.isOwner">
+          <q-no-ssr><ReuseRelease /></q-no-ssr>
         </div>
       </div>
     </section>
@@ -93,7 +101,7 @@
       class="max-w-full p-4 mx-auto md:max-w-2xl lg:max-w-3xl"
       v-if="project?.id"
     >
-      <div class="flex items-center justify-start gap-4 mb-2">
+      <div class="flex items-center justify-between gap-4 mb-2 flex-nowrap!">
         <h2 class="text-xl flex-none! font-semibold md:text-2xl">Tracklist</h2>
         <ProjectTrackInfoDialog
           ref="trackInfoDialogRef"
@@ -117,7 +125,7 @@
               dense
               no-caps
               icon="lucide-plus"
-              label="Add Track"
+              :label="$q.screen.gt.xs ? 'Add Track' : 'Add'"
               class="flex-none!"
               outline
               rounded
@@ -127,18 +135,7 @@
           </template>
         </ProjectTrackInfoDialog>
       </div>
-      <SimpleInfo text="This project has no tracks" v-if="!trackList.length">
-        <q-btn
-          dense
-          no-caps
-          icon="lucide-plus"
-          class="flex-none!"
-          outline
-          rounded
-          padding="2px 12px"
-          @click="trackInfoDialogRef.toggle()"
-        />
-      </SimpleInfo>
+      <SimpleInfo dense icon="lucide-disc-3" text="No tracks yet" v-if="!trackList.length" />
       <q-list class="grid grid-cols-1 md:grid-cols-2">
         <q-item
           clickable
@@ -209,7 +206,7 @@
         </q-item>
       </q-list>
 
-      <div class="flex items-center justify-start gap-4 mt-8 mb-2">
+      <div class="flex items-center justify-between gap-4 mt-6 mb-2 md:mt-8 flex-nowrap!">
         <h2 class="text-xl flex-none! font-semibold md:text-2xl">Collabers</h2>
         <AddCollaberDialog
           ref="collaberDialogRef"
@@ -226,7 +223,7 @@
               dense
               no-caps
               icon="lucide-plus"
-              label="Add Collaber"
+              :label="$q.screen.gt.xs ? 'Add Collaber' : 'Add'"
               class="flex-none!"
               outline
               rounded
@@ -236,21 +233,7 @@
           </template>
         </AddCollaberDialog>
       </div>
-      <SimpleInfo
-        text="This project has no collabers"
-        v-if="!collaborators.length"
-      >
-        <q-btn
-          dense
-          no-caps
-          icon="lucide-plus"
-          class="flex-none!"
-          outline
-          rounded
-          padding="2px 12px"
-          @click="collaberDialogRef.toggle()"
-        />
-      </SimpleInfo>
+      <SimpleInfo dense icon="lucide-users" text="No collaborators yet" v-if="!collaborators.length" />
       <q-list class="grid grid-cols-1 md:grid-cols-2">
         <q-item
           :key="artist.id"
@@ -311,7 +294,7 @@
           </q-item-section>
         </q-item>
       </q-list>
-      <q-separator class="my-12" v-if="project.isOwner" />
+      <q-separator class="my-8 md:my-12" v-if="project.isOwner" />
       <div class="text-center" v-if="project.isOwner">
         <ContentRemover
           outline
@@ -335,6 +318,7 @@
 </template>
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core';
 import { avatarFallback } from 'src/utils/imageFallback';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
 import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
@@ -360,6 +344,8 @@ import {
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import { requestFlagContent } from 'src/utils/requests/content';
 
+
+const [DefineRelease, ReuseRelease] = createReusableTemplate();
 const trackInfoDialogRef = ref();
 defineOptions({
   async preFetch({ currentRoute, store }) {

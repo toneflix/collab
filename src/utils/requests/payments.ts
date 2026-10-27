@@ -83,7 +83,7 @@ export const loadEarningsRequest = (
  */
 export const loadStemDownloadsRequest = (trackId: string | number) => {
   return alova.Get<
-    ResponseBody<{ id: number; title: string; size?: number; url: string }[]>
+    ResponseBody<{ id: number; title: string; filename?: string; size?: number; url: string }[]>
   >(`tracks/${trackId}/stems`, { cacheFor: 0 });
 };
 

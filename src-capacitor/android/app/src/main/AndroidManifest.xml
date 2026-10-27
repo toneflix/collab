@@ -8,6 +8,7 @@
     android:label="@string/app_name"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:supportsRtl="true"
+    android:requestLegacyExternalStorage="true"
     android:usesCleartextTraffic="${usesCleartextTraffic}"
     android:theme="@style/AppTheme"
     tools:replace="android:usesCleartextTraffic">
@@ -61,9 +62,17 @@
   <uses-permission android:name="android.permission.VIBRATE" />
   <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+  <!-- Music keeps playing in the background, with lock screen and notification controls -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
   <!-- Recording vocals and voice notes in the studio -->
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+  <!-- Saving downloads to Documents; Android 11 and newer don't need these -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
 
   <!-- The app still installs on devices without a microphone -->
   <uses-feature android:name="android.hardware.microphone" android:required="false" />

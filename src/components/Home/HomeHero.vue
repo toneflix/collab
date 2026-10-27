@@ -30,7 +30,8 @@
           </template>
         </p>
 
-        <div class="flex flex-wrap items-center gap-3 mt-8">
+        <!-- Phones: two equal buttons on one row, so they always fit -->
+        <div class="home-hero__actions">
           <template v-if="signedIn">
             <q-btn
               unelevated
@@ -38,7 +39,7 @@
               no-caps
               color="toneflix"
               text-color="dark"
-              size="lg"
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
               icon="lucide-plus"
               label="New project"
               class="flex-none! font-bold"
@@ -48,7 +49,7 @@
               outline
               rounded
               no-caps
-              size="lg"
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
               icon="lucide-pen-tool"
               label="Write a song"
               class="flex-none!"
@@ -62,7 +63,7 @@
               no-caps
               color="toneflix"
               text-color="dark"
-              size="lg"
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
               label="Join for free"
               class="flex-none! font-bold"
               :to="{ name: 'auth.register' }"
@@ -71,7 +72,7 @@
               outline
               rounded
               no-caps
-              size="lg"
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
               label="Explore music"
               class="flex-none!"
               :to="{ name: 'explore' }"
@@ -137,6 +138,36 @@ const playTrending = () => player.toggleQueue(props.tracks, source);
 </script>
 
 <style lang="scss" scoped>
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+
+  /* Phones: side by side, each half the row; long labels shorten instead of overflowing */
+  @media (max-width: 599.98px) {
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-top: 24px;
+
+    > .q-btn {
+      flex: 1 1 0 !important;
+      min-width: 0;
+
+      :deep(.q-btn__content) {
+        flex-wrap: nowrap;
+      }
+
+      :deep(.block) {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
+
 .home-hero {
   position: relative;
   overflow: hidden;

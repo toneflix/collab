@@ -16,16 +16,14 @@
     </component>
   </nav>
 
-  <q-dialog position="bottom" v-model="createOpen">
-    <q-card class="create-sheet">
-      <div class="create-sheet__handle" aria-hidden="true"></div>
-      <h2 class="px-5 pb-2 text-lg font-bold">Create</h2>
-      <q-list>
+  <q-no-ssr>
+    <AppSheet title="Create" v-model="createOpen">
+      <q-list class="-mx-4">
         <q-item
           clickable
-          v-close-popup
           :to="item.to"
           :key="item.title"
+          @click="createOpen = false"
           v-for="item in createItems"
         >
           <q-item-section avatar>
@@ -39,11 +37,12 @@
           </q-item-section>
         </q-item>
       </q-list>
-    </q-card>
-  </q-dialog>
+    </AppSheet>
+  </q-no-ssr>
 </template>
 
 <script setup lang="ts">
+import AppSheet from 'src/components/Controllers/AppSheet.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { computed, ref } from 'vue';
 import { RouteLocationRaw, useRoute, useRouter } from 'vue-router';
@@ -133,7 +132,6 @@ const createItems = computed(() =>
   display: flex;
   flex-wrap: nowrap;
   border-top: 1px solid var(--tf-border);
-  padding-bottom: var(--q-safe-area-inset-bottom, 0px);
 
   &__tab {
     flex: 1 1 0;
@@ -161,19 +159,6 @@ const createItems = computed(() =>
 }
 
 .create-sheet {
-  width: 100%;
-  padding: 8px 0 calc(12px + var(--q-safe-area-inset-bottom, 0px));
-  border-radius: 20px 20px 0 0 !important;
-  background: var(--tf-surface-1);
-
-  &__handle {
-    width: 36px;
-    height: 4px;
-    margin: 4px auto 12px;
-    border-radius: 2px;
-    background: var(--tf-border-strong);
-  }
-
   &__icon {
     display: grid;
     place-items: center;

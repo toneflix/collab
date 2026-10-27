@@ -59,7 +59,8 @@ export default <RouteRecordRaw[]>[
       {
         path: 'composer/:song_id',
         name: 'studio.composer.song',
-        meta: { hidePlayer: true },
+        // The editor takes the screen: no player bar, and no tabs on phones
+        meta: { hidePlayer: true, hideTabs: true },
         component: () => import('pages/Studio/SongEditorPage.vue'),
       },
       {
@@ -75,7 +76,8 @@ export default <RouteRecordRaw[]>[
       {
         path: 'projects/:project_id/track/:track_id',
         name: 'studio.project.track',
-        meta: { hidePlayer: true, collapseSidebar: true },
+        // The DAW takes the screen: no player bar, and no tabs on phones
+        meta: { hidePlayer: true, collapseSidebar: true, hideTabs: true },
         component: () => import('pages/Studio/ProjectTrackPage.vue'),
       },
     ],

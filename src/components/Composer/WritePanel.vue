@@ -1,5 +1,5 @@
 <template>
-  <ComposerSheet title="Write with AI" caption="Ideas for your next lines. You pick what stays." :dock="dock" v-model="open">
+  <ComposerSheet overlay title="Write with AI" caption="Ideas for your next lines. You pick what stays." :dock="dock" v-model="open">
     <div class="write__section" v-if="!account">
       <BlockSkeleton :count="3" />
     </div>

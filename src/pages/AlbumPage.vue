@@ -32,7 +32,7 @@
             </h1>
 
             <div
-              class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
+              class="flex flex-row items-center justify-center gap-x-2 gap-y-1 font-semibold sm:justify-start"
             >
               <span class="flex-none!">
                 {{ countStr(album.tracksCount, 'Track') }}
@@ -41,9 +41,11 @@
               <span class="flex-none!">
                 {{ formatSeconds(album.duration) }}
               </span>
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
+              <!-- Phones: facts on one line, the icon actions on the next -->
+              <span class="h-0 basis-full sm:hidden!" aria-hidden="true" />
               <IconBtn plain icon="lucide-play" label="Plays" :count="intStr(album.streams)" />
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
               <span class="flex-none!">
                 <TInteraction
                   v-slot="{ submit, active }"
@@ -62,7 +64,7 @@
                   />
                 </TInteraction>
               </span>
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
               <span class="flex-none!">
                 <ConversationDialog
                   dense
@@ -93,7 +95,7 @@
                   />
                 </ConversationDialog>
               </span>
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
               <span class="flex-none!">
                 <ReportDialog type="release" label="release" :id="album.id" />
               </span>

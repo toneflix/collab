@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1027246867052",
+    "project_id": "toneflix-music-7ddff",
+    "storage_bucket": "toneflix-music-7ddff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1027246867052:android:904017766e7f9c1bc3ce49",
+        "android_client_info": {
+          "package_name": "com.toneflix.music.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJ-L3nrLw5uVjHEbq7o2TNQPQvEABj_24"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -42,6 +42,14 @@
 
       <!-- Now playing: artwork, title, artist and actions -->
       <div class="player-bar__now">
+        <!-- Phones: the whole track area opens the full-screen player -->
+        <button
+          type="button"
+          class="player-bar__open sm:hidden!"
+          aria-label="Open the player"
+          @click="fullOpen = true"
+          v-if="track.id"
+        />
         <RouterLink :to="trackLink" class="flex-none!" v-if="track.id">
           <q-img
             no-spinner
@@ -174,14 +182,15 @@
         </IconBtn>
         <IconBtn
           class="flex-none!"
-          :aria-label="queueOpen ? 'Close up next' : 'Open up next'"
+          :aria-label="$q.screen.lt.sm ? 'Open the player' : queueOpen ? 'Close up next' : 'Open up next'"
           :icon="queueOpen ? 'lucide-chevron-down' : 'lucide-chevron-up'"
-          @click="queueOpen = !queueOpen"
+          @click="$q.screen.lt.sm ? (fullOpen = true) : (queueOpen = !queueOpen)"
         />
       </div>
     </div>
 
     <NowPlayingDialog v-model="queueOpen" v-model:tab="panelTab" :offset="height" />
+    <FullPlayer v-model="fullOpen" />
   </div>
 </template>
 
@@ -195,10 +204,13 @@ import { usePlayerStore } from 'src/stores/player-store';
 import TInteraction from '../Utilities/TInteraction.vue';
 import SeekBar from './SeekBar.vue';
 import NowPlayingDialog from './NowPlayingDialog.vue';
+import FullPlayer from './FullPlayer.vue';
 
 const player = usePlayerStore();
 const router = useRouter();
 const queueOpen = ref(false);
+/** The full-screen player, on phones */
+const fullOpen = ref(false);
 const panelTab = ref<'next' | 'lyrics'>('next');
 
 /** Open the expanded player on a tab. */
@@ -288,6 +300,17 @@ onBeforeUnmount(() => resize?.disconnect());
     }
   }
 
+  /* Phones: an invisible button over the track area that opens the full player */
+  &__open {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
   &__transport,
   &__now,
   &__extras {
@@ -306,6 +329,7 @@ onBeforeUnmount(() => resize?.disconnect());
   }
 
   &__now {
+    position: relative;
     order: 1;
     gap: 12px;
     @media (min-width: 600px) {

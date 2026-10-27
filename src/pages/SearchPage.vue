@@ -6,65 +6,111 @@
         <template v-else-if="filtering">Songs by tempo and key</template>
         <template v-else>Search</template>
       </h1>
-      <p class="mb-6 text-sm text-grey-5">
+      <p class="mb-4 text-sm text-grey-5">
         Find songs by their title or a line of their lyrics, published compositions,
-        and creators by name. Narrow songs down by tempo and key.
+        and creators by name.
       </p>
 
-      <div class="filters">
-        <q-input
-          dark
-          dense
-          outlined
-          clearable
-          type="number"
-          label="BPM from"
-          class="filters__bpm"
-          :debounce="500"
-          :model-value="filters.bpm_min"
-          @update:model-value="setFilter('bpm_min', $event)"
-        />
-        <q-input
-          dark
-          dense
-          outlined
-          clearable
-          type="number"
-          label="BPM to"
-          class="filters__bpm"
-          :debounce="500"
-          :model-value="filters.bpm_max"
-          @update:model-value="setFilter('bpm_max', $event)"
-        />
-        <q-select
-          dark
-          dense
-          outlined
-          clearable
-          emit-value
-          map-options
-          label="Key"
-          class="filters__key"
-          option-label="label"
-          option-value="camelot"
-          :options="MUSICAL_KEYS"
-          :model-value="filters.key"
-          @update:model-value="setFilter('key', $event)"
-        />
-        <q-toggle
-          dark
-          dense
-          color="primary"
-          label="Keys that mix with it"
+      <!-- Tempo and key filters stay out of the way until asked for -->
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        <q-btn
+          outline
+          rounded
+          no-caps
+          size="sm"
+          padding="4px 12px"
           class="flex-none!"
-          :disable="!filters.key"
-          :model-value="filters.compatible"
-          @update:model-value="setFilter('compatible', $event ? '1' : null)"
-        />
+          :color="advanced || filterCount ? 'primary' : 'grey-5'"
+          icon="lucide-sliders-horizontal"
+          :icon-right="advanced ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+          label="Advanced search"
+          :aria-expanded="advanced"
+          @click="advanced = !advanced"
+        >
+          <q-badge rounded floating color="primary" text-color="dark" :label="filterCount" v-if="filterCount" />
+        </q-btn>
+        <template v-if="!advanced">
+          <q-chip
+            dense
+            removable
+            color="grey-9"
+            text-color="white"
+            class="flex-none!"
+            :key="chip.label"
+            @remove="setFilters(chip.clear)"
+            v-for="chip in activeFilters"
+          >
+            {{ chip.label }}
+          </q-chip>
+        </template>
       </div>
 
+      <q-slide-transition>
+        <div class="filters" v-show="advanced">
+          <q-input
+            dark
+            dense
+            outlined
+            clearable
+            type="number"
+            label="BPM from"
+            class="filters__bpm"
+            :debounce="500"
+            :model-value="filters.bpm_min"
+            @update:model-value="setFilter('bpm_min', $event)"
+          />
+          <q-input
+            dark
+            dense
+            outlined
+            clearable
+            type="number"
+            label="BPM to"
+            class="filters__bpm"
+            :debounce="500"
+            :model-value="filters.bpm_max"
+            @update:model-value="setFilter('bpm_max', $event)"
+          />
+          <q-select
+            dark
+            dense
+            outlined
+            clearable
+            emit-value
+            map-options
+            label="Key"
+            class="filters__key"
+            option-label="label"
+            option-value="camelot"
+            :options="MUSICAL_KEYS"
+            :model-value="filters.key"
+            @update:model-value="setFilter('key', $event)"
+          />
+          <q-toggle
+            dark
+            dense
+            color="primary"
+            label="Keys that mix with it"
+            class="flex-none!"
+            :disable="!filters.key"
+            :model-value="filters.compatible"
+            @update:model-value="setFilter('compatible', $event ? '1' : null)"
+          />
+          <q-btn
+            flat
+            rounded
+            no-caps
+            size="sm"
+            label="Clear"
+            class="flex-none!"
+            @click="setFilters({ bpm_min: null, bpm_max: null, key: null, compatible: null })"
+            v-if="filtering"
+          />
+        </div>
+      </q-slide-transition>
+
       <div class="text-grey-5" v-if="!q && !filtering">
-        Type in the search box above and press Enter, or pick a tempo or key.
+        Type in the search box above and press Enter, or use Advanced search to find songs by tempo and key.
       </div>
 
       <template v-else>
@@ -133,13 +179,9 @@
                   <span class="explicit flex-none!" title="Explicit" v-if="track.explicit">E</span>
                   <span class="truncate">{{ track.artist?.name || 'Unknown' }}</span>
                 </q-item-label>
-                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" />
-                <q-item-label lines="2" class="song__lyric" v-if="track.lyricMatch">
-                  <q-icon name="lucide-type" size="14px" class="mr-1" />
-                  “<span v-html="highlight(track.lyricMatch)" />”
-                </q-item-label>
+                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" v-if="showTags" />
               </q-item-section>
-              <q-item-section side class="max-sm:hidden!" v-if="track.tags?.bpm || track.tags?.key">
+              <q-item-section side class="max-sm:hidden!" v-if="showTags && (track.tags?.bpm || track.tags?.key)">
                 <AudioTagChips :tags="track.tags" />
               </q-item-section>
               <q-item-section side class="text-xs">
@@ -207,12 +249,40 @@ const filters = computed(() => ({
 
 const filtering = computed(() => !!(filters.value.bpm_min || filters.value.bpm_max || filters.value.key));
 
-const setFilter = (name: FilterName, value: string | number | null) => {
+/** Changes several filters in one address update, so they don't overwrite each other. */
+const setFilters = (changes: Partial<Record<FilterName, string | number | null>>) => {
   const query: Record<string, string | undefined> = { ...(route.query as Record<string, string>) };
-  query[name] = value === null || value === '' ? undefined : String(value);
-  if (name === 'key' && !query.key) query.compatible = undefined;
+  for (const [name, value] of Object.entries(changes)) {
+    query[name] = value === null || value === undefined || value === '' ? undefined : String(value);
+  }
+  if (!query.key) query.compatible = undefined;
   void router.replace({ query });
 };
+
+const setFilter = (name: FilterName, value: string | number | null) => setFilters({ [name]: value });
+
+/** Closed at first; filters already in the address show as chips beside the button. */
+const advanced = ref(false);
+/** Tempo and key pills on results only matter while searching by them. */
+const showTags = computed(() => advanced.value || filtering.value);
+const filterCount = computed(() => [filters.value.bpm_min || filters.value.bpm_max, filters.value.key].filter(Boolean).length);
+
+/** What's narrowing the songs, shown as chips while the panel is closed. */
+const activeFilters = computed(() => {
+  const { bpm_min: min, bpm_max: max, key, compatible } = filters.value;
+  const chips: { label: string; clear: Partial<Record<FilterName, null>> }[] = [];
+  if (min || max) {
+    chips.push({
+      label: min && max ? `${min}–${max} BPM` : min ? `${min}+ BPM` : `Up to ${max} BPM`,
+      clear: { bpm_min: null, bpm_max: null },
+    });
+  }
+  if (key) {
+    const name = MUSICAL_KEYS.find((k) => k.camelot === key)?.short ?? key;
+    chips.push({ label: `${name} (${key})${compatible ? ' + mixable' : ''}`, clear: { key: null, compatible: null } });
+  }
+  return chips;
+});
 
 const params = computed(() => ({
   ...(q.value ? { search: q.value } : {}),
@@ -230,16 +300,6 @@ const trackLink = (track: Track) => ({
   name: 'artist.track',
   params: { artist_id: track.artist?.username || track.artistId, track_id: track.slug },
 });
-
-const escape = (value: string) =>
-  value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
-
-/** The lyric line with the searched words in bold. */
-const highlight = (line: string) => {
-  const words = q.value.split(/\s+/).filter((w) => w.length > 2).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const safe = escape(line);
-  return words.length ? safe.replace(new RegExp(`(${words.join('|')})`, 'gi'), '<b>$1</b>') : safe;
-};
 
 const loadTracks = async (to = 1) => {
   const term = JSON.stringify(params.value);
@@ -338,18 +398,6 @@ useMeta(() => ({
 
 .songs {
   background: rgba(255, 255, 255, 0.03);
-}
-
-.song__lyric {
-  margin-top: 4px;
-  color: #c9ccd2;
-  font-size: 0.8rem;
-  font-style: italic;
-
-  :deep(b) {
-    color: #03bfff;
-    font-style: normal;
-  }
 }
 
 .artist {

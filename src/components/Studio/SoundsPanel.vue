@@ -101,7 +101,7 @@
       </div>
 
       <q-list dark separator class="sounds__list" role="list">
-        <ListSkeleton dense avatar="square" :rows="6" v-if="loading" />
+        <ListSkeleton dense avatar="square" :rows="6" v-if="loading && !items.length" />
         <div class="px-6 py-10 text-sm text-center text-grey-5" v-else-if="!items.length">
           {{ emptyText }}
         </div>

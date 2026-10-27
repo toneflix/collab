@@ -87,12 +87,14 @@
             </h1>
 
             <div
-              class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
+              class="flex flex-row items-center justify-center gap-x-2 gap-y-1 font-semibold sm:justify-start"
             >
               <span class="flex-none!">
                 {{ intStr(project.collaboratorsCount) }} Collabers
               </span>
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
+              <!-- Phones: facts on one line, the icon actions on the next -->
+              <span class="h-0 basis-full sm:hidden!" aria-hidden="true" />
               <span class="flex-none!">
                 <TInteraction
                   v-slot="{ submit, active }"
@@ -111,7 +113,7 @@
                   />
                 </TInteraction>
               </span>
-              <span class="flex-none!">•</span>
+              <span class="flex-none! max-sm:hidden!">•</span>
               <IconBtn
                 plain
                 icon="lucide-message-square"

@@ -6,7 +6,7 @@
         <p class="text-grey-5" v-if="stats">How the app is doing over the last {{ stats.days }} days.</p>
       </div>
 
-      <BlockSkeleton variant="stats" :count="8" v-if="loading" />
+      <BlockSkeleton variant="stats" :count="8" v-if="loading && !stats" />
 
       <div class="py-10 text-center text-grey-5" v-else-if="!stats">
         {{ error || 'Your account has no admin permissions.' }}

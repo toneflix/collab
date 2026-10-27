@@ -1,4 +1,5 @@
 import { Track } from './models';
+import { mediaSession, type SessionAction, type SessionActionDetails } from './media-session';
 
 type EngineEvents = {
   onTime: (position: number, duration: number, buffered: number) => void;
@@ -20,7 +21,8 @@ type MediaActions = {
 /**
  * Plays audio with the browser's own <audio> element, which streams, seeks
  * with range requests and keeps playing in background tabs. It also feeds
- * the Media Session API, so lock screens, headsets and media keys work.
+ * the media session (see media-session.ts), so the notification and lock
+ * screen player, headsets and media keys work, on the web and in the app.
  *
  * There is one element for the whole app, so two tracks can never play at once.
  */
@@ -57,7 +59,10 @@ class AudioEngine {
     };
 
     audio.addEventListener('timeupdate', time);
-    audio.addEventListener('durationchange', time);
+    audio.addEventListener('durationchange', () => {
+      time();
+      this.updatePosition();
+    });
     audio.addEventListener('progress', time);
     audio.addEventListener('seeked', () => {
       time();
@@ -138,60 +143,52 @@ class AudioEngine {
    * Route lock-screen, headset and media-key controls to the player.
    */
   setActions (actions: MediaActions) {
-    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
-
-    const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
+    const handlers: [SessionAction, (details: SessionActionDetails) => void][] = [
       ['play', () => actions.play()],
       ['pause', () => actions.pause()],
+      // Stop on the notification or a headset just pauses, so the queue stays
+      ['stop', () => actions.pause()],
       ['nexttrack', () => actions.next()],
       ['previoustrack', () => actions.previous()],
-      ['seekto', (d) => d.seekTime !== undefined && actions.seek(d.seekTime)],
+      ['seekto', (d) => typeof d.seekTime === 'number' && actions.seek(d.seekTime)],
       ['seekbackward', (d) => actions.seek((this.element?.currentTime ?? 0) - (d.seekOffset || 10))],
       ['seekforward', (d) => actions.seek((this.element?.currentTime ?? 0) + (d.seekOffset || 10))],
     ];
 
-    for (const [action, handler] of handlers) {
-      try {
-        navigator.mediaSession.setActionHandler(action, handler);
-      } catch {
-        // Not every browser supports every action.
-      }
-    }
-  }
-
-  private setMetadata (track: Track) {
-    if (typeof navigator === 'undefined' || !('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') {
-      return;
-    }
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.title,
-      artist: track.artist?.name || '',
-      album: track.release?.title || '',
-      artwork: track.imageUrl ? [{ src: track.imageUrl, sizes: '512x512' }] : [],
+    void mediaSession().then((session) => {
+      for (const [action, handler] of handlers) session?.setActionHandler(action, handler);
     });
   }
 
-  private setPlaybackState (state: MediaSessionPlaybackState) {
-    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = state;
-    }
+  private setMetadata (track: Track) {
+    const artwork = track.imageUrl
+      ? ['96x96', '256x256', '512x512'].map((sizes) => ({ src: track.imageUrl, sizes }))
+      : [];
+
+    void mediaSession().then((session) =>
+      session?.setMetadata({
+        title: track.title,
+        artist: track.artist?.name || '',
+        album: track.release?.title || '',
+        artwork,
+      }),
+    );
+  }
+
+  private setPlaybackState (state: 'none' | 'paused' | 'playing') {
+    void mediaSession().then((session) => session?.setPlaybackState(state));
   }
 
   private updatePosition () {
     const audio = this.element;
-    if (!audio || typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
 
-    try {
-      navigator.mediaSession.setPositionState({
-        duration: audio.duration,
-        position: Math.min(audio.currentTime, audio.duration),
-        playbackRate: audio.playbackRate,
-      });
-    } catch {
-      // Ignore browsers that reject position updates.
-    }
+    const state = {
+      duration: audio.duration,
+      position: Math.min(audio.currentTime, audio.duration),
+      playbackRate: audio.playbackRate,
+    };
+    void mediaSession().then((session) => session?.setPositionState(state));
   }
 }
 

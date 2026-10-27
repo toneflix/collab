@@ -1,5 +1,5 @@
 <template>
-  <BlockSkeleton variant="form" :count="3" v-if="loading" />
+  <BlockSkeleton variant="form" :count="3" v-if="loading && !settings" />
 
   <q-form class="flex flex-col gap-4" @submit="save" v-else-if="settings">
     <div class="section" :key="provider.key" v-for="provider in providers">

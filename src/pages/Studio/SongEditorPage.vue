@@ -48,15 +48,19 @@
       </div>
 
       <div class="flex items-center gap-2 no-wrap" :class="narrow || showLabels ? 'song-actions--narrow' : 'ml-auto flex-none!'" v-if="song">
+        <!-- Icon only on phones, where the actions share one row -->
         <q-btn
           unelevated
-          rounded
           no-caps
           dense
+          :rounded="!$q.screen.lt.sm"
+          :round="$q.screen.lt.sm"
           :color="dirty ? 'toneflix' : 'grey-8'"
           :text-color="dirty ? 'dark' : 'grey-5'"
-          label="Save"
-          class="flex-none! px-4"
+          :label="$q.screen.lt.sm ? undefined : 'Save'"
+          :aria-label="$q.screen.lt.sm ? 'Save' : undefined"
+          class="flex-none!"
+          :class="{ 'px-4': !$q.screen.lt.sm }"
           title="Save (Ctrl+S)"
           icon="lucide-save"
           :loading="status === 'saving'"

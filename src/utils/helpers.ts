@@ -37,7 +37,7 @@ type NMessage = {
 
 const timeAgo = new TimeAgo('en-US');
 const helpers = {
-  subString (str: string, len: number, eli: string = '...') {
+  subString(str: string, len: number, eli: string = '...') {
     return str.length > len ? str.substring(0, len - eli.length).trim() + eli : str;
   },
   /**
@@ -45,7 +45,7 @@ const helpers = {
    * @param {String} string
    * @param {Object} data
    */
-  str_subst (string: string, data: Record<string, string> = {}) {
+  str_subst(string: string, data: Record<string, string> = {}) {
     ['last_updated', 'created_at', 'updated_at', 'date'].forEach((key) => {
       if (data[key]) {
         data[key] = date.formatDate(new Date(data[key]), 'YYYY/MM/DD');
@@ -61,7 +61,7 @@ const helpers = {
    * grouped by the specified size
    * @returns
    */
-  chunk<Input> (arr: Input[], size: number = 2): Input[][] {
+  chunk<Input>(arr: Input[], size: number = 2): Input[][] {
     const chunks = [];
     for (let i = 0; i < arr.length; i += size) {
       chunks.push(arr.slice(i, i + size));
@@ -69,7 +69,7 @@ const helpers = {
     return chunks;
   }
   ,
-  date (d: string, format = 'YYYY/MM/DD') {
+  date(d: string, format = 'YYYY/MM/DD') {
     return date.formatDate(new Date(d), format);
   },
 
@@ -79,7 +79,7 @@ const helpers = {
    * @returns
    * @example formatSeconds(128) // $
    */
-  formatSeconds (seconds: string | number = 0) {
+  formatSeconds(seconds: string | number = 0) {
     if (!seconds) {
       seconds = 0;
     }
@@ -104,12 +104,12 @@ const helpers = {
    * @param {Number} startAt
    * @returns
    */
-  range (size: number, startAt: number = 0) {
+  range(size: number, startAt: number = 0) {
     if (!size) return [];
 
     return [...Array(size).keys()].map((i) => i + startAt);
   },
-  copy (str: string) {
+  copy(str: string) {
     if (typeof str !== 'string') return false;
 
     copyToClipboard(str)
@@ -126,7 +126,7 @@ const helpers = {
         });
       });
   },
-  tagify (string: string, limit: number = 3) {
+  tagify(string: string, limit: number = 3) {
 
     let tags = string.split(',');
     const more = tags.length - limit;
@@ -138,7 +138,7 @@ const helpers = {
 
     return tags;
   },
-  scrollToElement (el: HTMLElement, addOffset: number = 0, duration: number = 1000) {
+  scrollToElement(el: HTMLElement, addOffset: number = 0, duration: number = 1000) {
     const { getScrollTarget, setVerticalScrollPosition } = scroll;
 
     const target = getScrollTarget(el);
@@ -157,7 +157,7 @@ const helpers = {
    * @param danger
    * @xreturns {Boolean | Object}  Returns false if no message is provided
    */
-  notify (
+  notify(
     data: string | NMessage,
     status: ResponseStatus = 'info',
     alert: boolean = false,
@@ -280,7 +280,7 @@ const helpers = {
           } as unknown as Record<string, string>;
     }
 
-    function isDialog (alert: boolean): alert is boolean {
+    function isDialog(alert: boolean): alert is boolean {
       return alert === true
     }
 
@@ -320,7 +320,7 @@ const helpers = {
       return;
     }
   },
-  nlText (str: string, lines: number = 2, breaker: string = '<br />') {
+  nlText(str: string, lines: number = 2, breaker: string = '<br />') {
     const splitext = helpers.chunk(str.split(' '), lines);
     let text = '';
     splitext.forEach((el) => {
@@ -329,10 +329,10 @@ const helpers = {
 
     return text;
   },
-  goto (link: Location | (string & Location)) {
+  goto(link: Location | (string & Location)) {
     window.location.assign(String(link));
   },
-  asset (url: string) {
+  asset(url: string) {
     if (import.meta.env.VITE_PREFER_ASSET === 'true' && url.indexOf('http') !== -1) {
       const base_url = document.createElement('a');
       base_url.href = url;
@@ -340,12 +340,12 @@ const helpers = {
     }
     return import.meta.env.VITE_ASSET_URL + url;
   },
-  nameFromPath (path: string) {
+  nameFromPath(path: string) {
     const base_url = document.createElement('a');
     base_url.href = path;
     return base_url.pathname.replace(/\/|\.|\/$/g, '');
   },
-  getPageNumber (path: string, key: string = 'page') {
+  getPageNumber(path: string, key: string = 'page') {
     if (!path || path.indexOf(key) === -1) {
       return 1;
     }
@@ -358,7 +358,7 @@ const helpers = {
    * @param {*} state
    * @param {*} ids
    */
-  loadingState (prop: null | boolean | Record<string, boolean> = null, state: boolean = true, ids: string | string[] | null = null) {
+  loadingState(prop: null | boolean | Record<string, boolean> = null, state: boolean = true, ids: string | string[] | null = null) {
     if (prop && ids && Array.isArray(ids)) {
       ids.map((e) => {
         if (prop && typeof prop !== 'boolean') {
@@ -373,7 +373,7 @@ const helpers = {
       }
     }
   },
-  arrayClean (array: string[] | number | Record<string, string>[], getObj: boolean = false) {
+  arrayClean(array: string[] | number | Record<string, string>[], getObj: boolean = false) {
     const obj = JSON.parse(JSON.stringify(array));
 
     if (getObj === true) {
@@ -381,7 +381,7 @@ const helpers = {
     }
     return Object.keys(obj).map((i) => obj[i]);
   },
-  objMap (obj: Record<string, string>, func: (obj: Record<string, string>, key: string) => string) {
+  objMap(obj: Record<string, string>, func: (obj: Record<string, string>, key: string) => string) {
 
     obj = JSON.parse(JSON.stringify(obj));
 
@@ -392,7 +392,7 @@ const helpers = {
     });
     return newObj;
   },
-  isEven (n: number | string) {
+  isEven(n: number | string) {
 
 
     if (typeof n === 'string') {
@@ -403,13 +403,13 @@ const helpers = {
 
     return n % 2 == 0;
   },
-  isOdd (n: number) {
+  isOdd(n: number) {
 
     if (!Number.isFinite(parseFloat(n as unknown as string))) return false;
 
     return Math.abs(n % 2) == 1;
   },
-  money (
+  money(
     amount: number | string,
     abbrev: boolean = false,
     curr: boolean | 'code' = true,
@@ -452,7 +452,7 @@ const helpers = {
 
     return symb + (abbrev === true ? helpers.intStr(amount) : parsedAmount);
   },
-  timeAgoStamp (
+  timeAgoStamp(
     time: string | Date,
     format: 'facebook' | 'twitter' | 'mini' = 'facebook',
     timeFormat = 'MMM DD, YYYY',
@@ -472,7 +472,7 @@ const helpers = {
       return date.formatDate(time, timeFormat);
     }
   },
-  humanize (num: number, slugify?: '-' | '_'): string {
+  humanize(num: number, slugify?: '-' | '_'): string {
     if (!num) {
       return '';
     }
@@ -561,10 +561,10 @@ const helpers = {
    *
    * @example countStr(1, 'Track') // 1 Track
    */
-  countStr (n: number | undefined, singular: string, plural = singular + 's') {
+  countStr(n: number | undefined, singular: string, plural = singular + 's') {
     return `${helpers.intStr(n)} ${n === 1 ? singular : plural}`;
   },
-  intStr (n?: number) {
+  intStr(n?: number) {
     if (!n) {
       return 0
     }
@@ -596,7 +596,7 @@ const helpers = {
       si[index].s
     );
   },
-  formatBytes (bytes?: number, decimals: number = 2, bits: boolean = false) {
+  formatBytes(bytes?: number, decimals: number = 2, bits: boolean = false) {
     if (!bytes || !+bytes) return bits ? '0 B' : '0 Bytes'
 
     const k = bits ? 1000 : 1024
@@ -609,7 +609,7 @@ const helpers = {
 
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
   },
-  openFullscreen (el: string | Element) {
+  openFullscreen(el: string | Element) {
     const elem = typeof el === 'string' ? document.querySelector(el ?? '') : el;
     if (!el) {
       return false;
@@ -619,7 +619,7 @@ const helpers = {
       elem.requestFullscreen();
     }
   },
-  doter (obj: Record<string, string>, currentKey = '') {
+  doter(obj: Record<string, string>, currentKey = '') {
     const result: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(obj)) {
@@ -635,10 +635,10 @@ const helpers = {
 
     return result;
   },
-  currentUrl () {
+  currentUrl() {
     return location.href;
   },
-  arrayUnique (array: Record<string, string>[], prop = 'id') {
+  arrayUnique(array: Record<string, string>[], prop = 'id') {
     const set = new Set();
     return array.filter(i => !set.has(i[prop]) && set.add(i[prop]));
   },
@@ -657,3 +657,17 @@ export const formatBytes = helpers.formatBytes
 export const arrayUnique = helpers.arrayUnique
 export const timeAgoStamp = helpers.timeAgoStamp
 export const formatSeconds = helpers.formatSeconds
+
+export const randomUUID = (): `${string}-${string}-${string}-${string}-${string}` => {
+  if (!crypto.getRandomValues) return '' as never
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+
+  // Version 4 and the RFC 4122 variant
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}` as `${string}-${string}-${string}-${string}-${string}`;
+};

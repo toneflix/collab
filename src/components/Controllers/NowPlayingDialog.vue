@@ -46,33 +46,7 @@
             <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />
           </q-scroll-area>
           <q-scroll-area class="now-playing__list" v-else>
-            <q-list dark>
-              <q-item
-                clickable
-                :key="`${item.id}-${i}`"
-                :active="i === player.index"
-                active-class="now-playing__current"
-                :ref="(el) => i === player.index && (currentItem = el as unknown as { $el: HTMLElement })"
-                @click="player.jumpTo(i)"
-                v-for="(item, i) in player.ordered"
-              >
-                <q-item-section avatar>
-                  <div class="relative">
-                    <q-img no-spinner class="rounded bg-gray-700" width="40px" height="40px" :src="item.imageUrl" />
-                    <div class="now-playing__badge" v-if="i === player.index">
-                      <q-icon :name="player.playing ? 'lucide-pause:fill' : 'lucide-play:fill'" size="18px" />
-                    </div>
-                  </div>
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label lines="1" class="font-bold">{{ item.title }}</q-item-label>
-                  <q-item-label caption lines="1">{{ item.artist?.name || 'Unknown' }}</q-item-label>
-                </q-item-section>
-                <q-item-section side class="text-xs" v-if="item.duration">
-                  {{ formatSeconds(item.duration) }}
-                </q-item-section>
-              </q-item>
-            </q-list>
+            <QueueList ref="queueList" />
           </q-scroll-area>
         </div>
       </div>
@@ -81,10 +55,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
-import { formatSeconds } from 'src/utils/helpers';
+import { computed, ref, watch } from 'vue';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
+import QueueList from './QueueList.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
 
 /**
@@ -102,13 +76,11 @@ defineProps({
 
 const player = usePlayerStore();
 const track = computed<Track>(() => player.current || ({} as Track));
-const currentItem = ref<{ $el: HTMLElement } | null>(null);
+const queueList = ref<InstanceType<typeof QueueList> | null>(null);
 
 // Bring the playing track into view when the panel opens.
-watch([open, tab], async ([on, current]) => {
-  if (!on || current !== 'next') return;
-  await nextTick();
-  currentItem.value?.$el?.scrollIntoView({ block: 'center' });
+watch([open, tab], ([on, current]) => {
+  if (on && current === 'next') void queueList.value?.scrollToCurrent();
 });
 </script>
 
@@ -156,20 +128,5 @@ watch([open, tab], async ([on, current]) => {
 .now-playing__list {
   flex: 1 1 auto;
   min-height: 0;
-}
-
-:deep(.now-playing__current) {
-  background: rgba(255, 255, 255, 0.1);
-  color: #03bfff;
-}
-
-.now-playing__badge {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.55);
 }
 </style>

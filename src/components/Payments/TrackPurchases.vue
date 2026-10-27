@@ -73,7 +73,7 @@
           <q-item
             clickable
             :key="stem.id"
-            @click="downloadFile(stem.url, stem.title)"
+            @click="downloadFile(stem.url, stem.filename || stem.title)"
             v-for="stem in stems"
           >
             <q-item-section avatar>
@@ -148,7 +148,7 @@ const download = async () => {
   }
 };
 
-const stems = ref<{ id: number; title: string; size?: number; url: string }[]>(
+const stems = ref<{ id: number; title: string; filename?: string; size?: number; url: string }[]>(
   [],
 );
 const showStems = ref(false);

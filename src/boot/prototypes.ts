@@ -1,5 +1,11 @@
 import { defineBoot } from '#q-app';
- 
+import { randomUUID } from 'src/utils/helpers';
+
+// Browsers only give crypto.randomUUID to secure pages, so it is missing when
+// the app loads over plain http (live reload on a phone). The studio needs it.
+if (typeof crypto !== 'undefined' && typeof crypto.randomUUID !== 'function') {
+  crypto.randomUUID = randomUUID
+}
 
 String.prototype.slug = function (separator: string = '_') {
   const splitCaps = (string: string) => string

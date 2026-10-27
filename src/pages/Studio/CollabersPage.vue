@@ -8,7 +8,7 @@
         <q-banner
           inline-actions
           rounded
-          class="col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
+          class="md:col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
           v-if="!users.length"
         >
           <h3 class="text-3xl font-bold">
@@ -52,7 +52,7 @@
             />
           </q-item-section>
         </q-item>
-        <ListSkeleton class="col-span-2" :rows="4" v-if="fetching || loading" />
+        <ListSkeleton class="md:col-span-2" :rows="4" v-if="(fetching || loading) && !users.length" />
       </q-list>
     </div>
   </q-page>

@@ -1,28 +1,21 @@
 <template>
   <div class="profile-dropdown-wrapper">
-    <q-btn-dropdown
-      dense
-      rounded
-      no-caps
-      color="grey-9"
-      class="ml-1 sm:mx-2 header-avatar"
-      content-class="user-dropdown-content"
-      :menu-offset="[3, 2]"
-    >
-      <template v-slot:label>
-        <q-avatar clickable color="white" size="25px" v-if="user.id">
-          <img :src="user.imageUrl" />
-        </q-avatar>
-        <q-icon class="rounded-full bg-grey" v-else name="lucide-user" />
-        <span class="ml-2 mr-6 max-sm:hidden!">{{ user.fullname || 'Guest' }}</span>
-        <q-icon
-          name="lucide-crown"
-          color="amber-7"
-          size="12px"
-          class="-ml-5 mr-8 max-sm:hidden!"
-          v-if="user.badge"
-        />
-      </template>
+    <!-- The avatar and the menu: a dropdown on wider screens, a centred dialog on phones -->
+    <DefineLabel>
+      <q-avatar clickable color="white" size="25px" v-if="user.id">
+        <img :src="user.imageUrl" />
+      </q-avatar>
+      <q-icon class="rounded-full bg-grey" v-else name="lucide-user" />
+      <span class="ml-2 mr-6 max-sm:hidden!">{{ user.fullname || 'Guest' }}</span>
+      <q-icon
+        name="lucide-crown"
+        color="amber-7"
+        size="12px"
+        class="-ml-5 mr-8 max-sm:hidden!"
+        v-if="user.badge"
+      />
+    </DefineLabel>
+    <DefineMenu>
       <div class="q-pa-md">
         <div class="column">
           <q-list class="user-dropdown">
@@ -83,14 +76,43 @@
           </q-list>
         </div>
       </div>
+    </DefineMenu>
+
+    <q-btn-dropdown
+      dense
+      rounded
+      no-caps
+      color="grey-9"
+      class="ml-1 sm:mx-2 header-avatar"
+      content-class="user-dropdown-content"
+      :menu-offset="[3, 2]"
+      v-if="!$q.screen.lt.sm"
+    >
+      <template v-slot:label>
+        <ReuseLabel />
+      </template>
+      <ReuseMenu />
     </q-btn-dropdown>
+
+    <template v-else>
+      <q-btn dense rounded no-caps color="grey-9" class="ml-1 header-avatar" aria-label="Your account" @click="menuOpen = true">
+        <ReuseLabel />
+      </q-btn>
+      <q-dialog v-model="menuOpen">
+        <!-- Any choice in the menu closes it -->
+        <q-card dark class="user-dropdown-content profile-dialog" @click="menuOpen = false">
+          <ReuseMenu />
+        </q-card>
+      </q-dialog>
+    </template>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { allowedAdminLinks } from 'src/utils/navigations';
-import { computed } from 'vue';
+import { createReusableTemplate } from '@vueuse/core';
+import { computed, ref } from 'vue';
 import { RouteLocationRaw } from 'vue-router';
 
 type ProfileListItem = {
@@ -108,6 +130,11 @@ type ProfileOptions = {
 };
 
 const user = computed(() => useBootstrapStore().user);
+
+const [DefineLabel, ReuseLabel] = createReusableTemplate();
+const [DefineMenu, ReuseMenu] = createReusableTemplate();
+/** The menu's dialog, on phones */
+const menuOpen = ref(false);
 const options = computed<ProfileOptions[]>(() =>
   [
     {
@@ -207,6 +234,14 @@ const options = computed<ProfileOptions[]>(() =>
 </script>
 
 <style lang="scss">
+/* Phones: the menu in a centred dialog, scrolling if the screen is short */
+.profile-dialog {
+  width: min(92vw, 360px);
+  max-height: 85dvh;
+  overflow-y: auto;
+  background: var(--tf-surface-1);
+}
+
 .profile-dropdown {
   cursor: pointer;
 

@@ -91,11 +91,35 @@
   }
 }
 
+// Full screen with the camera hole in the middle of the top edge: the header
+// moves up into the strip beside the hole (see utils/native-screen.ts).
+body.q-safe-area-padding.cutout-centre {
+  --q-safe-area-inset-top: 0px;
+}
+
+// The search field runs across the middle, so it stays below the hole
+body.q-safe-area-padding.cutout-centre .q-layout--standard .q-header.header--wide > .q-toolbar:nth-child(1) {
+  padding-top: var(--tf-cutout-bottom);
+  min-height: calc(var(--tf-cutout-bottom) + 50px);
+}
+
 // Phones show only the avatar, so the arrow would sit on top of it
 @media (max-width: 639.98px) {
   .header-avatar .q-btn-dropdown__arrow {
     display: none;
   }
+}
+
+// The app draws behind the gesture bar, so the footer (player, tabs, or
+// nothing) keeps its content above it
+.q-footer {
+  padding-bottom: var(--q-safe-area-inset-bottom, 0px);
+}
+
+// Focus outlines only for keyboard navigation (see utils/input-modality.ts)
+html:not(.keyboard-nav) :focus,
+html:not(.keyboard-nav) :focus-visible {
+  outline: none !important;
 }
 
 // Player bar

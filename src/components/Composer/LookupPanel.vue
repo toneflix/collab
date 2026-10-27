@@ -1,5 +1,5 @@
 <template>
-  <ComposerSheet title="Lookup" :caption="caption" :dock="dock" v-model="open">
+  <ComposerSheet overlay title="Lookup" :caption="caption" :dock="dock" v-model="open">
     <template #top>
       <div class="px-8 pt-4">
         <q-input

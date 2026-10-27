@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr fFf">
     <!-- lHh Lpr lff -->
-    <q-header class="text-white bg-dark">
+    <q-header class="text-white bg-dark" :class="{ 'header--wide': isSearchRoute }">
       <q-toolbar>
         <q-btn
           flat
@@ -61,17 +61,7 @@
 
         <q-space />
 
-        <q-btn
-          flat
-          round
-          class="flex-none! sm:hidden!"
-          aria-label="Search"
-          :to="{ name: 'search' }"
-          v-if="!isSearchRoute"
-        >
-          <q-icon name="lucide-search" size="20px" />
-        </q-btn>
-
+        <!-- Phones search from the Explore tab, which keeps the header clear of the camera -->
         <q-btn
           flat
           round
@@ -266,7 +256,7 @@
       <!-- On phones the player bar only shows once something is queued -->
       <AudioPlayer :class="{ 'max-sm:hidden!': !hasTrack }" v-if="!$route.meta.hidePlayer" />
       <!-- Phones get tabs instead of the side menu -->
-      <BottomNav v-if="!adminMenu" />
+      <BottomNav v-if="!adminMenu && !$route.meta.hideTabs" />
     </q-footer>
   </q-layout>
 </template>
@@ -278,7 +268,7 @@ import BottomNav from 'src/components/Controllers/BottomNav.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
 import { useNotificationStore } from 'src/stores/notification-store';
@@ -353,11 +343,26 @@ const router = useRouter();
 
 const isSearchRoute = computed(() => route.name === 'search');
 
+/** History position of the search page when it was opened from another page. */
+let searchStart: number | null = null;
+const stopTrackingSearch = router.afterEach((to, from) => {
+  if (typeof window !== 'undefined' && to.name === 'search' && from.name !== 'search') {
+    const position = window.history.state?.position;
+    searchStart = typeof position === 'number' ? position : null;
+  }
+});
+onBeforeUnmount(stopTrackingSearch);
+
+/** Leaves search for the page it was opened from, past every query typed since. */
 const closeSearch = () => {
   if (!isSearchRoute.value) {
     showSearch.value = false;
-  } else if (window.history.state?.back) {
-    router.back();
+    return;
+  }
+
+  const position = window.history.state?.position;
+  if (searchStart && typeof position === 'number') {
+    router.go(searchStart - 1 - position);
   } else {
     void router.push({ name: 'home' });
   }
@@ -370,7 +375,14 @@ const hasTrack = computed(() => mounted.value && !!player.current?.id);
 
 const search = () => {
   const q = searchText.value.trim();
-  if (q) void router.push({ name: 'search', query: { q } });
+  if (!q) return;
+  if (route.name === 'search') {
+    // Another query on the search page keeps its filters and replaces the last
+    // one, so back and close don't step through every query
+    void router.replace({ name: 'search', query: { ...route.query, q } });
+  } else {
+    void router.push({ name: 'search', query: { q } });
+  }
 };
 
 // Show what was searched for while on the results.

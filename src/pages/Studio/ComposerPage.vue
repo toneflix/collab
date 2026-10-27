@@ -84,7 +84,7 @@
         </router-link>
       </div>
 
-      <ListSkeleton avatar="square" :rows="4" v-if="loading" />
+      <ListSkeleton avatar="square" :rows="4" v-if="loading && !songs.length" />
     </div>
   </q-page>
 </template>

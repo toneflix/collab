@@ -1,7 +1,7 @@
 <template>
-  <div class="simple-info">
+  <div class="simple-info" :class="{ 'simple-info--dense': dense }">
     <div class="simple-info__icon">
-      <q-icon :name="icon" size="22px" />
+      <q-icon :name="icon" :size="dense ? '18px' : '22px'" />
     </div>
     <div class="simple-info__text">
       {{ text }}
@@ -21,6 +21,8 @@ withDefaults(
   defineProps<{
     text?: string;
     icon?: string;
+    /** One compact row, for empty sections inside a page. */
+    dense?: boolean;
   }>(),
   { icon: 'lucide-inbox' },
 );
@@ -59,6 +61,29 @@ withDefaults(
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
+  }
+
+  &--dense {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 10px 12px;
+    text-align: left;
+
+    .simple-info__icon {
+      flex: none;
+      width: 36px;
+      height: 36px;
+    }
+
+    .simple-info__text {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      max-width: none;
+    }
   }
 }
 </style>

@@ -1,5 +1,16 @@
 <template>
   <ComposerSheet title="How Composer works" caption="Tips for writing, marking sections and using AI." :dock="dock" v-model="open">
+    <!-- The toolbar buttons, so the icons are easy to learn (phones show icons only) -->
+    <section class="help__section">
+      <div class="help__label">Toolbar</div>
+      <div class="help__tools">
+        <template :key="tool.name" v-for="tool in tools">
+          <span class="help__icon"><q-icon :name="tool.icon" size="16px" /></span>
+          <span><b>{{ tool.name }}</b> {{ tool.what }}</span>
+        </template>
+      </div>
+    </section>
+
     <section class="help__section">
       <div class="help__label">Sections</div>
       <p>
@@ -24,7 +35,7 @@
       <ul>
         <li>The number beside each line is its syllable count. Keep paired lines close to flow on the same beat.</li>
         <li>
-          Rhyme colours (the palette button) colour words that share an end sound. Little words like "the" stay plain
+          Rhyme colours (<q-icon name="lucide-palette" size="14px" />) colour words that share an end sound. Little words like "the" stay plain
           unless they end a line.
         </li>
         <li>The strip above the lyrics lists rhymes for the last word of your line, or the line above when yours is empty. Click one to add it.</li>
@@ -33,7 +44,7 @@
     </section>
 
     <section class="help__section">
-      <div class="help__label">Lookup</div>
+      <div class="help__label"><q-icon name="lucide-search" size="13px" /> Lookup</div>
       <p>
         Find rhymes (perfect, near, sounds like and multi-syllable), related words and meanings. With Lookup open, click
         any word in your lyrics to look it up.
@@ -41,7 +52,7 @@
     </section>
 
     <section class="help__section">
-      <div class="help__label">Write with AI</div>
+      <div class="help__label"><q-icon name="lucide-sparkles" size="13px" /> Write with AI</div>
       <ul>
         <li>Ask for the next line, the next four lines, a verse or another take on the line your cursor is on. Each ask costs credits.</li>
         <li>Steer it with a few words, like "about leaving home".</li>
@@ -52,7 +63,7 @@
     </section>
 
     <section class="help__section">
-      <div class="help__label">Saving and versions</div>
+      <div class="help__label"><q-icon name="lucide-clock" size="13px" /> Saving and versions</div>
       <ul>
         <li>Changes stay on this device until you press Save or <kbd>{{ mod }}</kbd>+<kbd>S</kbd>.</li>
         <li>Leaving with unsaved changes asks you to save first. If you don't, you can restore them the next time you open the composition here.</li>
@@ -61,7 +72,7 @@
     </section>
 
     <section class="help__section">
-      <div class="help__label">Notes, beat and projects</div>
+      <div class="help__label"><q-icon name="lucide-file-text" size="13px" /> Notes, beat and projects</div>
       <ul>
         <li>Notes holds the BPM, key, a beat to write to and a scratchpad. With a BPM set, the top line shows how long the composition runs.</li>
         <li>Add to a project turns the composition into a track with its lyric sheet, on a new project or one you own or collaborate on, and AI can sing it. After that, every save that changes the lyrics updates the sheet too.</li>
@@ -89,6 +100,20 @@ defineProps<{ dock?: string }>();
 const emit = defineEmits<{ section: [tag: string] }>();
 
 const open = defineModel<boolean>({ default: false });
+
+/** Same icons, in the same order, as the toolbar on the page. */
+const tools = [
+  { icon: 'lucide-save', name: 'Save', what: 'keeps your changes. They stay on this device until you do.' },
+  { icon: 'lucide-play:fill', name: 'Play beat', what: 'plays the beat from Notes while you write. It shows once a beat is added.' },
+  { icon: 'lucide-palette', name: 'Rhyme colours', what: 'colours words that rhyme.' },
+  { icon: 'lucide-sparkles', name: 'Write with AI', what: 'gives ideas for your next lines.' },
+  { icon: 'lucide-globe', name: 'Artwork and publishing', what: 'adds a cover and shares the composition.' },
+  { icon: 'lucide-library', name: 'Add to a project', what: 'turns it into a track, or opens its project.' },
+  { icon: 'lucide-search', name: 'Lookup', what: 'finds rhymes, related words and meanings.' },
+  { icon: 'lucide-file-text', name: 'Notes', what: 'holds the BPM, key, beat and a scratchpad.' },
+  { icon: 'lucide-clock', name: 'Versions', what: 'keeps earlier copies you can go back to.' },
+  { icon: 'lucide-info', name: 'How it works', what: 'opens this guide.' },
+];
 
 const tags = ['[Intro]', '[Verse]', '[Pre-Hook]', '[Hook]', '[Bridge]', '[Outro]'];
 
@@ -156,6 +181,33 @@ const shortcuts = computed(() => [
   &:hover {
     border-color: rgba(244, 201, 93, 0.6);
   }
+}
+
+.help__tools {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 10px;
+  align-items: start;
+
+  b {
+    color: #e6e8ec;
+    font-weight: 600;
+  }
+}
+
+.help__icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #e6e8ec;
+}
+
+.help__label .q-icon {
+  margin-top: -2px;
+  margin-right: 2px;
 }
 
 .help__keys {

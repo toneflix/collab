@@ -20,7 +20,7 @@
         />
       </div>
 
-      <BlockSkeleton variant="stats" :count="3" v-if="loading" />
+      <BlockSkeleton variant="stats" :count="3" v-if="loading && !plans.length" />
 
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <q-card

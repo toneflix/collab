@@ -1,5 +1,5 @@
 import type { Router } from 'vue-router'
-import { Capacitor } from '@capacitor/core'
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import { PushNotifications, type Channel } from '@capacitor/push-notifications'
 import { AuthSession } from 'src/utils/auth-session'
 import type { PushDevice, PushPermission } from 'src/utils/push'
@@ -8,6 +8,9 @@ import {
   saveDeviceTokenRequest,
   type NotificationSettings,
 } from 'src/utils/requests/notifications'
+
+/** Our own native check, in MainActivity's PushSupportPlugin. */
+const PushSupport = registerPlugin<{ available (): Promise<{ value: boolean }> }>('PushSupport')
 
 /**
  * Push for the installed app through Firebase Cloud Messaging. Android shows
@@ -105,7 +108,8 @@ export class NativePush implements PushDevice {
    */
   static async sync () {
     try {
-      if (NativePush.read(NativePush.offKey)) return
+      // Don't ask for permission when push can't work in this build
+      if (NativePush.read(NativePush.offKey) || !(await NativePush.supported())) return
 
       const device = new NativePush()
       let permission = await device.permission()
@@ -142,14 +146,34 @@ export class NativePush implements PushDevice {
 
     const response = await deleteDeviceTokenRequest(token).send()
 
-    await PushNotifications.unregister()
+    if (await NativePush.supported()) {
+      await PushNotifications.unregister()
+    }
     NativePush.store(null)
 
     return response
   }
 
+  private static supportCheck?: Promise<boolean>
+
+  /**
+   * Whether this build has Firebase. Builds made without google-services.json
+   * don't, and registering there crashes the app instead of failing.
+   */
+  static supported (): Promise<boolean> {
+    NativePush.supportCheck ??= PushSupport.available()
+      .then(({ value }) => value)
+      .catch(() => false)
+
+    return NativePush.supportCheck
+  }
+
   /** Registers with Firebase and resolves with this device's token. */
   static async register (ms = 20000): Promise<string> {
+    if (!(await NativePush.supported())) {
+      throw new Error('Push notifications aren\'t set up in this build of the app.')
+    }
+
     let resolve: (token: string) => void = () => undefined
     let reject: (error: Error) => void = () => undefined
 

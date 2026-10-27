@@ -1,5 +1,9 @@
 <template>
   <q-page padding>
+    <router-link class="explore-search sm:hidden!" :to="{ name: 'search' }">
+      <q-icon name="lucide-search" size="20px" />
+      Search songs, lyrics and creators
+    </router-link>
     <ChipNav label="Browse" :links="browseLinks" />
     <div class="flex flex-col justify-center" :class="{ 'min-h-[60vh]': !loading }" v-if="empty">
       <OopsAlert />
@@ -188,3 +192,18 @@ const categories = reactive({
   ],
 });
 </script>
+
+<style lang="scss" scoped>
+/* Phones search from here; it opens the search page */
+.explore-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  color: var(--tf-text-muted);
+  border-radius: 999px;
+  background: var(--tf-surface-2);
+}
+</style>

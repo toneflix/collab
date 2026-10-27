@@ -8,8 +8,8 @@
   >
     <!-- Transport, editing and zoom -->
     <div class="stem-editor__toolbar">
-      <div class="stem-editor__group">
-        <IconBtn icon="lucide-skip-back:fill" aria-label="Back to start" :disable="!ready" @click="toStart">
+      <div class="stem-editor__group stem-editor__core">
+        <IconBtn icon="lucide-skip-back:fill" aria-label="Back to start" class="max-sm:hidden!" :disable="!ready" @click="toStart">
           <q-tooltip>Back to start</q-tooltip>
         </IconBtn>
         <q-btn
@@ -40,38 +40,11 @@
           <q-tooltip>{{ recording ? 'Stop recording' : canRecord ? 'Record from your microphone onto a new stem' : 'This browser can\'t record' }}</q-tooltip>
         </IconBtn>
         <div class="stem-editor__clock" aria-live="off">
-          {{ formatClock(time) }} <span class="text-grey-6">/ {{ formatClock(duration) }}</span>
+          {{ formatClock(time) }} <span class="text-grey-6 max-sm:hidden">/ {{ formatClock(duration) }}</span>
         </div>
-        <IconBtn
-          icon="lucide-repeat"
-          :class="{ 'text-toneflix': loop }"
-          :aria-label="loop ? 'Stop looping the selection' : 'Loop the selection'"
-          :disable="!ready || !hasSelection"
-          @click="toggleLoop"
-        >
-          <q-tooltip>{{ hasSelection ? (loop ? 'Looping the selection' : 'Loop the selection') : 'Drag across the timeline to select a part to loop' }}</q-tooltip>
-        </IconBtn>
-        <IconBtn
-          icon="lucide-message-circle-more"
-          aria-label="Message about the selected part"
-          :disable="!ready || !hasSelection"
-          @click="messageAboutSelection"
-          v-if="commentable"
-        >
-          <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
-        </IconBtn>
-        <IconBtn
-          icon="lucide-wand-sparkles"
-          aria-label="Edit the selected part with AI"
-          :disable="!ready || !hasSelection"
-          @click="editSelection"
-          v-if="aiEditable && !readonly"
-        >
-          <q-tooltip>{{ hasSelection ? 'Edit this part with AI' : 'Drag across a stem to select a part to change with AI' }}</q-tooltip>
-        </IconBtn>
       </div>
 
-      <div class="stem-editor__group" v-if="!readonly">
+      <div class="stem-editor__group stem-editor__edit" v-if="!readonly">
         <IconBtn icon="lucide-scissors" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
           <q-tooltip>Split the selected stem at the playhead (S)</q-tooltip>
         </IconBtn>
@@ -83,161 +56,218 @@
         </IconBtn>
       </div>
 
-      <div class="stem-editor__group stem-editor__tempo">
-        <label class="tempo-field">
-          <span class="sr-only">Tempo in beats per minute</span>
-          <input
-            type="number"
-            inputmode="decimal"
-            min="20"
-            max="300"
-            step="1"
-            aria-label="Tempo (BPM)"
-            :value="tempo"
-            :disabled="!ready || readonly || recording"
-            @change="onTempoInput"
-            @keydown.stop
+      <IconBtn
+        icon="lucide-ellipsis"
+        class="stem-editor__more-btn sm:hidden!"
+        aria-label="More editor tools"
+        :aria-expanded="moreOpen"
+        @click="moreOpen = true"
+      />
+
+      <!-- Tempo, grid, zoom and master: inline on wider screens, a sheet on phones -->
+      <DefineTools>
+        <div class="stem-editor__group stem-editor__selection">
+          <IconBtn
+            icon="lucide-skip-back:fill"
+            class="sm:hidden!"
+            aria-label="Back to start"
+            :disable="!ready"
+            @click="toStart"
           />
-          <span class="text-grey-5">BPM</span>
-          <q-tooltip>The track's tempo, for the beat grid, metronome and instruments</q-tooltip>
-        </label>
-        <q-select
-          dense
-          borderless
-          dark
-          options-dense
-          class="meter-select"
-          aria-label="Time signature"
-          :options="TIME_SIGNATURES"
-          :model-value="meter"
-          :disable="!ready || readonly || recording"
-          @update:model-value="setMeter"
-        />
-        <IconBtn
-          icon="lucide-grid-3x3"
-          :class="{ 'text-toneflix': grid }"
-          :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
-          :aria-pressed="grid"
-          :disable="!ready"
-          @click="setGrid(!grid)"
-        >
-          <q-tooltip>{{ grid ? 'Hide the beat grid' : 'Show bars and beats, and snap clips to them' }}</q-tooltip>
-        </IconBtn>
-        <q-select
-          dense
-          borderless
-          dark
-          options-dense
-          emit-value
-          map-options
-          class="snap-select"
-          aria-label="Snap to"
-          :options="SNAP_OPTIONS"
-          :model-value="snap"
-          @update:model-value="setSnap"
-          v-if="grid"
-        >
-          <q-tooltip>What clips snap to when you move them</q-tooltip>
-        </q-select>
-        <IconBtn
-          icon="lucide-timer"
-          :class="{ 'text-toneflix': metronome }"
-          :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
-          :aria-pressed="metronome"
-          :disable="!ready"
-          @click="setMetronome(!metronome)"
-        >
-          <q-tooltip>Metronome {{ metronome ? 'on' : 'off' }}</q-tooltip>
-        </IconBtn>
-        <IconBtn
-          icon="lucide-hourglass"
-          :class="{ 'text-toneflix': countIn }"
-          :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
-          :aria-pressed="countIn"
-          :disable="!ready"
-          @click="setCountIn(!countIn)"
-          v-if="!readonly"
-        >
-          <q-tooltip>Count in one bar before recording: {{ countIn ? 'on' : 'off' }}</q-tooltip>
-        </IconBtn>
-      </div>
+          <IconBtn
+            icon="lucide-repeat"
+            :class="{ 'text-toneflix': loop }"
+            :aria-label="loop ? 'Stop looping the selection' : 'Loop the selection'"
+            :disable="!ready || !hasSelection"
+            @click="toggleLoop"
+          >
+            <q-tooltip>{{ hasSelection ? (loop ? 'Looping the selection' : 'Loop the selection') : 'Drag across the timeline to select a part to loop' }}</q-tooltip>
+          </IconBtn>
+          <IconBtn
+            icon="lucide-message-circle-more"
+            aria-label="Message about the selected part"
+            :disable="!ready || !hasSelection"
+            @click="messageAboutSelection"
+            v-if="commentable"
+          >
+            <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
+          </IconBtn>
+          <IconBtn
+            icon="lucide-wand-sparkles"
+            aria-label="Edit the selected part with AI"
+            :disable="!ready || !hasSelection"
+            @click="editSelection"
+            v-if="aiEditable && !readonly"
+          >
+            <q-tooltip>{{ hasSelection ? 'Edit this part with AI' : 'Drag across a stem to select a part to change with AI' }}</q-tooltip>
+          </IconBtn>
+        </div>
 
-      <div class="stem-editor__group">
-        <IconBtn icon="lucide-minus" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
-          <q-tooltip>Zoom out</q-tooltip>
-        </IconBtn>
-        <IconBtn icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
-          <q-tooltip>Fit everything on screen</q-tooltip>
-        </IconBtn>
-        <IconBtn icon="lucide-plus" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
-          <q-tooltip>Zoom in</q-tooltip>
-        </IconBtn>
-        <IconBtn
-          icon="lucide-locate"
-          :class="{ 'text-toneflix': follow }"
-          :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
-          :aria-pressed="follow"
-          :disable="!ready"
-          @click="setFollow(!follow)"
-        >
-          <q-tooltip>{{ follow ? 'Following the playhead while it plays' : 'Follow the playhead while it plays' }}</q-tooltip>
-        </IconBtn>
-      </div>
+        <div class="stem-editor__group stem-editor__tempo">
+          <label class="tempo-field">
+            <span class="sr-only">Tempo in beats per minute</span>
+            <input
+              type="number"
+              inputmode="decimal"
+              min="20"
+              max="300"
+              step="1"
+              aria-label="Tempo (BPM)"
+              :value="tempo"
+              :disabled="!ready || readonly || recording"
+              @change="onTempoInput"
+              @keydown.stop
+            />
+            <span class="text-grey-5">BPM</span>
+            <q-tooltip>The track's tempo, for the beat grid, metronome and instruments</q-tooltip>
+          </label>
+          <q-select
+            dense
+            borderless
+            dark
+            options-dense
+            class="meter-select"
+            aria-label="Time signature"
+            :options="TIME_SIGNATURES"
+            :model-value="meter"
+            :disable="!ready || readonly || recording"
+            @update:model-value="setMeter"
+          />
+          <IconBtn
+            icon="lucide-grid-3x3"
+            :class="{ 'text-toneflix': grid }"
+            :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
+            :aria-pressed="grid"
+            :disable="!ready"
+            @click="setGrid(!grid)"
+          >
+            <q-tooltip>{{ grid ? 'Hide the beat grid' : 'Show bars and beats, and snap clips to them' }}</q-tooltip>
+          </IconBtn>
+          <q-select
+            dense
+            borderless
+            dark
+            options-dense
+            emit-value
+            map-options
+            class="snap-select"
+            aria-label="Snap to"
+            :options="SNAP_OPTIONS"
+            :model-value="snap"
+            @update:model-value="setSnap"
+            v-if="grid"
+          >
+            <q-tooltip>What clips snap to when you move them</q-tooltip>
+          </q-select>
+          <IconBtn
+            icon="lucide-timer"
+            :class="{ 'text-toneflix': metronome }"
+            :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
+            :aria-pressed="metronome"
+            :disable="!ready"
+            @click="setMetronome(!metronome)"
+          >
+            <q-tooltip>Metronome {{ metronome ? 'on' : 'off' }}</q-tooltip>
+          </IconBtn>
+          <IconBtn
+            icon="lucide-hourglass"
+            :class="{ 'text-toneflix': countIn }"
+            :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
+            :aria-pressed="countIn"
+            :disable="!ready"
+            @click="setCountIn(!countIn)"
+            v-if="!readonly"
+          >
+            <q-tooltip>Count in one bar before recording: {{ countIn ? 'on' : 'off' }}</q-tooltip>
+          </IconBtn>
+        </div>
 
-      <div class="stem-editor__group stem-editor__master">
-        <q-btn
-          outline
-          rounded
-          dense
-          no-caps
-          size="sm"
-          color="grey-4"
-          class="flex-none! px-2 mr-1"
-          icon="lucide-sliders-horizontal"
-          :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
-          :disable="!ready"
-          @click="masterEffectsOpen = true"
-        >
-          <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
-        </q-btn>
-        <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
-        <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="flex-none!" />
-        <q-slider
-          dense
-          color="toneflix"
-          track-size="3px"
-          thumb-size="12px"
-          :min="0"
-          :max="100"
-          :model-value="masterVolume"
-          :disable="!ready"
-          aria-label="Master volume"
-          @update:model-value="setMasterVolume"
-        />
-        <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:hidden!">
-          <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
-            <div class="mb-2 font-bold">Using the editor</div>
-            <ul class="pl-8 space-y-1 text-sm list-disc">
-              <li><b>Space</b> plays and pauses.</li>
-              <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
-              <li v-if="!readonly">Drag a stem's clip to move it. Drag its edges to trim it.</li>
-              <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
-              <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
-              <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes.</li>
-              <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
-              <li v-if="!readonly">Drag a stem's grip, or use its arrows, to move it up or down.</li>
-              <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
-              <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
-              <li><b>+ −</b> zoom, <b>0</b> fits, <b>L</b> loops the selection, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
-              <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
-            </ul>
-          </q-menu>
-        </IconBtn>
+        <div class="stem-editor__group stem-editor__zoom">
+          <IconBtn icon="lucide-minus" aria-label="Zoom out" :disable="!ready || zoom >= zoomLevels.length - 1" @click="setZoom(zoom + 1)">
+            <q-tooltip>Zoom out</q-tooltip>
+          </IconBtn>
+          <IconBtn icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
+            <q-tooltip>Fit everything on screen</q-tooltip>
+          </IconBtn>
+          <IconBtn icon="lucide-plus" aria-label="Zoom in" :disable="!ready || zoom <= 0" @click="setZoom(zoom - 1)">
+            <q-tooltip>Zoom in</q-tooltip>
+          </IconBtn>
+          <IconBtn
+            icon="lucide-locate"
+            :class="{ 'text-toneflix': follow }"
+            :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
+            :aria-pressed="follow"
+            :disable="!ready"
+            @click="setFollow(!follow)"
+          >
+            <q-tooltip>{{ follow ? 'Following the playhead while it plays' : 'Follow the playhead while it plays' }}</q-tooltip>
+          </IconBtn>
+        </div>
+
+        <div class="stem-editor__group stem-editor__master">
+          <q-btn
+            outline
+            rounded
+            dense
+            no-caps
+            size="sm"
+            color="grey-4"
+            class="flex-none! px-2 mr-1"
+            icon="lucide-sliders-horizontal"
+            :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
+            :disable="!ready"
+            @click="masterEffectsOpen = true"
+          >
+            <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
+          </q-btn>
+          <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
+          <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="flex-none!" />
+          <q-slider
+            dense
+            color="toneflix"
+            track-size="3px"
+            thumb-size="12px"
+            :min="0"
+            :max="100"
+            :model-value="masterVolume"
+            :disable="!ready"
+            aria-label="Master volume"
+            @update:model-value="setMasterVolume"
+          />
+          <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:hidden!">
+            <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
+              <div class="mb-2 font-bold">Using the editor</div>
+              <ul class="pl-8 space-y-1 text-sm list-disc">
+                <li><b>Space</b> plays and pauses.</li>
+                <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
+                <li v-if="!readonly">Drag a stem's clip to move it. Drag its edges to trim it.</li>
+                <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
+                <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
+                <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes.</li>
+                <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
+                <li v-if="!readonly">Drag a stem's grip, or use its arrows, to move it up or down.</li>
+                <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
+                <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
+                <li><b>+ −</b> zoom, <b>0</b> fits, <b>L</b> loops the selection, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
+                <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
+              </ul>
+            </q-menu>
+          </IconBtn>
+        </div>
+      </DefineTools>
+      <div class="stem-editor__more" v-if="!compact">
+        <ReuseTools />
       </div>
+      <AppSheet title="Editor tools" v-model="moreOpen" v-else>
+        <div class="stem-editor__sheet">
+          <ReuseTools />
+        </div>
+      </AppSheet>
     </div>
 
     <!-- Fades for the selected stem. Always shown, so the timeline doesn't jump. -->
-    <div class="stem-editor__selected" v-if="!readonly">
+    <!-- Phones only show it once a stem is picked -->
+    <div class="stem-editor__selected" :class="{ 'max-sm:hidden!': !selected }" v-if="!readonly">
       <template v-if="selected">
         <div class="flex items-center gap-2 flex-none! max-w-48">
           <button
@@ -455,6 +485,8 @@ import { flacOf, printKey, printStem } from 'src/utils/studio/print';
 import { parsePattern } from 'src/utils/studio/instruments';
 import { patchTrackControls, stemColor, STEM_COLORS, TrackLook } from 'src/utils/studio/track-look';
 import { useQuasar } from 'quasar';
+import { createReusableTemplate } from '@vueuse/core';
+import AppSheet from 'src/components/Controllers/AppSheet.vue';
 import { usePlayerStore } from 'src/stores/player-store';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
@@ -521,6 +553,13 @@ const emit = defineEmits<{
 }>();
 
 const $q = useQuasar();
+/** Phones keep one row of controls and put the rest in a sheet. */
+const compact = computed(() => $q.screen.width < 640);
+const moreOpen = ref(false);
+const [DefineTools, ReuseTools] = createReusableTemplate();
+watch(compact, (on) => {
+  if (!on) moreOpen.value = false;
+});
 const host = ref<HTMLElement>();
 const editor = shallowRef<DawEditorElement>();
 let adapter: NativePlayoutAdapter | null = null;
@@ -2194,8 +2233,92 @@ defineExpose({
     min-height: 160px;
   }
 
+  /* Groups keep their order on wider screens, where the "more" wrapper is see-through */
+  &__core {
+    order: 1;
+  }
+
+  &__selection {
+    order: 2;
+  }
+
+  &__edit {
+    order: 3;
+  }
+
   &__tempo {
+    order: 4;
     gap: 2px;
+  }
+
+  &__zoom {
+    order: 5;
+  }
+
+  &__master {
+    order: 6;
+  }
+
+  &__more {
+    display: contents;
+  }
+
+  /* The same groups inside the phone sheet */
+  &__sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .stem-editor__group {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .stem-editor__master {
+      margin-left: 0;
+
+      .q-slider {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 120px;
+      }
+    }
+  }
+
+  /* Phones: one row of transport and editing, the rest in a sheet */
+  @media (max-width: 639.98px) {
+    &__toolbar {
+      flex-wrap: nowrap;
+      gap: 2px;
+      padding: 4px 6px;
+    }
+
+    &__clock {
+      min-width: 0;
+      margin: 0 4px;
+      font-size: 0.85rem;
+    }
+
+    &__edit {
+      gap: 0;
+    }
+
+    &__more-btn {
+      order: 7;
+      margin-left: auto;
+    }
+
+    &__selected {
+      flex-wrap: nowrap;
+      gap: 12px;
+      min-height: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+
+      > * {
+        flex: none;
+      }
+    }
   }
 
   &__recording {
