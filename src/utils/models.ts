@@ -170,6 +170,7 @@ export type Configuration = {
   premium_yearly_price: number;
   min_tip_amount: number;
   creator_share: number;
+  account_deletion_days?: number;
   free_max_projects: number;
   premium_max_projects: number;
   free_max_collaborators: number;

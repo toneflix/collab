@@ -37,3 +37,22 @@ export const updateAvatarRequest = (image: File) => {
 
   return request
 }
+
+export type DeactivationResult = {
+  deactivated: boolean;
+  deletesAt: string | null;
+}
+
+/**
+ * Hide the signed-in account and sign it out everywhere. Signing in again
+ * brings it back.
+ */
+export const deactivateAccountRequest = (password: string) =>
+  alova.Post<ResponseBody<DeactivationResult>>('account/deactivate', { password })
+
+/**
+ * Deactivate the signed-in account and erase it after the grace period,
+ * unless its owner signs in before then.
+ */
+export const deleteAccountRequest = (password: string) =>
+  alova.Post<ResponseBody<DeactivationResult>>('account/delete', { password })

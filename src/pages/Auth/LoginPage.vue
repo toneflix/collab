@@ -4,6 +4,7 @@
     <p class="auth-subtitle" v-if="t('subtitle')">{{ t('subtitle') }}</p>
 
     <q-form class="auth-form" @submit="send">
+      <AuthFormError :error="error" />
       <div>
         <label class="auth-label" for="login-email">{{ t('email_label') }}</label>
         <q-input
@@ -60,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import AuthFormError from 'src/components/Auth/AuthFormError.vue';
 import { computed } from 'vue';
 import { useMeta } from 'quasar';
 import { useForm } from 'alova/client';

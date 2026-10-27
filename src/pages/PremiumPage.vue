@@ -45,12 +45,13 @@
         </q-btn-toggle>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Grid-width cards in a wrapping row, so a row that isn't full sits in the middle -->
+      <div class="flex flex-wrap justify-center gap-4">
         <q-card
           flat
           bordered
           :key="plan.id"
-          class="flex flex-col bg-dark"
+          class="flex flex-col bg-dark w-full md:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
           :class="{ 'border-amber-7!': plan.id === current?.id }"
           v-for="{ plan, option } in shownPlans"
         >

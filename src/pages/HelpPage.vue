@@ -105,6 +105,9 @@ const email = computed(() =>
 );
 const discord = computed(() => String(boot.configuration.discord_url || ''));
 const share = computed(() => Number(boot.configuration.creator_share || 85));
+const deletionDays = computed(
+  () => Number(boot.configuration.account_deletion_days) || 30,
+);
 
 const faq = computed(() => [
   {
@@ -206,6 +209,32 @@ const faq = computed(() => [
       {
         q: 'How do I withdraw my earnings?',
         a: 'Add a payout account on the Earnings page, then withdraw. The payment provider depends on your country.',
+      },
+    ],
+  },
+  {
+    title: 'Your account',
+    icon: 'lucide-circle-user',
+    items: [
+      {
+        q: 'How do I take a break from Toneflix Music?',
+        a: 'Deactivate your account from the Danger zone at the bottom of Settings. You are signed out on every device, and your profile, releases, projects and comments are hidden from everyone. Nothing is deleted.',
+      },
+      {
+        q: 'How do I come back after deactivating?',
+        a: 'Sign in with your email and password. Your account and everything in it comes back straight away.',
+      },
+      {
+        q: 'How do I delete my account?',
+        a: `Choose Delete account in the Danger zone at the bottom of Settings. Your account is deactivated straight away, and if you don't sign in within ${deletionDays.value} days, it is erased for good along with your releases, projects and artist profiles.`,
+      },
+      {
+        q: 'I deleted my account by mistake. Can I get it back?',
+        a: `Yes, if you sign in within ${deletionDays.value} days of deleting it. Signing in cancels the deletion. After that, the account can't be recovered.`,
+      },
+      {
+        q: 'What happens to my earnings if I delete my account?',
+        a: `Withdraw any available earnings before you delete your account. Once it is erased after ${deletionDays.value} days, its balance can't be paid out.`,
       },
     ],
   },
