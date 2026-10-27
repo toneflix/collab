@@ -5,7 +5,7 @@
       rounded
       no-caps
       color="grey-9"
-      class="q-mx-sm header-avatar"
+      class="ml-1 sm:mx-2 header-avatar"
       content-class="user-dropdown-content"
       :menu-offset="[3, 2]"
     >
@@ -14,12 +14,12 @@
           <img :src="user.imageUrl" />
         </q-avatar>
         <q-icon class="rounded-full bg-grey" v-else name="lucide-user" />
-        <span class="ml-2 mr-6">{{ user.fullname || 'Guest' }}</span>
+        <span class="ml-2 mr-6 max-sm:!hidden">{{ user.fullname || 'Guest' }}</span>
         <q-icon
           name="lucide-crown"
           color="amber-7"
           size="12px"
-          class="-ml-5 mr-8"
+          class="-ml-5 mr-8 max-sm:!hidden"
           v-if="user.badge"
         />
       </template>

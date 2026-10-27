@@ -2,8 +2,8 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
 
 const isWorkersBuild = process.env.SSR_TARGET === 'cloudflare';
 

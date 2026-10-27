@@ -9,17 +9,26 @@
           class="!flex-none mr-2"
           :aria-label="leftDrawerOpen ? 'Close menu' : 'Open menu'"
           @click="leftDrawerOpen = !leftDrawerOpen"
-          v-if="overlay"
+          v-if="overlay && adminMenu"
         >
           <q-icon name="lucide-menu" />
         </q-btn>
 
+        <router-link
+          class="!flex-none sm:!hidden"
+          aria-label="Home"
+          :to="{ name: 'home' }"
+          v-if="!isSearchRoute"
+        >
+          <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7" />
+        </router-link>
+
         <q-btn
           flat
           round
-          class="!flex-none bg-surface-2"
+          class="!flex-none bg-surface-2 max-sm:!hidden"
           aria-label="Search"
-          v-if="!showSearch"
+          v-if="!showSearch && !isSearchRoute"
           @click="showSearch = !showSearch"
         >
           <q-icon name="lucide-search" />
@@ -32,9 +41,10 @@
           placeholder="Search songs, lyrics and creators"
           aria-label="Search"
           class="header-search"
+          :class="{ 'max-sm:!hidden': !isSearchRoute }"
           v-model="searchText"
           @keyup.enter="search"
-          v-if="showSearch"
+          v-if="showSearch || isSearchRoute"
         >
           <template #prepend>
             <q-icon
@@ -42,7 +52,7 @@
               size="xs"
               class="cursor-pointer"
               v-if="$q.screen.lt.sm"
-              @click="showSearch = !showSearch"
+              @click="closeSearch"
             />
             <q-icon name="lucide-search" v-else />
           </template>
@@ -54,7 +64,19 @@
         <q-btn
           flat
           round
-          class="!flex-none mr-2"
+          class="!flex-none sm:!hidden"
+          aria-label="Search"
+          :to="{ name: 'search' }"
+          v-if="!isSearchRoute"
+        >
+          <q-icon name="lucide-search" size="20px" />
+        </q-btn>
+
+        <q-btn
+          flat
+          round
+          class="!flex-none sm:mr-2"
+          :class="{ 'max-sm:!hidden': isSearchRoute }"
           aria-label="Messages"
           :to="{ name: 'messages' }"
           v-if="boot.user?.id"
@@ -64,9 +86,9 @@
           <q-tooltip>Messages</q-tooltip>
         </q-btn>
 
-        <NotificationBell v-if="boot.user?.id" />
+        <NotificationBell :class="{ 'max-sm:!hidden': isSearchRoute }" v-if="boot.user?.id" />
 
-        <div>
+        <div :class="{ 'max-sm:!hidden': isSearchRoute }">
           <ProfileDropdown>
             <template #anchor="{ isShown }">
               <q-chip
@@ -99,6 +121,7 @@
       :breakpoint="drawerBreakpoint"
       :mini="collapsed"
       :mini-width="64"
+      :no-swipe-open="!adminMenu"
       v-model="leftDrawerOpen"
     >
       <q-toolbar
@@ -240,7 +263,10 @@
     </q-page-container>
 
     <q-footer class="text-white bg-glass">
-      <AudioPlayer v-if="!$route.meta.hidePlayer" />
+      <!-- On phones the player bar only shows once something is queued -->
+      <AudioPlayer :class="{ 'max-sm:!hidden': !hasTrack }" v-if="!$route.meta.hidePlayer" />
+      <!-- Phones get tabs instead of the side menu -->
+      <BottomNav v-if="!adminMenu" />
     </q-footer>
   </q-layout>
 </template>
@@ -248,6 +274,7 @@
 <script setup lang="ts">
 import { LocalStorage, useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
+import BottomNav from 'src/components/Controllers/BottomNav.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
@@ -255,6 +282,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
 import { useNotificationStore } from 'src/stores/notification-store';
+import { usePlayerStore } from 'src/stores/player-store';
 import type { AppNotification } from 'src/utils/requests/notifications';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import type { ChatMessage, Conversation } from 'src/utils/requests/conversations';
@@ -307,8 +335,8 @@ const showSearch = ref($q.screen.gt.xs);
 const searchText = ref('');
 const leftDrawerOpen = ref(false);
 
-/** Below this width the menu slides over the page instead of sitting beside it. */
-const drawerBreakpoint = 500;
+/** Below this width (Tailwind's sm) phones use the bottom tabs and the menu is hidden. */
+const drawerBreakpoint = 640;
 const sidebarKey = 'layout.sidebar.mini';
 /** The collapsed state people chose for pages that don't set their own. */
 const preferMini = ref(false);
@@ -322,6 +350,23 @@ const cache = boot.pageData.cache as unknown as {
 
 const route = useRoute();
 const router = useRouter();
+
+const isSearchRoute = computed(() => route.name === 'search');
+
+const closeSearch = () => {
+  if (!isSearchRoute.value) {
+    showSearch.value = false;
+  } else if (window.history.state?.back) {
+    router.back();
+  } else {
+    void router.push({ name: 'home' });
+  }
+};
+
+const player = usePlayerStore();
+const mounted = ref(false);
+/** The queue lives in the browser, so it is only known after mounting. */
+const hasTrack = computed(() => mounted.value && !!player.current?.id);
 
 const search = () => {
   const q = searchText.value.trim();
@@ -358,6 +403,7 @@ watch(
 );
 
 onMounted(() => {
+  mounted.value = true;
   preferMini.value = LocalStorage.getItem<boolean>(sidebarKey) === true;
   mini.value = route.meta.collapseSidebar === true || preferMini.value;
 });

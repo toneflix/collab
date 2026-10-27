@@ -5,24 +5,24 @@
         class="absolute top-0 bottom-0 left-0 right-0 bg-center h-72 bg-slate-500 blur-3xl"
         :style="{ backgroundImage: `url(${track.imageUrl})` }"
       ></div>
-      <div class="absolute flex justify-center md:!justify-start w-full">
+      <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-48 h-48 md:h-72 md:w-72"
+          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="track?.imageUrl"
         >
           <template #button>
             <q-btn
               round
               color="dark-opaque"
-              size="xl"
+              :size="$q.screen.lt.sm ? 'lg' : 'xl'"
               class="!flex-none"
               :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
           </template>
         </AtroposViewer>
-        <div class="flex flex-row items-center justify-start flex-1 p-5">
-          <div>
+        <div class="flex flex-row items-center justify-center flex-1 w-full min-w-0 pt-4 text-center sm:justify-start sm:p-5 sm:text-left">
+          <div class="min-w-0">
             <RouterLink
               class="!flex-none"
               :to="{
@@ -32,17 +32,17 @@
                 },
               }"
             >
-              <h6 class="text-sm w-fit">
+              <h6 class="text-sm w-fit max-sm:mx-auto">
                 {{ track.artist?.name }}
               </h6>
             </RouterLink>
 
-            <h1 class="text-5xl font-circlular-std whitespace-nowrap">
+            <h1 class="text-3xl break-words sm:text-5xl font-circlular-std sm:whitespace-nowrap">
               {{ subString(track?.title || '', 18) }}
             </h1>
 
             <div
-              class="flex flex-row items-center justify-start gap-2 font-semibold"
+              class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
               <span class="!flex-none">
                 {{ formatSeconds(track.duration) }}
@@ -106,22 +106,22 @@
               </span>
             </div>
             <AudioTagChips
-              class="mt-4"
+              class="mt-4 max-sm:justify-center"
               :tags="track.tags"
               :editable="track.owned"
               :target="{ trackId: track.id }"
               @update:tags="track.tags = $event"
             />
-            <q-banner dense rounded class="mt-8 text-white bg-red-10 max-w-96" v-if="track.takenDown">
+            <q-banner dense rounded class="mt-4 text-left text-white sm:mt-8 bg-red-10 max-w-96 max-sm:mx-auto" v-if="track.takenDown">
               <template #avatar><q-icon name="lucide-ban" /></template>
               This track was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
-            <p class="mt-8 text-sm max-w-96">
+            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
               {{ track.description }}
             </p>
             <TrackPurchases
-              class="mt-8"
+              class="mt-4 sm:mt-8 max-sm:justify-center"
               :track="track"
               @changed="() => reload()"
             />
@@ -130,7 +130,7 @@
       </div>
     </div>
     <div
-      class="grid grid-cols-5 gap-x-3 gap-y-3 pt-96 md:pt-80"
+      class="grid grid-cols-5 gap-x-3 gap-y-3 pt-6 sm:pt-8"
       v-if="track?.id"
     >
       <div class="col-span-5">

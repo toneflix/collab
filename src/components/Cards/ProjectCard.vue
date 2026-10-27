@@ -1,7 +1,7 @@
 <template>
   <router-link
     class="block mx-auto md:w-44"
-    :class="{ 'w-28': dense, 'w-32': !dense }"
+    :class="{ 'w-24 sm:w-28': dense, 'w-28 sm:w-32': !dense }"
     :to="{
       name: 'project',
       params: { project_id: project.slug },
@@ -12,7 +12,7 @@
       <q-avatar
         round
         class="!rounded-2xl md:w-44 md:h-44"
-        :class="{ 'w-28 h-28': dense, 'w-32 h-32': !dense }"
+        :class="{ 'w-24 h-24 sm:w-28 sm:h-28': dense, 'w-28 h-28 sm:w-32 sm:h-32': !dense }"
       >
         <q-img
           no-spinner
@@ -25,7 +25,7 @@
 
       <q-card-section align="left" class="p-1">
         <h6
-          class="!text-gray-300 text-md md:text-lg w-28 md:w-40 overflow-hidden text-nowrap text-ellipsis"
+          class="!text-gray-300 text-sm sm:text-base md:text-lg w-full md:w-40 overflow-hidden text-nowrap text-ellipsis"
         >
           {{ project.title }}
         </h6>

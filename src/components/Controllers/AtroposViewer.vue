@@ -7,7 +7,7 @@
             <q-img
               no-spinner
               loading="eager"
-              class="w-48 h-48 bg-gray-400 rounded-2xl md:h-72 md:w-72"
+              class="w-full h-full bg-gray-400 rounded-2xl"
               data-atropos-offset="0"
               :src="mainImage"
             />

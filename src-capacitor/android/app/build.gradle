@@ -32,7 +32,12 @@ android {
         }
     }
     buildTypes {
+        // Dev builds load the live-reload server over plain http
+        debug {
+            manifestPlaceholders = [usesCleartextTraffic: "true"]
+        }
         release {
+            manifestPlaceholders = [usesCleartextTraffic: "false"]
             if (System.getenv("ANDROID_KEYSTORE_FILE")) {
                 signingConfig signingConfigs.release
             }

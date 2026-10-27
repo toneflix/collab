@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <div class="relative xs:min-h-16 sm:min-h-full" v-if="artist?.id">
+    <div class="relative" v-if="artist?.id">
       <div
         class="absolute top-0 bottom-0 left-0 right-0 bg-center bg-cover h-72 bg-slate-500"
         :class="artist.coverUrl ? 'cover-photo' : 'blur-3xl'"
@@ -8,24 +8,24 @@
           backgroundImage: `url(${artist.coverUrl || artist.imageUrl})`,
         }"
       ></div>
-      <div class="absolute flex justify-center md:!justify-start w-full">
+      <div class="relative flex flex-col items-center w-full sm:flex-row sm:items-stretch">
         <AtroposViewer
-          class="!flex-none w-48 h-48 md:h-72 md:w-72"
+          class="!flex-none w-36 h-36 sm:w-48 sm:h-48 md:h-72 md:w-72"
           :main-image="artist.imageUrl"
         >
           <template #button>
             <q-btn
               round
               color="dark-opaque"
-              size="xl"
+              :size="$q.screen.lt.sm ? 'lg' : 'xl'"
               class="!flex-none opacity-90"
               :icon="playing ? 'lucide-pause:fill' : 'lucide-play:fill'"
               @click="togglePlay"
             />
           </template>
         </AtroposViewer>
-        <div class="flex flex-row items-center justify-start flex-1 p-5">
-          <div>
+        <div class="flex flex-row items-center justify-center flex-1 w-full min-w-0 pt-4 text-center sm:justify-start sm:p-5 sm:text-left">
+          <div class="min-w-0">
             <h6 class="text-sm">
               <q-icon
                 name="lucide-badge-check"
@@ -35,12 +35,12 @@
               {{ artist.verified ? 'Verified Artist' : 'Artist' }}
             </h6>
 
-            <h1 class="text-4xl md:text-5xl font-circlular-std break-words">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-circlular-std break-words">
               {{ artist?.name }}
             </h1>
 
             <div
-              class="flex flex-row items-center justify-start gap-2 font-semibold"
+              class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
             >
               <span class="!flex-none">
                 <ToggleFollow
@@ -98,7 +98,7 @@
                 <q-tooltip>Manage this artist? Claim the profile to edit it and manage the catalogue.</q-tooltip>
               </span>
             </div>
-            <p class="block mt-8 text-sm max-w-96">
+            <p class="block mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
               {{ artist.about }}
             </p>
             <div class="claim-status" v-if="artist.claimable && artist.yourClaim">
@@ -118,7 +118,7 @@
         </div>
       </div>
     </div>
-    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-80" v-if="artist?.id">
+    <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-6 sm:pt-8" v-if="artist?.id">
       <div class="col-span-5" v-if="artist.type === 'user'">
         <ProjectList
           :categories="[

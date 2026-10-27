@@ -18,7 +18,8 @@
     "typecheck": "vue-tsc --noEmit",
     "icons:web": "icongenie generate -m spa,ssr -i src-icongenie/logo.png",
     "icons:app": "icongenie generate -m capacitor -f png -i src-icongenie/logo-square-filled.png --skip-trim --theme-color d5a301",
-    "build:android": "quasar build -m capacitor -T android --skip-pkg",
+    "build:android": "quasar build -m android --skip-pkg",
+    "dev:android": "quasar dev -m android",
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
@@ -74,6 +75,7 @@
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.0",
+    "vite": "^8.3.0",
     "vite-plugin-checker": "^0.14.5",
     "vue-eslint-parser": "^10.4.0",
     "vue-tsc": "^3.3.13",

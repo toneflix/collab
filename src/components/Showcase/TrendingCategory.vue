@@ -1,10 +1,7 @@
 <template>
   <q-scroll-area
     class="max-w-full w-[inherit]"
-    :class="{
-      'h-[540px]': $q.screen.lt.sm,
-      'h-[590px]': $q.screen.gt.xs,
-    }"
+    :style="{ height: scrollHeight }"
     v-if="!flexible && category.data?.list"
   >
     <div
@@ -89,6 +86,14 @@ const chunkedList = computed(() =>
     q.screen.lt.sm ? 8 : 9,
   ),
 );
+
+/** As tall as the longest column, so a short list leaves no gap under it. */
+const scrollHeight = computed(() => {
+  const perColumn = q.screen.lt.sm ? 8 : 9;
+  const rows = Math.min(category.value.data?.list?.length ?? 0, perColumn);
+  // Each row is a 48px item plus its margin and the column gap
+  return `${rows * 64 + 16}px`;
+});
 
 const {
   page,

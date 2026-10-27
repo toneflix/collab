@@ -91,6 +91,13 @@
   }
 }
 
+// Phones show only the avatar, so the arrow would sit on top of it
+@media (max-width: 639.98px) {
+  .header-avatar .q-btn-dropdown__arrow {
+    display: none;
+  }
+}
+
 // Player bar
 .q-footer.bg-glass {
   border-top: 1px solid var(--tf-border);

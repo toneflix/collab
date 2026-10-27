@@ -15,7 +15,7 @@
 
     <!-- Offline download -->
     <q-btn
-      class="!flex-none"
+      class="flex-none!"
       rounded
       unelevated
       no-caps
@@ -27,7 +27,7 @@
       v-if="canDownload"
     />
     <q-btn
-      class="!flex-none"
+      class="flex-none!"
       rounded
       outline
       no-caps
@@ -40,7 +40,7 @@
     <!-- Stems -->
     <template v-if="track.stemsForSale">
       <q-btn
-        class="!flex-none"
+        class="flex-none!"
         rounded
         unelevated
         no-caps
@@ -144,7 +144,9 @@ const download = async () => {
   }
 };
 
-const stems = ref<{ id: number; title: string; size?: number; url: string }[]>([]);
+const stems = ref<{ id: number; title: string; size?: number; url: string }[]>(
+  [],
+);
 const showStems = ref(false);
 const loadingStems = ref(false);
 const openStems = async () => {

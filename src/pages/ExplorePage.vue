@@ -1,9 +1,9 @@
 <template>
-  <q-page
-    padding
-    :class="{ 'flex flex-col justify-center': empty && !loading }"
-  >
-    <OopsAlert v-if="empty" />
+  <q-page padding>
+    <ChipNav label="Browse" :links="browseLinks" />
+    <div class="flex flex-col justify-center" :class="{ 'min-h-[60vh]': !loading }" v-if="empty">
+      <OopsAlert />
+    </div>
     <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else>
       <div class="col-span-5">
         <TrackList v-model:categories="categories.latest_tracks" />
@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import ChipNav from 'src/components/Controllers/ChipNav.vue';
 import TrackList from 'src/components/Showcase/TrackList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
@@ -96,6 +97,15 @@ const { data, loading } = useRequest(
 );
 
 const route = useRoute();
+
+const browseLinks = [
+  { label: 'Genres', icon: 'lucide-layout-grid', to: { name: 'genres' } },
+  { label: 'Artists', icon: 'lucide-user', to: { name: 'artists' } },
+  { label: 'Creators', icon: 'lucide-droplet', to: { name: 'creators' } },
+  { label: 'Albums', icon: 'lucide-layers', to: { name: 'albums' } },
+  { label: 'Projects', icon: 'lucide-speaker', to: { name: 'projects' } },
+  { label: 'Compositions', icon: 'lucide-quote', to: { name: 'compositions' } },
+];
 const exploreType = computed(() =>
   route.query.genre ? route.query.genre + ' ' : '',
 );

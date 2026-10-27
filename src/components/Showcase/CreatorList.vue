@@ -8,7 +8,7 @@
         no-caps
         v-if="!hideAllLink"
       >
-        <h1>See All</h1>
+        <span class="text-sm font-semibold">See All</span>
       </q-btn>
     </q-toolbar>
     <CreatorCategory

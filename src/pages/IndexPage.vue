@@ -22,7 +22,7 @@
         <TrackCategory hide-all-link v-model:category="shelves.trending" />
       </section>
 
-      <HomeFeatures />
+      <HomeFeatures class="max-sm:!hidden" />
 
       <section v-if="shelves.projects.data?.list.length">
         <HomeShelfHeader
@@ -42,7 +42,7 @@
         <CompositionShelf :songs="songs" />
       </section>
 
-      <HomeSteps />
+      <HomeSteps class="max-sm:!hidden" />
 
       <section v-if="shelves.creators.data?.list.length">
         <HomeShelfHeader
@@ -72,9 +72,9 @@
         </div>
       </section>
 
-      <HomeJoin :signed-in="signedIn" />
+      <HomeJoin class="max-sm:!hidden" :signed-in="signedIn" />
 
-      <footer class="flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
+      <footer class="max-sm:!hidden flex flex-wrap items-center justify-between gap-4 pb-6 text-sm text-gray-500">
         <div class="flex items-center gap-3 !flex-none">
           <img src="~/assets/logo.png" alt="Toneflix Music" class="h-7 !flex-none" />
           <span class="!flex-none">&copy; {{ year }} Toneflix Music</span>

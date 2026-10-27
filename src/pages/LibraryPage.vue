@@ -1,9 +1,9 @@
 <template>
-  <q-page
-    padding
-    :class="{ 'flex flex-col justify-center': empty && !loading }"
-  >
-    <OopsAlert v-if="empty && !loading" />
+  <q-page padding>
+    <ChipNav label="Library" :links="libraryLinks" />
+    <div class="flex flex-col justify-center min-h-[60vh]" v-if="empty && !loading">
+      <OopsAlert />
+    </div>
     <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else-if="!loading">
       <div class="col-span-5">
         <TrendingList
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import ChipNav from 'src/components/Controllers/ChipNav.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';
 import AlbumList from 'src/components/Showcase/AlbumList.vue';
@@ -88,6 +89,16 @@ const boot = computed(() => useBootstrapStore());
 const route = useRoute();
 const type = computed(() => route.params.type as unknown as RouteType);
 const empty = computed(() => categoryChecker(categories.value[type.value]));
+
+const libraryLinks = computed(() => [
+  ...(['liked', 'recent', 'collabs'] as const).map((key) => ({
+    label: { liked: 'Liked', recent: 'Recent', collabs: 'Collabs' }[key],
+    icon: { liked: 'lucide-heart', recent: 'lucide-music', collabs: 'lucide-users' }[key],
+    to: { name: 'library.page', params: { type: key } },
+    active: type.value === key,
+  })),
+  { label: 'Purchases', icon: 'lucide-receipt', to: { name: 'library.purchases' } },
+]);
 
 const types = {
   recent: {
