@@ -57,7 +57,7 @@
       </template>
     </q-select>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2">
       <q-input
         dark
         filled
@@ -90,6 +90,18 @@
         :error-message="errors.label"
         maxlength="100"
         v-model="form.label"
+      />
+      <q-select
+        dark
+        filled
+        emit-value
+        map-options
+        label="Project privacy"
+        :options="privacyOptionsExtended"
+        :hint="projectPrivacyHints[form.project_privacy]"
+        :error="!!errors.project_privacy"
+        :error-message="errors.project_privacy"
+        v-model="form.project_privacy"
       />
     </div>
 
@@ -128,6 +140,7 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
 import { notify } from 'src/utils/helpers';
+import { privacyOptionsExtended, projectPrivacyHints } from 'src/utils/presets';
 import { notifyError } from 'src/utils/composer';
 import {
   loadAgentOwnersRequest,
@@ -150,6 +163,7 @@ const blank = (): AgentRunForm => ({
   max_tracks: 12,
   seconds: props.settings?.defaultSeconds || 120,
   label: '',
+  project_privacy: 'private',
 });
 
 const form = reactive<AgentRunForm>(blank());
