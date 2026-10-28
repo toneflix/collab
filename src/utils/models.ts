@@ -621,6 +621,8 @@ export type Project = {
   isOwner: boolean;
   userId?: string | number;
   privacy: 'private' | 'public' | 'public_preview';
+  /** The viewer can open the studio: read-only unless they work on the project */
+  opensStudio?: boolean;
   released: boolean;
   /** The owner's unpublished release of this project, if one is in progress */
   draftReleaseId?: string | number | null;

@@ -86,7 +86,7 @@
 
               <div class="col-span-2">
                 <label class="block mb-2 text-xl text-gray-400">
-                  Track Privacy
+                  Project Privacy
                 </label>
                 <q-option-group
                   type="radio"
@@ -95,6 +95,9 @@
                   :error="!!errors.privacy"
                   :error-message="errors.privacy"
                 />
+                <p class="mt-2 text-sm text-fg-muted" v-if="projectPrivacyHints[form.privacy]">
+                  {{ projectPrivacyHints[form.privacy] }}
+                </p>
               </div>
             </div>
           </div>
@@ -129,7 +132,7 @@ import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
 import type { ArtworkPick } from 'src/components/Artwork/AiArtworkDialog.vue';
 import placeholder from 'src/assets/placeholder.svg';
-import { privacyOptionsExtended } from 'src/utils/presets';
+import { privacyOptionsExtended, projectPrivacyHints } from 'src/utils/presets';
 import { Project, ResponseBody, UploadData } from 'src/utils/models';
 import { computed, ref } from 'vue';
 import { useForm } from 'alova/client';
