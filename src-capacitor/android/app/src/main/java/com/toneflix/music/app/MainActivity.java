@@ -1,5 +1,6 @@
 package com.toneflix.music.app;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
@@ -29,6 +30,18 @@ public class MainActivity extends BridgeActivity {
                 ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
                 : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             getWindow().setAttributes(params);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // Music plays in the web view, which is gone now. Stop the media session
+        // service too, so its notification doesn't stay behind with controls
+        // that do nothing. The next play starts it again.
+        if (!isChangingConfigurations()) {
+            stopService(new Intent().setClassName(this, "com.capgo.mediasession.MediaSessionService"));
         }
     }
 

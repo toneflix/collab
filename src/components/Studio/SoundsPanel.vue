@@ -4,10 +4,22 @@
     <q-card dark class="sounds" :class="{ 'sounds--mobile': $q.screen.lt.sm }">
       <header class="sounds__head">
         <div class="text-lg font-bold">Sounds</div>
-        <IconBtn icon="lucide-x" aria-label="Close sounds" class="flex-none!" @click="open = false" />
+        <IconBtn
+          icon="lucide-x"
+          aria-label="Close sounds"
+          class="flex-none!"
+          @click="open = false"
+        />
       </header>
 
-      <q-tabs dense no-caps align="justify" active-color="toneflix" indicator-color="toneflix" v-model="tab">
+      <q-tabs
+        dense
+        no-caps
+        align="justify"
+        active-color="toneflix"
+        indicator-color="toneflix"
+        v-model="tab"
+      >
         <q-tab name="library" label="Library" v-if="status?.library" />
         <q-tab name="mine" label="My sounds" />
         <q-tab name="freesound" label="Freesound" v-if="status?.freesound" />
@@ -20,7 +32,11 @@
           outlined
           clearable
           debounce="350"
-          :placeholder="tab === 'freesound' ? 'Search Freesound, like “drum loop”' : 'Search sounds'"
+          :placeholder="
+            tab === 'freesound'
+              ? 'Search Freesound, like “drum loop”'
+              : 'Search sounds'
+          "
           v-model="search"
         >
           <template #prepend><q-icon name="lucide-search" /></template>
@@ -28,7 +44,10 @@
       </div>
 
       <!-- Library categories -->
-      <div class="sounds__chips" v-if="tab === 'library' && status?.categories.length">
+      <div
+        class="sounds__chips"
+        v-if="tab === 'library' && status?.categories.length"
+      >
         <q-chip
           dense
           clickable
@@ -45,13 +64,20 @@
 
       <!-- My sounds: storage and upload -->
       <div class="sounds__storage" v-if="tab === 'mine' && status">
-        <div class="flex items-center justify-between gap-2 no-wrap text-xs">
+        <div class="flex items-center justify-between gap-2 text-xs no-wrap">
           <span>
             {{ readableSize(status.storage.used) }}
-            <template v-if="status.storage.limit"> of {{ readableSize(status.storage.limit) }} used</template>
+            <template v-if="status.storage.limit">
+              of {{ readableSize(status.storage.limit) }} used</template
+            >
             <template v-else> used</template>
           </span>
-          <router-link class="text-toneflix" :to="{ name: 'premium' }" v-if="nearlyFull">Get more space</router-link>
+          <router-link
+            class="text-toneflix"
+            :to="{ name: 'premium' }"
+            v-if="nearlyFull"
+            >Get more space</router-link
+          >
         </div>
         <q-linear-progress
           rounded
@@ -59,10 +85,21 @@
           class="mt-1"
           :color="nearlyFull ? 'orange' : 'toneflix'"
           track-color="grey-9"
-          :value="status.storage.limit ? Math.min(1, status.storage.used / status.storage.limit) : 0"
+          :value="
+            status.storage.limit
+              ? Math.min(1, status.storage.used / status.storage.limit)
+              : 0
+          "
           v-if="status.storage.limit"
         />
-        <input ref="fileInput" type="file" multiple class="hidden" :accept="acceptFor(audioExts())" @change="onFiles" />
+        <input
+          ref="fileInput"
+          type="file"
+          multiple
+          class="hidden"
+          :accept="acceptFor(audioExts())"
+          @change="onFiles"
+        />
         <q-btn
           unelevated
           rounded
@@ -80,11 +117,25 @@
       <!-- Freesound: connect and license -->
       <div class="sounds__freesound" v-if="tab === 'freesound' && status">
         <div class="text-xs text-grey-4">
-          Only CC0 sounds are shown. They're free to use in anything you release, with no credit needed.
+          Only CC0 sounds are shown. They're free to use in anything you
+          release, with no credit needed.
         </div>
-        <div class="flex items-center justify-between gap-2 mt-2 no-wrap" v-if="status.freesoundConnected">
-          <span class="text-xs">Connected as <b>{{ status.freesoundUsername || 'your account' }}</b></span>
-          <q-btn flat dense no-caps size="sm" label="Disconnect" @click="disconnect" />
+        <div
+          class="flex items-center justify-between gap-2 mt-2 no-wrap"
+          v-if="status.freesoundConnected"
+        >
+          <span class="text-xs"
+            >Connected as
+            <b>{{ status.freesoundUsername || 'your account' }}</b></span
+          >
+          <q-btn
+            flat
+            dense
+            no-caps
+            size="sm"
+            label="Disconnect"
+            @click="disconnect"
+          />
         </div>
         <q-btn
           unelevated
@@ -101,20 +152,37 @@
       </div>
 
       <q-list dark separator class="sounds__list" role="list">
-        <ListSkeleton dense avatar="square" :rows="6" v-if="loading && !items.length" />
-        <div class="px-6 py-10 text-sm text-center text-grey-5" v-else-if="!items.length">
+        <ListSkeleton
+          dense
+          avatar="square"
+          :rows="6"
+          v-if="loading && !items.length"
+        />
+        <div
+          class="px-6 py-10 text-sm text-center text-grey-5"
+          v-else-if="!items.length"
+        >
           {{ emptyText }}
         </div>
 
-        <q-item :key="item.key" v-for="item in items" role="listitem" class="sound">
+        <q-item
+          :key="item.key"
+          v-for="item in items"
+          role="listitem"
+          class="sound"
+        >
           <q-item-section avatar>
             <q-btn
               round
               dense
               unelevated
               color="grey-9"
-              :icon="playingKey === item.key ? 'pause' : 'play_arrow'"
-              :aria-label="playingKey === item.key ? `Pause ${item.name}` : `Play ${item.name}`"
+              :icon="playingKey === item.key ? 'lucide-pause' : 'lucide-play'"
+              :aria-label="
+                playingKey === item.key
+                  ? `Pause ${item.name}`
+                  : `Play ${item.name}`
+              "
               :disable="!item.url"
               @click="preview(item)"
             />
@@ -122,10 +190,27 @@
           <q-item-section class="min-w-0">
             <q-item-label class="truncate">{{ item.name }}</q-item-label>
             <q-item-label caption class="truncate">
-              {{ [item.category, item.bpm ? `${Math.round(item.bpm)} BPM` : '', soundLength(item.duration), item.author ? `by ${item.author}` : ''].filter(Boolean).join(' · ') }}
+              {{
+                [
+                  item.category,
+                  item.bpm ? `${Math.round(item.bpm)} BPM` : '',
+                  soundLength(item.duration),
+                  item.author ? `by ${item.author}` : '',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              }}
             </q-item-label>
-            <div class="sound__wave" aria-hidden="true" v-if="item.waveform?.length">
-              <span :key="i" :style="{ height: `${Math.max(8, v * 100)}%` }" v-for="(v, i) in item.waveform" />
+            <div
+              class="sound__wave"
+              aria-hidden="true"
+              v-if="item.waveform?.length"
+            >
+              <span
+                :key="i"
+                :style="{ height: `${Math.max(8, v * 100)}%` }"
+                v-for="(v, i) in item.waveform"
+              />
             </div>
           </q-item-section>
           <q-item-section side class="sound__actions">
@@ -142,7 +227,9 @@
                 :loading="busy === item.key"
                 @click="importSound(item)"
               >
-                <q-tooltip v-if="!status?.freesoundConnected">Connect Freesound first</q-tooltip>
+                <q-tooltip v-if="!status?.freesoundConnected"
+                  >Connect Freesound first</q-tooltip
+                >
               </q-btn>
             </template>
             <template v-else>
@@ -160,7 +247,8 @@
               >
                 <q-tooltip>Add to the track at the playhead</q-tooltip>
               </q-btn>
-              <IconBtn size="sm"
+              <IconBtn
+                size="sm"
                 icon="lucide-trash-2"
                 :aria-label="`Delete ${item.name}`"
                 @click="remove(item)"
@@ -171,10 +259,21 @@
         </q-item>
 
         <div class="flex justify-center py-4" v-if="hasMore && !loading">
-          <q-btn flat no-caps label="Show more" :loading="loadingMore" @click="loadMore" />
+          <q-btn
+            flat
+            no-caps
+            label="Show more"
+            :loading="loadingMore"
+            @click="loadMore"
+          />
         </div>
       </q-list>
-      <audio ref="player" class="hidden" @ended="playingKey = ''" @pause="playingKey = ''" />
+      <audio
+        ref="player"
+        class="hidden"
+        @ended="playingKey = ''"
+        @pause="playingKey = ''"
+      />
     </q-card>
   </StudioSheet>
 </template>
@@ -266,8 +365,14 @@ const nearlyFull = computed(() => {
 });
 
 const emptyText = computed(() => {
-  if (tab.value === 'mine') return search.value ? 'None of your sounds match.' : 'Upload loops and one-shots here to use them in any track.';
-  if (tab.value === 'freesound') return search.value ? 'No CC0 sounds match that search.' : 'Search Freesound for loops, drums and effects.';
+  if (tab.value === 'mine')
+    return search.value
+      ? 'None of your sounds match.'
+      : 'Upload loops and one-shots here to use them in any track.';
+  if (tab.value === 'freesound')
+    return search.value
+      ? 'No CC0 sounds match that search.'
+      : 'Search Freesound for loops, drums and effects.';
   return 'No sounds match.';
 });
 
@@ -296,7 +401,8 @@ const fromFreesound = (s: FreesoundResult): Item => ({
   imported: s.imported,
 });
 
-const errorText = (e: unknown, fallback: string) => (e as { message?: string })?.message || fallback;
+const errorText = (e: unknown, fallback: string) =>
+  (e as { message?: string })?.message || fallback;
 
 let opened = false;
 
@@ -307,7 +413,8 @@ const load = async () => {
     // Start on the library the first time, when there is one.
     if (!opened && status.value.library) tab.value = 'library';
     if (tab.value === 'library' && !status.value.library) tab.value = 'mine';
-    if (tab.value === 'freesound' && !status.value.freesound) tab.value = 'mine';
+    if (tab.value === 'freesound' && !status.value.freesound)
+      tab.value = 'mine';
     opened = true;
   } catch {
     // The list shows its own error.
@@ -336,14 +443,25 @@ const list = async (more = false) => {
       hasMore.value = items.value.length < res.meta.total;
       return;
     }
-    const params = { search: search.value || undefined, category: tab.value === 'library' ? category.value || undefined : undefined, page: page.value };
-    const res = await (tab.value === 'library' ? loadLibrarySoundsRequest(params) : loadMySoundsRequest(params)).send();
-    const found = res.data.map((s) => fromSound(s, tab.value as 'library' | 'mine'));
+    const params = {
+      search: search.value || undefined,
+      category:
+        tab.value === 'library' ? category.value || undefined : undefined,
+      page: page.value,
+    };
+    const res = await (
+      tab.value === 'library'
+        ? loadLibrarySoundsRequest(params)
+        : loadMySoundsRequest(params)
+    ).send();
+    const found = res.data.map((s) =>
+      fromSound(s, tab.value as 'library' | 'mine'),
+    );
     items.value = more ? [...items.value, ...found] : found;
     hasMore.value = res.meta.currentPage < res.meta.lastPage;
   } catch (e) {
     if (!more) items.value = [];
-    notify(errorText(e, 'The sounds couldn\'t be loaded.'), 'error');
+    notify(errorText(e, "The sounds couldn't be loaded."), 'error');
   } finally {
     loading.value = false;
     loadingMore.value = false;
@@ -366,7 +484,10 @@ const preview = (item: Item) => {
   if (playingKey.value === item.key) return el.pause();
   usePlayerStore().pause();
   el.src = item.url;
-  void el.play().then(() => (playingKey.value = item.key)).catch(() => notify('This sound couldn\'t be played.', 'error'));
+  void el
+    .play()
+    .then(() => (playingKey.value = item.key))
+    .catch(() => notify("This sound couldn't be played.", 'error'));
 };
 
 const stopPreview = () => {
@@ -377,11 +498,16 @@ const stopPreview = () => {
 const add = async (item: Item) => {
   busy.value = item.key;
   try {
-    const res = await addSoundToTrackRequest(props.projectId, props.trackId, Number(item.id), props.playhead()).send();
+    const res = await addSoundToTrackRequest(
+      props.projectId,
+      props.trackId,
+      Number(item.id),
+      props.playhead(),
+    ).send();
     emit('added', res.data);
     notify(`Added "${item.name}".`, 'success');
   } catch (e) {
-    notify(errorText(e, 'The sound couldn\'t be added.'), 'error');
+    notify(errorText(e, "The sound couldn't be added."), 'error');
   } finally {
     busy.value = '';
   }
@@ -391,10 +517,17 @@ const upload = async (files: File[]) => {
   for (const file of files) {
     uploading.value++;
     try {
-      const info = await analyseAudio(file).catch(() => ({ duration: 0, waveform: [] as number[] }));
-      const res = await uploadSoundRequest(file, { name: file.name.replace(/\.[^.]+$/, ''), ...info }).send();
+      const info = await analyseAudio(file).catch(() => ({
+        duration: 0,
+        waveform: [] as number[],
+      }));
+      const res = await uploadSoundRequest(file, {
+        name: file.name.replace(/\.[^.]+$/, ''),
+        ...info,
+      }).send();
       if (res.storage && status.value) status.value.storage = res.storage;
-      if (tab.value === 'mine') items.value = [fromSound(res.data, 'mine'), ...items.value];
+      if (tab.value === 'mine')
+        items.value = [fromSound(res.data, 'mine'), ...items.value];
     } catch (e) {
       notify(errorText(e, `"${file.name}" couldn't be uploaded.`), 'error');
     } finally {
@@ -423,7 +556,7 @@ const remove = (item: Item) => {
       items.value = items.value.filter((i) => i.key !== item.key);
       if (status.value) status.value.storage = res.storage;
     } catch (e) {
-      notify(errorText(e, 'The sound couldn\'t be deleted.'), 'error');
+      notify(errorText(e, "The sound couldn't be deleted."), 'error');
     }
   });
 };
@@ -436,7 +569,7 @@ const importSound = async (item: Item) => {
     if (status.value) status.value.storage = res.storage;
     notify(`Added "${item.name}" to My sounds.`, 'success');
   } catch (e) {
-    notify(errorText(e, 'The sound couldn\'t be imported.'), 'error');
+    notify(errorText(e, "The sound couldn't be imported."), 'error');
   } finally {
     busy.value = '';
   }
@@ -448,7 +581,7 @@ const connect = async () => {
     window.location.href = await connectFreesoundRequest(route.fullPath).send();
   } catch (e) {
     connecting.value = false;
-    notify(errorText(e, 'Freesound couldn\'t be reached.'), 'error');
+    notify(errorText(e, "Freesound couldn't be reached."), 'error');
   }
 };
 
@@ -457,7 +590,7 @@ const disconnect = async () => {
     await disconnectFreesoundRequest().send();
     if (status.value) status.value.freesoundConnected = false;
   } catch (e) {
-    notify(errorText(e, 'Freesound couldn\'t be disconnected.'), 'error');
+    notify(errorText(e, "Freesound couldn't be disconnected."), 'error');
   }
 };
 

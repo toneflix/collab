@@ -392,6 +392,7 @@ export const lucideIcons = {
   'square-plus': SquarePlus,
   star: Star,
   strikethrough: Strikethrough,
+  stop: Square,
   subscript: Subscript,
   superscript: Superscript,
   'text-align-center': TextAlignCenter,

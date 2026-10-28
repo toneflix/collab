@@ -68,15 +68,20 @@ class AudioEngine {
       time();
       this.updatePosition();
     });
+    // The system player extrapolates progress from the last position we send,
+    // so send the exact position before every play/pause change. Otherwise a
+    // pause shows a stale position (0 on the first pause) and play jumps ahead.
     audio.addEventListener('playing', () => {
       this.events?.onPlaying();
-      this.setPlaybackState('playing');
       this.updatePosition();
+      this.setPlaybackState('playing');
     });
     audio.addEventListener('pause', () => {
       this.events?.onPaused();
+      this.updatePosition();
       this.setPlaybackState('paused');
     });
+    audio.addEventListener('ratechange', () => this.updatePosition());
     audio.addEventListener('waiting', () => this.events?.onWaiting());
     audio.addEventListener('ended', () => this.events?.onEnded());
     audio.addEventListener('error', () => {

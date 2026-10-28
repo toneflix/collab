@@ -29,6 +29,12 @@
 
     </activity>
 
+    <!-- Close the media notification when the app is swiped away: the player
+         lives in the web view, so its controls can't work without the app -->
+    <service
+      android:name="com.capgo.mediasession.MediaSessionService"
+      android:stopWithTask="true" />
+
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.fileprovider"

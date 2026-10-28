@@ -10,13 +10,21 @@
     <q-card dark class="inst">
       <header class="inst__head">
         <div class="min-w-0">
-          <div class="text-lg font-bold truncate">{{ editing ? 'Edit pattern' : 'New instrument stem' }}</div>
+          <div class="text-lg font-bold truncate">
+            {{ editing ? 'Edit pattern' : 'New instrument stem' }}
+          </div>
           <div class="text-xs text-grey-5">
-            {{ pattern.bpm }} BPM · {{ pattern.meter.join('/') }} · {{ pattern.bars }} {{ pattern.bars === 1 ? 'bar' : 'bars' }} ·
+            {{ pattern.bpm }} BPM · {{ pattern.meter.join('/') }} ·
+            {{ pattern.bars }} {{ pattern.bars === 1 ? 'bar' : 'bars' }} ·
             {{ patternSeconds(pattern).toFixed(1) }}s
           </div>
         </div>
-        <IconBtn icon="lucide-x" aria-label="Close" class="flex-none!" v-close-popup />
+        <IconBtn
+          icon="lucide-x"
+          aria-label="Close"
+          class="flex-none!"
+          v-close-popup
+        />
       </header>
 
       <q-tabs
@@ -41,7 +49,7 @@
           color="toneflix"
           text-color="dark"
           class="flex-none!"
-          :icon="previewing ? 'stop' : 'play_arrow'"
+          :icon="previewing ? 'lucide-stop' : 'lucide-play'"
           :aria-label="previewing ? 'Stop the preview' : 'Play the pattern'"
           @click="togglePreview"
         />
@@ -54,7 +62,12 @@
           options-dense
           class="w-28"
           label="Length"
-          :options="[1, 2, 4, 8].map((n) => ({ label: `${n} ${n === 1 ? 'bar' : 'bars'}`, value: n }))"
+          :options="
+            [1, 2, 4, 8].map((n) => ({
+              label: `${n} ${n === 1 ? 'bar' : 'bars'}`,
+              value: n,
+            }))
+          "
           :model-value="pattern.bars"
           @update:model-value="setBars"
         />
@@ -67,17 +80,32 @@
           options-dense
           class="w-28"
           label="Sound"
-          :options="SYNTH_PRESETS.map((p) => ({ label: p.label, value: p.key }))"
+          :options="
+            SYNTH_PRESETS.map((p) => ({ label: p.label, value: p.key }))
+          "
           :model-value="pattern.preset"
           @update:model-value="setPreset"
           v-if="pattern.kind === 'keys'"
         />
-        <div class="flex items-center gap-1 no-wrap" v-if="pattern.kind === 'keys'">
-          <IconBtn icon="lucide-chevron-down" aria-label="Lower octave" :disable="octave <= 1" @click="octave--" />
+        <div
+          class="flex items-center gap-1 no-wrap"
+          v-if="pattern.kind === 'keys'"
+        >
+          <IconBtn
+            icon="lucide-chevron-down"
+            aria-label="Lower octave"
+            :disable="octave <= 1"
+            @click="octave--"
+          />
           <span class="text-sm tabular-nums">Octave {{ octave }}</span>
-          <IconBtn icon="lucide-chevron-up" aria-label="Higher octave" :disable="octave >= 6" @click="octave++" />
+          <IconBtn
+            icon="lucide-chevron-up"
+            aria-label="Higher octave"
+            :disable="octave >= 6"
+            @click="octave++"
+          />
         </div>
-        <label class="flex items-center gap-2 no-wrap w-40">
+        <label class="flex items-center w-40 gap-2 no-wrap">
           <q-icon name="lucide-volume-2" size="18px" class="flex-none!" />
           <q-slider
             dense
@@ -90,14 +118,28 @@
             @update:model-value="setVolume"
           />
         </label>
-        <q-btn flat dense no-caps icon="lucide-trash" label="Clear" class="flex-none!" @click="clear" />
+        <q-btn
+          flat
+          dense
+          no-caps
+          icon="lucide-trash"
+          label="Clear"
+          class="flex-none!"
+          @click="clear"
+        />
       </div>
 
       <!-- Drum machine -->
       <div class="inst__grid-wrap" v-if="pattern.kind === 'drums'">
         <div class="drums" :style="{ '--steps': totalSteps }">
           <template :key="voice.key" v-for="voice in DRUM_VOICES">
-            <button type="button" class="drums__name" @click="hitVoice(voice.key)">{{ voice.label }}</button>
+            <button
+              type="button"
+              class="drums__name"
+              @click="hitVoice(voice.key)"
+            >
+              {{ voice.label }}
+            </button>
             <button
               type="button"
               class="drums__cell"
@@ -119,16 +161,24 @@
 
       <!-- Piano roll -->
       <div class="inst__grid-wrap" ref="rollWrap" v-else>
-        <div class="roll" :style="{ '--steps': totalSteps, '--rows': pitches.length }">
+        <div
+          class="roll"
+          :style="{ '--steps': totalSteps, '--rows': pitches.length }"
+        >
           <template :key="pitch" v-for="(pitch, row) in pitches">
             <button
               type="button"
               class="roll__key"
-              :class="{ 'roll__key--black': isBlackKey(pitch), 'roll__key--c': pitch % 12 === 0 }"
+              :class="{
+                'roll__key--black': isBlackKey(pitch),
+                'roll__key--c': pitch % 12 === 0,
+              }"
               :style="{ gridRow: row + 1 }"
               @click="playNote(pitch)"
             >
-              {{ pitch % 12 === 0 || !isBlackKey(pitch) ? noteName(pitch) : '' }}
+              {{
+                pitch % 12 === 0 || !isBlackKey(pitch) ? noteName(pitch) : ''
+              }}
             </button>
             <div
               class="roll__lane"
@@ -139,7 +189,10 @@
           </template>
           <div
             class="roll__grid"
-            :style="{ gridRow: `1 / span ${pitches.length}`, backgroundSize: `calc(var(--cell) * ${beatSteps}) 100%, calc(var(--cell) * ${barSteps}) 100%` }"
+            :style="{
+              gridRow: `1 / span ${pitches.length}`,
+              backgroundSize: `calc(var(--cell) * ${beatSteps}) 100%, calc(var(--cell) * ${barSteps}) 100%`,
+            }"
           />
           <button
             type="button"
@@ -157,18 +210,23 @@
           />
           <div
             class="roll__now"
-            :style="{ left: `calc(var(--keys) + var(--cell) * ${playStep})`, gridRow: `1 / span ${pitches.length}` }"
+            :style="{
+              left: `calc(var(--keys) + var(--cell) * ${playStep})`,
+              gridRow: `1 / span ${pitches.length}`,
+            }"
             v-if="playStep >= 0"
           />
         </div>
         <div class="px-4 pt-2 text-xs text-grey-5">
-          Click or drag on the grid to add a note, click a note to remove it. Notes outside this octave range are kept.
+          Click or drag on the grid to add a note, click a note to remove it.
+          Notes outside this octave range are kept.
         </div>
       </div>
 
       <q-card-actions align="right" class="inst__actions">
         <div class="mr-auto text-xs text-grey-5 max-sm:hidden">
-          It's saved as an audio stem. You can open the pattern again to change it.
+          It's saved as an audio stem. You can open the pattern again to change
+          it.
         </div>
         <q-btn flat no-caps label="Cancel" v-close-popup />
         <q-btn
@@ -234,7 +292,9 @@ const meterOf = (sig: string): [number, number] => {
   return [a || 4, b || 4];
 };
 
-const pattern = ref<InstrumentPattern>(emptyPattern('drums', props.bpm, meterOf(props.timeSignature)));
+const pattern = ref<InstrumentPattern>(
+  emptyPattern('drums', props.bpm, meterOf(props.timeSignature)),
+);
 const editing = computed(() => !!props.initial);
 const octave = ref(3);
 
@@ -243,8 +303,20 @@ watch(
   (open) => {
     if (!open) return;
     // The track's tempo wins, so the stem lines up with the grid.
-    const base = props.initial ? structuredClone(JSON.parse(JSON.stringify(props.initial))) as InstrumentPattern : emptyPattern(pattern.value.kind, props.bpm, meterOf(props.timeSignature));
-    pattern.value = { ...base, bpm: props.bpm, meter: meterOf(props.timeSignature) } as InstrumentPattern;
+    const base = props.initial
+      ? (structuredClone(
+          JSON.parse(JSON.stringify(props.initial)),
+        ) as InstrumentPattern)
+      : emptyPattern(
+          pattern.value.kind,
+          props.bpm,
+          meterOf(props.timeSignature),
+        );
+    pattern.value = {
+      ...base,
+      bpm: props.bpm,
+      meter: meterOf(props.timeSignature),
+    } as InstrumentPattern;
     if (pattern.value.kind === 'keys' && pattern.value.notes.length) {
       const low = Math.min(...pattern.value.notes.map((n) => n.pitch));
       octave.value = Math.max(1, Math.min(6, Math.floor(low / 12) - 1));
@@ -254,9 +326,13 @@ watch(
 );
 
 const barSteps = computed(() => stepsPerBar(pattern.value.meter));
-const beatSteps = computed(() => Math.max(1, Math.round(16 / pattern.value.meter[1])));
+const beatSteps = computed(() =>
+  Math.max(1, Math.round(16 / pattern.value.meter[1])),
+);
 const totalSteps = computed(() => pattern.value.bars * barSteps.value);
-const steps = computed(() => Array.from({ length: totalSteps.value }, (_, i) => i));
+const steps = computed(() =>
+  Array.from({ length: totalSteps.value }, (_, i) => i),
+);
 
 /** Two octaves, highest first */
 const pitches = computed(() => {
@@ -266,13 +342,17 @@ const pitches = computed(() => {
 
 const visibleNotes = computed(() =>
   pattern.value.kind === 'keys'
-    ? pattern.value.notes.filter((n) => pitches.value.includes(n.pitch) && n.step < totalSteps.value)
+    ? pattern.value.notes.filter(
+        (n) => pitches.value.includes(n.pitch) && n.step < totalSteps.value,
+      )
     : [],
 );
 
 const isEmpty = computed(() =>
   pattern.value.kind === 'drums'
-    ? !Object.values(pattern.value.rows).some((r) => r?.some((s) => s < totalSteps.value))
+    ? !Object.values(pattern.value.rows).some((r) =>
+        r?.some((s) => s < totalSteps.value),
+      )
     : !pattern.value.notes.some((n) => n.step < totalSteps.value),
 );
 
@@ -312,20 +392,27 @@ const clear = () => {
 };
 
 // Drums
-const isOn = (voice: DrumVoice, step: number) => !!(pattern.value as DrumPattern).rows[voice]?.includes(step);
+const isOn = (voice: DrumVoice, step: number) =>
+  !!(pattern.value as DrumPattern).rows[voice]?.includes(step);
 
 const hitVoice = (voice: DrumVoice) => audition(audio(), pattern.value, voice);
 
 const toggleStep = (voice: DrumVoice, step: number) => {
   const p = pattern.value as DrumPattern;
   const row = p.rows[voice] ?? [];
-  p.rows = { ...p.rows, [voice]: row.includes(step) ? row.filter((s) => s !== step) : [...row, step].sort((a, b) => a - b) };
+  p.rows = {
+    ...p.rows,
+    [voice]: row.includes(step)
+      ? row.filter((s) => s !== step)
+      : [...row, step].sort((a, b) => a - b),
+  };
   if (!row.includes(step)) hitVoice(voice);
   refresh();
 };
 
 // Keys
-const playNote = (pitch: number) => audition(audio(), pattern.value, undefined, pitch);
+const playNote = (pitch: number) =>
+  audition(audio(), pattern.value, undefined, pitch);
 
 const removeNote = (note: KeyNote) => {
   const p = pattern.value as KeysPattern;
@@ -338,11 +425,17 @@ const startNote = (e: PointerEvent, pitch: number) => {
   const lane = e.currentTarget as HTMLElement;
   const rect = lane.getBoundingClientRect();
   const cell = rect.width / totalSteps.value;
-  const stepAt = (x: number) => Math.max(0, Math.min(totalSteps.value - 1, Math.floor((x - rect.left) / cell)));
+  const stepAt = (x: number) =>
+    Math.max(
+      0,
+      Math.min(totalSteps.value - 1, Math.floor((x - rect.left) / cell)),
+    );
   const start = stepAt(e.clientX);
   const p = pattern.value as KeysPattern;
   // Replace anything on this pitch that the new note would overlap.
-  p.notes = p.notes.filter((n) => n.pitch !== pitch || n.step + n.length <= start || n.step > start);
+  p.notes = p.notes.filter(
+    (n) => n.pitch !== pitch || n.step + n.length <= start || n.step > start,
+  );
   p.notes.push({ pitch, step: start, length: 1 });
   // Keep the reactive copy, so the comparisons below match what's in the list.
   const note = p.notes[p.notes.length - 1] as KeyNote;
@@ -357,7 +450,13 @@ const startNote = (e: PointerEvent, pitch: number) => {
     lane.removeEventListener('pointermove', move);
     lane.removeEventListener('pointerup', up);
     lane.removeEventListener('pointercancel', up);
-    p.notes = p.notes.filter((n) => n === note || n.pitch !== pitch || n.step + n.length <= note.step || n.step >= note.step + note.length);
+    p.notes = p.notes.filter(
+      (n) =>
+        n === note ||
+        n.pitch !== pitch ||
+        n.step + n.length <= note.step ||
+        n.step >= note.step + note.length,
+    );
     refresh();
   };
   lane.addEventListener('pointermove', move);
@@ -377,15 +476,20 @@ let renderTimer: ReturnType<typeof setTimeout> | undefined;
 const tick = () => {
   if (!previewing.value || !ctx) return;
   const into = (ctx.currentTime - loopStartedAt) % loopLength;
-  playStep.value = Math.floor(into / stepSeconds(pattern.value.bpm)) % totalSteps.value;
+  playStep.value =
+    Math.floor(into / stepSeconds(pattern.value.bpm)) % totalSteps.value;
   frame = requestAnimationFrame(tick);
 };
 
 const startLoop = async (keepPosition = false) => {
   const c = audio();
-  const buffer = await renderPattern(JSON.parse(JSON.stringify(pattern.value)) as InstrumentPattern, c.sampleRate);
+  const buffer = await renderPattern(
+    JSON.parse(JSON.stringify(pattern.value)) as InstrumentPattern,
+    c.sampleRate,
+  );
   if (!previewing.value) return;
-  const offset = keepPosition && source ? (c.currentTime - loopStartedAt) % loopLength : 0;
+  const offset =
+    keepPosition && source ? (c.currentTime - loopStartedAt) % loopLength : 0;
   source?.stop();
   source = c.createBufferSource();
   source.buffer = buffer;
@@ -424,7 +528,8 @@ const save = async () => {
   stopPreview();
   const copy = JSON.parse(JSON.stringify(pattern.value)) as InstrumentPattern;
   if (copy.kind === 'drums') {
-    for (const key of Object.keys(copy.rows) as DrumVoice[]) copy.rows[key] = copy.rows[key]!.filter((s) => s < totalSteps.value);
+    for (const key of Object.keys(copy.rows) as DrumVoice[])
+      copy.rows[key] = copy.rows[key]!.filter((s) => s < totalSteps.value);
   } else {
     copy.notes = copy.notes.filter((n) => n.step < totalSteps.value);
   }
