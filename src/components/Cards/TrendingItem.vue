@@ -32,8 +32,8 @@
         >
           {{ track.title }}
         </q-item-label>
-        <q-item-label caption class="mt-0">
-          {{ track.artist?.name || 'Unknown' }}
+        <q-item-label caption lines="1" class="mt-0">
+          {{ track.artist?.name || 'Unknown' }}<AlbumLink nested :track="track" v-if="!hideAlbum" />
         </q-item-label>
       </q-item-section>
 
@@ -56,6 +56,7 @@ import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import { PropType } from 'vue';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
@@ -63,6 +64,8 @@ const emit = defineEmits<{
 
 const props = defineProps({
   dense: Boolean,
+  /** Leaves out the album link, for lists already on the album's page */
+  hideAlbum: Boolean,
   isLast: Boolean,
   /** The list this track is shown in; playing it queues the whole list */
   queue: {

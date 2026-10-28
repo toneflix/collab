@@ -77,12 +77,7 @@
               <RouterLink :to="artistLink" class="hover:underline" v-else-if="track.artist">
                 {{ track.artist.name }}
               </RouterLink>
-              <template v-if="track.release?.title">
-                •
-                <RouterLink :to="releaseLink" class="hover:underline">
-                  {{ track.release.title }}
-                </RouterLink>
-              </template>
+              <AlbumLink :track="track" />
               <template v-if="year"> • {{ year }}</template>
             </span>
           </div>
@@ -119,7 +114,7 @@
                   <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
                   <q-item-section>Go to artist</q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup :to="releaseLink" v-if="track.release">
+                <q-item clickable v-close-popup :to="releaseLink" v-if="track.album || track.release">
                   <q-item-section avatar><q-icon name="lucide-disc-3" /></q-item-section>
                   <q-item-section>Go to album</q-item-section>
                 </q-item>
@@ -209,6 +204,7 @@ import TInteraction from '../Utilities/TInteraction.vue';
 import SeekBar from './SeekBar.vue';
 import NowPlayingDialog from './NowPlayingDialog.vue';
 import FullPlayer from './FullPlayer.vue';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const player = usePlayerStore();
 const router = useRouter();
@@ -252,7 +248,7 @@ const releaseLink = computed(() => ({
   name: 'artist.album',
   params: {
     artist_id: track.value.artist?.username || '-',
-    album_id: track.value.release?.slug || '-',
+    album_id: track.value.album?.slug || track.value.release?.slug || '-',
   },
 }));
 

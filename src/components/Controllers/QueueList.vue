@@ -38,6 +38,7 @@
             {{ item.artist.name }}
           </RouterLink>
           <template v-else>{{ item.artist?.name || 'Unknown' }}</template>
+          <AlbumLink :track="item" @navigate="emit('navigate')" />
         </q-item-label>
       </q-item-section>
       <q-item-section side class="text-xs" v-if="item.duration">
@@ -51,6 +52,7 @@
 import { nextTick, onMounted, ref } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { usePlayerStore } from 'src/stores/player-store';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 /** Fires when an artist link leaves the player, so the parent can close it */
 const emit = defineEmits<{ navigate: [] }>();

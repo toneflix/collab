@@ -22,7 +22,7 @@
                 <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
                 <q-item-section>Go to artist</q-item-section>
               </q-item>
-              <q-item clickable v-close-popup :to="releaseLink" @click="open = false" v-if="track.release">
+              <q-item clickable v-close-popup :to="releaseLink" @click="open = false" v-if="track.album || track.release">
                 <q-item-section avatar><q-icon name="lucide-disc-3" /></q-item-section>
                 <q-item-section>Go to album</q-item-section>
               </q-item>
@@ -67,10 +67,7 @@
           <div class="truncate text-grey-4">
             <RouterLink :to="trackLink" @click="open = false" v-if="track.project">{{ track.project.title }}</RouterLink>
             <RouterLink :to="artistLink" @click="open = false" v-else-if="track.artist">{{ track.artist.name }}</RouterLink>
-            <template v-if="track.release?.title">
-              <span class="mx-1">•</span>
-              <RouterLink :to="releaseLink" @click="open = false">{{ track.release.title }}</RouterLink>
-            </template>
+            <AlbumLink :track="track" @navigate="open = false" />
           </div>
         </div>
         <TInteraction
@@ -169,6 +166,7 @@ import AppSheet from './AppSheet.vue';
 import QueueList from './QueueList.vue';
 import SeekBar from './SeekBar.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const open = defineModel<boolean>({ default: false });
 
@@ -245,7 +243,7 @@ const trackLink = computed(() =>
 const artistLink = computed(() => ({ name: 'artist', params: { artist_id: track.value.artist?.username || '-' } }));
 const releaseLink = computed(() => ({
   name: 'artist.album',
-  params: { artist_id: track.value.artist?.username || '-', album_id: track.value.release?.slug || '-' },
+  params: { artist_id: track.value.artist?.username || '-', album_id: track.value.album?.slug || track.value.release?.slug || '-' },
 }));
 </script>
 

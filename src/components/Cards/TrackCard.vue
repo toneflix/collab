@@ -27,7 +27,9 @@
         >
           {{ track.title }}
         </h6>
-        <div class="text-gray-400 text-subtitle2">{{ track.artist?.name }}</div>
+        <div class="text-gray-400 truncate text-subtitle2">
+          {{ track.artist?.name }}<AlbumLink nested :track="track" />
+        </div>
       </q-card-section>
     </q-card>
   </router-link>
@@ -35,6 +37,7 @@
 
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];

@@ -521,6 +521,8 @@ export interface Track {
   privacy: 'public' | 'private';
   artist?: Artist;
   release?: Release;
+  /** The album the track sits on, left out for singles */
+  album?: TrackAlbum;
   streams: number;
   explicit?: boolean | 0 | 1;
   genreId?: string | number;
@@ -555,6 +557,12 @@ export interface Track {
   project?: Pick<Project, 'id' | 'slug' | 'title'>;
   updatedAt: string;
   createdAt: string;
+}
+
+export interface TrackAlbum {
+  id: string | number;
+  slug: string;
+  title: string;
 }
 
 export interface Release extends Album {
