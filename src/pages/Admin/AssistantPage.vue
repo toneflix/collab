@@ -91,6 +91,21 @@
                     </div>
                     <div class="action__summary">{{ message.action.summary }}</div>
                     <div class="action__error" v-if="message.action.error">{{ message.action.error }}</div>
+                    <div class="action__asks" v-if="message.action.status === 'pending' && message.action.asks?.length">
+                      <q-input
+                        dark
+                        filled
+                        dense
+                        :key="ask.field"
+                        :label="ask.label"
+                        :inputmode="ask.kind === 'code' ? 'numeric' : 'text'"
+                        :autocomplete="ask.kind === 'code' ? 'one-time-code' : 'off'"
+                        :error="!!answerErrors[message.action.id]?.[ask.field]"
+                        :error-message="answerErrors[message.action.id]?.[ask.field]"
+                        v-model="answerFor(message.action.id)[ask.field]"
+                        v-for="ask in message.action.asks"
+                      />
+                    </div>
                     <div class="action__buttons" v-if="message.action.status === 'pending'">
                       <q-btn
                         unelevated
@@ -100,6 +115,7 @@
                         label="Confirm"
                         class="flex-none!"
                         :loading="deciding === message.action.id"
+                        :disable="!answered(message.action)"
                         @click="decide(message.action, 'confirm')"
                       />
                       <q-btn
@@ -170,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { date, debounce, useMeta, useQuasar } from 'quasar';
 import IconBtn from 'src/components/Buttons/IconBtn.vue';
@@ -345,15 +361,36 @@ const send = async (text?: string) => {
   }
 };
 
+/** What the admin typed on each action card, which only goes to the confirm request */
+const answers = reactive<Record<number, Record<string, string>>>({});
+const answerErrors = reactive<Record<number, Record<string, string>>>({});
+
+const answerFor = (id: number) => (answers[id] ??= {});
+
+const answered = (action: AssistantAction) =>
+  (action.asks ?? []).every((ask) => !!answers[action.id]?.[ask.field]?.trim());
+
 const decide = async (action: AssistantAction, choice: 'confirm' | 'cancel') => {
   deciding.value = action.id;
+  answerErrors[action.id] = {};
   try {
-    const request = choice === 'confirm' ? confirmAssistantActionRequest : cancelAssistantActionRequest;
-    const body = await request(action.id);
+    const body = choice === 'confirm'
+      ? await confirmAssistantActionRequest(action.id, { ...answers[action.id] })
+      : await cancelAssistantActionRequest(action.id);
     const message = messages.value.find((item) => item.action?.id === action.id);
     if (message) message.action = body.data;
+    delete answers[action.id];
     notify(body.data.error || body.message, body.data.status === 'failed' ? 'error' : 'success');
   } catch (e) {
+    const fields = (action.asks ?? []).map((ask) => ask.field);
+    const errors = (e as { errors?: Record<string, string | string[]> })?.errors ?? {};
+    const mine = Object.entries(errors).filter(([key]) => fields.includes(key));
+
+    if (mine.length) {
+      answerErrors[action.id] = Object.fromEntries(mine.map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]));
+      return;
+    }
+
     notify(errorText(e), 'error');
     void loadMessages();
   } finally {
@@ -610,6 +647,13 @@ onMounted(() => void loadChats());
     margin-top: 6px;
     font-size: 13px;
     color: var(--tf-danger);
+  }
+
+  &__asks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
   }
 
   &__buttons {
