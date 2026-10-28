@@ -8,7 +8,7 @@
     transition-hide="slide-down"
     class="now-playing"
   >
-    <q-card dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
+    <q-card ref="card" dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
       <div class="now-playing__body">
         <!-- Big artwork and what's playing -->
         <div class="now-playing__art">
@@ -59,7 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
+import { onClickOutside, onKeyStroke } from '@vueuse/core';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import QueueList from './QueueList.vue';
@@ -85,6 +86,15 @@ const artistLink = computed(() => ({
   params: { artist_id: track.value.artist?.username || '-' },
 }));
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
+
+// Esc and clicks outside the panel close it. The player bar and popups keep it open.
+const card = useTemplateRef<{ $el: HTMLElement }>('card');
+onKeyStroke('Escape', () => (open.value = false));
+onClickOutside(
+  () => card.value?.$el,
+  () => (open.value = false),
+  { ignore: ['.player-bar', '.q-menu', '.q-dialog'] },
+);
 
 // Bring the playing track into view when the panel opens.
 watch([open, tab], ([on, current]) => {
