@@ -58,6 +58,9 @@ const slim = (track: Track): Track =>
     likes: track.likes,
     locked: track.locked,
     tags: track.tags,
+    playUrl: track.playUrl,
+    temporary: track.temporary,
+    project: track.project ? { id: track.project.id, slug: track.project.slug, title: track.project.title } : undefined,
   }) as Track;
 
 /**
@@ -94,6 +97,7 @@ const toNative = (track: Track): NativeTrack => ({
   album: track.release?.title || '',
   artwork: track.imageUrl || '',
   duration: track.duration || 0,
+  url: track.playUrl || '',
 });
 
 /** Hand the native player the API's address and the current sign-in, for fetching stream links. */
@@ -286,6 +290,7 @@ export const usePlayerStore = defineStore('player', {
       this.error = null;
       clock.position = 0;
       clock.duration = track.duration || 0;
+      if (this.pruneTemporary()) this.syncNative();
       void this.topUp();
     },
 
@@ -362,6 +367,67 @@ export const usePlayerStore = defineStore('player', {
       return this.load(true);
     },
 
+    /**
+     * Play temporary entries, e.g. a project's tracks, from one of them. They
+     * go in right after the current track and leave the queue once something
+     * else plays.
+     */
+    playTemporary (tracks: Track[], start: number, source: string) {
+      const first = tracks[start];
+      if (!first) return;
+
+      const queued = this.ordered.findIndex((t) => t.id === first.id);
+      if (queued >= 0) {
+        this.index = queued;
+        this.source = source;
+        return this.load(true);
+      }
+
+      const at = Math.min(this.index + 1, this.order.length);
+      const from = this.queue.length;
+
+      this.queue.push(...tracks.map((track) => slim({ ...track, temporary: true })));
+      this.order.splice(at, 0, ...tracks.map((_, i) => from + i));
+      this.index = at + start;
+      this.source = source;
+
+      return this.load(true);
+    },
+
+    /**
+     * Drop temporary entries that don't belong with the current track: all of
+     * them once a regular track plays, or another project's while one plays.
+     *
+     * @returns Whether anything was dropped.
+     */
+    pruneTemporary () {
+      const current = this.current;
+      const group = current?.temporary ? current.project?.slug : undefined;
+      const keep = (track: Track) => !track.temporary || (!!group && track.project?.slug === group);
+      if (this.queue.every(keep)) return false;
+
+      const moved = new Map<number, number>();
+      const queue: Track[] = [];
+      this.queue.forEach((track, i) => {
+        if (!keep(track)) return;
+        moved.set(i, queue.length);
+        queue.push(track);
+      });
+
+      const order: number[] = [];
+      let index = 0;
+      this.order.forEach((i, position) => {
+        if (!moved.has(i)) return;
+        if (position === this.index) index = order.length;
+        order.push(moved.get(i)!);
+      });
+
+      this.queue = queue;
+      this.order = order;
+      this.index = index;
+      return true;
+    },
+
     setQueue (tracks: Track[], start: number, source: string | null) {
       this.queue = tracks.map(slim);
       this.source = source;
@@ -393,6 +459,7 @@ export const usePlayerStore = defineStore('player', {
      * Load the current track into the engine, fetching a fresh stream link.
      */
     async load (autoplay: boolean) {
+      this.pruneTemporary();
       const track = this.current;
       if (!track) return;
 
@@ -405,6 +472,14 @@ export const usePlayerStore = defineStore('player', {
 
       if (isNative) return this.loadNative(track, id, autoplay);
       audioEngine.stop();
+
+      if (track.playUrl) {
+        audioEngine.setTrack({ ...track, streamUrl: track.playUrl });
+        audioEngine.setLoop(this.repeat === 'one');
+        if (autoplay) await this.play();
+        else this.loading = false;
+        return;
+      }
 
       let full: Track;
       try {
@@ -660,14 +735,15 @@ export const usePlayerStore = defineStore('player', {
      * back empty when the current track is the only one there is.
      */
     async fetchMore (): Promise<Track[]> {
-      const queued = [...new Set(this.ordered.map((t) => t.id))].slice(-MAX_EXCLUDED);
+      const queued = [...new Set(this.ordered.filter((t) => !t.temporary).map((t) => t.id))].slice(-MAX_EXCLUDED);
+      const similar = this.current && !this.current.temporary ? this.current.id : null;
 
       try {
         const { data } = await loadPlaylistRequest({
           randomize: true,
           with: 'artist',
           limit: UP_NEXT_BATCH,
-          ...(this.current ? { similar_to: this.current.id } : {}),
+          ...(similar ? { similar_to: similar } : {}),
           ...(queued.length ? { exclude: queued.join(',') } : {}),
         }).send();
 

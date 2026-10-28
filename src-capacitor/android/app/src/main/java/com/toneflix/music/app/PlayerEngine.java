@@ -432,9 +432,16 @@ final class PlayerEngine {
         return items;
     }
 
-    /** A queue entry: a placeholder address the data source swaps for the real link on open. */
+    /**
+     * A queue entry: its own audio link when it has one, otherwise a placeholder
+     * address the data source swaps for the track's stream link on open.
+     */
     private static MediaItem item(JSObject track) {
         String id = idOf(track);
+        String url = track.getString("url", "");
+        Uri uri = url != null && !url.isEmpty()
+            ? Uri.parse(url)
+            : new Uri.Builder().scheme(SCHEME).authority("track").appendPath(id).build();
         MediaMetadata.Builder metadata = new MediaMetadata.Builder()
             .setTitle(track.getString("title", ""))
             .setArtist(track.getString("artist", ""))
@@ -448,7 +455,7 @@ final class PlayerEngine {
 
         return new MediaItem.Builder()
             .setMediaId(id)
-            .setUri(new Uri.Builder().scheme(SCHEME).authority("track").appendPath(id).build())
+            .setUri(uri)
             .setMediaMetadata(metadata.build())
             .build();
     }

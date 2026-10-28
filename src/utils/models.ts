@@ -547,6 +547,12 @@ export interface Track {
   tags?: AudioTags;
   /** Whether the signed in user released this track */
   owned?: boolean;
+  /** An audio link that plays as is, without fetching a stream link, e.g. a project's preview mix */
+  playUrl?: string;
+  /** A queue entry that leaves the queue once something else plays, e.g. a project's track */
+  temporary?: boolean;
+  /** The project a temporary queue entry plays from */
+  project?: Pick<Project, 'id' | 'slug' | 'title'>;
   updatedAt: string;
   createdAt: string;
 }

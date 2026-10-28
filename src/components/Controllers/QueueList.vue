@@ -23,9 +23,17 @@
         <q-item-label caption lines="1">
           <RouterLink
             class="hover:underline"
+            :to="{ name: 'project', params: { project_id: item.project.slug } }"
+            @click.stop="emit('navigate')"
+            v-if="item.project"
+          >
+            {{ item.project.title }}
+          </RouterLink>
+          <RouterLink
+            class="hover:underline"
             :to="{ name: 'artist', params: { artist_id: item.artist.username } }"
             @click.stop="emit('navigate')"
-            v-if="item.artist?.username"
+            v-else-if="item.artist?.username"
           >
             {{ item.artist.name }}
           </RouterLink>
