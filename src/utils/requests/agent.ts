@@ -86,7 +86,7 @@ export type AgentRun = {
   id: number;
   prompt: string;
   status: AgentRunStatus;
-  options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
+  options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null; projectPrivacy?: ProjectPrivacy };
   plan: AgentPlan | null;
   counts: { artists: number; albums: number; releases?: number; updates?: number; tracks: number; songs: number } | null;
   progress: { done: number; total: number } | null;
@@ -131,7 +131,11 @@ export type AgentRunForm = {
   max_tracks: number;
   seconds: number;
   label: string;
+  project_privacy: ProjectPrivacy;
 };
+
+/** Who can see the projects a run makes */
+export type ProjectPrivacy = 'private' | 'public' | 'public_preview';
 
 /** Runs that are still waiting or being built */
 export const isActiveRun = (run: AgentRun) => ['queued', 'planning', 'running'].includes(run.status);
