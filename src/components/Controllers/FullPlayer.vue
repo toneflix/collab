@@ -151,7 +151,7 @@
           <q-tab name="lyrics" label="Lyrics" />
         </q-tabs>
         <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" v-if="tab === 'lyrics'" />
-        <QueueList v-else />
+        <QueueList @navigate="open = false" v-else />
       </AppSheet>
     </div>
   </q-dialog>

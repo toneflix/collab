@@ -20,7 +20,17 @@
       </q-item-section>
       <q-item-section>
         <q-item-label lines="1" class="font-bold">{{ item.title }}</q-item-label>
-        <q-item-label caption lines="1">{{ item.artist?.name || 'Unknown' }}</q-item-label>
+        <q-item-label caption lines="1">
+          <RouterLink
+            class="hover:underline"
+            :to="{ name: 'artist', params: { artist_id: item.artist.username } }"
+            @click.stop="emit('navigate')"
+            v-if="item.artist?.username"
+          >
+            {{ item.artist.name }}
+          </RouterLink>
+          <template v-else>{{ item.artist?.name || 'Unknown' }}</template>
+        </q-item-label>
       </q-item-section>
       <q-item-section side class="text-xs" v-if="item.duration">
         {{ formatSeconds(item.duration) }}
@@ -33,6 +43,9 @@
 import { nextTick, onMounted, ref } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { usePlayerStore } from 'src/stores/player-store';
+
+/** Fires when an artist link leaves the player, so the parent can close it */
+const emit = defineEmits<{ navigate: [] }>();
 
 const player = usePlayerStore();
 const currentItem = ref<{ $el: HTMLElement } | null>(null);

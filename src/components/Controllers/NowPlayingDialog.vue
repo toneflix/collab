@@ -20,7 +20,11 @@
           />
           <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
-            <div class="truncate text-grey-5">{{ track.artist?.name }}</div>
+            <div class="truncate text-grey-5">
+              <RouterLink :to="artistLink" class="hover:underline" @click="open = false" v-if="track.artist">
+                {{ track.artist.name }}
+              </RouterLink>
+            </div>
           </div>
         </div>
 
@@ -46,7 +50,7 @@
             <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />
           </q-scroll-area>
           <q-scroll-area class="now-playing__list" v-else>
-            <QueueList ref="queueList" />
+            <QueueList ref="queueList" @navigate="open = false" />
           </q-scroll-area>
         </div>
       </div>
@@ -76,6 +80,10 @@ defineProps({
 
 const player = usePlayerStore();
 const track = computed<Track>(() => player.current || ({} as Track));
+const artistLink = computed(() => ({
+  name: 'artist',
+  params: { artist_id: track.value.artist?.username || '-' },
+}));
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
 
 // Bring the playing track into view when the panel opens.
