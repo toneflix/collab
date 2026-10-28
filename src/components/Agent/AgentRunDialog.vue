@@ -67,7 +67,7 @@
         </div>
 
         <div class="album" :key="album.key" v-for="album in albums">
-          <div class="flex items-start gap-2 album__head">
+          <div class="flex no-wrap items-start gap-2 album__head">
             <q-icon name="lucide-disc-3" size="20px" class="flex-none! mt-1" />
             <div class="min-w-0">
               <div class="font-bold">{{ album.title }}</div>
@@ -77,7 +77,8 @@
               </div>
             </div>
             <q-space />
-            <StepState class="flex-none!" :step="album.release" />
+            <StepState class="flex-none!" :step="album.release" v-if="album.releases" />
+            <span class="text-sm text-grey-5 flex-none!" v-else>Project only</span>
           </div>
 
           <q-list dense>
@@ -106,6 +107,54 @@
               :label="link.label"
               :to="link.to"
               v-for="link in album.links"
+            />
+          </div>
+        </div>
+
+        <div class="album" :key="item.key" v-for="item in releases">
+          <div class="flex no-wrap items-start gap-2 album__head">
+            <q-icon name="lucide-folder-open" size="20px" class="flex-none! mt-1" />
+            <div class="min-w-0">
+              <div class="font-bold">
+                {{ item.title }}<span class="font-normal text-grey-5" v-if="item.version"> ({{ item.version }})</span>
+              </div>
+              <div class="text-sm text-grey-5">
+                Release of “{{ item.project }}” · {{ item.artist }} · {{ countStr(item.tracks.length, 'track') }}
+                <template v-if="item.retire"> · replaces earlier versions</template>
+              </div>
+              <div class="text-xs" :class="item.cover.color" :title="item.cover.title" v-if="item.cover">
+                {{ item.cover.label }}
+              </div>
+            </div>
+            <q-space />
+            <StepState class="flex-none!" :step="item.release" />
+          </div>
+
+          <q-list dense>
+            <q-item :key="track.id" v-for="(track, i) in item.tracks">
+              <q-item-section avatar class="text-grey-6">{{ i + 1 }}</q-item-section>
+              <q-item-section>
+                <q-item-label>{{ track.title }}</q-item-label>
+                <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <span class="text-sm" :class="track.color">{{ track.state }}</span>
+              </q-item-section>
+            </q-item>
+          </q-list>
+
+          <div class="flex flex-wrap gap-2 mt-2" v-if="item.links.length">
+            <q-btn
+              flat
+              dense
+              no-caps
+              size="sm"
+              class="flex-none!"
+              :key="link.label"
+              :icon="link.icon"
+              :label="link.label"
+              :to="link.to"
+              v-for="link in item.links"
             />
           </div>
         </div>
@@ -241,37 +290,70 @@ const coverState = (step?: AgentStep) => {
   return { label: 'Cover art waiting', color: 'text-grey-6', title: undefined };
 };
 
+/** Pages for a project and its release, once they exist */
+const workLinks = (projectId?: number, release?: AgentStep) => {
+  const artistId = release?.made.artistId;
+  const links: { label: string; icon: string; to: RouteLocationRaw }[] = [];
+
+  if (release?.made.releaseId && release.published && artistId) {
+    links.push({
+      label: 'Album page',
+      icon: 'lucide-external-link',
+      to: { name: 'artist.album', params: { artist_id: artistId, album_id: release.made.releaseId } },
+    });
+  }
+
+  if (ownsWork.value && projectId) {
+    links.push({ label: 'Project', icon: 'lucide-folder-open', to: { name: 'studio.project', params: { project_id: projectId } } });
+  }
+
+  if (ownsWork.value && release?.made.releaseId) {
+    links.push({ label: 'Release', icon: 'lucide-pencil', to: { name: 'studio.release.create', params: { release_id: release.made.releaseId } } });
+  }
+
+  return links;
+};
+
+/** How an existing track's mix for a release is coming along */
+const mixState = (step?: AgentStep) => {
+  if (!step || step.status === 'pending') return { state: 'Waiting', color: 'text-grey-6', error: null };
+  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: step.error };
+  if (step.status === 'skipped') return { state: 'Stopped', color: 'text-grey-6', error: null };
+  if (step.status === 'waiting') return { state: 'Mixing', color: 'text-blue-4', error: null };
+
+  return { state: 'Ready', color: 'text-green-4', error: null };
+};
+
 const albums = computed(() =>
   (run.value?.plan?.albums || []).map((album) => {
     const release = steps.value.get(`release:${album.key}`);
     const project = steps.value.get(`project:${album.key}`);
-    const artistId = release?.made.artistId;
-    const links: { label: string; icon: string; to: RouteLocationRaw }[] = [];
-
-    if (release?.made.releaseId && release.published && artistId) {
-      links.push({
-        label: 'Album page',
-        icon: 'lucide-external-link',
-        to: { name: 'artist.album', params: { artist_id: artistId, album_id: release.made.releaseId } },
-      });
-    }
-
-    if (ownsWork.value && project?.made.projectId) {
-      links.push({ label: 'Project', icon: 'lucide-folder-open', to: { name: 'studio.project', params: { project_id: project.made.projectId } } });
-    }
-
-    if (ownsWork.value && release?.made.releaseId) {
-      links.push({ label: 'Release', icon: 'lucide-pencil', to: { name: 'studio.release.create', params: { release_id: release.made.releaseId } } });
-    }
+    const links = workLinks(project?.made.projectId, release);
 
     return {
       key: album.key,
       title: album.title,
       artist: run.value?.plan?.artists.find((a) => a.key === album.artist)?.name || '',
       release,
+      releases: album.release !== false,
       cover: coverState(steps.value.get(`cover:${album.key}`)),
       links,
       tracks: album.tracks.map((track) => ({ ...track, ...trackState(track.key, track.instrumental) })),
+    };
+  }),
+);
+
+const releases = computed(() =>
+  (run.value?.plan?.releases || []).map((item) => {
+    const release = steps.value.get(`release:${item.key}`);
+
+    return {
+      ...item,
+      artist: run.value?.plan?.artists.find((a) => a.key === item.artist)?.name || '',
+      release,
+      cover: coverState(steps.value.get(`cover:${item.key}`)),
+      links: workLinks(item.project_id, release),
+      tracks: item.tracks.map((track) => ({ ...track, ...mixState(steps.value.get(`mix:${item.key}-${track.id}`)) })),
     };
   }),
 );
