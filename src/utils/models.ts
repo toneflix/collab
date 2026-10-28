@@ -413,6 +413,8 @@ export interface Artist {
   isPremium?: boolean;
   /** The content agent builds for this account, and its users can run it */
   contentAgent?: boolean;
+  /** The user can run the content agent: an agent account, or a plan with it */
+  agentAccess?: boolean;
   badge?: boolean;
   acceptsTips?: boolean;
   coverUrl?: string | null;
@@ -697,8 +699,6 @@ export type NavigationLink = {
   params?: GenericData;
   separator?: boolean;
   requiresAuth?: boolean;
-  /** Only for accounts the content agent builds for */
-  requiresAgent?: boolean;
   /** Shows a count next to the link, e.g. unread messages */
   badge?: 'messages';
   button?: {

@@ -48,7 +48,6 @@ export const mainNavigationLinks: NavigationLink[] = [
     icon: 'lucide-bot',
     title: 'Content agent',
     requiresAuth: true,
-    requiresAgent: true,
   },
   {
     to: '',

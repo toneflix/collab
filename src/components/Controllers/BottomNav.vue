@@ -106,10 +106,10 @@ const createItems = computed(() =>
     },
     {
       title: 'Content agent',
-      caption: 'Manage the artists you represent',
+      caption: 'Describe music and let AI build it',
       icon: 'lucide-bot',
       to: { name: 'studio.agent' },
-      hide: !boot.user?.contentAgent,
+      hide: !boot.user?.id,
     },
     {
       title: 'My projects',
