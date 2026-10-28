@@ -37,6 +37,7 @@ const icons: Record<ModeratedItem['type'], string> = {
   track: 'lucide-music',
   sound: 'lucide-audio-waveform',
   song: 'lucide-quote',
+  project: 'lucide-folder',
   comment: 'lucide-message-square',
   user: 'lucide-user',
 };

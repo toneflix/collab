@@ -155,6 +155,7 @@ export const describeAction = (entry: AdminAction, price: (n: number) => string)
     'funds.removed': `Took ${price(Math.abs(Number(d.amount)))} from the balance`,
     'credits.added': `Granted ${Number(d.credits)} AI credits`,
     'credits.removed': `Took back ${Number(d.credits)} AI credits`,
+    'content.deleted': `Deleted the ${d.type === 'song' ? 'composition' : d.type === 'release' ? 'album' : String(d.type)} “${String(d.title)}”${d.note ? `: ${String(d.note)}` : ''}`,
   };
 
   return lines[entry.action] || entry.action;

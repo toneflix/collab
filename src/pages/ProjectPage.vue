@@ -120,6 +120,10 @@
                 label="Comments"
                 :count="intStr(project.commentsCount)"
               />
+              <template v-if="!project.isOwner">
+                <span class="flex-none! max-sm:hidden!">•</span>
+                <ReportDialog type="project" label="project" :id="project.id" />
+              </template>
             </div>
             <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
               {{ project.description }}
@@ -172,6 +176,7 @@ import CommentSection from 'src/components/Sections/CommentSection.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
+import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import {
   Category,
   PageMeta,
