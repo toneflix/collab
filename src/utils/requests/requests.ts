@@ -397,6 +397,7 @@ export const createProjectRequest = (f: Project & UploadData) => {
     image: f.image,
     title: f.title,
     privacy: f.privacy,
+    tracks_public: f.tracksPublic ? 1 : 0,
     description: f.description,
     _method: f.id ? 'PUT' : 'POST',
   }

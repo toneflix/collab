@@ -99,6 +99,17 @@
                   {{ projectPrivacyHints[form.privacy] }}
                 </p>
               </div>
+
+              <div class="col-span-2" v-if="form.privacy !== 'private'">
+                <q-toggle
+                  color="primary"
+                  label="Make every track public"
+                  v-model="form.tracksPublic"
+                />
+                <p class="m-0 text-sm text-fg-muted">
+                  When this is off, visitors only see the tracks you set to public in each track's info.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -201,6 +212,7 @@ const {
     ...current,
     image: null,
     privacy: 'private',
+    tracksPublic: false,
   } as unknown as Project & UploadData,
 });
 

@@ -135,6 +135,16 @@
           </template>
         </ProjectTrackInfoDialog>
       </div>
+      <ProjectTrackInfoDialog
+        ref="editDialogRef"
+        :key="editing.id"
+        :track="editing"
+        :project="project"
+        @saved="(e) => updateTrack(e)"
+        v-if="editing"
+      >
+        <template #default><span /></template>
+      </ProjectTrackInfoDialog>
       <SimpleInfo dense icon="lucide-disc-3" text="No tracks yet" v-if="!trackList.length" />
       <q-list class="grid grid-cols-1 md:grid-cols-2">
         <q-item
@@ -188,6 +198,11 @@
               item-name="Track"
               dropdown-icon="none"
               :links="[
+                {
+                  icon: 'lucide-pencil',
+                  label: 'Edit Track',
+                  click: () => editTrack(track),
+                },
                 {
                   show:
                     (!!track.userId && track.userId === user.id) ||
@@ -333,7 +348,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { formatSeconds, intStr } from 'src/utils/helpers';
 import { Project, Collaber, ProjectTrack } from 'src/utils/models';
 import { loadProjectRequest } from 'src/utils/requests/requests';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
 import {
@@ -384,6 +399,20 @@ const { data: project, loading } = useWatcher(
 );
 
 const trackList = ref<ProjectTrack[]>([]);
+const editing = ref<ProjectTrack | null>(null);
+const editDialogRef = ref<{ toggle: () => void } | null>(null);
+
+/** Open a track's info, to change its title, genre, artist or privacy */
+const editTrack = async (track: ProjectTrack) => {
+  editing.value = track;
+  await nextTick();
+  editDialogRef.value?.toggle();
+};
+
+const updateTrack = (saved: ProjectTrack) => {
+  const i = trackList.value.findIndex((track) => track.id === saved.id);
+  if (i >= 0) trackList.value[i] = { ...trackList.value[i], ...saved };
+};
 const collaborators = ref<Collaber[]>([]);
 
 watch(
