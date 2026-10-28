@@ -88,6 +88,7 @@
                 <q-item-label>{{ track.title }}</q-item-label>
                 <q-item-label caption>{{ track.instrumental ? 'Instrumental' : 'Vocals' }} · {{ track.style }}</q-item-label>
                 <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
+                <q-item-label caption class="text-orange-4" v-else-if="track.lyrics">{{ track.lyrics }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
@@ -136,6 +137,51 @@
               <q-item-section>
                 <q-item-label>{{ track.title }}</q-item-label>
                 <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <span class="text-sm" :class="track.color">{{ track.state }}</span>
+              </q-item-section>
+            </q-item>
+          </q-list>
+
+          <div class="flex flex-wrap gap-2 mt-2" v-if="item.links.length">
+            <q-btn
+              flat
+              dense
+              no-caps
+              size="sm"
+              class="flex-none!"
+              :key="link.label"
+              :icon="link.icon"
+              :label="link.label"
+              :to="link.to"
+              v-for="link in item.links"
+            />
+          </div>
+        </div>
+
+        <div class="album" :key="item.key" v-for="item in updates">
+          <div class="flex no-wrap items-start gap-2 album__head">
+            <q-icon name="lucide-wand-sparkles" size="20px" class="flex-none! mt-1" />
+            <div class="min-w-0">
+              <div class="font-bold">{{ item.title }}</div>
+              <div class="text-sm text-grey-5">
+                {{ item.project_id ? `Touch-up of “${item.project}”` : 'Album without a project' }}
+                <template v-if="item.artist"> · {{ item.artist }}</template>
+                <template v-if="item.tracks.length"> · {{ countStr(item.tracks.length, 'lyric sheet') }} to sync</template>
+              </div>
+              <div class="text-xs" :class="item.cover.color" :title="item.cover.title" v-if="item.cover">
+                {{ item.cover.label }}
+              </div>
+            </div>
+          </div>
+
+          <q-list dense v-if="item.tracks.length">
+            <q-item :key="track.id" v-for="track in item.tracks">
+              <q-item-section avatar><q-icon name="lucide-file-text" size="18px" class="text-grey-6" /></q-item-section>
+              <q-item-section>
+                <q-item-label>{{ track.title }}</q-item-label>
+                <q-item-label caption class="text-orange-4" v-if="track.error">{{ track.error }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
@@ -257,7 +303,7 @@ const artists = computed(() =>
 );
 
 const trackState = (key: string, instrumental: boolean) => {
-  const chain = [`${instrumental ? 'track' : 'song'}:${key}`, `music:${key}`, `mix:${key}`]
+  const chain = [`${instrumental ? 'track' : 'song'}:${key}`, `music:${key}`, `mix:${key}`, `lyrics:${key}`]
     .map((k) => steps.value.get(k))
     .filter((step): step is AgentStep => !!step);
   const failed = chain.find((step) => step.status === 'failed');
@@ -266,7 +312,7 @@ const trackState = (key: string, instrumental: boolean) => {
 
   if (failed) return { state: 'Failed', color: 'text-red-4', error: failed.error };
   if (skipped) return { state: 'Stopped', color: 'text-grey-6', error: null };
-  if (!next) return { state: 'Ready', color: 'text-green-4', error: null };
+  if (!next) return { state: 'Ready', color: 'text-green-4', error: null, lyrics: lyricsNote(steps.value.get(`lyrics:${key}`)) };
   if (next.status === 'pending' && next.kind !== 'music') return { state: 'Waiting', color: 'text-grey-6', error: null };
 
   const labels: Record<string, string> = {
@@ -274,9 +320,25 @@ const trackState = (key: string, instrumental: boolean) => {
     track: 'Adding track',
     music: next.status === 'pending' ? 'Waiting for a free AI slot' : 'Making music',
     mix: 'Mixing',
+    lyrics: 'Syncing lyrics',
   };
 
   return { state: labels[next.kind] || 'Working', color: 'text-blue-4', error: null };
+};
+
+/** A finished lyrics step that couldn't time the sheet */
+const lyricsNote = (step?: AgentStep) =>
+  step?.status === 'done' && step.synced === false ? step.notice || 'Lyrics not synced' : null;
+
+/** How a lyric sync on an existing track is coming along */
+const syncState = (step?: AgentStep) => {
+  if (!step || step.status === 'pending') return { state: 'Waiting', color: 'text-grey-6', error: null };
+  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: step.error };
+  if (step.status === 'skipped') return { state: 'Stopped', color: 'text-grey-6', error: null };
+  if (step.status === 'waiting') return { state: 'Syncing lyrics', color: 'text-blue-4', error: null };
+  if (step.synced === false) return { state: 'Not synced', color: 'text-orange-4', error: step.notice };
+
+  return { state: 'Synced', color: 'text-green-4', error: null };
 };
 
 /** How an album's cover is coming along */
@@ -356,6 +418,15 @@ const releases = computed(() =>
       tracks: item.tracks.map((track) => ({ ...track, ...mixState(steps.value.get(`mix:${item.key}-${track.id}`)) })),
     };
   }),
+);
+
+const updates = computed(() =>
+  (run.value?.plan?.updates || []).map((item) => ({
+    ...item,
+    cover: item.artwork ? coverState(steps.value.get(`cover:${item.key}`)) : null,
+    links: workLinks(item.project_id || undefined),
+    tracks: item.lyrics.map((track) => ({ ...track, ...syncState(steps.value.get(`lyrics:${item.key}-${track.id}`)) })),
+  })),
 );
 
 const songs = computed(() =>

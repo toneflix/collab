@@ -46,6 +46,12 @@ const links = [
     to: { name: 'studio.release.create' },
   },
   {
+    icon: 'lucide-bot',
+    title: 'Content Agent',
+    description: 'Turn your ideas into creative workflows and finish projects faster.',
+    to: { name: 'studio.agent' },
+  },
+  {
     icon: 'lucide-list-checks',
     title: 'My Projects',
     description: 'Open the projects you own or joined.',

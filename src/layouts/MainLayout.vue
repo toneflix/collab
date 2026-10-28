@@ -197,8 +197,7 @@
               v-if="
                 !link.group &&
                 !link.separator &&
-                (!link.requiresAuth || boot.user?.id) &&
-                (!link.requiresAgent || boot.user?.contentAgent)
+                (!link.requiresAuth || boot.user?.id)
               "
             >
               <q-item-section avatar>

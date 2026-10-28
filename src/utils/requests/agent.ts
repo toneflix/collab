@@ -5,7 +5,7 @@ export type AgentRunStatus = 'queued' | 'planning' | 'running' | 'succeeded' | '
 
 export type AgentRunView = 'open' | 'succeeded' | 'failed';
 
-export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'artwork' | 'release';
+export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'lyrics' | 'artwork' | 'release';
 
 export type AgentStepStatus = 'pending' | 'waiting' | 'done' | 'failed' | 'skipped';
 
@@ -27,6 +27,8 @@ export type AgentStep = {
     releaseId?: number;
   };
   published: boolean | null;
+  /** Whether a lyrics step timed the sheet to the audio */
+  synced: boolean | null;
   /** Why the step went on without its work, like artwork that couldn't be drawn */
   notice: string | null;
   error: string | null;
@@ -66,6 +68,17 @@ export type AgentPlan = {
     retire: boolean;
     tracks: { id: number; title: string }[];
   }[];
+  /** Existing projects, or albums without a project, the run touches up */
+  updates?: {
+    key: string;
+    project_id: number | null;
+    release_id: number | null;
+    project: string;
+    title: string;
+    artist: string | null;
+    artwork: boolean;
+    lyrics: { id: number; title: string }[];
+  }[];
   songs: { key: string; title: string; theme: string; style: string; mood: string | null }[];
 };
 
@@ -75,7 +88,7 @@ export type AgentRun = {
   status: AgentRunStatus;
   options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
   plan: AgentPlan | null;
-  counts: { artists: number; albums: number; releases?: number; tracks: number; songs: number } | null;
+  counts: { artists: number; albums: number; releases?: number; updates?: number; tracks: number; songs: number } | null;
   progress: { done: number; total: number } | null;
   credits: number;
   error: string | null;
