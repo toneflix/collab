@@ -51,7 +51,20 @@ export type AgentPlan = {
     artist: string;
     genre_id: number | string | null;
     description: string;
+    /** False when the album stays a studio project */
+    release?: boolean;
     tracks: AgentPlanTrack[];
+  }[];
+  /** Existing projects the run releases */
+  releases?: {
+    key: string;
+    project_id: number;
+    project: string;
+    title: string;
+    version: string | null;
+    artist: string;
+    retire: boolean;
+    tracks: { id: number; title: string }[];
   }[];
   songs: { key: string; title: string; theme: string; style: string; mood: string | null }[];
 };
@@ -62,7 +75,7 @@ export type AgentRun = {
   status: AgentRunStatus;
   options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null };
   plan: AgentPlan | null;
-  counts: { artists: number; albums: number; tracks: number; songs: number } | null;
+  counts: { artists: number; albums: number; releases?: number; tracks: number; songs: number } | null;
   progress: { done: number; total: number } | null;
   credits: number;
   error: string | null;
