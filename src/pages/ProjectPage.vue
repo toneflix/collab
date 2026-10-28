@@ -137,6 +137,9 @@
       v-if="project?.id"
     >
       <div class="col-span-5">
+        <ProjectTrackList :project="project" />
+      </div>
+      <div class="col-span-5">
         <CreatorList
           hide-all-link
           :special-icon="[
@@ -175,6 +178,7 @@ import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import CommentSection from 'src/components/Sections/CommentSection.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
+import ProjectTrackList from 'src/components/Showcase/ProjectTrackList.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import {
@@ -207,7 +211,7 @@ defineOptions({
     const [project, { data: comments, meta: commentsMeta }, { data: creators, meta: creatorMeta }] = await Promise.all([
       loadProjectRequest(
         id,
-        { with: 'comments_count,pending_data' },
+        { with: 'comments_count,pending_data,tracks' },
         true,
       ).send().catch(missing),
       loadCommentsRequest(
@@ -261,7 +265,7 @@ const { data: project, loading } = useWatcher(
   () =>
     loadProjectRequest(
       route.params.project_id,
-      { with: 'comments_count,pending_data' },
+      { with: 'comments_count,pending_data,tracks' },
       true,
     ),
   [() => route.params.project_id],

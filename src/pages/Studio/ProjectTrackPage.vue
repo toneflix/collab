@@ -6,7 +6,7 @@
         class="flex-none!"
         aria-label="Back to the project"
         icon="lucide-arrow-left"
-        :to="{ name: 'studio.project', params: { project_id: project.id } }"
+        :to="viewOnly ? { name: 'project', params: { project_id: project.slug } } : { name: 'studio.project', params: { project_id: project.id } }"
       />
       <div class="studio-title">
         <h1 class="studio-title__name" :title="track.title">{{ track.title }}</h1>
@@ -405,12 +405,20 @@ import {
 import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 
 defineOptions({
-  async preFetch({ currentRoute, store }) {
+  async preFetch({ currentRoute, store, redirect }) {
     const boot = useBootstrapStore(store);
+    // The public endpoint serves the project's people and, for public projects, visitors.
     const project = await loadProjectRequest(
       String(currentRoute.params.project_id),
       { with: 'tracks' },
+      true,
     ).send();
+
+    // Preview-only projects play on their page; their studio stays closed.
+    if (project.opensStudio === false) {
+      redirect({ name: 'project', params: { project_id: project.slug } });
+      return;
+    }
     const track = await loadProjectTrackRequest(
       project,
       String(currentRoute.params.track_id),

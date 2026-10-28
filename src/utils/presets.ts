@@ -75,6 +75,13 @@ export const privacyOptionsExtended = [
   { label: 'Public Preview', value: 'public_preview' },
 ]
 
+/** What each project privacy lets people outside the project do */
+export const projectPrivacyHints: Record<string, string> = {
+  private: 'Only you and your collaborators can see this project.',
+  public: 'Anyone can find the project and play its tracks, and signed-in listeners can watch the studio live in read-only mode.',
+  public_preview: 'Anyone can find the project and play its tracks as they sound now, but the studio stays closed.',
+};
+
 export const collabRoles = [
   {
     label: 'Producer',
