@@ -104,7 +104,8 @@ export type AdminLink = {
   icon: string;
   title: string;
   caption: string;
-  permission: PriviPerm;
+  /** The permission the page needs, or a list of which any one will do */
+  permission: PriviPerm | PriviPerm[];
 };
 
 /** Every admin page, with the permission it needs. */
@@ -152,6 +153,13 @@ export const adminNavigationLinks: AdminLink[] = [
     permission: 'manage-content',
   },
   {
+    to: { name: 'admin.assistant' },
+    icon: 'lucide-sparkles',
+    title: 'Assistant',
+    caption: 'Ask for moderation work in plain words',
+    permission: ['manage-users', 'manage-content'],
+  },
+  {
     to: { name: 'admin.agent' },
     icon: 'lucide-bot',
     title: 'Content agent',
@@ -183,7 +191,9 @@ export const adminNavigationLinks: AdminLink[] = [
 
 /** The admin pages someone with these permissions can open. */
 export const allowedAdminLinks = (permissions: PriviPerm[] = []) =>
-  adminNavigationLinks.filter((link) => permissions.includes(link.permission));
+  adminNavigationLinks.filter((link) =>
+    (Array.isArray(link.permission) ? link.permission : [link.permission]).some((permission) => permissions.includes(permission)),
+  );
 
 export const trackErrorStep = (errors: GenericData): 'basic' | 'meta' | 'tracks' | 'publish' => {
   const map: GenericData & { [string: string]: 'basic' | 'meta' | 'tracks' | 'publish' } = {

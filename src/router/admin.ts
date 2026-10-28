@@ -62,6 +62,11 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Admin/AiPage.vue'),
           },
           {
+            path: 'assistant/:chat(\\d+)?',
+            name: 'admin.assistant',
+            component: () => import('pages/Admin/AssistantPage.vue'),
+          },
+          {
             path: 'agent',
             name: 'admin.agent',
             component: () => import('pages/Admin/AgentPage.vue'),
