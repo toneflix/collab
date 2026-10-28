@@ -20,6 +20,8 @@
     "icons:app": "icongenie generate -m capacitor -f png -i src-icongenie/logo-square-filled.png --skip-trim --theme-color d5a301",
     "build:android": "quasar build -m android --skip-pkg",
     "dev:android": "quasar dev -m android",
+    "build:ios": "quasar build -m ios --skip-pkg",
+    "dev:ios": "quasar dev -m ios",
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {

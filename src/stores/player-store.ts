@@ -4,6 +4,9 @@ import { notify } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { loadPlaylistRequest, loadTrackRequest } from 'src/utils/requests/requests';
 import { audioEngine } from 'src/utils/audio-engine';
+import { apiUrl } from 'src/utils/env';
+import { AuthSession } from 'src/utils/auth-session';
+import type { NativePlayerPlugin, NativeTrack } from 'src/utils/native-player';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -56,6 +59,42 @@ const slim = (track: Track): Track =>
     locked: track.locked,
     tags: track.tags,
   }) as Track;
+
+/**
+ * The installed app plays through the native player (native-player.ts), which
+ * keeps going when the app is closed. The web plays through the audio engine.
+ */
+const isNative = !!import.meta.env.QUASAR_CAPACITOR_MODE;
+
+let nativeLoad: Promise<NativePlayerPlugin> | null = null;
+
+/** The native player, loaded once. Only used in the installed app. */
+const native = () => (nativeLoad ??= import('src/utils/native-player').then((m) => m.nativePlayer));
+
+/** Run a native player command, ignoring failures (the player reports those as events). */
+const nativeCall = (command: (player: NativePlayerPlugin) => Promise<unknown>) =>
+  native()
+    .then(command)
+    .catch(() => undefined);
+
+/** Whether the native player has the queue, so play can resume instead of reloading */
+let nativeLoaded = false;
+
+/** Set once the store listens to the native player */
+let nativeAttached = false;
+
+const toNative = (track: Track): NativeTrack => ({
+  id: String(track.id),
+  title: track.title || '',
+  artist: track.artist?.name || '',
+  album: track.release?.title || '',
+  artwork: track.imageUrl || '',
+  duration: track.duration || 0,
+});
+
+/** Hand the native player the API's address and the current sign-in, for fetching stream links. */
+const configureNative = () =>
+  nativeCall((player) => player.configure({ apiBase: apiUrl.replace(/\/+$/, ''), token: AuthSession.current().token }));
 
 /**
  * Playback time changes several times a second. It lives outside the store's
@@ -130,6 +169,8 @@ export const usePlayerStore = defineStore('player', {
      * Connect the store to the audio engine. Called once by the player bar.
      */
     attach () {
+      if (isNative) return this.attachNative();
+
       audioEngine.attach({
         onTime: (position, duration, buffered) => {
           clock.position = position;
@@ -166,6 +207,103 @@ export const usePlayerStore = defineStore('player', {
       }
       this.playing = false;
       this.loading = false;
+    },
+
+    /**
+     * Connect the store to the native player. When it is already playing,
+     * e.g. it kept going while the app was closed, pick up where it is.
+     */
+    async attachNative () {
+      if (nativeAttached) return;
+      nativeAttached = true;
+
+      this.playing = false;
+      this.loading = false;
+      if (this.queue.length && this.order.length !== this.queue.length) {
+        this.reorder();
+      }
+
+      const player = await native();
+      await configureNative();
+
+      await Promise.all([
+        player.addListener('state', ({ playing, loading }) => {
+          this.playing = playing;
+          this.loading = loading;
+          if (playing) this.failedInARow = 0;
+        }),
+        player.addListener('time', ({ position, duration, buffered }) => {
+          clock.position = position;
+          if (duration) clock.duration = duration;
+          clock.buffered = buffered;
+        }),
+        player.addListener('index', ({ index, id }) => this.followNative(index, id)),
+        player.addListener('resolved', ({ id, track }) => this.refresh(track as unknown as Track, id)),
+        player.addListener('error', ({ message, locked, skipped }) => {
+          this.error = message;
+          if (!skipped) this.loading = this.playing = false;
+          notify(skipped ? `${message} Skipping to the next one.` : message, locked ? 'info' : skipped ? 'warning' : 'error');
+        }),
+        player.addListener('queueEnd', () => void this.next()),
+      ]);
+
+      void nativeCall((p) => p.setVolume({ volume: this.muted ? 0 : this.volume / 100 }));
+      void nativeCall((p) => p.setRepeat({ mode: this.repeat }));
+
+      const state = await player.getState().catch(() => null);
+      if (!state?.tracks.length) return;
+
+      // The native player has a queue, maybe moved on while the app was closed: follow it.
+      const ids = state.tracks.map((t) => t.id);
+      const ours = this.ordered.map((t) => String(t.id));
+      if (ids.join() !== ours.join()) {
+        const known = new Map(this.queue.map((t) => [String(t.id), t]));
+        this.queue = state.tracks.map(
+          (t) =>
+            known.get(t.id) ??
+            ({ id: t.id, title: t.title, imageUrl: t.artwork, duration: t.duration, artist: { name: t.artist } } as unknown as Track),
+        );
+        this.order = this.queue.map((_, i) => i);
+      }
+
+      nativeLoaded = true;
+      this.index = Math.min(state.index, this.order.length - 1);
+      this.playing = state.playing;
+      clock.position = state.position;
+      clock.duration = state.duration;
+    },
+
+    /** The native player moved to another track, by itself or from the notification. */
+    followNative (index: number, id: string) {
+      const track = this.ordered[index];
+      if (!track || String(track.id) !== id) return;
+
+      this.index = index;
+      this.error = null;
+      clock.position = 0;
+      clock.duration = track.duration || 0;
+      void this.topUp();
+    },
+
+    /** Keep the queue's copies of a track up to date (title, likes, locked state). */
+    refresh (full: Track, id = String(full.id)) {
+      this.queue.forEach((track, i) => {
+        if (String(track.id) === id) this.queue[i] = slim(full);
+      });
+    },
+
+    /**
+     * Send the queue to the native player. With `reload` the current track
+     * starts over; without it, whatever is playing carries on.
+     */
+    syncNative (autoplay = false, reload = false) {
+      if (!isNative || (!nativeLoaded && !reload)) return;
+
+      nativeLoaded = true;
+      void configureNative();
+      void nativeCall((p) =>
+        p.setQueue({ tracks: this.ordered.map(toNative), index: this.index, autoplay, reload }),
+      );
     },
 
     /**
@@ -260,6 +398,8 @@ export const usePlayerStore = defineStore('player', {
       this.error = null;
       clock.position = 0;
       clock.duration = track.duration || 0;
+
+      if (isNative) return this.loadNative(track, id, autoplay);
       audioEngine.stop();
 
       let full: Track;
@@ -300,8 +440,46 @@ export const usePlayerStore = defineStore('player', {
       }
     },
 
+    /**
+     * Start the current track on the native player, which fetches its stream
+     * link itself. A paid track is checked here first, so picking one says
+     * why it won't play instead of skipping past it.
+     */
+    async loadNative (track: Track, id: number, autoplay: boolean) {
+      if (track.locked) {
+        let full: Track | null = null;
+        try {
+          full = await loadTrackRequest(String(track.id), { with: 'artist,release' }).send();
+        } catch {
+          // Let the player try; it reports what goes wrong.
+        }
+        if (id !== this.loadId) return;
+        if (full) this.refresh(full);
+
+        if (!full || full.locked) {
+          this.loading = false;
+          this.playing = false;
+          // The previous track is still loaded natively; play should check this one again
+          nativeLoaded = false;
+          void nativeCall((p) => p.pause());
+          if (autoplay) notify(`"${track.title}" is part of a paid release. Buy it to listen.`, 'info');
+          return;
+        }
+      }
+
+      if (!autoplay) this.loading = false;
+      this.syncNative(autoplay, true);
+    },
+
     async play () {
       if (!this.current) return;
+
+      if (isNative) {
+        if (!nativeLoaded) return this.load(true);
+        void configureNative();
+        return void nativeCall((p) => p.play());
+      }
+
       if (!audioEngine.hasSource()) return this.load(true);
 
       try {
@@ -317,6 +495,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     pause () {
+      if (isNative) return void nativeCall((p) => p.pause());
       audioEngine.pause();
     },
 
@@ -368,6 +547,7 @@ export const usePlayerStore = defineStore('player', {
           this.queue.push(...fresh.map(slim));
           this.order.push(...fresh.map((_, i) => start + i));
           this.trim();
+          this.syncNative();
 
           return fresh.length;
         })
@@ -420,7 +600,8 @@ export const usePlayerStore = defineStore('player', {
 
     seek (seconds: number) {
       const to = Math.max(0, Math.min(seconds, this.duration || seconds));
-      audioEngine.seek(to);
+      if (isNative) void nativeCall((p) => p.seek({ position: to }));
+      else audioEngine.seek(to);
       clock.position = to;
     },
 
@@ -431,24 +612,31 @@ export const usePlayerStore = defineStore('player', {
     setVolume (volume: number) {
       this.volume = Math.max(0, Math.min(100, Math.round(volume)));
       if (this.volume > 0) this.muted = false;
-      audioEngine.setVolume(this.volume, this.muted);
+      this.applyVolume();
     },
 
     toggleMute () {
       this.muted = !this.muted;
-      audioEngine.setVolume(this.volume, this.muted);
+      this.applyVolume();
+    },
+
+    applyVolume () {
+      if (isNative) void nativeCall((p) => p.setVolume({ volume: this.muted ? 0 : this.volume / 100 }));
+      else audioEngine.setVolume(this.volume, this.muted);
     },
 
     cycleRepeat () {
       const modes: RepeatMode[] = ['off', 'all', 'one'];
       this.repeat = modes[(modes.indexOf(this.repeat) + 1) % modes.length]!;
-      audioEngine.setLoop(this.repeat === 'one');
+      if (isNative) void nativeCall((p) => p.setRepeat({ mode: this.repeat }));
+      else audioEngine.setLoop(this.repeat === 'one');
       void this.topUp();
     },
 
     toggleShuffle () {
       this.shuffle = !this.shuffle;
       this.reorder();
+      this.syncNative();
     },
 
     isCurrent (track?: Pick<Track, 'id'> | null) {

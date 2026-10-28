@@ -29,11 +29,15 @@
 
     </activity>
 
-    <!-- Close the media notification when the app is swiped away: the player
-         lives in the web view, so its controls can't work without the app -->
+    <!-- Music playback (PlayerPlugin), which keeps going after the app is closed -->
     <service
-      android:name="com.capgo.mediasession.MediaSessionService"
-      android:stopWithTask="true" />
+      android:name=".PlayerService"
+      android:exported="true"
+      android:foregroundServiceType="mediaPlayback">
+      <intent-filter>
+        <action android:name="androidx.media3.session.MediaSessionService" />
+      </intent-filter>
+    </service>
 
     <provider
       android:name="androidx.core.content.FileProvider"

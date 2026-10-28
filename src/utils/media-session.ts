@@ -1,11 +1,8 @@
 /**
- * What's playing, for the system: the notification and lock screen player,
- * headsets, media keys and the browser's own media controls.
- *
- * The web uses the browser's Media Session API. The installed app uses a
- * native media session instead, since Android's WebView doesn't show one. Its
- * foreground service also keeps music playing when the app is in the
- * background or the screen is off.
+ * What's playing, for the system on the web: the browser's media controls,
+ * the phone's lock screen player, headsets and media keys, through the
+ * browser's Media Session API. The installed app plays natively instead and
+ * shows its own (see native-player.ts).
  */
 
 export type SessionAction = 'play' | 'pause' | 'stop' | 'nexttrack' | 'previoustrack' | 'seekto' | 'seekbackward' | 'seekforward';
@@ -55,13 +52,9 @@ const browserSession = (): MediaSessionBridge | null => {
 
 let bridge: Promise<MediaSessionBridge | null> | null = null;
 
-/** The media session for where the app runs, loaded once. */
+/** The browser's media session, looked up once. */
 export const mediaSession = (): Promise<MediaSessionBridge | null> => {
-  if (!bridge) {
-    bridge = import.meta.env.QUASAR_CAPACITOR_MODE
-      ? import('src/utils/native-media-session').then((m) => m.nativeSession())
-      : Promise.resolve(browserSession());
-  }
+  bridge ??= Promise.resolve(browserSession());
 
   return bridge;
 };
