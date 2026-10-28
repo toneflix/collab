@@ -4,96 +4,148 @@
       <span class="ml-2 text-base">{{ btnLabel }}</span>
     </q-btn>
   </slot>
-  <q-dialog
+  <ResponsiveDialog
+    title="Assets"
     transition-show="rotate"
     transition-hide="rotate"
+    body-class="scroll max-h-[50vh]"
     v-model="toggle"
     @before-show="loadAssets"
   >
-    <q-card flat>
-      <q-toolbar>
-        <q-toolbar-title class="flex gap-2">
-          Assets
-          <div>
-            <q-btn
-              padding="xs sm"
-              icon="lucide-cloud-upload"
-              color="primary"
-              :disable="readonly"
+    <template #title>
+      Assets
+      <div>
+        <q-btn
+          padding="xs sm"
+          icon="lucide-cloud-upload"
+          color="primary"
+          :disable="readonly"
+        />
+        <q-popup-edit title="Upload Asset" v-model="form" v-slot="scope">
+          <q-form
+            class="gap-2 column"
+            @submit="upload().then(scope.cancel)"
+          >
+            <q-input
+              dense
+              outlined
+              autofocus
+              type="text"
+              label="File Name"
+              class="custom-q-class no-fill"
+              input-class="custom-input-class"
+              :error="!!errors.name"
+              :error-message="errors.name"
+              v-model="(form.meta as Record<string, string>).name"
             />
-            <q-popup-edit title="Upload Asset" v-model="form" v-slot="scope">
-              <q-form
-                class="gap-2 column"
-                @submit="upload().then(scope.cancel)"
-              >
-                <q-input
-                  dense
-                  outlined
-                  autofocus
-                  type="text"
-                  label="File Name"
-                  class="custom-q-class no-fill"
-                  input-class="custom-input-class"
-                  :error="!!errors.name"
-                  :error-message="errors.name"
-                  v-model="(form.meta as Record<string, string>).name"
+            <q-input
+              dense
+              outlined
+              autofocus
+              type="text"
+              label="File Description"
+              class="custom-q-class no-fill"
+              input-class="custom-input-class"
+              :error="!!errors.description"
+              :error-message="errors.description"
+              v-model="form.description"
+            />
+            <q-file
+              dense
+              outlined
+              autofocus
+              label="File"
+              class="custom-q-class no-fill"
+              input-class="custom-input-class"
+              :accept="acceptFor(assetsExts())"
+              :error="!!errors.file"
+              :error-message="errors.file"
+              v-model="form.file"
+            >
+              <template v-slot:prepend>
+                <q-icon name="lucide-cloud-upload" @click.stop.prevent />
+              </template>
+              <template v-slot:append>
+                <q-icon
+                  name="lucide-x"
+                  @click.stop.prevent="form.file = undefined"
+                  class="cursor-pointer"
                 />
-                <q-input
-                  dense
-                  outlined
-                  autofocus
-                  type="text"
-                  label="File Description"
-                  class="custom-q-class no-fill"
-                  input-class="custom-input-class"
-                  :error="!!errors.description"
-                  :error-message="errors.description"
-                  v-model="form.description"
-                />
-                <q-file
-                  dense
-                  outlined
-                  autofocus
-                  label="File"
-                  class="custom-q-class no-fill"
-                  input-class="custom-input-class"
-                  :accept="acceptFor(assetsExts())"
-                  :error="!!errors.file"
-                  :error-message="errors.file"
-                  v-model="form.file"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="lucide-cloud-upload" @click.stop.prevent />
-                  </template>
-                  <template v-slot:append>
-                    <q-icon
-                      name="lucide-x"
-                      @click.stop.prevent="form.file = undefined"
-                      class="cursor-pointer"
-                    />
-                  </template>
-                </q-file>
-                <div class="flex gap-2">
-                  <q-btn
-                    color="negative"
-                    label="Cancel"
-                    @click="scope.cancel"
-                  />
-                  <q-btn
-                    type="submit"
-                    color="positive"
-                    label="Save"
-                    :loading="uploading"
-                  />
-                </div>
-              </q-form>
-            </q-popup-edit>
-          </div>
-        </q-toolbar-title>
-        <IconBtn icon="lucide-x" v-close-popup />
-      </q-toolbar>
-      <q-separator />
-      <q-card-section class="scroll max-h-[50vh]">
+              </template>
+            </q-file>
+            <div class="flex gap-2">
+              <q-btn
+                color="negative"
+                label="Cancel"
+                @click="scope.cancel"
+              />
+              <q-btn
+                type="submit"
+                color="positive"
+                label="Save"
+                :loading="uploading"
+              />
+            </div>
+          </q-form>
+        </q-popup-edit>
+      </div>
+    </template>
+
+    <template #default="{ sheet }">
+      <!-- Phones: one row per file -->
+      <template v-if="sheet">
+        <q-item-label header class="px-0! text-base font-bold">Stem Files</q-item-label>
+        <q-list>
+          <q-item class="px-0" :key="i" v-for="(stem, i) in stems">
+            <q-item-section avatar>
+              <q-icon name="lucide-file-audio" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label lines="1">{{ stem.title || stem.name }}</q-item-label>
+              <q-item-label caption>{{ formatBytes(stem.size, 2, true) }}</q-item-label>
+            </q-item-section>
+            <q-item-section side class="flex-row! flex-nowrap! items-center gap-1">
+              <RenameButton :disable="readonly" v-model="stem.title" @saved="updateStem(stem)" />
+              <TDropdown flat dense rounded icon="lucide-ellipsis-vertical" dropdown-icon="none" :links="stemLinks(stem)" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+
+        <q-item-label header class="px-0! text-base font-bold">Other Assets</q-item-label>
+        <q-list>
+          <q-item class="px-0" :key="i" v-for="i in loading ? 4 : 0">
+            <q-item-section avatar><q-skeleton type="QAvatar" size="24px" /></q-item-section>
+            <q-item-section>
+              <q-skeleton type="text" width="60%" />
+              <q-skeleton type="text" width="30%" />
+            </q-item-section>
+          </q-item>
+          <q-item class="px-0" :key="asset.id" v-for="(asset, i) in assets">
+            <q-item-section avatar>
+              <q-icon :name="icon(asset.type)" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label lines="1">{{ asset.name }}</q-item-label>
+              <q-item-label caption>{{ formatBytes(asset.size, 2, true) }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <TDropdown
+                flat
+                dense
+                rounded
+                item-name="file"
+                icon="lucide-ellipsis-vertical"
+                dropdown-icon="none"
+                :links="assetLinks(asset, Number(i))"
+              />
+            </q-item-section>
+          </q-item>
+          <q-item-label caption class="py-2" v-if="!loading && !assets.length">No other assets yet.</q-item-label>
+        </q-list>
+      </template>
+
+      <!-- Larger screens: cards -->
+      <template v-else>
         <q-item-label class="text-lg font-bold">Stem Files</q-item-label>
         <div class="grid grid-cols-4 gap-2 mt-2 mb-8">
           <IconCard
@@ -103,61 +155,11 @@
             icon="lucide-file-audio"
             :title="String(stem.title || stem.name)"
             :key="i"
-            :links="[
-              {
-                label: formatBytes(stem.size, 2, true),
-                icon: 'lucide-package-open',
-                color: 'white',
-              },
-              {
-                label: 'Download Asset',
-                icon: 'lucide-cloud-download',
-                color: 'white',
-                click: () => download(stem.src as string, stem.name, '.wav'),
-              },
-            ]"
+            :links="stemLinks(stem)"
             v-for="(stem, i) in stems"
           >
             <template #title>
-              <div>
-                <IconBtn
-                  size="sm"
-                  icon="lucide-pencil"
-                  color="white"
-                  :disable="readonly"
-                />
-                <q-popup-edit
-                  title="Rename"
-                  v-model="stem.title"
-                  v-slot="scope"
-                >
-                  <div class="gap-2 column">
-                    <q-input
-                      dense
-                      outlined
-                      autofocus
-                      type="text"
-                      class="custom-q-class no-fill"
-                      input-class="custom-input-class"
-                      v-model="scope.value"
-                      @keyup.enter="scope.set(), updateStem(stem)"
-                    />
-
-                    <div class="flex gap-2">
-                      <q-btn
-                        color="negative"
-                        label="Cancel"
-                        @click="scope.cancel"
-                      />
-                      <q-btn
-                        color="positive"
-                        label="Save"
-                        @click="scope.set(), updateStem(stem)"
-                      />
-                    </div>
-                  </div>
-                </q-popup-edit>
-              </div>
+              <RenameButton color="white" :disable="readonly" v-model="stem.title" @saved="updateStem(stem)" />
             </template>
           </IconCard>
         </div>
@@ -171,45 +173,29 @@
             :key="i"
             :icon="icon(asset.type)"
             :title="asset.name"
-            :links="[
-              {
-                label: formatBytes(asset.size, 2, true),
-                icon: 'lucide-package-open',
-                color: 'white',
-              },
-              {
-                label: 'Download File',
-                icon: 'lucide-cloud-download',
-                color: 'white',
-                click: () => download(asset.src, asset.name),
-              },
-              {
-                label: 'Delete File',
-                icon: 'lucide-trash-2',
-                color: 'negative',
-                target: `creator/projects/${track.projectId}/tracks/${track.id}/assets/${asset.id}`,
-                action: 'delete',
-                callback: () => assets.splice(i, 1),
-              },
-            ]"
+            :links="assetLinks(asset, Number(i))"
             v-for="(asset, i) in assets"
-          >
-          </IconCard>
+          />
         </div>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
+      </template>
+    </template>
+  </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">
 import {
+  FileAsset,
   FileType,
+  Link,
   ProjectTrack,
   ResponseBody,
   UploadData,
 } from 'src/utils/models';
 import { PropType, computed, ref } from 'vue';
 import IconCard from './IconCard.vue';
+import RenameButton from './RenameButton.vue';
+import ResponsiveDialog from 'src/components/Controllers/ResponsiveDialog.vue';
+import TDropdown from 'src/components/Utilities/TDropdown.vue';
 import { Stem } from 'src/utils/daw';
 import { exportFile } from 'quasar';
 import { axios, useRequest } from 'src/boot/alova';
@@ -243,6 +229,44 @@ const props = defineProps({
 });
 
 const toggle = ref(false);
+
+/** The menu on a stem: its size and a download */
+const stemLinks = (stem: Stem): Link[] => [
+  {
+    label: formatBytes(stem.size, 2, true),
+    icon: 'lucide-package-open',
+    color: 'white',
+  },
+  {
+    label: 'Download Asset',
+    icon: 'lucide-cloud-download',
+    color: 'white',
+    click: () => download(stem.src as string, stem.name, '.wav'),
+  },
+];
+
+/** The menu on another asset: its size, a download and delete */
+const assetLinks = (asset: FileAsset, i: number): Link[] => [
+  {
+    label: formatBytes(asset.size, 2, true),
+    icon: 'lucide-package-open',
+    color: 'white',
+  },
+  {
+    label: 'Download File',
+    icon: 'lucide-cloud-download',
+    color: 'white',
+    click: () => download(asset.src, asset.name),
+  },
+  {
+    label: 'Delete File',
+    icon: 'lucide-trash-2',
+    color: 'negative',
+    target: `creator/projects/${props.track.projectId}/tracks/${props.track.id}/assets/${asset.id}`,
+    action: 'delete',
+    callback: () => assets.value.splice(i, 1),
+  },
+];
 
 const {
   loading,
