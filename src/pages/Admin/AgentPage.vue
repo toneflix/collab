@@ -4,8 +4,8 @@
       <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Content agent</h1>
         <p class="text-grey-5">
-          Give it instructions and it plans artists, albums and songs, then writes the lyrics, makes the
-          music and builds the releases on an agent account.
+          Give it instructions to create new artists, albums and tracks on an agent account, or to fix
+          what's already there: fill in missing artwork, sync lyrics and release existing projects.
         </p>
       </div>
 
