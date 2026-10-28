@@ -66,15 +66,19 @@ const slim = (track: Track): Track =>
  */
 const isNative = !!import.meta.env.QUASAR_CAPACITOR_MODE;
 
-let nativeLoad: Promise<NativePlayerPlugin> | null = null;
+/*
+ * Capacitor plugins answer every method name, `then` included, so a promise
+ * can't resolve to one directly: it would try to await the plugin. Wrapped.
+ */
+let nativeLoad: Promise<{ player: NativePlayerPlugin }> | null = null;
 
 /** The native player, loaded once. Only used in the installed app. */
-const native = () => (nativeLoad ??= import('src/utils/native-player').then((m) => m.nativePlayer));
+const native = () => (nativeLoad ??= import('src/utils/native-player').then((m) => ({ player: m.nativePlayer })));
 
 /** Run a native player command, ignoring failures (the player reports those as events). */
 const nativeCall = (command: (player: NativePlayerPlugin) => Promise<unknown>) =>
   native()
-    .then(command)
+    .then(({ player }) => command(player))
     .catch(() => undefined);
 
 /** Whether the native player has the queue, so play can resume instead of reloading */
@@ -223,7 +227,7 @@ export const usePlayerStore = defineStore('player', {
         this.reorder();
       }
 
-      const player = await native();
+      const { player } = await native();
       await configureNative();
 
       await Promise.all([
