@@ -35,7 +35,7 @@
               >
                 {{ track.artist?.name }}
               </RouterLink>
-              <AlbumLink class="text-base font-bold" :track="track" />
+              <AlbumLink :track="track" />
             </h6>
 
             <h1 class="text-3xl break-words sm:text-5xl font-circlular-std sm:whitespace-nowrap">
