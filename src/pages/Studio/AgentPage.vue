@@ -4,9 +4,8 @@
       <div class="py-8">
         <h1 class="text-3xl font-circlular-std">Content agent</h1>
         <p class="text-grey-5">
-          Give it instructions and it plans artists, albums and songs for this account, then writes the
-          lyrics, makes the music, draws the artwork and builds the releases with your AI credits. It can
-          also fix your existing projects: fill in missing artwork, sync lyrics and publish them.
+          Give it instructions to create new artists, albums and tracks, or to fix what you already have:
+          fill in missing artwork, sync lyrics and release existing projects. It uses your AI credits.
         </p>
       </div>
 
