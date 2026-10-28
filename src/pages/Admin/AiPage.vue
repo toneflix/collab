@@ -619,6 +619,28 @@
             </div>
           </template>
 
+          <template #assistant>
+            <q-select
+              dark
+              outlined
+              emit-value
+              map-options
+              :label="fields.ai_assistant_engine?.title"
+              :hint="fields.ai_assistant_engine?.hint"
+              :options="engineOptions('ai_assistant_engine')"
+              v-model="form.ai_assistant_engine"
+            >
+              <template #append>
+                <q-badge
+                  rounded
+                  color="orange-9"
+                  label="Needs its key"
+                  v-if="needsKey(form.ai_assistant_engine)"
+                />
+              </template>
+            </q-select>
+          </template>
+
           <template #footer>
             <span class="text-sm text-grey-5" v-if="changed"
               >Unsaved changes</span
@@ -692,6 +714,7 @@ const form = reactive({
   ai_moderator_releases_auto: false,
   ai_moderator_engine: 'replicate' as AiEngine,
   ai_moderator_confidence: 80 as number | string,
+  ai_assistant_engine: 'replicate' as AiEngine,
   composer_word_source: 'datamuse',
   ai_composer_engine: 'replicate' as AiEngine,
   ai_composer_model: '',
@@ -817,6 +840,13 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
       'ai_moderator_confidence',
     ],
   },
+  {
+    key: 'assistant',
+    icon: 'lucide-sparkles',
+    title: 'Admin assistant',
+    caption: 'Where the assistant runs.',
+    fields: ['ai_assistant_engine'],
+  },
 ];
 
 const saved = ref<Partial<typeof form>>({});
@@ -899,6 +929,8 @@ const fill = (data: AiAdminSettings) => {
   form.ai_moderator_engine = (f.ai_moderator_engine?.value ??
     'replicate') as AiEngine;
   form.ai_moderator_confidence = Number(f.ai_moderator_confidence?.value ?? 80);
+  form.ai_assistant_engine = (f.ai_assistant_engine?.value ??
+    'replicate') as AiEngine;
   form.composer_word_source = f.composer_word_source?.value ?? 'datamuse';
   form.ai_composer_engine = (f.ai_composer_engine?.value ??
     'replicate') as AiEngine;

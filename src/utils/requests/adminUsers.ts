@@ -129,7 +129,7 @@ export const adjustUserCreditsRequest = (id: number, credits: number, reason: st
 
 /** Who made an audit entry. */
 export const actionActor = (entry: AdminAction) => {
-  if (entry.admin) return `@${entry.admin.username}`;
+  if (entry.admin) return entry.details.via === 'assistant' ? `@${entry.admin.username} via Assistant` : `@${entry.admin.username}`;
 
   return entry.details.via === 'console' ? 'Console' : 'Removed admin';
 };
