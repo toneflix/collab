@@ -46,6 +46,12 @@ const links = [
     to: { name: 'studio.release.create' },
   },
   {
+    icon: 'lucide-bot',
+    title: 'Content Agent',
+    description: 'Describe music or fixes and let AI build them.',
+    to: { name: 'studio.agent' },
+  },
+  {
     icon: 'lucide-list-checks',
     title: 'My Projects',
     description: 'Open the projects you own or joined.',
