@@ -178,7 +178,7 @@
 
           <q-list dense v-if="item.tracks.length">
             <q-item :key="track.id" v-for="track in item.tracks">
-              <q-item-section avatar><q-icon name="lucide-captions" size="18px" class="text-grey-6" /></q-item-section>
+              <q-item-section avatar><q-icon name="lucide-file-text" size="18px" class="text-grey-6" /></q-item-section>
               <q-item-section>
                 <q-item-label>{{ track.title }}</q-item-label>
                 <q-item-label caption class="text-orange-4" v-if="track.error">{{ track.error }}</q-item-label>
