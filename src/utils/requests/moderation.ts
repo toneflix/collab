@@ -1,7 +1,7 @@
 import { alova } from 'src/boot/alova'
 import type { Release, ResponseBody } from '../models'
 
-export type ReportableType = 'release' | 'track' | 'sound' | 'song' | 'comment' | 'user'
+export type ReportableType = 'release' | 'track' | 'sound' | 'song' | 'project' | 'comment' | 'user'
 
 export type ReportReason =
   | 'copyright' | 'dmca' | 'spam' | 'abuse' | 'violent' | 'self-harm'
@@ -33,6 +33,10 @@ export type ModeratedItem = {
   link?: string | null;
   canTakeDown: boolean;
   takenDown: boolean;
+  /** Accounts can't be deleted from moderation */
+  canDelete?: boolean;
+  /** What the moderator types to confirm a delete */
+  deleteName?: string | null;
   owner?: { id: number; name: string; username?: string } | null;
 }
 
@@ -145,6 +149,14 @@ export const loadAdminTakedownsRequest = (params: { status?: string; search?: st
 
 export const takeDownRequest = (type: ReportableType, id: number, form: { reason: string; note?: string }) =>
   alova.Post<ResponseBody<Takedown>>(`admin/moderation/items/${type}/${id}/takedown`, form)
+
+export type DeleteContentForm = { reason: string; note?: string; confirm_name: string; code: string }
+
+/**
+ * Delete content for good. Needs its name typed out and a two-factor code.
+ */
+export const deleteContentRequest = (type: ReportableType, id: number, form: DeleteContentForm) =>
+  alova.Delete<ResponseBody<{ deleted: boolean }>>(`admin/moderation/items/${type}/${id}`, form)
 
 export const dismissReportsRequest = (type: ReportableType, id: number) =>
   alova.Post<ResponseBody<{ closed: number }>>(`admin/moderation/items/${type}/${id}/dismiss`)

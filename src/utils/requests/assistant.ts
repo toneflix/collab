@@ -14,11 +14,15 @@ export type AssistantChat = {
 
 export type AssistantActionStatus = 'pending' | 'running' | 'done' | 'failed' | 'cancelled' | 'expired';
 
+/** Something the admin enters on the card to confirm, which the assistant never sees */
+export type AssistantActionAsk = { field: string; label: string; kind: 'text' | 'code' };
+
 /** A change the assistant proposed, which runs once the admin confirms it */
 export type AssistantAction = {
   id: number;
   tool: string;
   summary: string;
+  asks: AssistantActionAsk[];
   status: AssistantActionStatus;
   error: string | null;
   expiresAt: string;
@@ -65,8 +69,8 @@ export const startAssistantChatRequest = (message: string) =>
 export const sendAssistantMessageRequest = (chatId: number, message: string) =>
   alova.Post<ResponseBody<AssistantMessage>>(`admin/assistant/chats/${chatId}/messages`, { message });
 
-export const confirmAssistantActionRequest = (id: number) =>
-  alova.Post<ResponseBody<AssistantAction>>(`admin/assistant/actions/${id}/confirm`, {});
+export const confirmAssistantActionRequest = (id: number, answers: Record<string, string> = {}) =>
+  alova.Post<ResponseBody<AssistantAction>>(`admin/assistant/actions/${id}/confirm`, answers);
 
 export const cancelAssistantActionRequest = (id: number) =>
   alova.Post<ResponseBody<AssistantAction>>(`admin/assistant/actions/${id}/cancel`, {});

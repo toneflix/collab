@@ -166,6 +166,18 @@
                     :loading="busy === `dismiss:${row.key}`"
                     @click="close(row, 'dismiss')"
                   />
+                  <q-btn
+                    flat
+                    rounded
+                    no-caps
+                    size="sm"
+                    color="red-4"
+                    icon="lucide-trash-2"
+                    label="Delete"
+                    class="flex-none!"
+                    v-if="row.item.canDelete"
+                    @click="openDelete(row.item, topReason(row))"
+                  />
                 </div>
               </q-card-section>
             </q-card>
@@ -326,6 +338,18 @@
                       :loading="busy === `uphold:${takedown.id}`"
                       @click="decide(takedown, 'uphold')"
                     />
+                    <q-btn
+                      flat
+                      rounded
+                      no-caps
+                      size="sm"
+                      color="red-4"
+                      icon="lucide-trash-2"
+                      label="Delete"
+                      class="flex-none!"
+                      v-if="takedown.item?.canDelete"
+                      @click="openDelete(takedown.item, takedown.reason)"
+                    />
                   </div>
                 </template>
               </q-card-section>
@@ -338,6 +362,13 @@
         </div>
       </SettingsSections>
     </div>
+
+    <DeleteContentDialog
+      :item="deleting.item"
+      :reason="deleting.reason"
+      v-model="deleting.show"
+      @deleted="load(pages.page)"
+    />
 
     <q-dialog v-model="takedownDialog">
       <q-card class="w-full max-w-sm bg-dark">
@@ -374,6 +405,7 @@ import { useMeta } from 'quasar';
 import { computed, reactive, ref, watch } from 'vue';
 import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
+import DeleteContentDialog from 'src/components/Moderation/DeleteContentDialog.vue';
 import ArtistClaimsReview from 'src/components/Moderation/ArtistClaimsReview.vue';
 import AiReviewStatus from 'src/components/Moderation/AiReviewStatus.vue';
 import { useAiReviewUpdates } from 'src/composables/useAiReviewUpdates';
@@ -396,6 +428,7 @@ import {
   takeDownRequest,
   upholdTakedownRequest,
   type ModerationStats,
+  type ModeratedItem,
   type QueueItem,
   type ReleaseReview,
   type ReportReason,
@@ -409,6 +442,7 @@ const typeOptions = [
   { label: 'Tracks', value: 'track' },
   { label: 'Sounds', value: 'sound' },
   { label: 'Compositions', value: 'song' },
+  { label: 'Projects', value: 'project' },
   { label: 'Comments', value: 'comment' },
   { label: 'Accounts', value: 'user' },
 ];
@@ -542,11 +576,19 @@ const run = async (key: string, action: () => Promise<{ message: string }>) => {
   }
 };
 
-const openTakedown = (row: QueueItem) => {
-  const top = Object.entries(row.reasons).sort((a, b) => (b[1] || 0) - (a[1] || 0))[0]?.[0] as ReportReason | undefined;
+/** The reason most reports on an item give */
+const topReason = (row: QueueItem) =>
+  Object.entries(row.reasons).sort((a, b) => (b[1] || 0) - (a[1] || 0))[0]?.[0] as ReportReason | undefined;
 
+const deleting = reactive<{ show: boolean; item: ModeratedItem | null; reason?: ReportReason }>({ show: false, item: null });
+
+const openDelete = (item: ModeratedItem, reason?: ReportReason | string) => {
+  Object.assign(deleting, { show: true, item, reason: reason as ReportReason | undefined });
+};
+
+const openTakedown = (row: QueueItem) => {
   selected.value = row;
-  takedownForm.reason = top || 'copyright';
+  takedownForm.reason = topReason(row) || 'copyright';
   takedownForm.note = '';
   takedownDialog.value = true;
 };

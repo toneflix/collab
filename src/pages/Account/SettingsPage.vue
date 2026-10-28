@@ -301,6 +301,8 @@
         </q-form>
       </section>
 
+      <TwoFactorSettings class="settings__card" />
+
       <!-- Elsewhere -->
       <section class="settings__card" aria-labelledby="more-heading">
         <h2 id="more-heading" class="settings__title mb-2">More settings</h2>
@@ -435,6 +437,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
+import TwoFactorSettings from 'src/components/Account/TwoFactorSettings.vue';
 import AccountTypePicker from 'src/components/Auth/AccountTypePicker.vue';
 import ChoiceChips from 'src/components/Auth/ChoiceChips.vue';
 import InterestPicker from 'src/components/Auth/InterestPicker.vue';
