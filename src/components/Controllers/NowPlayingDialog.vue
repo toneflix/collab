@@ -8,7 +8,7 @@
     transition-hide="slide-down"
     class="now-playing"
   >
-    <q-card dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
+    <q-card ref="card" dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
       <div class="now-playing__body">
         <!-- Big artwork and what's playing -->
         <div class="now-playing__art">
@@ -20,7 +20,11 @@
           />
           <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
-            <div class="truncate text-grey-5">{{ track.artist?.name }}</div>
+            <div class="truncate text-grey-5">
+              <RouterLink :to="artistLink" class="hover:underline" @click="open = false" v-if="track.artist">
+                {{ track.artist.name }}
+              </RouterLink>
+            </div>
           </div>
         </div>
 
@@ -46,7 +50,7 @@
             <SyncedLyrics :track-id="track.id" :position="player.position" @seek="player.seek" />
           </q-scroll-area>
           <q-scroll-area class="now-playing__list" v-else>
-            <QueueList ref="queueList" />
+            <QueueList ref="queueList" @navigate="open = false" />
           </q-scroll-area>
         </div>
       </div>
@@ -55,7 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
+import { onClickOutside, onKeyStroke } from '@vueuse/core';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import QueueList from './QueueList.vue';
@@ -76,7 +81,20 @@ defineProps({
 
 const player = usePlayerStore();
 const track = computed<Track>(() => player.current || ({} as Track));
+const artistLink = computed(() => ({
+  name: 'artist',
+  params: { artist_id: track.value.artist?.username || '-' },
+}));
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
+
+// Esc and clicks outside the panel close it. The player bar and popups keep it open.
+const card = useTemplateRef<{ $el: HTMLElement }>('card');
+onKeyStroke('Escape', () => (open.value = false));
+onClickOutside(
+  () => card.value?.$el,
+  () => (open.value = false),
+  { ignore: ['.player-bar', '.q-menu', '.q-dialog'] },
+);
 
 // Bring the playing track into view when the panel opens.
 watch([open, tab], ([on, current]) => {
