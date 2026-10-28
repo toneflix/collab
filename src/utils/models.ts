@@ -455,6 +455,8 @@ export interface User extends Artist {
   identities?: string[];
   /** When the user last saved their interest genres */
   interestsAt?: string | null;
+  /** Two-factor sign-in is on */
+  twoFactor?: boolean;
   updatedAt: string;
   createdAt: string;
 }
