@@ -88,6 +88,18 @@
               "
             />
           </div>
+
+          <div class="col-span-2">
+            <label class="block mb-2 text-xl text-gray-400">Track Privacy</label>
+            <q-option-group
+              inline
+              type="radio"
+              :options="trackPrivacyOptions"
+              v-model="form.privacy"
+            />
+            <p class="mt-1 mb-0 text-sm text-fg-muted">{{ privacyHint }}</p>
+            <p class="mt-1 mb-0 text-sm text-red-5" v-if="errors.privacy">{{ errors.privacy }}</p>
+          </div>
         </q-form>
       </q-card-section>
       <q-card-actions align="right" class="q-px-md">
@@ -155,6 +167,19 @@ const errors = computed(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
 );
 const trackForm = ref();
+
+const trackPrivacyOptions = [
+  { label: 'Private', value: 'private' },
+  { label: 'Public', value: 'public' },
+];
+
+const privacyHint = computed(() => {
+  if (props.project.privacy === 'private') return 'The project is private, so only its people see this track.';
+  if (props.project.tracksPublic) return 'The project makes every track public, so visitors see this track either way.';
+  return form.value.privacy === 'public'
+    ? 'Visitors to the project can see and play this track.'
+    : 'Only the project\'s people see this track.';
+});
 
 const {
   form,
