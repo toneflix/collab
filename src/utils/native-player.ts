@@ -22,6 +22,8 @@ export type NativeTrack = {
   artwork: string;
   /** Seconds, 0 when unknown */
   duration: number;
+  /** An audio link to play as is, or '' to fetch the track's stream link from the API */
+  url?: string;
 };
 
 export type NativeRepeat = 'off' | 'all' | 'one';

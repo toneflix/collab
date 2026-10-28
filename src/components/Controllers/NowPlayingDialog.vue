@@ -21,7 +21,15 @@
           <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
             <div class="truncate text-grey-5">
-              <RouterLink :to="artistLink" class="hover:underline" @click="open = false" v-if="track.artist">
+              <RouterLink
+                class="hover:underline"
+                :to="{ name: 'project', params: { project_id: track.project.slug } }"
+                @click="open = false"
+                v-if="track.project"
+              >
+                {{ track.project.title }}
+              </RouterLink>
+              <RouterLink :to="artistLink" class="hover:underline" @click="open = false" v-else-if="track.artist">
                 {{ track.artist.name }}
               </RouterLink>
             </div>

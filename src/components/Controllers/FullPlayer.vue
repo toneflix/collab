@@ -16,7 +16,7 @@
             <q-list dense class="min-w-48">
               <q-item clickable v-close-popup :to="trackLink" @click="open = false">
                 <q-item-section avatar><q-icon name="lucide-music-2" /></q-item-section>
-                <q-item-section>Go to song</q-item-section>
+                <q-item-section>{{ track.project ? 'Go to project' : 'Go to song' }}</q-item-section>
               </q-item>
               <q-item clickable v-close-popup :to="artistLink" @click="open = false" v-if="track.artist">
                 <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
@@ -65,7 +65,8 @@
         <div class="flex-1 min-w-0">
           <div class="text-xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
           <div class="truncate text-grey-4">
-            <RouterLink :to="artistLink" @click="open = false" v-if="track.artist">{{ track.artist.name }}</RouterLink>
+            <RouterLink :to="trackLink" @click="open = false" v-if="track.project">{{ track.project.title }}</RouterLink>
+            <RouterLink :to="artistLink" @click="open = false" v-else-if="track.artist">{{ track.artist.name }}</RouterLink>
             <template v-if="track.release?.title">
               <span class="mx-1">•</span>
               <RouterLink :to="releaseLink" @click="open = false">{{ track.release.title }}</RouterLink>
@@ -80,7 +81,7 @@
           :base-url="`tracks/${track.id}`"
           :signature="`track:${track.id}`"
           @done="track.likes = $event.likes"
-          v-if="track.id"
+          v-if="track.id && !track.temporary"
         >
           <IconBtn
             class="flex-none!"
@@ -233,10 +234,14 @@ const showList = (which: 'next' | 'lyrics') => {
   listOpen.value = true;
 };
 
-const trackLink = computed(() => ({
-  name: 'artist.track',
-  params: { artist_id: track.value.artist?.username || track.value.artistId || '-', track_id: track.value.slug },
-}));
+const trackLink = computed(() =>
+  track.value.project
+    ? { name: 'project', params: { project_id: track.value.project.slug } }
+    : {
+        name: 'artist.track',
+        params: { artist_id: track.value.artist?.username || track.value.artistId || '-', track_id: track.value.slug },
+      },
+);
 const artistLink = computed(() => ({ name: 'artist', params: { artist_id: track.value.artist?.username || '-' } }));
 const releaseLink = computed(() => ({
   name: 'artist.album',

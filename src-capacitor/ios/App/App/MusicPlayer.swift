@@ -11,6 +11,8 @@ struct QueueTrack {
     let album: String
     let artwork: String
     let duration: Double
+    /// An audio link to play as is, or "" to fetch the track's stream link from the API
+    let url: String
     /// The object exactly as received, handed back by getState.
     let raw: JSObject
 
@@ -29,6 +31,7 @@ struct QueueTrack {
         album = object["album"] as? String ?? ""
         artwork = object["artwork"] as? String ?? ""
         duration = (object["duration"] as? NSNumber)?.doubleValue ?? 0
+        url = object["url"] as? String ?? ""
         raw = object
     }
 }
@@ -407,6 +410,14 @@ final class MusicPlayer: NSObject {
     /// ten minutes. Holds a background task meanwhile so the move to the next track
     /// can finish while the app is in the background.
     private func resolve(_ track: QueueTrack, completion: @escaping (Result<URL, TrackFailure>) -> Void) {
+        if !track.url.isEmpty {
+            if let url = URL(string: track.url) {
+                completion(.success(url))
+            } else {
+                completion(.failure(.loadFailed))
+            }
+            return
+        }
         if let hit = cache[track.id], Date().timeIntervalSince(hit.at) < cacheLifetime {
             completion(.success(hit.url))
             return

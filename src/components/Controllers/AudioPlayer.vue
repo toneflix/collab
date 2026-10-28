@@ -71,7 +71,10 @@
               v-if="track.explicit"
             >E</span>
             <span class="truncate">
-              <RouterLink :to="artistLink" class="hover:underline" v-if="track.artist">
+              <RouterLink :to="trackLink" class="hover:underline" v-if="track.project">
+                {{ track.project.title }}
+              </RouterLink>
+              <RouterLink :to="artistLink" class="hover:underline" v-else-if="track.artist">
                 {{ track.artist.name }}
               </RouterLink>
               <template v-if="track.release?.title">
@@ -94,6 +97,7 @@
             :base-url="`tracks/${track.id}`"
             :signature="`track:${track.id}`"
             @done="track.likes = $event.likes"
+            v-if="!track.temporary"
           >
             <IconBtn
               class="flex-none!"
@@ -109,7 +113,7 @@
               <q-list dense class="min-w-48">
                 <q-item clickable v-close-popup :to="trackLink">
                   <q-item-section avatar><q-icon name="lucide-music-2" /></q-item-section>
-                  <q-item-section>Go to song</q-item-section>
+                  <q-item-section>{{ track.project ? 'Go to project' : 'Go to song' }}</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup :to="artistLink" v-if="track.artist">
                   <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
@@ -229,13 +233,17 @@ let resize: ResizeObserver | null = null;
 const hydrated = ref(false);
 const track = computed<Track>(() => (hydrated.value && player.current) || ({} as Track));
 
-const trackLink = computed(() => ({
-  name: 'artist.track',
-  params: {
-    artist_id: track.value.artist?.username || track.value.artistId || '-',
-    track_id: track.value.slug || '-',
-  },
-}));
+const trackLink = computed(() =>
+  track.value.project
+    ? { name: 'project', params: { project_id: track.value.project.slug } }
+    : {
+        name: 'artist.track',
+        params: {
+          artist_id: track.value.artist?.username || track.value.artistId || '-',
+          track_id: track.value.slug || '-',
+        },
+      },
+);
 const artistLink = computed(() => ({
   name: 'artist',
   params: { artist_id: track.value.artist?.username || '-' },
