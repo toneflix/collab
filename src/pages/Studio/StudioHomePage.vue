@@ -48,7 +48,7 @@ const links = [
   {
     icon: 'lucide-bot',
     title: 'Content Agent',
-    description: 'Turn your ideas into albums and finish projects faster.',
+    description: 'Turn your ideas into creative workflows and finish projects faster.',
     to: { name: 'studio.agent' },
   },
   {
