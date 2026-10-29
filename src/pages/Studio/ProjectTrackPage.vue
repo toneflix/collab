@@ -240,7 +240,11 @@
           />
         </template>
       </ConversationDialog>
-      <ProjectTrackInfoDialog :track="track" :project="project">
+      <ProjectTrackInfoDialog
+        :track="track"
+        :project="project"
+        v-if="!viewOnly"
+      >
         <template #default="{ toggle }">
           <ActionButton
             label="Track info"
