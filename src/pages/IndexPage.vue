@@ -70,15 +70,14 @@
 
       <section v-if="genres.length">
         <HomeShelfHeader title="Browse by genre" :to="{ name: 'genres' }" />
-        <div class="flex flex-wrap gap-2">
-          <router-link
+        <div class="home-genres">
+          <GenreTile
+            size="sm"
             :key="genre.id"
-            class="home-genre flex-none!"
+            :genre="genre"
             :to="{ name: 'explore', query: { genre: genre.slug } }"
             v-for="genre in genres"
-          >
-            {{ genre.title }}
-          </router-link>
+          />
         </div>
       </section>
 
@@ -115,6 +114,7 @@ import HomeJoin from 'src/components/Home/HomeJoin.vue';
 import HomeShelfHeader from 'src/components/Home/HomeShelfHeader.vue';
 import HomeSteps from 'src/components/Home/HomeSteps.vue';
 import CompositionShelf from 'src/components/Compositions/CompositionShelf.vue';
+import GenreTile from 'src/components/Cards/GenreTile.vue';
 import ProjectCategory from 'src/components/Showcase/ProjectCategory.vue';
 import TrackCategory from 'src/components/Showcase/TrackCategory.vue';
 import { useMeta } from 'quasar';
@@ -257,21 +257,13 @@ useMeta(() => ({
   }
 }
 
-.home-genre {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 14px;
-  color: #d5dbe1;
-  background: #1b1e28;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+.home-genres {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
 
-  &:hover {
-    color: #fff;
-    border-color: #03bfff;
-    background: rgba(3, 191, 255, 0.12);
+  :deep(.genre-tile) {
+    width: 100%;
   }
 }
 </style>
