@@ -234,7 +234,14 @@
             >
               <q-item dense class="label" :key="link.group" v-if="!collapsed">
                 <q-item-section class="text-gray-400">
-                  {{ link.title }}
+                  <router-link
+                    v-if="link.to"
+                    :to="link.to"
+                    class="label-link"
+                  >
+                    {{ link.title }}
+                  </router-link>
+                  <template v-else>{{ link.title }}</template>
                 </q-item-section>
                 <q-item-section side v-if="link.button">
                   <q-btn dense outline size="sm" :to="link.button.action">

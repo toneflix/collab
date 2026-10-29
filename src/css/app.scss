@@ -22,6 +22,16 @@
       cursor: default;
     }
 
+    .label-link {
+      color: inherit;
+      text-decoration: none;
+      width: fit-content;
+
+      &:hover {
+        color: var(--tf-text);
+      }
+    }
+
     &.q-hoverable:hover > .q-focus-helper {
       display: none;
     }
