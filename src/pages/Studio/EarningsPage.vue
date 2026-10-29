@@ -109,8 +109,8 @@
         </q-item>
       </q-card>
 
-      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-3">
-        <q-card flat bordered class="bg-dark">
+      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-5">
+        <q-card flat bordered class="col-span-2 bg-dark md:col-span-5">
           <q-card-section>
             <div class="text-xs text-grey-5">Total earned</div>
             <div class="text-2xl font-bold">{{ price(summary.earned) }}</div>

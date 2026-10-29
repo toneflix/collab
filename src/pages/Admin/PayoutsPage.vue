@@ -18,6 +18,14 @@
           <StreamPeriodsAdmin />
         </template>
 
+        <template #royals>
+          <RoyaltyAdmin view="contracts" />
+        </template>
+
+        <template #royalty-invites>
+          <RoyaltyAdmin view="invites" />
+        </template>
+
         <template #default>
           <q-banner rounded dense class="mb-8 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
             {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
@@ -99,6 +107,7 @@ import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
 import StreamPeriodsAdmin from 'src/components/Payments/StreamPeriodsAdmin.vue';
+import RoyaltyAdmin from 'src/components/Payments/RoyaltyAdmin.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { usePayments } from 'src/composables/usePayments';
 import { notify } from 'src/utils/helpers';
@@ -120,11 +129,11 @@ const boot = useBootstrapStore();
 const { price } = usePayments();
 
 const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
-type View = PayoutStatus | 'all' | 'streams' | 'providers';
+type View = PayoutStatus | 'all' | 'providers' | 'royals' | 'royalty-invites' | 'streams';
 
 const view = ref<View>('pending');
 const status = computed<PayoutStatus | ''>(() =>
-  view.value === 'all' || view.value === 'streams' || view.value === 'providers' ? '' : view.value,
+  ['all', 'providers', 'royals', 'royalty-invites', 'streams'].includes(view.value) ? '' : (view.value as PayoutStatus),
 );
 const search = ref<string | null>('');
 const page = ref(1);
@@ -161,6 +170,8 @@ const sections = computed(() => {
     { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
     { key: 'all', icon: 'lucide-list', title: 'All', caption: 'Every withdrawal request.' },
     { key: 'streams', icon: 'lucide-audio-lines', title: 'Streams', caption: 'The monthly stream pool.' },
+    { key: 'royals', icon: 'lucide-crown', title: 'Royalties', caption: 'Royals and the terms they earn on.' },
+    { key: 'royalty-invites', icon: 'lucide-mail', title: 'Royalty invites', caption: 'Invites sent to new royals.' },
   ];
 
   return canConfigure.value
