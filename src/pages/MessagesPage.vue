@@ -260,7 +260,10 @@ onMounted(() => {
     overflow-y: auto;
   }
 
-  &__status,
+  &__status {
+    padding: 32px 16px;
+    text-align: center;
+  }
 }
 
 .convo {
