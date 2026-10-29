@@ -1,80 +1,70 @@
 <template>
-  <q-page padding>
-    <div class="max-w-2xl mx-auto">
-      <div class="mb-8">
-        <h1 class="text-2xl font-bold">Notification settings</h1>
-        <p class="text-grey-5">
-          Choose what reaches you when you're not in the app. Everything still
-          shows up in your notifications list.
-        </p>
-      </div>
+  <div>
+    <q-banner rounded dense class="mb-8 bg-green-10 text-white" v-if="unsubscribed">
+      <template #avatar><q-icon name="lucide-mail-check" /></template>
+      You won't get emails about {{ unsubscribed.title.toLowerCase() }} anymore. You can turn them back on below.
+    </q-banner>
 
-      <q-banner rounded dense class="mb-8 bg-green-10 text-white" v-if="unsubscribed">
-        <template #avatar><q-icon name="lucide-mail-check" /></template>
-        You won't get emails about {{ unsubscribed.title.toLowerCase() }} anymore. You can turn them back on below.
-      </q-banner>
+    <ListSkeleton :avatar="false" :rows="6" side v-if="loading && !settings" />
 
-      <ListSkeleton :avatar="false" :rows="6" side v-if="loading && !settings" />
+    <template v-else-if="settings">
+      <section class="push-card">
+        <div class="flex flex-nowrap! items-start gap-3">
+          <q-icon name="lucide-smartphone" size="22px" class="flex-none! mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
+          <div>
+            <div class="font-bold">Push on this device</div>
+            <div class="text-sm text-grey-5">{{ pushText }}</div>
+          </div>
+          <q-btn
+            rounded
+            no-caps
+            unelevated
+            size="sm"
+            class="flex-none! ml-auto"
+            :color="pushOn ? 'grey-8' : 'light-blue-8'"
+            :label="pushOn ? 'Turn off' : 'Turn on'"
+            :loading="pushBusy"
+            @click="togglePush"
+            v-if="canUsePush"
+          />
+        </div>
+      </section>
 
-      <template v-else-if="settings">
-        <section class="push-card">
-          <div class="flex flex-nowrap! items-start gap-3">
-            <q-icon name="lucide-smartphone" size="22px" class="flex-none! mt-1" :color="pushOn ? 'light-blue-4' : 'grey-6'" />
+      <div class="settings-grid" role="table" aria-label="Notification settings">
+        <div class="settings-grid__head" role="row">
+          <span role="columnheader">Notify me about</span>
+          <span role="columnheader" class="text-center">Email</span>
+          <span role="columnheader" class="text-center">Push</span>
+        </div>
+        <div class="settings-grid__row" role="row" :key="c.key" v-for="c in settings.categories">
+          <div role="cell" class="flex flex-nowrap! items-start gap-3">
+            <q-icon :name="categoryLook[c.key].icon" :color="categoryLook[c.key].color" size="16px" class="flex-none! mt-1" />
             <div>
-              <div class="font-bold">Push on this device</div>
-              <div class="text-sm text-grey-5">{{ pushText }}</div>
+              <div class="font-bold">{{ c.title }}</div>
+              <div class="text-sm text-grey-5">{{ c.description }}</div>
             </div>
-            <q-btn
-              rounded
-              no-caps
-              unelevated
-              size="sm"
-              class="flex-none! ml-auto"
-              :color="pushOn ? 'grey-8' : 'light-blue-8'"
-              :label="pushOn ? 'Turn off' : 'Turn on'"
-              :loading="pushBusy"
-              @click="togglePush"
-              v-if="canUsePush"
+          </div>
+          <div role="cell" class="text-center">
+            <q-toggle
+              color="light-blue-6"
+              :aria-label="`Email for ${c.title}`"
+              :model-value="c.mail"
+              @update:model-value="(v: boolean) => change(c, 'mail', v)"
             />
           </div>
-        </section>
-
-        <div class="settings-grid" role="table" aria-label="Notification settings">
-          <div class="settings-grid__head" role="row">
-            <span role="columnheader">Notify me about</span>
-            <span role="columnheader" class="text-center">Email</span>
-            <span role="columnheader" class="text-center">Push</span>
-          </div>
-          <div class="settings-grid__row" role="row" :key="c.key" v-for="c in settings.categories">
-            <div role="cell" class="flex flex-nowrap! items-start gap-3">
-              <q-icon :name="categoryLook[c.key].icon" :color="categoryLook[c.key].color" size="16px" class="flex-none! mt-1" />
-              <div>
-                <div class="font-bold">{{ c.title }}</div>
-                <div class="text-sm text-grey-5">{{ c.description }}</div>
-              </div>
-            </div>
-            <div role="cell" class="text-center">
-              <q-toggle
-                color="light-blue-6"
-                :aria-label="`Email for ${c.title}`"
-                :model-value="c.mail"
-                @update:model-value="(v: boolean) => change(c, 'mail', v)"
-              />
-            </div>
-            <div role="cell" class="text-center">
-              <q-toggle
-                color="light-blue-6"
-                :aria-label="`Push for ${c.title}`"
-                :disable="!pushAvailable"
-                :model-value="c.push"
-                @update:model-value="(v: boolean) => change(c, 'push', v)"
-              />
-            </div>
+          <div role="cell" class="text-center">
+            <q-toggle
+              color="light-blue-6"
+              :aria-label="`Push for ${c.title}`"
+              :disable="!pushAvailable"
+              :model-value="c.push"
+              @update:model-value="(v: boolean) => change(c, 'push', v)"
+            />
           </div>
         </div>
-      </template>
-    </div>
-  </q-page>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">

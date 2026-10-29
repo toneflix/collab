@@ -206,6 +206,63 @@ export const adminNavigationLinks: AdminLink[] = [
   },
 ];
 
+export type AccountLink = {
+  to: { name: string };
+  icon: string;
+  title: string;
+  caption: string;
+};
+
+/** The account settings pages, in the order the settings menu lists them. */
+export const accountSettingsLinks: AccountLink[] = [
+  {
+    to: { name: 'account.settings' },
+    icon: 'lucide-circle-user',
+    title: 'Account',
+    caption: 'Your profile, how people reach you and where you are.',
+  },
+  {
+    to: { name: 'account.security' },
+    icon: 'lucide-shield',
+    title: 'Security',
+    caption: 'How you sign in and what keeps your account safe.',
+  },
+  {
+    to: { name: 'account.music' },
+    icon: 'lucide-music',
+    title: 'Your music',
+    caption: 'How you use Toneflix Music and the sounds you like.',
+  },
+  {
+    to: { name: 'account.notifications' },
+    icon: 'lucide-bell',
+    title: 'Notifications',
+    caption: 'What reaches you by email and push. Everything still shows up in your notifications list.',
+  },
+];
+
+/** Pages outside settings that people look for from there. */
+export const accountElsewhereLinks: AccountLink[] = [
+  {
+    to: { name: 'studio.earnings' },
+    icon: 'lucide-circle-dollar-sign',
+    title: 'Earnings and payouts',
+    caption: 'Your payout account and withdrawals',
+  },
+  {
+    to: { name: 'premium' },
+    icon: 'lucide-crown',
+    title: 'Premium',
+    caption: 'Your plan and what it includes',
+  },
+  {
+    to: { name: 'library.purchases' },
+    icon: 'lucide-receipt',
+    title: 'Purchases',
+    caption: 'Releases, stems and tips you paid for',
+  },
+];
+
 /** The admin pages someone with these permissions can open. */
 export const allowedAdminLinks = (permissions: PriviPerm[] = []) =>
   adminNavigationLinks.filter((link) =>
