@@ -1,6 +1,10 @@
 <template>
   <AuthShell>
-    <div class="auth-invite" v-if="referrer">
+    <div class="auth-invite" v-if="royalty">
+      <q-icon name="lucide-crown" size="20px" color="primary" />
+      <span>Royalty invite for <strong>{{ royalty.email }}</strong>: {{ termsLine(royalty) }}</span>
+    </div>
+    <div class="auth-invite" v-else-if="referrer">
       <q-avatar size="28px" color="grey-9" icon="lucide-user">
         <img :src="referrer.imageUrl" v-if="referrer.imageUrl" />
       </q-avatar>
@@ -222,6 +226,7 @@ import { authText } from 'src/utils/auth-pages';
 import { afterSignIn } from 'src/utils/auth-redirect';
 import { AccountTypeValue, Referrer, ResponseBody, User } from 'src/utils/models';
 import { loadReferrerRequest } from 'src/utils/requests/referrals';
+import { loadRoyaltyInviteRequest, RoyaltyInvite, termsLine } from 'src/utils/requests/royalties';
 import { reboot } from 'src/utils/proccessor';
 
 const route = useRoute();
@@ -249,6 +254,7 @@ const { form, send, error, loading, onSuccess } = useForm(
       password: '',
       password_confirmation: '',
       referral_code: <string | undefined>undefined,
+      royalty_token: <string | undefined>undefined,
     },
   },
 );
@@ -257,7 +263,26 @@ const { form, send, error, loading, onSuccess } = useForm(
 const referrer = ref<Referrer | null>(null);
 const inviteCode = typeof route.query.ref === 'string' ? route.query.ref.trim() : '';
 
+/** An admin's royalty invite this sign-up accepts. */
+const royalty = ref<RoyaltyInvite | null>(null);
+const royaltyToken = typeof route.query.royalty === 'string' ? route.query.royalty : '';
+
 onMounted(() => {
+  if (royaltyToken) {
+    loadRoyaltyInviteRequest(royaltyToken)
+      .send()
+      .then(({ data }) => {
+        if (data.status !== 'pending') {
+          return;
+        }
+
+        royalty.value = data;
+        form.value.royalty_token = royaltyToken;
+        form.value.email ||= data.email;
+      })
+      .catch(() => undefined);
+  }
+
   if (!inviteCode) {
     return;
   }

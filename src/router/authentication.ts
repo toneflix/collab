@@ -22,6 +22,12 @@ export default <RouteRecordRaw[]>[
         redirect: (to) => ({ name: 'auth.register', query: { ref: String(to.params.code) } }),
       },
       {
+        meta: { requireGuest: false },
+        path: '/royalty/:token',
+        name: 'auth.royalty',
+        component: () => import('pages/Auth/RoyaltyInvitePage.vue'),
+      },
+      {
         path: '/login',
         name: 'auth.login',
         component: () => import('pages/Auth/LoginPage.vue')
