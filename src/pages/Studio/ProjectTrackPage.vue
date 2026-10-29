@@ -141,6 +141,7 @@
         :stems="stems"
         :song-lyrics="track.song?.body"
         :details="musicDetails"
+        :artist-id="track.artistId"
         :disabled="!editorReady"
         dock="#studio-dock"
         @finished="onAiFinished"

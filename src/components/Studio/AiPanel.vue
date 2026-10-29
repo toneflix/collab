@@ -136,6 +136,22 @@
               />
             </template>
 
+            <template v-if="account.music.voices && voiceOptions.length && !form.instrumental">
+              <div class="mt-4 ai__label">Voice <span class="normal-case">(optional)</span></div>
+              <q-select
+                dark
+                filled
+                dense
+                emit-value
+                map-options
+                clearable
+                label="Sing in an artist's voice"
+                :options="voiceOptions"
+                :disable="disabled"
+                v-model="form.voice_artist_id"
+              />
+            </template>
+
             <template v-if="account.music.maxSeconds">
               <div class="mt-4 text-sm">
                 Length <b>{{ clock(form.seconds) }}</b>
@@ -530,6 +546,7 @@ import {
   type SongVersion,
 } from 'src/utils/requests/ai';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
+import { loadVoicesRequest, type ArtistVoice } from 'src/utils/requests/voices';
 
 const props = defineProps<{
   projectId: string | number;
@@ -544,6 +561,8 @@ const props = defineProps<{
   dock?: string;
   /** Whether job updates arrive over realtime; polling stands in when not. */
   live?: boolean;
+  /** The track's artist, whose voice is picked first when it has one */
+  artistId?: string | number | null;
 }>();
 
 const emit = defineEmits<{
@@ -568,6 +587,7 @@ const form = reactive({
   reference: null as File | null,
   reference_stem_id: null as string | number | null,
   reference_kind: 'song' as ReferenceKind,
+  voice_artist_id: null as string | number | null,
 });
 const referenceInput = ref<HTMLInputElement>();
 
@@ -774,10 +794,27 @@ const errorText = (e: unknown, fallback: string) => {
   return (Array.isArray(first) ? first[0] : first) || err?.message || fallback;
 };
 
+/** The user's artists whose voices studio music can sing in */
+const voices = ref<ArtistVoice[]>([]);
+const voiceOptions = computed(() => voices.value.map((v) => ({ label: v.artistName || 'Artist', value: v.artistId })));
+
+const loadVoices = async () => {
+  try {
+    const { data } = await loadVoicesRequest().send();
+    voices.value = data.filter((v) => v.studio);
+
+    const own = voices.value.find((v) => String(v.artistId) === String(props.artistId));
+    if (own && form.voice_artist_id == null) form.voice_artist_id = own.artistId;
+  } catch {
+    voices.value = [];
+  }
+};
+
 const loadAccount = async () => {
   try {
     account.value = await loadAiAccountRequest().send();
     const music = account.value.music;
+    if (music.voices && !voices.value.length) void loadVoices();
     if (music.maxSeconds) form.seconds = Math.max(minSeconds.value, Math.min(form.seconds, music.maxSeconds));
     if (!music.references.includes(form.reference_kind)) form.reference_kind = music.references[0] ?? 'song';
   } catch {
@@ -862,6 +899,7 @@ const musicForm = (): MusicForm => {
           reference_kind: form.reference_kind,
         }
       : {}),
+    ...(music.voices && form.voice_artist_id && !form.instrumental ? { voice_artist_id: form.voice_artist_id } : {}),
   };
 };
 

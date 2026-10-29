@@ -422,6 +422,8 @@ export interface Artist {
   canEdit?: boolean;
   /** The viewer can mark the artist verified */
   canVerify?: boolean;
+  /** The viewer's account manages the artist and can set its voice for AI music */
+  canVoice?: boolean;
   /** No account manages the artist yet */
   claimable?: boolean;
   /** The viewer's latest claim on the artist, on the artist page */

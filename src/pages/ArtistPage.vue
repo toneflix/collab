@@ -85,6 +85,17 @@
                   @click="editing = true"
                 />
               </span>
+              <span class="flex-none!" v-if="artist.canVoice">
+                <q-btn
+                  no-caps
+                  rounded
+                  outline
+                  padding="6px 16px"
+                  icon="lucide-audio-lines"
+                  label="Voice"
+                  @click="voicing = true"
+                />
+              </span>
               <span class="flex-none!" v-else-if="artist.claimable && artist.yourClaim?.status !== 'pending'">
                 <q-btn
                   no-caps
@@ -151,6 +162,7 @@
       @saved="(e) => (artist = { ...artist, ...e })"
       v-if="artist?.canEdit"
     />
+    <ArtistVoiceDialog v-model="voicing" :artist-id="artist.id" v-if="artist?.canVoice" />
     <ArtistClaimDialog
       ref="claimDialog"
       :artist="artist"
@@ -192,6 +204,7 @@ import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
 import ArtistEditDialog from 'src/components/Artists/ArtistEditDialog.vue';
 import ArtistClaimDialog from 'src/components/Artists/ArtistClaimDialog.vue';
+import ArtistVoiceDialog from 'src/components/Artists/ArtistVoiceDialog.vue';
 import { usePlayerStore } from 'src/stores/player-store';
 
 defineOptions({
@@ -281,6 +294,7 @@ const { data: artist, loading } = useWatcher(
 );
 
 const editing = ref(false);
+const voicing = ref(false);
 const claimDialog = ref<InstanceType<typeof ArtistClaimDialog> | null>(null);
 
 const togglePlay = () => {

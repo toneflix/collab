@@ -179,6 +179,8 @@ export type SongProjectInput = {
   generate?: boolean;
   /** The sound to make, when generating */
   prompt?: string;
+  /** Sing it in this artist's voice, when generating */
+  voice_artist_id?: number;
 };
 
 /** Projects the writer owns or collaborates on, newest first, matching `search` by title */
