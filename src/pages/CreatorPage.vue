@@ -196,6 +196,7 @@ useMeta(() => {
             content: artist.value.name + ' on Toneflix Music',
           },
           ogImage: { property: 'og:image', content: artist.value.imageUrl },
+          twitterImage: { name: 'twitter:image', content: artist.value.imageUrl },
           ogTitle: { property: 'og:title', content: artist.value.name },
           ogDescription: {
             property: 'og:description',

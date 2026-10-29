@@ -238,6 +238,7 @@ useMeta(() => {
       description: { name: 'description', content: description || 'A composition on Toneflix Music.' },
       ogTitle: { property: 'og:title', content: title },
       ogImage: { property: 'og:image', content: song.value?.imageUrl ?? '' },
+      twitterImage: { name: 'twitter:image', content: song.value?.imageUrl ?? '' },
     },
   };
 });
