@@ -13,6 +13,11 @@ export type AdminContent = ModeratedItem & {
   updatedAt: string;
 }
 
+/** A change admins can apply to many marked items at once */
+export type BulkAction = { key: string; label: string }
+
+export type AdminContentPage = ResponseBody<AdminContent[]> & { bulkActions?: BulkAction[] }
+
 export type ContentOwner = { id: number; name: string; username: string; imageUrl?: string | null }
 
 export type ContentFilters = { search?: string; status?: string; sort?: string; user_id?: number | null; page?: number; limit?: number }
@@ -24,7 +29,7 @@ const clean = (params: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')) as Record<string, string | number>
 
 export const loadAdminContentRequest = (type: ContentKind, params: ContentFilters = {}) =>
-  alova.Get<ResponseBody<AdminContent[]>>(`admin/content/${type}`, { params: clean(params), cacheFor: 0 })
+  alova.Get<AdminContentPage>(`admin/content/${type}`, { params: clean(params), cacheFor: 0 })
 
 export const loadAdminContentItemRequest = (type: ContentKind, id: number) =>
   alova.Get<ResponseBody<AdminContent>>(`admin/content/${type}/${id}`, { cacheFor: 0 })
@@ -52,3 +57,8 @@ export const saveAdminContentRequest = (type: ContentKind, form: ContentForm, id
 
   return request
 }
+
+
+/** Apply one bulk action to marked items. */
+export const bulkAdminContentRequest = (type: ContentKind, action: string, ids: number[]) =>
+  alova.Post<ResponseBody<{ changed: number; unchanged: number }>>(`admin/content/${type}/bulk`, { action, ids })
