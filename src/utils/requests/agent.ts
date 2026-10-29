@@ -43,6 +43,8 @@ export type AgentPlanTrack = {
   theme: string;
   mood: string | null;
   instrumental: boolean;
+  /** Keys of the plan's artists the track features */
+  featuring?: string[];
 };
 
 export type AgentPlan = {
