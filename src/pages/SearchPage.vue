@@ -176,7 +176,7 @@
                   :src="track.imageUrl"
                 />
               </q-item-section>
-              <q-item-section>
+              <q-item-section class="min-w-0">
                 <q-item-label lines="1" class="font-bold">{{ track.title }}</q-item-label>
                 <q-item-label caption lines="1" class="flex items-center gap-1 no-wrap">
                   <span class="explicit flex-none!" title="Explicit" v-if="track.explicit">E</span>
