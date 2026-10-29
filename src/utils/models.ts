@@ -337,7 +337,12 @@ export interface Genre {
   id: string | number;
   slug: string;
   title: string;
-  imageUrl: string;
+  description?: string | null;
+  /** The cover photo, null until an admin adds one */
+  imageUrl: string | null;
+  tracksCount?: number;
+  releasesCount?: number;
+  fansCount?: number;
 }
 
 export type ExploreItem<X> = {

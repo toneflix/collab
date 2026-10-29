@@ -88,7 +88,7 @@ const addError = ref('');
 const addInput = ref<HTMLInputElement>();
 
 const genreOptions = computed(() =>
-  genreList.value.map((genre) => ({ value: Number(genre.id), label: genre.title })),
+  genreList.value.map((genre) => ({ value: Number(genre.id), label: genre.title, image: genre.imageUrl })),
 );
 
 /** The first genres, plus any picked ones further down, until the list is opened. */

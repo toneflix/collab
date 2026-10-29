@@ -57,6 +57,11 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Admin/ModerationPage.vue'),
           },
           {
+            path: 'genres',
+            name: 'admin.genres',
+            component: () => import('pages/Admin/GenresPage.vue'),
+          },
+          {
             path: 'ai',
             name: 'admin.ai',
             component: () => import('pages/Admin/AiPage.vue'),

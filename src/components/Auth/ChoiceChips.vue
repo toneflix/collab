@@ -11,6 +11,7 @@
       @click="toggle(option.value)"
     >
       <q-icon name="lucide-check" size="14px" v-if="picked(option.value)" />
+      <img class="choice-chips__img" alt="" loading="lazy" :src="option.image" v-else-if="option.image" />
       {{ option.label }}
     </button>
     <slot name="after" />
@@ -21,7 +22,7 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; image?: string | null }[];
   /** Most options that can be picked at once */
   max?: number;
 }>();
@@ -44,6 +45,14 @@ const toggle = (value: T) => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.choice-chips__img {
+  width: 20px;
+  height: 20px;
+  margin-left: -8px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .choice-chips__chip {

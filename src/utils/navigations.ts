@@ -146,6 +146,13 @@ export const adminNavigationLinks: AdminLink[] = [
     permission: 'manage-content',
   },
   {
+    to: { name: 'admin.genres' },
+    icon: 'lucide-tags',
+    title: 'Genres',
+    caption: 'Genre names and cover photos',
+    permission: 'manage-content',
+  },
+  {
     to: { name: 'admin.assistant' },
     icon: 'lucide-sparkles',
     title: 'Assistant',
