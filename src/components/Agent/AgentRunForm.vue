@@ -9,7 +9,7 @@
       filled
       autogrow
       label="Instructions"
-      hint="Ask for new artists, albums or tracks (genres, moods, compositions), or for fixes to existing work: name a project, album or track by title or #ID, or ask it to find everything missing artwork or synced lyrics."
+      hint="Ask for new artists, albums or tracks (genres, moods, compositions), or for fixes to existing work: name a project, album or track by title or #ID, or ask it to find everything missing artwork, synced lyrics or descriptions."
       :input-style="{ minHeight: '120px' }"
       :error="!!errors.prompt"
       :error-message="errors.prompt"
@@ -69,7 +69,7 @@
       <div class="grid gap-4 p-4 pt-1">
         <p class="m-0 text-sm text-grey-5">
           These apply only to the artists, albums, tracks and projects the agent creates. Fixes to existing work, like
-          missing artwork or unsynced lyrics, keep each item's own settings.
+          missing artwork, unsynced lyrics or descriptions, keep each item's own settings.
         </p>
 
         <div class="grid gap-4 sm:grid-cols-2">
