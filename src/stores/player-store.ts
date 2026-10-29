@@ -409,41 +409,56 @@ export const usePlayerStore = defineStore('player', {
     },
 
     /**
-     * Queue a track to play right after the current one.
+     * Queue tracks to play right after the current one, in the order given.
      */
-    playNext (track: Track) {
-      this.enqueue(track, Math.min(this.index + 1, this.order.length));
+    playNext (...tracks: Track[]) {
+      return this.enqueue(tracks, Math.min(this.index + 1, this.order.length));
     },
 
     /**
-     * Queue a track at the end of the queue.
+     * Queue tracks at the end of the queue.
      */
-    addToQueue (track: Track) {
-      this.enqueue(track, this.order.length);
+    addToQueue (...tracks: Track[]) {
+      return this.enqueue(tracks, this.order.length);
     },
 
     /**
-     * Put a track at a position in the play order. One already waiting further
-     * down moves there instead of being queued twice; an empty queue is cued
-     * with it without playing.
+     * Put tracks at a position in the play order, in the order given. One
+     * already waiting further down moves there instead of being queued twice,
+     * and the current track stays where it is. An empty queue is cued with
+     * them without playing.
+     *
+     * @returns How many tracks were queued.
      */
-    enqueue (track: Track, at: number) {
+    enqueue (tracks: Track[], at: number) {
       if (!this.queue.length) {
-        this.setQueue([track], 0, null);
-        return this.load(false);
+        this.setQueue(tracks, 0, null);
+        if (tracks.length) void this.load(false);
+        return tracks.length;
       }
 
-      const waiting = this.order.findIndex((i, position) => position > this.index && this.queue[i]?.id === track.id);
+      let queued = 0;
 
-      if (waiting >= 0) {
-        const [entry] = this.order.splice(waiting, 1);
-        this.order.splice(waiting < at ? at - 1 : at, 0, entry!);
-      } else {
-        this.queue.push(slim(track));
-        this.order.splice(at, 0, this.queue.length - 1);
+      for (const track of tracks) {
+        if (this.isCurrent(track)) continue;
+
+        const waiting = this.order.findIndex((i, position) => position > this.index && this.queue[i]?.id === track.id);
+
+        if (waiting >= 0) {
+          const [entry] = this.order.splice(waiting, 1);
+          if (waiting < at) at--;
+          this.order.splice(at, 0, entry!);
+        } else {
+          this.queue.push(slim(track));
+          this.order.splice(at, 0, this.queue.length - 1);
+        }
+
+        at++;
+        queued++;
       }
 
       this.syncNative();
+      return queued;
     },
 
     /**

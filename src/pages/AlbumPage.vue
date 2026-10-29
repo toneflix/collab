@@ -99,6 +99,9 @@
               <span class="flex-none!">
                 <ReportDialog type="release" label="release" :id="album.id" />
               </span>
+              <span class="flex-none!">
+                <ReleaseMenu :release="album" />
+              </span>
             </div>
             <q-banner dense rounded class="mt-4 text-left text-white sm:mt-8 bg-red-10 max-w-96 max-sm:mx-auto" v-if="album.takenDown">
               <template #avatar><q-icon name="lucide-ban" /></template>
@@ -184,6 +187,7 @@ import { useRoute } from 'vue-router';
 import { countStr, formatSeconds, intStr, notify, subString } from 'src/utils/helpers';
 import PayButton from 'src/components/Payments/PayButton.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
+import ReleaseMenu from 'src/components/Menus/ReleaseMenu.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useMeta } from 'quasar';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';

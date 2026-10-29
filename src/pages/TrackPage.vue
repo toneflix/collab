@@ -107,6 +107,9 @@
               <span class="flex-none!">
                 <ReportDialog type="track" label="track" :id="track.id" />
               </span>
+              <span class="flex-none!">
+                <TrackMenuButton :track="track" />
+              </span>
             </div>
             <AudioTagChips
               class="mt-4 max-sm:justify-center"
@@ -191,6 +194,7 @@ import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import TrackPurchases from 'src/components/Payments/TrackPurchases.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
