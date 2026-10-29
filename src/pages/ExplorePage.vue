@@ -178,14 +178,14 @@ const categories = reactive({
       slug: 'new-projects',
       title: `New ${exploreType.value}Projects`.titleCase(),
       data: data.value.newProjects,
-      params: { filters: 'active,latest', ...route.query },
+      params: { filters: 'latest', ...route.query },
     },
     {
       id: 'top-projects',
       slug: 'top-projects',
       title: `Top ${exploreType.value}Projects`.titleCase(),
       data: data.value.topProjects,
-      params: { filters: 'active,top', ...route.query },
+      params: { filters: 'top', ...route.query },
     },
   ],
 });

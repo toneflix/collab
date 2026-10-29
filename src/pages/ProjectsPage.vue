@@ -104,7 +104,7 @@ const categories = reactive({
       slug: 'all',
       title: 'All Projects',
       data: data.value.randomProjects,
-      params: { filters: 'active,random' },
+      params: { filters: 'random' },
     },
   ],
 });

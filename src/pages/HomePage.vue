@@ -75,7 +75,7 @@
               slug: 'top-projects',
               id: 'top-projects',
               data: data.topProjects,
-              params: { filters: 'active,top' },
+              params: { filters: 'top' },
             },
           ]"
         />
