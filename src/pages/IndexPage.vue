@@ -195,7 +195,7 @@ const shelves = reactive({
     slug: 'open-projects',
     title: 'Projects open to collaborators',
     data: explore.topProjects,
-    params: { filters: 'active,top,open', period: 'month' },
+    params: { filters: 'top,open', period: 'month' },
   },
   creators: <Category<User>>{
     id: 'top-creators',
