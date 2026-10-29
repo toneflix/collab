@@ -81,6 +81,14 @@
             <q-space />
             <StepState class="flex-none!" :step="album.release" v-if="album.releases" />
             <span class="text-sm text-grey-5 flex-none!" v-else>Project only</span>
+            <IconBtn
+              size="sm"
+              icon="lucide-trash-2"
+              class="flex-none!"
+              label="Remove from the run"
+              @click="removePart(`album:${album.key}`, album.title)"
+              v-if="canRetry"
+            />
           </div>
 
           <q-list dense>
@@ -96,6 +104,16 @@
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
+              </q-item-section>
+              <q-item-section side class="pl-1" v-if="canRetry && track.state !== 'Ready'">
+                <IconBtn
+              size="sm"
+              icon="lucide-trash-2"
+              class="flex-none!"
+              label="Remove from the run"
+              @click="removePart(`track:${track.key}`, track.title)"
+             
+            />
               </q-item-section>
             </q-item>
           </q-list>
@@ -133,6 +151,14 @@
             </div>
             <q-space />
             <StepState class="flex-none!" :step="item.release" />
+            <IconBtn
+              size="sm"
+              icon="lucide-trash-2"
+              class="flex-none!"
+              label="Remove from the run"
+              @click="removePart(`release:${item.key}`, item.title)"
+              v-if="canRetry && item.release?.status !== 'done'"
+            />
           </div>
 
           <q-list dense>
@@ -178,6 +204,15 @@
                 {{ item.cover.label }}
               </div>
             </div>
+            <q-space />
+            <IconBtn
+              size="sm"
+              icon="lucide-trash-2"
+              class="flex-none!"
+              label="Remove from the run"
+              @click="removePart(`update:${item.key}`, item.title)"
+              v-if="canRetry"
+            />
           </div>
 
           <q-list dense v-if="item.tracks.length">
@@ -221,6 +256,16 @@
               <q-item-section avatar><q-icon name="lucide-notebook-pen" size="18px" /></q-item-section>
               <q-item-section>{{ song.title }}</q-item-section>
               <q-item-section side><StepState :step="song.step" /></q-item-section>
+              <q-item-section side class="pl-1" v-if="canRetry && song.step?.status !== 'done'">
+                <IconBtn
+              size="sm"
+              icon="lucide-trash-2"
+              class="flex-none!"
+              label="Remove from the run"
+              @click="removePart(`song:${song.key}`, song.title)"
+             
+            />
+              </q-item-section>
             </q-item>
           </q-list>
         </div>
@@ -275,6 +320,7 @@ import {
   agentRunChannel,
   isActiveRun,
   loadAgentRunRequest,
+  removeAgentRunPartRequest,
   retryAgentRunRequest,
   runStatusLabels,
   type AgentRun,
@@ -517,6 +563,16 @@ const stopRun = async () => {
     emit('changed', stopped);
     void load();
   }
+};
+
+const removePart = (part: string, title: string) => {
+  $q.dialog({
+    dark: true,
+    title: `Remove “${title}” from this run?`,
+    message: 'Retry carries on without it. Anything it already made stays where it is.',
+    cancel: { flat: true, noCaps: true, label: 'Keep it' },
+    ok: { unelevated: true, rounded: true, noCaps: true, color: 'red-8', label: 'Remove' },
+  }).onOk(() => void act(() => removeAgentRunPartRequest(props.scope, run.value!.id, part).send()));
 };
 
 const retry = () => void act(() => retryAgentRunRequest(props.scope, run.value!.id).send());

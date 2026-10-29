@@ -179,6 +179,10 @@ export const queueAgentRunRequest = (scope: AgentScope, form: AgentRunForm) =>
 export const cancelAgentRunRequest = (scope: AgentScope, id: number) =>
   alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}/cancel`, {});
 
+/** Take a part, like `track:t3` or `album:al1`, out of a failed or stopped run */
+export const removeAgentRunPartRequest = (scope: AgentScope, id: number, part: string) =>
+  alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}/remove`, { part });
+
 export const retryAgentRunRequest = (scope: AgentScope, id: number) =>
   alova.Post<ResponseBody<AgentRun>>(`${scope}/agent/runs/${id}/retry`, {});
 
