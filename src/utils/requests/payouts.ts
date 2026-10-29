@@ -1,5 +1,6 @@
 import { alova } from 'src/boot/alova'
 import type { EnvKey, ResponseBody, SettingField } from '../models'
+import type { StreamRules } from './payments'
 
 export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'rejected' | 'cancelled'
 
@@ -257,3 +258,36 @@ export const loadPayoutSettingsRequest = () => {
 export const savePayoutSettingsRequest = (body: Record<string, string | boolean | null>) => {
   return alova.Put<ResponseBody<PayoutSettings>>('admin/payouts/settings', body)
 }
+
+/** The pool and rate of a month of stream earnings. */
+export type StreamMonth = {
+  month: string
+  revenue: number
+  share: number
+  pool: number
+  plays: number
+  weighted: number
+  rate: number
+  weights: Record<string, number>
+}
+
+/** A month whose stream earnings were paid out. */
+export type StreamPeriod = StreamMonth & {
+  id: number
+  status: 'settling' | 'settled'
+  earners: number
+  paidOut: number
+  settledAt: string | null
+}
+
+export type AdminStreamsResponse = ResponseBody<StreamPeriod[]> & {
+  current: StreamMonth
+  rules: StreamRules
+}
+
+export const loadAdminStreamsRequest = (page = 1) =>
+  alova.Get<AdminStreamsResponse>('admin/payouts/streams', { cacheFor: 0, params: { page } })
+
+/** Pay out a past month now, as YYYY-MM. */
+export const settleStreamsRequest = (month: string) =>
+  alova.Post<ResponseBody<StreamPeriod>>('admin/payouts/streams/settle', { month })

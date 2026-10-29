@@ -7,6 +7,8 @@ import { loadPlaylistRequest, loadTrackRequest } from 'src/utils/requests/reques
 import { audioEngine } from 'src/utils/audio-engine';
 import { apiUrl } from 'src/utils/env';
 import { AuthSession } from 'src/utils/auth-session';
+import { PlayReporter } from 'src/utils/play-reporter';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import type { NativePlayerPlugin, NativeTrack } from 'src/utils/native-player';
 
 export type RepeatMode = 'off' | 'all' | 'one';
@@ -114,6 +116,9 @@ const configureNative = () =>
  */
 const clock = reactive({ position: 0, duration: 0, buffered: 0 });
 
+/** Reports a play once the listener has heard enough of a track to count. */
+const plays = new PlayReporter(() => Number(useBootstrapStore().configuration.stream_min_seconds) || 30);
+
 /**
  * The one music player for the whole app. Everything that plays, pauses or
  * shows playback state goes through this store, and only this store talks
@@ -188,6 +193,7 @@ export const usePlayerStore = defineStore('player', {
           clock.position = position;
           if (duration) clock.duration = duration;
           clock.buffered = buffered;
+          if (this.playing) plays.tick(position);
         },
         onPlaying: () => {
           this.playing = true;
@@ -248,6 +254,7 @@ export const usePlayerStore = defineStore('player', {
           clock.position = position;
           if (duration) clock.duration = duration;
           clock.buffered = buffered;
+          if (this.playing) plays.tick(position);
         }),
         player.addListener('index', ({ index, id }) => this.followNative(index, id)),
         player.addListener('resolved', ({ id, track }) => this.refresh(track as unknown as Track, id)),
@@ -294,6 +301,7 @@ export const usePlayerStore = defineStore('player', {
       this.error = null;
       clock.position = 0;
       clock.duration = track.duration || 0;
+      plays.start(track.playUrl ? null : track.id);
       if (this.pruneTemporary()) this.syncNative();
       void this.topUp();
     },
@@ -556,6 +564,7 @@ export const usePlayerStore = defineStore('player', {
       this.error = null;
       clock.position = 0;
       clock.duration = track.duration || 0;
+      plays.start(track.playUrl ? null : track.id);
 
       if (isNative) return this.loadNative(track, id, autoplay);
       audioEngine.stop();

@@ -14,6 +14,10 @@
           <PayoutProviderSettings />
         </template>
 
+        <template #streams>
+          <StreamPeriodsAdmin />
+        </template>
+
         <template #default>
           <q-banner rounded dense class="mb-8 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
             {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
@@ -94,6 +98,7 @@ import SettingsSections, { type SettingsSection } from 'src/components/Admin/Set
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
+import StreamPeriodsAdmin from 'src/components/Payments/StreamPeriodsAdmin.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { usePayments } from 'src/composables/usePayments';
 import { notify } from 'src/utils/helpers';
@@ -115,11 +120,11 @@ const boot = useBootstrapStore();
 const { price } = usePayments();
 
 const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
-type View = PayoutStatus | 'all' | 'providers';
+type View = PayoutStatus | 'all' | 'streams' | 'providers';
 
 const view = ref<View>('pending');
 const status = computed<PayoutStatus | ''>(() =>
-  view.value === 'all' || view.value === 'providers' ? '' : view.value,
+  view.value === 'all' || view.value === 'streams' || view.value === 'providers' ? '' : view.value,
 );
 const search = ref<string | null>('');
 const page = ref(1);
@@ -155,6 +160,7 @@ const sections = computed(() => {
     { key: 'paid', icon: 'lucide-circle-check', title: 'Paid', caption: 'Money that reached the creator.' },
     { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
     { key: 'all', icon: 'lucide-list', title: 'All', caption: 'Every withdrawal request.' },
+    { key: 'streams', icon: 'lucide-audio-lines', title: 'Streams', caption: 'The monthly stream pool.' },
   ];
 
   return canConfigure.value

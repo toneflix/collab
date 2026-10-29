@@ -183,6 +183,8 @@ export type Configuration = {
   loyalty_rate?: number;
   /** Months after sign-up those payments count, 0 for no end */
   loyalty_months?: number;
+  /** Seconds a signed-in listener must play a track for a paid stream */
+  stream_min_seconds?: number;
   payout_auto_approve: boolean;
   /** Hold published releases until an admin approves them */
   review_releases: boolean;
@@ -193,7 +195,7 @@ export type Configuration = {
 };
 
 export type PaymentPurpose =
-  'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment' | 'referral';
+  'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment' | 'referral' | 'streams';
 
 export type PaymentSession = {
   reference: string;
@@ -214,13 +216,15 @@ export type Transaction = {
   planName?: string | null;
   payer?: { id: string | number; fullname: string; username: string } | null;
   item?: {
-    type: 'release' | 'track' | 'user' | 'invite';
+    type: 'release' | 'track' | 'user' | 'invite' | 'streams';
     id: string | number;
     title: string;
     slug?: string;
     artist?: string;
     username?: string;
     imageUrl?: string;
+    /** Paid streams, for stream earnings */
+    plays?: number;
   } | null;
   paidAt?: string;
   createdAt: string;
