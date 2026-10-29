@@ -203,6 +203,9 @@
               <div class="text-xs" :class="item.cover.color" :title="item.cover.title" v-if="item.cover">
                 {{ item.cover.label }}
               </div>
+              <div class="text-xs" :class="item.describe.color" :title="item.describe.title" v-if="item.describe">
+                {{ item.describe.label }}
+              </div>
             </div>
             <q-space />
             <IconBtn
@@ -413,6 +416,15 @@ const coverState = (step?: AgentStep) => {
   return { label: 'Cover art waiting', color: 'text-grey-6', title: undefined };
 };
 
+/** How a touch-up's missing descriptions are coming along */
+const describeState = (step?: AgentStep) => {
+  if (!step || step.status === 'pending') return { label: 'Descriptions waiting', color: 'text-grey-6', title: undefined };
+  if (step.status === 'done') return { label: 'Descriptions written', color: 'text-green-4', title: undefined };
+  if (step.status === 'waiting') return { label: 'Writing descriptions', color: 'text-blue-4', title: undefined };
+
+  return { label: 'No descriptions', color: 'text-grey-6', title: withFailure(step, step.error) || undefined };
+};
+
 /** Pages for a project and its release, once they exist */
 const workLinks = (projectId?: number, release?: AgentStep) => {
   const artistId = release?.made.artistId;
@@ -491,6 +503,7 @@ const updates = computed(() =>
   (run.value?.plan?.updates || []).map((item) => ({
     ...item,
     cover: item.artwork ? coverState(steps.value.get(`cover:${item.key}`)) : null,
+    describe: item.describe ? describeState(steps.value.get(`describe:${item.key}`)) : null,
     links: workLinks(item.project_id || undefined),
     tracks: item.lyrics.map((track) => ({ ...track, ...syncState(steps.value.get(`lyrics:${item.key}-${track.id}`)) })),
   })),
