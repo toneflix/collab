@@ -61,7 +61,10 @@ jobs:
       BUMP: ${{ inputs.bump || 'patch' }}
 
     steps:
+      # Full history, so the release notes can find the last release commit
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -179,6 +182,20 @@ jobs:
             src-capacitor/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
+      # Play's "What's new" text from the PRs and direct commits since the last
+      # release. A production build skips past test releases.
+      - name: Write release notes
+        if: env.DEPLOY == 'true'
+        run: |
+          node .github/scripts/release-notes.mjs "$RUNNER_TEMP/whatsnew" \
+            ${{ env.BUILD == 'production' && '--skip-test-releases' || '' }}
+          {
+            echo '### Release notes'
+            echo '```'
+            cat "$RUNNER_TEMP/whatsnew/whatsnew-en-US"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload to Google Play
         if: env.DEPLOY == 'true'
         uses: r0adkll/upload-google-play@v1
@@ -188,13 +205,14 @@ jobs:
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
           track: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
+          whatsNewDirectory: ${{ runner.temp }}/whatsnew
 
       # Keeps the raised version and build number once Google Play has the bundle
       - name: Commit the new version
         if: env.DEPLOY == 'true'
         run: |
-          VERSION=$(jq -r .version package.json)
-          CODE=$(jq -r .build package.json)
+          VERSION="$ANDROID_VERSION_NAME"
+          CODE="$ANDROID_VERSION_CODE"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json
