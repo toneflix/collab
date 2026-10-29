@@ -135,6 +135,7 @@
     <div class="grid grid-cols-5 gap-x-3 gap-y-3 pt-6 sm:pt-8" v-if="artist?.id">
       <div class="col-span-5" v-if="artist.type === 'user'">
         <ProjectList
+          hide-all-link
           :categories="[
             {
               id: 'projects',

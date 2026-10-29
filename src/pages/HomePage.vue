@@ -49,6 +49,7 @@
       </div>
       <div class="col-span-5">
         <TrackList
+          :to="{ name: 'library.page', params: { type: 'recent' } }"
           :categories="[
             {
               title: 'Recently Played',
