@@ -66,6 +66,7 @@
               >
                 {{ track.artist?.name || 'Unknown' }}
               </RouterLink>
+              <AlbumLink :track="track" />
             </q-item-label>
           </q-item-section>
         </q-item>
@@ -79,6 +80,7 @@ import { Track } from 'src/utils/models';
 import { onBeforeUnmount, ref, watch } from 'vue';
 import { usePlayerStore } from 'src/stores/player-store';
 import { notify } from 'src/utils/helpers';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 defineProps({
   miniMode: Boolean,

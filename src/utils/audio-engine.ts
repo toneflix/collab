@@ -174,7 +174,7 @@ class AudioEngine {
       session?.setMetadata({
         title: track.title,
         artist: track.artist?.name || '',
-        album: track.release?.title || '',
+        album: track.album?.title || '',
         artwork,
       }),
     );

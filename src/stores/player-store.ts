@@ -52,6 +52,7 @@ const slim = (track: Track): Track =>
     release: track.release
       ? { id: track.release.id, slug: track.release.slug, title: track.release.title, createdAt: track.release.createdAt }
       : undefined,
+    album: track.album,
     explicit: track.explicit,
     createdAt: track.createdAt,
     liked: track.liked,
@@ -94,7 +95,7 @@ const toNative = (track: Track): NativeTrack => ({
   id: String(track.id),
   title: track.title || '',
   artist: track.artist?.name || '',
-  album: track.release?.title || '',
+  album: track.album?.title || '',
   artwork: track.imageUrl || '',
   duration: track.duration || 0,
   url: track.playUrl || '',

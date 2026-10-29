@@ -23,19 +23,20 @@
         </AtroposViewer>
         <div class="flex flex-row items-center justify-center flex-1 w-full min-w-0 pt-4 text-center sm:justify-start sm:p-5 sm:text-left">
           <div class="min-w-0">
-            <RouterLink
-              class="flex-none!"
-              :to="{
-                name: 'artist',
-                params: {
-                  artist_id: track.artist?.username,
-                },
-              }"
-            >
-              <h6 class="text-sm w-fit max-sm:mx-auto">
+            <h6 class="text-sm w-fit max-sm:mx-auto">
+              <RouterLink
+                class="hover:underline"
+                :to="{
+                  name: 'artist',
+                  params: {
+                    artist_id: track.artist?.username,
+                  },
+                }"
+              >
                 {{ track.artist?.name }}
-              </h6>
-            </RouterLink>
+              </RouterLink>
+              <AlbumLink :track="track" />
+            </h6>
 
             <h1 class="text-3xl break-words sm:text-5xl font-circlular-std sm:whitespace-nowrap">
               {{ subString(track?.title || '', 18) }}
@@ -162,6 +163,7 @@
 import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
+import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import { computed, ref } from 'vue';
 import {
   Artist,
