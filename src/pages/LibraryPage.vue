@@ -44,7 +44,7 @@ import { useRoute } from 'vue-router';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
 import type { Artist, Category, Release, Track, User } from 'src/utils/models';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import { categoryChecker, libraryChipLinks } from 'src/utils/navigations';
 
 type RouteType = 'recent' | 'liked' | 'saved' | 'collabs';
@@ -125,9 +125,8 @@ const types = {
   },
 };
 
-const { data, loading } = useWatcher(
+const { data, loading } = useRequest(
   () => exploreRequest(types[type.value] || types.recent),
-  [type],
   {
     immediate: false,
     initialData: boot.value.pageData.current,

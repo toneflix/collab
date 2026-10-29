@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { copyToClipboard, useMeta, useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
@@ -188,7 +188,6 @@ const remove = () => {
 };
 
 onMounted(load);
-watch(slug, load);
 </script>
 
 <style scoped lang="scss">

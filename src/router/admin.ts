@@ -74,6 +74,7 @@ export default <RouteRecordRaw[]>[
           {
             path: 'assistant/:chat(\\d+)?',
             name: 'admin.assistant',
+            meta: { keepOnParamChange: true },
             component: () => import('pages/Admin/AssistantPage.vue'),
           },
           {

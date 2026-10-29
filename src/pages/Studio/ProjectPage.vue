@@ -340,7 +340,7 @@ import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
 import ContentRemover from 'src/components/Utilities/ContentRemover.vue';
 import HoverCard from 'src/components/Cards/HoverCard.vue';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import { useMeta } from 'quasar';
 import placeholder from 'src/assets/placeholder.svg';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
@@ -382,14 +382,12 @@ const route = useRoute();
 const user = computed(() => useBootstrapStore().user);
 const curr = useBootstrapStore().pageData.current as { project?: Project };
 
-const { data: project, loading } = useWatcher(
+const { data: project, loading } = useRequest(
   () =>
     loadProjectRequest(route.params.project_id as string, {
       with: 'tracks,collaborators,genre,artist',
     }),
-  [() => route.params.project_id],
   {
-    middleware: (_, next) => (route.params.project_id ? next() : undefined),
     immediate: !curr.project?.id,
     initialData: {
       ...curr.project,

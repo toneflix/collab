@@ -9,6 +9,7 @@ export default <RouteRecordRaw[]>[
       {
         path: ':type?/:id?',
         name: 'messages',
+        meta: { keepOnParamChange: true },
         component: () => import('pages/MessagesPage.vue'),
       },
     ],
