@@ -362,14 +362,23 @@ h3,
   }
 }
 
+/* Mouse devices: a row's ⋮ takes no room until the row is hovered, then
+   stands in for the duration */
 @media (hover: hover) and (pointer: fine) {
-  .track-row .track-menu-btn {
+  .track-row:not(:hover):not(:focus-within) .track-menu-btn:not(.track-card__menu) {
+    display: none;
+  }
+
+  .track-row:is(:hover, :focus-within) .track-row__duration {
+    display: none;
+  }
+
+  .track-row .track-card__menu {
     opacity: 0;
     transition: opacity var(--tf-duration) var(--tf-ease);
   }
 
-  .track-row:hover .track-menu-btn,
-  .track-row:focus-within .track-menu-btn {
+  .track-row:is(:hover, :focus-within) .track-card__menu {
     opacity: 1;
   }
 }

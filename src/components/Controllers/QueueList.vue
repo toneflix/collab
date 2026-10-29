@@ -45,7 +45,7 @@
       </q-item-section>
       <q-item-section side class="text-xs">
         <div class="flex items-center gap-1 no-wrap">
-          <span v-if="item.duration">{{ formatSeconds(item.duration) }}</span>
+          <span class="track-row__duration" v-if="item.duration">{{ formatSeconds(item.duration) }}</span>
           <TrackMenuButton size="sm" :track="item" :context="{ queuePosition: i }" />
         </div>
       </q-item-section>

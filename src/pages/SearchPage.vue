@@ -191,7 +191,7 @@
               </q-item-section>
               <q-item-section side class="text-xs">
                 <div class="flex items-center gap-2 no-wrap">
-                  {{ formatSeconds(track.duration) }}
+                  <span class="track-row__duration">{{ formatSeconds(track.duration) }}</span>
                   <IconBtn
                     class="flex-none!"
                     :aria-label="player.isPlaying(track) ? 'Pause' : 'Play'"
