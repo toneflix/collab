@@ -23,6 +23,16 @@
       <span class="text-sm text-fg-subtle flex-none!" v-else-if="releaseBlocker">
         {{ releaseBlocker }}
       </span>
+      <q-btn
+        outline
+        rounded
+        no-caps
+        color="white"
+        class="flex-none!"
+        icon="lucide-chart-column"
+        label="Stats"
+        :to="{ name: 'studio.stats', params: { type: 'project', id: project.id } }"
+      />
     </DefineRelease>
     <section class="project-hero" v-if="project?.id">
       <div

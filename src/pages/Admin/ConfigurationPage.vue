@@ -156,6 +156,8 @@ const groups: (SettingsSection & { keys: string[] })[] = [
       'stream_weight_collaboration',
       'stream_weight_recorded',
       'stream_weight_agentic',
+      'stream_check_plays',
+      'stream_check_share',
     ],
   },
   {

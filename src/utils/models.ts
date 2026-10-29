@@ -322,6 +322,15 @@ export type ReferralSummary = {
   invited: number;
   earned: number;
   currency: string;
+  /** The last twelve months, oldest first */
+  months: ReferralMonth[];
+};
+
+export type ReferralMonth = {
+  /** YYYY-MM */
+  month: string;
+  earned: number;
+  payments: number;
 };
 
 export type ReferredUser = {
@@ -331,6 +340,12 @@ export type ReferredUser = {
   imageUrl?: string | null;
   joinedAt: string;
   earned: number;
+  payments: number;
+  /** Set when a month was asked for */
+  monthEarned?: number;
+  monthPayments?: number;
+  /** When their payments stop earning the inviter, empty when the terms have no end */
+  rewardsEndAt?: string | null;
 };
 
 export type Referrer = {
@@ -699,6 +714,8 @@ export type Album = {
   id: string | number;
   slug: string;
   title: string;
+  /** Whether the signed in user released it */
+  owned?: boolean;
   liked: boolean;
   likes: number;
   genre?: Genre;

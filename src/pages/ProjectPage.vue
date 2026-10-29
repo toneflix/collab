@@ -44,6 +44,15 @@
                   },
                 },
                 {
+                  label: 'Stream Stats',
+                  icon: 'lucide-chart-column',
+                  show: project.isOwner,
+                  to: {
+                    name: 'studio.stats',
+                    params: { type: 'project', id: project.id },
+                  },
+                },
+                {
                   label: 'Request to Join',
                   icon: 'lucide-user-plus',
                   color: 'green',

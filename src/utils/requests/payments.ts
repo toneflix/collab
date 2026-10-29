@@ -103,12 +103,70 @@ export type StreamRules = {
   minSeconds: number;
   dailyCap: number;
   weights: { collaboration: number; recorded: number; agentic: number };
+  checkPlays: number;
+  checkShare: number;
+};
+
+/** One month of stream stats. */
+export type StreamStatsMonth = {
+  /** YYYY-MM */
+  month: string;
+  plays: number;
+  paid: number;
+  /** Paid streams held by a stream check */
+  held: number;
+  earned: number;
+  /** False while the month is estimated at the last settled rate */
+  settled: boolean;
+};
+
+export type StatsType = 'track' | 'album' | 'project';
+
+/** Stream stats for one of the creator's tracks, albums or projects. */
+export type StreamStatsReport = {
+  item: {
+    type: StatsType;
+    id: number;
+    slug: string;
+    title: string;
+    imageUrl?: string | null;
+    artist?: string | null;
+    origin?: string | null;
+    releaseId?: number;
+    projectId?: number;
+  };
+  totals: { plays: number; listeners: number; paid: number; held: number; earned: number };
+  months: StreamStatsMonth[];
+  rules: StreamRules;
+};
+
+/** A creator's track with its stream stats for a month. */
+export type StreamTrack = {
+  id: number;
+  slug: string;
+  title: string;
+  imageUrl?: string | null;
+  artist?: string | null;
+  album?: string | null;
+  origin?: 'collaboration' | 'recorded' | 'agentic' | null;
+  plays: number;
+  paid: number;
+  held: number;
+  earned: number;
+};
+
+export type StreamTrackMonth = {
+  month: string;
+  rate: number;
+  settled: boolean;
 };
 
 /** The creator's paid streams this month and what streams earned so far. */
 export type StreamSummary = {
   eligible: boolean;
   plays: number;
+  /** Paid streams this month held by a stream check */
+  held: number;
   weighted: number;
   /** This month's weighted streams at last month's rate */
   estimate: number;
@@ -116,7 +174,26 @@ export type StreamSummary = {
   lastRate: number;
   currency: string;
   rules: StreamRules;
+  /** The last twelve months, oldest first */
+  months: StreamStatsMonth[];
 };
 
 export const loadStreamSummaryRequest = () =>
   alova.Get<ResponseBody<StreamSummary>>('account/earnings/streams', { cacheFor: 0 });
+
+/**
+ * The creator's tracks with plays, paid streams and earnings for a month, best first.
+ */
+export const loadStreamTracksRequest = (
+  params: { month?: string; release_id?: number; project_id?: number; page?: number; limit?: number } = {},
+) =>
+  alova.Get<ResponseBody<StreamTrack[]> & { month: StreamTrackMonth }>('account/earnings/streams/tracks', {
+    params,
+    cacheFor: 0,
+  });
+
+/**
+ * Stream stats for one of the creator's tracks, albums or projects.
+ */
+export const loadStreamStatsRequest = (type: StatsType, id: number | string) =>
+  alova.Get<ResponseBody<StreamStatsReport>>(`account/stats/${type}/${id}`, { cacheFor: 0 });

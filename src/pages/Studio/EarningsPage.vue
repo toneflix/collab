@@ -89,10 +89,25 @@
               {{ streams.rules.weights.recorded }}× and agentic
               {{ streams.rules.weights.agentic }}×.
             </q-item-label>
+            <q-item-label caption class="text-orange-4" v-if="streams.held">
+              {{ streams.held }} more held while we check where they came from.
+            </q-item-label>
           </q-item-section>
-          <q-item-section side v-if="streams.lastRate">
-            <q-item-label caption>Estimate</q-item-label>
-            <q-item-label class="text-lg font-bold text-white">{{ price(streams.estimate) }}</q-item-label>
+          <q-item-section side>
+            <template v-if="streams.lastRate">
+              <q-item-label caption>Estimate</q-item-label>
+              <q-item-label class="text-lg font-bold text-white">{{ price(streams.estimate) }}</q-item-label>
+            </template>
+            <q-btn
+              flat
+              dense
+              no-caps
+              size="sm"
+              color="toneflix"
+              icon-right="lucide-chart-column"
+              label="Stats"
+              @click="tab = 'streams'"
+            />
           </q-item-section>
         </q-item>
         <q-item class="py-4" v-else>
@@ -179,6 +194,30 @@
       </template>
 
       <template v-else>
+        <template v-if="tab === 'streams' && streams">
+          <q-card flat bordered class="mb-6 bg-dark">
+            <q-card-section>
+              <StreamStatsChart :months="streams.months" />
+            </q-card-section>
+          </q-card>
+
+          <div class="flex flex-wrap items-center gap-3 mb-3">
+            <div class="font-bold">Your tracks</div>
+            <q-select
+              dense
+              outlined
+              emit-value
+              map-options
+              class="ml-auto min-w-44 flex-none!"
+              :options="streamMonths"
+              v-model="streamMonth"
+            />
+          </div>
+          <StreamTrackList class="mb-8" :month="streamMonth" />
+
+          <div class="mb-3 font-bold">Stream payments</div>
+        </template>
+
         <q-list separator v-if="earnings.length">
           <TransactionItem
             :key="transaction.id"
@@ -211,13 +250,15 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useMeta } from 'quasar';
+import { date, useMeta } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import { useRequest, useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutAccountDialog from 'src/components/Payments/PayoutAccountDialog.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import TransactionItem from 'src/components/Payments/TransactionItem.vue';
+import StreamStatsChart from 'src/components/Stats/StreamStatsChart.vue';
+import StreamTrackList from 'src/components/Stats/StreamTrackList.vue';
 import WithdrawDialog from 'src/components/Payments/WithdrawDialog.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -225,6 +266,7 @@ import { notify } from 'src/utils/helpers';
 import { Earnings } from 'src/utils/models';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import { loadEarningsRequest, loadStreamSummaryRequest } from 'src/utils/requests/payments';
+import { monthOptions } from 'src/utils/stream-stats';
 import {
   accountLine,
   cancelPayoutRequest,
@@ -253,6 +295,8 @@ const kinds = [
 
 const { data: streamBody } = useRequest(loadStreamSummaryRequest);
 const streams = computed(() => streamBody.value?.data);
+const streamMonth = ref(date.formatDate(new Date(), 'YYYY-MM'));
+const streamMonths = computed(() => monthOptions(streams.value?.months || []));
 
 const tab = ref('');
 const page = ref(1);

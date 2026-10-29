@@ -45,6 +45,15 @@
               <!-- Phones: facts on one line, the icon actions on the next -->
               <span class="h-0 basis-full sm:hidden!" aria-hidden="true" />
               <IconBtn plain icon="lucide-play" label="Plays" :count="intStr(album.streams)" />
+              <template v-if="album.owned">
+                <span class="flex-none! max-sm:hidden!">•</span>
+                <IconBtn
+                  icon="lucide-chart-column"
+                  label="Stream stats"
+                  class="flex-none!"
+                  :to="statsLink"
+                />
+              </template>
               <span class="flex-none! max-sm:hidden!">•</span>
               <span class="flex-none!">
                 <TInteraction
@@ -266,6 +275,11 @@ const {
     initialData: current.album || {},
   },
 );
+
+const statsLink = computed(() => ({
+  name: 'studio.stats',
+  params: { type: 'album', id: album.value.id },
+}));
 
 /**
  * Initialize the categories
