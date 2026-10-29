@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="track-row" v-bind="menuTrigger.listeners(track)">
     <q-item
       class="py-0 pl-4"
       active-class="text-white"
@@ -45,6 +45,7 @@
             :label="track.locked ? 'Part of a paid release' : player.isPlaying(track) ? 'Pause' : 'Play'"
             @click.prevent="togglePlay"
           />
+          <TrackMenuButton :track="track" />
         </div>
       </q-item-section>
     </q-item>
@@ -57,6 +58,8 @@ import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import { PropType } from 'vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
+import { TrackMenuTrigger } from 'src/utils/track-menu';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
@@ -84,6 +87,7 @@ const track = defineModel<Track>('track', {
 });
 
 const player = usePlayerStore();
+const menuTrigger = new TrackMenuTrigger();
 
 const togglePlay = () => {
   player.toggleTrack(track.value, props.queue, props.source);

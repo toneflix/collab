@@ -352,6 +352,7 @@ export interface ExploreData {
   topProjects: ExploreItem<Project>;
   newProjects: ExploreItem<Project>;
   likedTracks: ExploreItem<Track>;
+  savedTracks: ExploreItem<Track>;
   likedAlbums: ExploreItem<Release>;
   latestTracks: ExploreItem<Track>;
   randomAlbums: ExploreItem<Release>;
@@ -506,6 +507,8 @@ export interface Track {
   title: string;
   liked: boolean;
   likes: number;
+  /** Whether the signed in user saved it to their library */
+  saved?: boolean;
   genre?: Genre;
   format?:
     | 'wav'
@@ -557,6 +560,22 @@ export interface Track {
   project?: Pick<Project, 'id' | 'slug' | 'title'>;
   updatedAt: string;
   createdAt: string;
+}
+
+/** Someone credited on a track, as an artist part or a project role */
+export interface TrackCredit {
+  id: string | number;
+  name: string;
+  username?: string | null;
+  imageUrl?: string | null;
+  role: string;
+}
+
+/** Who made a released track, and its release's rights details */
+export interface TrackCredits {
+  artists: TrackCredit[];
+  collaborators: TrackCredit[];
+  details: Partial<Record<'composer' | 'publisher' | 'recordLabel' | 'isrc' | 'releaseDate' | 'genre', string>>;
 }
 
 export interface TrackAlbum {

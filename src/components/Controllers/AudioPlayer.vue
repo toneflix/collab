@@ -105,32 +105,15 @@
 
           <IconBtn class="flex-none!" aria-label="More" icon="lucide-ellipsis-vertical">
             <q-menu dark anchor="top middle" self="bottom middle" :offset="[0, 8]">
-              <q-list dense class="min-w-48">
-                <q-item clickable v-close-popup :to="trackLink">
-                  <q-item-section avatar><q-icon name="lucide-music-2" /></q-item-section>
-                  <q-item-section>{{ track.project ? 'Go to project' : 'Go to song' }}</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup :to="artistLink" v-if="track.artist">
-                  <q-item-section avatar><q-icon name="lucide-user" /></q-item-section>
-                  <q-item-section>Go to artist</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup :to="releaseLink" v-if="track.album || track.release">
-                  <q-item-section avatar><q-icon name="lucide-disc-3" /></q-item-section>
-                  <q-item-section>Go to album</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="copyLink">
-                  <q-item-section avatar><q-icon name="lucide-link" /></q-item-section>
-                  <q-item-section>Copy link</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="openPanel('next')">
-                  <q-item-section avatar><q-icon name="lucide-list" /></q-item-section>
-                  <q-item-section>Up next</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup @click="openPanel('lyrics')">
-                  <q-item-section avatar><q-icon name="lucide-type" /></q-item-section>
-                  <q-item-section>Lyrics</q-item-section>
-                </q-item>
-              </q-list>
+              <TrackMenuList class="min-w-60" :track="track">
+                <TrackMenuItem
+                  icon="lucide-music-2"
+                  :label="track.project ? 'Go to project' : 'Go to song'"
+                  :to="trackLink"
+                />
+                <TrackMenuItem icon="lucide-list" label="Up next" @click="openPanel('next')" />
+                <TrackMenuItem icon="lucide-type" label="Lyrics" @click="openPanel('lyrics')" />
+              </TrackMenuList>
             </q-menu>
           </IconBtn>
         </div>
@@ -194,10 +177,10 @@
 </template>
 
 <script setup lang="ts">
-import { copyToClipboard } from 'quasar';
+import TrackMenuList from 'src/components/Tracks/TrackMenuList.vue';
+import TrackMenuItem from 'src/components/Tracks/TrackMenuItem.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { formatSeconds, notify } from 'src/utils/helpers';
+import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import TInteraction from '../Utilities/TInteraction.vue';
@@ -207,7 +190,6 @@ import FullPlayer from './FullPlayer.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const player = usePlayerStore();
-const router = useRouter();
 const queueOpen = ref(false);
 /** The full-screen player, on phones */
 const fullOpen = ref(false);
@@ -244,13 +226,6 @@ const artistLink = computed(() => ({
   name: 'artist',
   params: { artist_id: track.value.artist?.username || '-' },
 }));
-const releaseLink = computed(() => ({
-  name: 'artist.album',
-  params: {
-    artist_id: track.value.artist?.username || '-',
-    album_id: track.value.album?.slug || track.value.release?.slug || '-',
-  },
-}));
 
 const year = computed(() => {
   const date = track.value.release?.createdAt || track.value.createdAt;
@@ -268,12 +243,6 @@ const volumeIcon = computed(() =>
 const repeatLabel = computed(
   () => ({ off: 'Repeat off', all: 'Repeat all', one: 'Repeat one' })[player.repeat],
 );
-
-const copyLink = async () => {
-  const url = new URL(router.resolve(trackLink.value).href, window.location.origin).href;
-  await copyToClipboard(url);
-  notify('Link copied.', 'success');
-};
 
 onMounted(() => {
   hydrated.value = true;

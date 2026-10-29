@@ -1,6 +1,7 @@
 <template>
   <router-link
-    class="block"
+    class="block track-row"
+    v-bind="menuTrigger.listeners(track)"
     :to="{
       name: 'artist.track',
       params: {
@@ -11,15 +12,18 @@
     v-intersection="onIntersect"
   >
     <q-card flat square class="w-28 bg-transparent cursor-pointer sm:w-32 md:w-44">
-      <q-avatar rounded class="rounded-2xl! w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44">
-        <q-img
-          no-spinner
-          class="bg-gray-400"
-          loading="eager"
-          :ratio="1 / 1"
-          :src="track.imageUrl"
-        />
-      </q-avatar>
+      <div class="relative">
+        <q-avatar rounded class="rounded-2xl! w-28 h-28 sm:w-32 sm:h-32 md:w-44 md:h-44">
+          <q-img
+            no-spinner
+            class="bg-gray-400"
+            loading="eager"
+            :ratio="1 / 1"
+            :src="track.imageUrl"
+          />
+        </q-avatar>
+        <TrackMenuButton class="track-card__menu" size="sm" :track="track" />
+      </div>
 
       <q-card-section align="center" class="p-1">
         <h6
@@ -38,6 +42,8 @@
 <script setup lang="ts">
 import { Track } from 'src/utils/models';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
+import { TrackMenuTrigger } from 'src/utils/track-menu';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];
@@ -52,9 +58,20 @@ const track = defineModel<Track>('track', {
   required: true,
 });
 
+const menuTrigger = new TrackMenuTrigger();
+
 const onIntersect = (evt: IntersectionObserverEntry): void => {
   if (props.isLast && evt.isIntersecting) {
     emit('scrollEnd', true);
   }
 };
 </script>
+
+<style scoped lang="scss">
+.track-card__menu {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--tf-overlay);
+}
+</style>

@@ -6,7 +6,9 @@
       :key="`${item.id}-${i}`"
       :active="i === player.index"
       active-class="queue-list__current"
+      class="track-row"
       :ref="(el) => i === player.index && (currentItem = el as unknown as { $el: HTMLElement })"
+      v-bind="menuTrigger.listeners(item, { queuePosition: i })"
       @click="player.jumpTo(i)"
       v-for="(item, i) in player.ordered"
     >
@@ -41,8 +43,11 @@
           <AlbumLink :track="item" @navigate="emit('navigate')" />
         </q-item-label>
       </q-item-section>
-      <q-item-section side class="text-xs" v-if="item.duration">
-        {{ formatSeconds(item.duration) }}
+      <q-item-section side class="text-xs">
+        <div class="flex items-center gap-1 no-wrap">
+          <span v-if="item.duration">{{ formatSeconds(item.duration) }}</span>
+          <TrackMenuButton size="sm" :track="item" :context="{ queuePosition: i }" />
+        </div>
       </q-item-section>
     </q-item>
   </q-list>
@@ -53,11 +58,14 @@ import { nextTick, onMounted, ref } from 'vue';
 import { formatSeconds } from 'src/utils/helpers';
 import { usePlayerStore } from 'src/stores/player-store';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
+import { TrackMenuTrigger } from 'src/utils/track-menu';
 
 /** Fires when an artist link leaves the player, so the parent can close it */
 const emit = defineEmits<{ navigate: [] }>();
 
 const player = usePlayerStore();
+const menuTrigger = new TrackMenuTrigger();
 const currentItem = ref<{ $el: HTMLElement } | null>(null);
 
 /** Brings the playing track into view. */

@@ -56,6 +56,7 @@ const slim = (track: Track): Track =>
     explicit: track.explicit,
     createdAt: track.createdAt,
     liked: track.liked,
+    saved: track.saved,
     likes: track.likes,
     locked: track.locked,
     tags: track.tags,
@@ -393,6 +394,74 @@ export const usePlayerStore = defineStore('player', {
       this.source = source;
 
       return this.load(true);
+    },
+
+    /**
+     * Start a mix from a track: it plays first and tracks like it follow.
+     */
+    startMix (track: Track) {
+      this.setQueue([track], 0, `mix:${track.id}`);
+
+      const playing = this.load(true);
+      void this.extend();
+
+      return playing;
+    },
+
+    /**
+     * Queue a track to play right after the current one.
+     */
+    playNext (track: Track) {
+      this.enqueue(track, Math.min(this.index + 1, this.order.length));
+    },
+
+    /**
+     * Queue a track at the end of the queue.
+     */
+    addToQueue (track: Track) {
+      this.enqueue(track, this.order.length);
+    },
+
+    /**
+     * Put a track at a position in the play order. One already waiting further
+     * down moves there instead of being queued twice; an empty queue is cued
+     * with it without playing.
+     */
+    enqueue (track: Track, at: number) {
+      if (!this.queue.length) {
+        this.setQueue([track], 0, null);
+        return this.load(false);
+      }
+
+      const waiting = this.order.findIndex((i, position) => position > this.index && this.queue[i]?.id === track.id);
+
+      if (waiting >= 0) {
+        const [entry] = this.order.splice(waiting, 1);
+        this.order.splice(waiting < at ? at - 1 : at, 0, entry!);
+      } else {
+        this.queue.push(slim(track));
+        this.order.splice(at, 0, this.queue.length - 1);
+      }
+
+      this.syncNative();
+    },
+
+    /**
+     * Take a track out of the queue by its position in the play order. The
+     * current track stays.
+     */
+    removeFromQueue (position: number) {
+      if (position === this.index || position < 0 || position >= this.order.length) return;
+
+      const removed = this.order[position]!;
+
+      this.queue.splice(removed, 1);
+      this.order = this.order
+        .filter((_, i) => i !== position)
+        .map((i) => (i > removed ? i - 1 : i));
+      if (position < this.index) this.index--;
+
+      this.syncNative();
     },
 
     /**

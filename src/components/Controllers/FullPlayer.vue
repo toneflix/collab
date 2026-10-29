@@ -161,6 +161,7 @@ import { activeLine, loadTrackLyricsRequest, type Lyrics } from 'src/utils/reque
 import { formatSeconds } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
+import { useRoute } from 'vue-router';
 import TInteraction from '../Utilities/TInteraction.vue';
 import AppSheet from './AppSheet.vue';
 import QueueList from './QueueList.vue';
@@ -169,6 +170,13 @@ import SyncedLyrics from './SyncedLyrics.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 
 const open = defineModel<boolean>({ default: false });
+
+// Leaving the page, e.g. from a track's menu, closes the player.
+const route = useRoute();
+watch(
+  () => route.fullPath,
+  () => (open.value = false),
+);
 
 const player = usePlayerStore();
 const track = computed<Track>(() => player.current || ({} as Track));

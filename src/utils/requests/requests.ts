@@ -10,6 +10,8 @@ import {
   Release,
   ResponseBody,
   Track,
+  TrackCredits,
+  Interaction,
   UploadData,
   User,
   UserComment
@@ -42,6 +44,22 @@ export const exploreRequest = (params?: GenericData) => {
 export const loadPlaylistRequest = (params?: GenericData) => {
   return alova.Get<ResponseBody<Track[]>>('playlist', {
     params: params
+  })
+}
+
+/**
+ * Like or save a track, or undo it
+ */
+export const trackInteractionRequest = (id: string | number, interaction: 'like' | 'save', state: boolean) => {
+  return alova.Post<ResponseBody<Interaction>>(`tracks/${id}/interactions`, { interaction, state })
+}
+
+/**
+ * Fetch who is credited on a released track
+ */
+export const loadTrackCreditsRequest = (id: string | number) => {
+  return alova.Get(`tracks/${id}/credits`, {
+    transform: (e: ResponseBody<TrackCredits>) => e.data,
   })
 }
 

@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { Plan, PlanFeature } from 'src/utils/models';
+import { Plan, PlanFeature, Track } from 'src/utils/models';
 
 /**
  * Helpers for showing prices in the app's currency.
@@ -67,6 +67,15 @@ export const usePayments = () => {
   const isPremium = computed(() => !!boot.user.isPremium);
 
   /**
+   * Whether the signed in user can download a track now: owners and buyers
+   * always can, Premium listeners when its creator allowed downloads.
+   */
+  const canDownload = (track: Track) =>
+    !!track.downloadable &&
+    !track.locked &&
+    (isPremium.value || !!track.owned || Number(track.price) > 0);
+
+  /**
    * How long a payment on a plan lasts, e.g. "month", "3 months", or "6 months"
    * when paying for 6 cycles at once.
    */
@@ -108,6 +117,7 @@ export const usePayments = () => {
     limit,
     featureValue,
     isPremium,
+    canDownload,
     period,
     billingLabel,
   };
