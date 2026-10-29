@@ -49,7 +49,7 @@ import type { Artist, Category, Release, Track, User } from 'src/utils/models';
 import { useWatcher } from 'alova/client';
 import { categoryChecker } from 'src/utils/navigations';
 
-type RouteType = 'recent' | 'liked' | 'collabs';
+type RouteType = 'recent' | 'liked' | 'saved' | 'collabs';
 
 type LibraryCategories = {
   trend: Category<Track>[];
@@ -74,6 +74,10 @@ defineOptions({
         liked_tracks: 18,
         liked_albums: 30,
       },
+      saved: {
+        with: 'artist',
+        saved_tracks: 30,
+      },
       collabs: {
         with: 'artist',
         own_collab_albums: 30,
@@ -91,9 +95,9 @@ const type = computed(() => route.params.type as unknown as RouteType);
 const empty = computed(() => categoryChecker(categories.value[type.value]));
 
 const libraryLinks = computed(() => [
-  ...(['liked', 'recent', 'collabs'] as const).map((key) => ({
-    label: { liked: 'Liked', recent: 'Recent', collabs: 'Collabs' }[key],
-    icon: { liked: 'lucide-heart', recent: 'lucide-music', collabs: 'lucide-users' }[key],
+  ...(['liked', 'saved', 'recent', 'collabs'] as const).map((key) => ({
+    label: { liked: 'Liked', saved: 'Saved', recent: 'Recent', collabs: 'Collabs' }[key],
+    icon: { liked: 'lucide-heart', saved: 'lucide-bookmark', recent: 'lucide-music', collabs: 'lucide-users' }[key],
     to: { name: 'library.page', params: { type: key } },
     active: type.value === key,
   })),
@@ -111,6 +115,10 @@ const types = {
     with: 'artist',
     liked_tracks: 18,
     liked_albums: 30,
+  },
+  saved: {
+    with: 'artist',
+    saved_tracks: 30,
   },
   collabs: {
     with: 'artist',
@@ -177,6 +185,19 @@ const categories = computed<Record<RouteType, LibraryCategories>>(() => ({
         params: { filters: 'liked' },
       },
     ],
+  },
+  saved: {
+    trend: [
+      {
+        id: 'saved-tracks',
+        slug: 'saved_tracks',
+        title: 'Saved songs',
+        data: data.value.savedTracks,
+        params: { filters: 'saved' },
+      },
+    ],
+    artists: [],
+    albums: [],
   },
   collabs: {
     trend: [],

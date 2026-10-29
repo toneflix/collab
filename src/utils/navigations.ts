@@ -62,6 +62,11 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Liked',
   },
   {
+    to: { name: 'library.page', params: { type: 'saved' } },
+    icon: 'lucide-bookmark',
+    title: 'Saved',
+  },
+  {
     to: { name: 'library.page', params: { type: 'collabs' } },
     icon: 'lucide-users',
     title: 'Collabs',
