@@ -32,6 +32,8 @@ export type AgentStep = {
   /** Why the step went on without its work, like artwork that couldn't be drawn */
   notice: string | null;
   error: string | null;
+  /** The full error, like the AI provider's answer; only sent to admins */
+  failure?: string | null;
   startedAt: string | null;
   finishedAt: string | null;
 };

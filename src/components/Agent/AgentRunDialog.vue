@@ -91,8 +91,8 @@
                   {{ track.title }}<span class="text-grey-5" v-if="track.featured"> (feat. {{ track.featured }})</span>
                 </q-item-label>
                 <q-item-label caption>{{ track.instrumental ? 'Instrumental' : 'Vocals' }} · {{ track.style }}</q-item-label>
-                <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
-                <q-item-label caption class="text-orange-4" v-else-if="track.lyrics">{{ track.lyrics }}</q-item-label>
+                <q-item-label caption class="text-red-4 whitespace-pre-line" v-if="track.error">{{ track.error }}</q-item-label>
+                <q-item-label caption class="text-orange-4 whitespace-pre-line" v-else-if="track.lyrics">{{ track.lyrics }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
@@ -140,7 +140,7 @@
               <q-item-section avatar class="text-grey-6">{{ i + 1 }}</q-item-section>
               <q-item-section>
                 <q-item-label>{{ track.title }}</q-item-label>
-                <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
+                <q-item-label caption class="text-red-4 whitespace-pre-line" v-if="track.error">{{ track.error }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
@@ -185,7 +185,7 @@
               <q-item-section avatar><q-icon name="lucide-file-text" size="18px" class="text-grey-6" /></q-item-section>
               <q-item-section>
                 <q-item-label>{{ track.title }}</q-item-label>
-                <q-item-label caption class="text-orange-4" v-if="track.error">{{ track.error }}</q-item-label>
+                <q-item-label caption class="text-orange-4 whitespace-pre-line" v-if="track.error">{{ track.error }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <span class="text-sm" :class="track.color">{{ track.state }}</span>
@@ -317,7 +317,7 @@ const trackState = (key: string, instrumental: boolean) => {
   const skipped = chain.find((step) => step.status === 'skipped');
   const next = chain.find((step) => step.status !== 'done');
 
-  if (failed) return { state: 'Failed', color: 'text-red-4', error: failed.error };
+  if (failed) return { state: 'Failed', color: 'text-red-4', error: withFailure(failed, failed.error) };
   if (skipped) return { state: 'Stopped', color: 'text-grey-6', error: null };
   if (!next) return { state: 'Ready', color: 'text-green-4', error: null, lyrics: lyricsNote(steps.value.get(`lyrics:${key}`)) };
   if (next.status === 'pending' && next.kind !== 'music') return { state: 'Waiting', color: 'text-grey-6', error: null };
@@ -337,17 +337,21 @@ const trackState = (key: string, instrumental: boolean) => {
   return { state: labels[next.kind] || 'Working', color: 'text-blue-4', error: null };
 };
 
+/** A step's message, with the full error under it when the API sends one (admins only) */
+const withFailure = (step: AgentStep, message: string | null) =>
+  step.failure && step.failure !== message ? [message, step.failure].filter(Boolean).join('\n') : message;
+
 /** A finished lyrics step that couldn't time the sheet */
 const lyricsNote = (step?: AgentStep) =>
-  step?.status === 'done' && step.synced === false ? step.notice || 'Lyrics not synced' : null;
+  step?.status === 'done' && step.synced === false ? withFailure(step, step.notice || 'Lyrics not synced') : null;
 
 /** How a lyric sync on an existing track is coming along */
 const syncState = (step?: AgentStep) => {
   if (!step || step.status === 'pending') return { state: 'Waiting', color: 'text-grey-6', error: null };
-  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: step.error };
+  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: withFailure(step, step.error) };
   if (step.status === 'skipped') return { state: 'Stopped', color: 'text-grey-6', error: null };
   if (step.status === 'waiting') return { state: 'Syncing lyrics', color: 'text-blue-4', error: null };
-  if (step.synced === false) return { state: 'Not synced', color: 'text-orange-4', error: step.notice };
+  if (step.synced === false) return { state: 'Not synced', color: 'text-orange-4', error: withFailure(step, step.notice) };
 
   return { state: 'Synced', color: 'text-green-4', error: null };
 };
@@ -355,9 +359,9 @@ const syncState = (step?: AgentStep) => {
 /** How an album's cover is coming along */
 const coverState = (step?: AgentStep) => {
   if (!step) return null;
-  if (step.status === 'done' && step.notice) return { label: 'Cover art skipped', color: 'text-orange-4', title: step.notice };
+  if (step.status === 'done' && step.notice) return { label: 'Cover art skipped', color: 'text-orange-4', title: withFailure(step, step.notice) || undefined };
   if (step.status === 'done') return { label: 'Cover art ready', color: 'text-green-4', title: undefined };
-  if (step.status === 'failed' || step.status === 'skipped') return { label: 'No cover art', color: 'text-grey-6', title: step.error || undefined };
+  if (step.status === 'failed' || step.status === 'skipped') return { label: 'No cover art', color: 'text-grey-6', title: withFailure(step, step.error) || undefined };
   if (step.status === 'waiting') return { label: 'Drawing cover art', color: 'text-blue-4', title: undefined };
 
   return { label: 'Cover art waiting', color: 'text-grey-6', title: undefined };
@@ -390,7 +394,7 @@ const workLinks = (projectId?: number, release?: AgentStep) => {
 /** How an existing track's mix for a release is coming along */
 const mixState = (step?: AgentStep) => {
   if (!step || step.status === 'pending') return { state: 'Waiting', color: 'text-grey-6', error: null };
-  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: step.error };
+  if (step.status === 'failed') return { state: 'Failed', color: 'text-red-4', error: withFailure(step, step.error) };
   if (step.status === 'skipped') return { state: 'Stopped', color: 'text-grey-6', error: null };
   if (step.status === 'waiting') return { state: 'Mixing', color: 'text-blue-4', error: null };
 
