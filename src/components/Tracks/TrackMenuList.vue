@@ -23,6 +23,13 @@
         :label="track.liked ? 'Remove from liked songs' : 'Add to liked songs'"
         @click="toggleLike"
       />
+      <TrackMenuItem icon="lucide-list-plus" label="Save to playlist" @click="saveToPlaylist" />
+      <TrackMenuItem
+        icon="lucide-list-x"
+        label="Remove from this playlist"
+        @click="removeFromPlaylist"
+        v-if="context.playlist"
+      />
 
       <TrackMenuItem icon="lucide-disc-3" label="Go to album" :to="albumLink" v-if="track.album" />
       <TrackMenuItem icon="lucide-user" label="Go to artist" :to="artistLink" v-if="artistLink" />
@@ -45,6 +52,7 @@ import { usePlayerStore } from 'src/stores/player-store';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { usePayments } from 'src/composables/usePayments';
 import { trackInteractionRequest } from 'src/utils/requests/requests';
+import { removeFromPlaylistRequest } from 'src/utils/requests/playlists';
 import { loadTrackDownloadRequest } from 'src/utils/requests/payments';
 import { downloadFile } from 'src/utils/download';
 import { notify } from 'src/utils/helpers';
@@ -140,6 +148,18 @@ const toggleLike = async () => {
   } catch {
     track.liked = !state;
   }
+};
+
+const saveToPlaylist = () => {
+  if (signedIn()) openTrackDialog('playlist', props.track);
+};
+
+const removeFromPlaylist = async () => {
+  const playlist = props.context.playlist!;
+  const { message } = await removeFromPlaylistRequest(playlist.slug, props.track.id).send();
+
+  playlist.removed(props.track);
+  notify(message, 'success');
 };
 
 const share = async () => {

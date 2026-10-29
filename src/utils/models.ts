@@ -562,6 +562,24 @@ export interface Track {
   createdAt: string;
 }
 
+/** A listener's own list of tracks */
+export interface Playlist {
+  id: number;
+  slug: string;
+  title: string;
+  description?: string | null;
+  privacy: 'public' | 'private';
+  tracksCount: number;
+  imageUrl?: string | null;
+  owner?: { id: number; name: string; username: string; imageUrl?: string | null };
+  /** Whether the signed in user owns it */
+  owned: boolean;
+  /** Whether it holds the track asked about */
+  hasTrack?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Someone credited on a track, as an artist part or a project role */
 export interface TrackCredit {
   id: string | number;

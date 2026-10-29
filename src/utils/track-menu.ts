@@ -5,6 +5,12 @@ import type { Track } from 'src/utils/models';
 export interface TrackMenuContext {
   /** The track's position in the play order, when opened from the queue */
   queuePosition?: number;
+  /** The owner's playlist it was opened from, so it can be taken out */
+  playlist?: {
+    slug: string;
+    title: string;
+    removed: (track: Track) => void;
+  };
 }
 
 /**

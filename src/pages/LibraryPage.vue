@@ -47,7 +47,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { exploreRequest } from 'src/utils/requests/requests';
 import type { Artist, Category, Release, Track, User } from 'src/utils/models';
 import { useWatcher } from 'alova/client';
-import { categoryChecker } from 'src/utils/navigations';
+import { categoryChecker, libraryChipLinks } from 'src/utils/navigations';
 
 type RouteType = 'recent' | 'liked' | 'saved' | 'collabs';
 
@@ -94,15 +94,7 @@ const route = useRoute();
 const type = computed(() => route.params.type as unknown as RouteType);
 const empty = computed(() => categoryChecker(categories.value[type.value]));
 
-const libraryLinks = computed(() => [
-  ...(['liked', 'saved', 'recent', 'collabs'] as const).map((key) => ({
-    label: { liked: 'Liked', saved: 'Saved', recent: 'Recent', collabs: 'Collabs' }[key],
-    icon: { liked: 'lucide-heart', saved: 'lucide-bookmark', recent: 'lucide-music', collabs: 'lucide-users' }[key],
-    to: { name: 'library.page', params: { type: key } },
-    active: type.value === key,
-  })),
-  { label: 'Purchases', icon: 'lucide-receipt', to: { name: 'library.purchases' } },
-]);
+const libraryLinks = computed(() => libraryChipLinks(type.value));
 
 const types = {
   recent: {
