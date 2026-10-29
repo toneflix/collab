@@ -4,9 +4,16 @@
     :to="to"
     class="genre-tile"
     :class="`genre-tile--${size}`"
-    :style="genre.imageUrl ? undefined : { background: fallback }"
+    :style="{ background: fallback }"
   >
-    <img class="genre-tile__img" loading="lazy" alt="" :src="genre.imageUrl" v-if="genre.imageUrl" />
+    <img
+      class="genre-tile__img"
+      loading="lazy"
+      alt=""
+      :src="genre.imageUrl"
+      @error="broken = genre.imageUrl"
+      v-if="genre.imageUrl && broken !== genre.imageUrl"
+    />
     <span class="genre-tile__shade" />
     <span class="genre-tile__title">{{ genre.title }}</span>
     <slot />
@@ -14,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 import type { Genre } from 'src/utils/models';
 
@@ -27,7 +34,10 @@ const props = withDefaults(
   { size: 'md', to: undefined },
 );
 
-/** A steady two-colour gradient from the slug, for genres without a cover. */
+/** The cover address that failed to load, so the gradient shows instead. */
+const broken = ref<string | null>(null);
+
+/** A steady two-colour gradient from the slug, shown under the cover and when there is none. */
 const fallback = computed(() => {
   const hash = [...(props.genre.slug || props.genre.title)].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0, 7);
   const hue = hash % 360;
