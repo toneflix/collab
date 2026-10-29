@@ -52,6 +52,13 @@ const privacy = [
 
 const taken = { value: 'taken_down', label: 'Taken down' }
 
+/** How a track was made, which weighs its stream earnings */
+export const trackOrigins = [
+  { value: 'collaboration', label: 'Collaboration' },
+  { value: 'recorded', label: 'Recorded' },
+  { value: 'agentic', label: 'Agentic' },
+]
+
 export const contentSections: ContentSection[] = [
   {
     key: 'track',
@@ -59,7 +66,14 @@ export const contentSections: ContentSection[] = [
     title: 'Tracks',
     noun: 'track',
     caption: 'Released tracks and their audio',
-    statuses: [{ value: 'public', label: 'Public' }, { value: 'private', label: 'Private' }, { value: 'no_audio', label: 'No audio' }, taken],
+    statuses: [
+      { value: 'public', label: 'Public' },
+      { value: 'private', label: 'Private' },
+      { value: 'no_audio', label: 'No audio' },
+      { value: 'unranked', label: 'Unranked' },
+      ...trackOrigins,
+      taken,
+    ],
     fields: [
       { key: 'image', from: 'imageUrl', label: 'Artwork', kind: 'image', aspect: 1 },
       { key: 'release_id', from: 'releaseId', label: 'Album', kind: 'release', required: true },
@@ -69,6 +83,14 @@ export const contentSections: ContentSection[] = [
       { key: 'audio', from: 'hasAudio', label: 'Audio', kind: 'audio', requiredOnCreate: true },
       { key: 'privacy', from: 'privacy', label: 'Privacy', kind: 'select', options: privacy },
       { key: 'stems_price', from: 'stemsPrice', label: 'Stems price', kind: 'number' },
+      {
+        key: 'origin',
+        from: 'origin',
+        label: 'Rank',
+        kind: 'select',
+        hint: 'Your pick stays until set back to Automatic',
+        options: [{ value: '', label: 'Automatic' }, ...trackOrigins],
+      },
       { key: 'description', from: 'description', label: 'Description', kind: 'textarea', max: 5000 },
     ],
   },
