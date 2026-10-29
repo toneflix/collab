@@ -234,9 +234,10 @@
           no-caps
           class="flex-none!"
           color="red-4"
-          label="Cancel run"
-          :loading="busy"
-          @click="cancel"
+          icon="lucide-square"
+          label="Stop run"
+          :loading="stopping === run.id"
+          @click="stopRun"
           v-if="active"
         />
         <q-btn
@@ -266,10 +267,10 @@ import { joinNames } from 'src/utils/credits';
 import { notifyError } from 'src/utils/composer';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { useFallbackPoll } from 'src/composables/useFallbackPoll';
+import { useStopAgentRun } from 'src/composables/useStopAgentRun';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import {
   agentRunChannel,
-  cancelAgentRunRequest,
   isActiveRun,
   loadAgentRunRequest,
   retryAgentRunRequest,
@@ -289,6 +290,7 @@ const boot = useBootstrapStore();
 const run = ref<AgentRun | null>(null);
 const loading = ref(false);
 const busy = ref(false);
+const { stop, stopping } = useStopAgentRun(() => props.scope);
 
 const active = computed(() => !!run.value && isActiveRun(run.value));
 const canRetry = computed(() => !!run.value && ['failed', 'cancelled'].includes(run.value.status));
@@ -497,14 +499,14 @@ const act = async (request: () => Promise<{ message: string; data: AgentRun }>) 
   }
 };
 
-const cancel = () => {
-  $q.dialog({
-    dark: true,
-    title: 'Cancel this run?',
-    message: 'Steps not started are skipped. Music already being made still lands on the account\'s tracks.',
-    cancel: { flat: true, noCaps: true, label: 'Keep going' },
-    ok: { unelevated: true, rounded: true, noCaps: true, color: 'red-8', label: 'Cancel run' },
-  }).onOk(() => void act(() => cancelAgentRunRequest(props.scope, run.value!.id).send()));
+const stopRun = async () => {
+  const stopped = await stop(run.value!);
+
+  if (stopped) {
+    run.value = stopped;
+    emit('changed', stopped);
+    void load();
+  }
 };
 
 const retry = () => void act(() => retryAgentRunRequest(props.scope, run.value!.id).send());

@@ -148,7 +148,7 @@ export const runStatusLabels: Record<AgentRunStatus, { label: string; color: str
   running: { label: 'Building', color: 'blue-8' },
   succeeded: { label: 'Done', color: 'green-8' },
   failed: { label: 'Failed', color: 'red-8' },
-  cancelled: { label: 'Cancelled', color: 'grey-8' },
+  cancelled: { label: 'Stopped', color: 'grey-8' },
 };
 
 /** Admins reach every agent account's runs; users of an agent account reach their own */
