@@ -48,6 +48,13 @@
                 class="flex-none!"
                 v-if="!plan.active"
               />
+              <q-badge
+                rounded
+                color="blue-grey-8"
+                label="Hidden"
+                class="flex-none!"
+                v-if="plan.hidden"
+              />
             </div>
             <div class="text-xs text-grey-6">{{ plan.slug }}</div>
             <div class="mt-1 text-2xl font-bold">
@@ -287,12 +294,19 @@
               label="Default plan"
               v-model="form.is_default"
               :disable="!!editingPlan?.isDefault"
+              @update:model-value="(on) => on && (form.hidden = false)"
+            />
+            <q-toggle
+              dark
+              label="Hidden, admins grant it"
+              v-model="form.hidden"
+              :disable="form.is_default"
             />
             <div
               class="text-xs text-negative"
-              v-if="errors.is_default || errors.active"
+              v-if="errors.is_default || errors.active || errors.hidden"
             >
-              {{ errors.is_default || errors.active }}
+              {{ errors.is_default || errors.active || errors.hidden }}
             </div>
           </div>
         </q-card-section>
@@ -434,6 +448,7 @@ function blank(): PlanForm & { id?: number } {
     ),
     is_default: false,
     active: true,
+    hidden: false,
     sort: plans.value.length,
   };
 }
@@ -455,6 +470,7 @@ const edit = (plan?: Plan) => {
         features: { ...plan.features },
         is_default: plan.isDefault,
         active: plan.active,
+        hidden: plan.hidden,
         sort: plan.sort,
       }
     : blank();

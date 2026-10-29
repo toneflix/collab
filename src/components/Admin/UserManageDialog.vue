@@ -204,7 +204,10 @@ const { data: plans, loading: plansLoading, send: loadPlans } = useRequest(loadA
 const planOptions = computed(() =>
   (plans.value as Plan[])
     .filter((plan) => !plan.isDefault)
-    .map((plan) => ({ value: plan.id, label: plan.active ? plan.name : `${plan.name} (inactive)` })),
+    .map((plan) => ({
+      value: plan.id,
+      label: !plan.active ? `${plan.name} (inactive)` : plan.hidden ? `${plan.name} (hidden)` : plan.name,
+    })),
 );
 const selectedPlan = computed(() => (plans.value as Plan[]).find((plan) => plan.id === planId.value));
 

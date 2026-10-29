@@ -262,6 +262,7 @@ export type Plan = {
   features: Record<string, boolean | number>;
   isDefault: boolean;
   active: boolean;
+  hidden: boolean;
   sort: number;
   subscribers?: number;
 };
