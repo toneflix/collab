@@ -1,5 +1,6 @@
 import { Track } from './models';
 import { mediaSession, type SessionAction, type SessionActionDetails } from './media-session';
+import { artistCredit } from './credits';
 
 type EngineEvents = {
   onTime: (position: number, duration: number, buffered: number) => void;
@@ -173,7 +174,7 @@ class AudioEngine {
     void mediaSession().then((session) =>
       session?.setMetadata({
         title: track.title,
-        artist: track.artist?.name || '',
+        artist: artistCredit(track),
         album: track.album?.title || '',
         artwork,
       }),

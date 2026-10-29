@@ -433,6 +433,7 @@ defineOptions({
             slug: track.slug,
             title: track.title,
             artist: track.artist,
+            featured: track.featured ?? [],
             duration: track.duration,
             imageUrl: project.imageUrl,
             streamUrl: track.preview as string,

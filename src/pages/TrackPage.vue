@@ -35,7 +35,7 @@
               >
                 {{ track.artist?.name }}
               </RouterLink>
-              <AlbumLink :track="track" />
+              <FeaturedArtists :track="track" /><AlbumLink :track="track" />
             </h6>
 
             <h1 class="text-3xl break-words sm:text-5xl font-circlular-std sm:whitespace-nowrap">
@@ -164,6 +164,7 @@ import { emptyPage, missing } from 'src/utils/requests/prefetch';
 import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 import { computed, ref } from 'vue';
 import {
   Artist,
