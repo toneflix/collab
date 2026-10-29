@@ -31,6 +31,7 @@
   </AppSheet>
 
   <TrackCreditsDialog :track="dialogTrack" v-model="creditsOpen" v-if="dialogTrack" />
+  <SaveToPlaylistDialog :track="dialogTrack" v-model="playlistOpen" v-if="dialogTrack" />
   <ReportDialog type="track" label="track" :id="dialogTrack.id" ref="reportDialog" v-if="dialogTrack">
     <span hidden />
   </ReportDialog>
@@ -43,6 +44,7 @@ import AppSheet from 'src/components/Controllers/AppSheet.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
 import TrackMenuList from './TrackMenuList.vue';
 import TrackCreditsDialog from './TrackCreditsDialog.vue';
+import SaveToPlaylistDialog from './SaveToPlaylistDialog.vue';
 import { trackMenu } from 'src/utils/track-menu';
 import type { Track } from 'src/utils/models';
 
@@ -53,6 +55,7 @@ const reportDialog = useTemplateRef<InstanceType<typeof ReportDialog>>('reportDi
 
 const sheetOpen = ref(false);
 const creditsOpen = ref(false);
+const playlistOpen = ref(false);
 
 /** The track the dialogs are about; stays while the menu moves on */
 const dialogTrack = shallowRef<Track | null>(null);
@@ -87,6 +90,7 @@ watch(
 
     if (dialog.kind === 'credits') creditsOpen.value = true;
     if (dialog.kind === 'report') reportDialog.value?.open();
+    if (dialog.kind === 'playlist') playlistOpen.value = true;
   },
 );
 </script>

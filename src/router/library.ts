@@ -12,6 +12,11 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Account/PurchasesPage.vue')
       },
       {
+        path: 'playlists',
+        name: 'library.playlists',
+        component: () => import('pages/PlaylistsPage.vue')
+      },
+      {
         path: ':type',
         name: 'library.page',
         component: () => import('pages/LibraryPage.vue')
