@@ -88,6 +88,7 @@ export const mainNavigationLinks: NavigationLink[] = [
     separator: true,
   },
   {
+    to: { name: 'studio.projects' },
     icon: '',
     title: 'My Projects',
     group: 'creator/projects',
