@@ -24,12 +24,8 @@
         </q-avatar>
       </q-item-section>
 
-      <q-item-section>
-        <q-item-label
-          lines="1"
-          class="text-sm font-bold"
-          :class="{ 'max-w-52': !dense, 'max-w-36': dense }"
-        >
+      <q-item-section class="min-w-0">
+        <q-item-label lines="1" class="text-sm font-bold">
           {{ track.title }}
         </q-item-label>
         <q-item-label caption lines="1" class="mt-0">
@@ -38,7 +34,7 @@
       </q-item-section>
 
       <q-item-section side>
-        <div class="flex flex-row items-center gap-2">
+        <div class="flex items-center gap-2 no-wrap">
           <span class="track-row__duration">{{ formatSeconds(track.duration) }}</span>
           <IconBtn
             :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"

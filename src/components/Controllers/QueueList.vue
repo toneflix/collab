@@ -20,7 +20,7 @@
           </div>
         </div>
       </q-item-section>
-      <q-item-section>
+      <q-item-section class="min-w-0">
         <q-item-label lines="1" class="font-bold">{{ item.title }}</q-item-label>
         <q-item-label caption lines="1">
           <RouterLink
