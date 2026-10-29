@@ -161,9 +161,10 @@
           <q-list dark class="rounded-xl songs" v-else>
             <q-item
               clickable
-              class="song"
+              class="song track-row"
               :key="track.id"
               :to="trackLink(track)"
+              v-bind="menuTrigger.listeners(track)"
               v-for="track in tracks"
             >
               <q-item-section avatar>
@@ -197,6 +198,7 @@
                     :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"
                     @click.prevent.stop="player.toggleTrack(track, tracks, `search:${q}`)"
                   />
+                  <TrackMenuButton :track="track" />
                 </div>
               </q-item-section>
             </q-item>
@@ -232,6 +234,8 @@ import type { Artist, Track } from 'src/utils/models';
 import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
+import { TrackMenuTrigger } from 'src/utils/track-menu';
 import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { loadPublicSongsRequest, type PublicSong } from 'src/utils/requests/composer';
@@ -241,6 +245,7 @@ type SearchTrack = Track & { lyricMatch?: string | null };
 const route = useRoute();
 const router = useRouter();
 const player = usePlayerStore();
+const menuTrigger = new TrackMenuTrigger();
 
 const q = computed(() => String(route.query.q ?? '').trim());
 

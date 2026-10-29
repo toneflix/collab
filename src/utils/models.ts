@@ -358,6 +358,7 @@ export interface ExploreData {
   topProjects: ExploreItem<Project>;
   newProjects: ExploreItem<Project>;
   likedTracks: ExploreItem<Track>;
+  savedTracks: ExploreItem<Track>;
   likedAlbums: ExploreItem<Release>;
   latestTracks: ExploreItem<Track>;
   randomAlbums: ExploreItem<Release>;
@@ -512,6 +513,8 @@ export interface Track {
   title: string;
   liked: boolean;
   likes: number;
+  /** Whether the signed in user saved it to their library */
+  saved?: boolean;
   genre?: Genre;
   format?:
     | 'wav'
@@ -565,6 +568,40 @@ export interface Track {
   project?: Pick<Project, 'id' | 'slug' | 'title'>;
   updatedAt: string;
   createdAt: string;
+}
+
+/** A listener's own list of tracks */
+export interface Playlist {
+  id: number;
+  slug: string;
+  title: string;
+  description?: string | null;
+  privacy: 'public' | 'private';
+  tracksCount: number;
+  imageUrl?: string | null;
+  owner?: { id: number; name: string; username: string; imageUrl?: string | null };
+  /** Whether the signed in user owns it */
+  owned: boolean;
+  /** Whether it holds the track asked about */
+  hasTrack?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Someone credited on a track, as an artist part or a project role */
+export interface TrackCredit {
+  id: string | number;
+  name: string;
+  username?: string | null;
+  imageUrl?: string | null;
+  role: string;
+}
+
+/** Who made a released track, and its release's rights details */
+export interface TrackCredits {
+  artists: TrackCredit[];
+  collaborators: TrackCredit[];
+  details: Partial<Record<'composer' | 'publisher' | 'recordLabel' | 'isrc' | 'releaseDate' | 'genre', string>>;
 }
 
 /** An artist as credited on a track */

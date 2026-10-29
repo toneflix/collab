@@ -352,3 +352,24 @@ h3,
 .q-skeleton--anim-wave:after {
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 4%), transparent);
 }
+
+// Track rows with a track menu: the ⋮ button shows on hover where there is a
+// mouse, and long presses don't open the browser's own link menu.
+@media (hover: none) {
+  .track-row {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .track-row .track-menu-btn {
+    opacity: 0;
+    transition: opacity var(--tf-duration) var(--tf-ease);
+  }
+
+  .track-row:hover .track-menu-btn,
+  .track-row:focus-within .track-menu-btn {
+    opacity: 1;
+  }
+}

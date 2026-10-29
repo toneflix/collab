@@ -72,6 +72,7 @@ import { computed, ref, useTemplateRef, watch } from 'vue';
 import { onClickOutside, onKeyStroke } from '@vueuse/core';
 import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
+import { useRoute } from 'vue-router';
 import QueueList from './QueueList.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
@@ -82,6 +83,13 @@ import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
  * YouTube Music's "Up next" and "Lyrics" tabs. Picking a track plays it.
  */
 const open = defineModel<boolean>({ default: false });
+
+// Leaving the page, e.g. from a track's menu, closes the player.
+const route = useRoute();
+watch(
+  () => route.fullPath,
+  () => (open.value = false),
+);
 /** Which list shows beside the artwork */
 const tab = defineModel<'next' | 'lyrics'>('tab', { default: 'next' });
 

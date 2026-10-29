@@ -120,7 +120,7 @@ const emit = defineEmits<{
 }>();
 
 const $q = useQuasar();
-const { price, isPremium } = usePayments();
+const { price, canDownload: downloadable } = usePayments();
 
 // Release titles can be long, so phones get the short version
 const buyLabel = computed(() =>
@@ -129,13 +129,7 @@ const buyLabel = computed(() =>
     : `Buy ${props.track.release?.title || 'release'} for ${price(props.track.price)}`,
 );
 
-// Owners and buyers can always download; premium listeners can when the creator allowed it.
-const canDownload = computed(
-  () =>
-    !!props.track.downloadable &&
-    !props.track.locked &&
-    (isPremium.value || !!props.track.owned || Number(props.track.price) > 0),
-);
+const canDownload = computed(() => downloadable(props.track));
 
 const downloading = ref(false);
 const download = async () => {

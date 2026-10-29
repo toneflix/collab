@@ -62,6 +62,16 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Liked',
   },
   {
+    to: { name: 'library.page', params: { type: 'saved' } },
+    icon: 'lucide-bookmark',
+    title: 'Saved',
+  },
+  {
+    to: { name: 'library.playlists' },
+    icon: 'lucide-list-music',
+    title: 'Playlists',
+  },
+  {
     to: { name: 'library.page', params: { type: 'collabs' } },
     icon: 'lucide-users',
     title: 'Collabs',
@@ -241,6 +251,25 @@ export const releaseErrorStep = (errors: GenericData): 'basic' | 'meta' | 'track
 
   return 'basic';
 };
+
+/**
+ * The library's sections, as chips for phones. `active` names the one open.
+ */
+export const libraryChipLinks = (active?: string) => [
+  ...(['liked', 'saved', 'playlists', 'recent', 'collabs'] as const).map((key) => ({
+    label: { liked: 'Liked', saved: 'Saved', playlists: 'Playlists', recent: 'Recent', collabs: 'Collabs' }[key],
+    icon: {
+      liked: 'lucide-heart',
+      saved: 'lucide-bookmark',
+      playlists: 'lucide-list-music',
+      recent: 'lucide-music',
+      collabs: 'lucide-users',
+    }[key],
+    to: key === 'playlists' ? { name: 'library.playlists' } : { name: 'library.page', params: { type: key } },
+    active: active === key,
+  })),
+  { label: 'Purchases', icon: 'lucide-receipt', to: { name: 'library.purchases' } },
+];
 
 export const categoryChecker = (categories: Categories) => {
   return Object.entries(categories)

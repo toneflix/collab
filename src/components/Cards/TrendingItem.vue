@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="track-row" v-bind="menuTrigger.listeners(track, menuContext)">
     <q-item
       class="py-0 pl-4"
       active-class="text-white"
@@ -45,6 +45,7 @@
             :label="track.locked ? 'Part of a paid release' : player.isPlaying(track) ? 'Pause' : 'Play'"
             @click.prevent="togglePlay"
           />
+          <TrackMenuButton :track="track" :context="menuContext" />
         </div>
       </q-item-section>
     </q-item>
@@ -57,6 +58,8 @@ import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import { PropType } from 'vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
+import { TrackMenuTrigger, type TrackMenuContext } from 'src/utils/track-menu';
 import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const emit = defineEmits<{
@@ -78,6 +81,11 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
+  /** Where the track's menu is opened from, e.g. a playlist */
+  menuContext: {
+    type: Object as PropType<TrackMenuContext>,
+    default: undefined,
+  },
 });
 
 const track = defineModel<Track>('track', {
@@ -85,6 +93,7 @@ const track = defineModel<Track>('track', {
 });
 
 const player = usePlayerStore();
+const menuTrigger = new TrackMenuTrigger();
 
 const togglePlay = () => {
   player.toggleTrack(track.value, props.queue, props.source);

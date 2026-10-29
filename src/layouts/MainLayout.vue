@@ -315,6 +315,8 @@
       <!-- Phones get tabs instead of the side menu -->
       <BottomNav v-if="!adminMenu && !$route.meta.hideTabs" />
     </q-footer>
+
+    <TrackMenuHost />
   </q-layout>
 </template>
 
@@ -322,6 +324,7 @@
 import { LocalStorage, useQuasar } from 'quasar';
 import AudioPlayer from 'src/components/Controllers/AudioPlayer.vue';
 import BottomNav from 'src/components/Controllers/BottomNav.vue';
+import TrackMenuHost from 'src/components/Tracks/TrackMenuHost.vue';
 import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
