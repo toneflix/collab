@@ -222,6 +222,19 @@
             "
           />
         </div>
+        <div class="col-span-2" v-if="type === 'track'">
+          <label class="block mb-2 text-xl text-gray-400"> Featured artists </label>
+          <FeaturedArtistsInput
+            outlined
+            color="primary"
+            class="custom-q-class no-fill"
+            input-class="custom-input-class"
+            :exclude="form.artist_id"
+            :error="!!featuredError"
+            :error-message="featuredError"
+            v-model="track.featured"
+          />
+        </div>
         <div
           class="col-span-2"
           v-if="type === 'track' && (form as Track & UploadData).project_track_id"
@@ -294,6 +307,7 @@
 
 <script setup lang="ts">
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
+import FeaturedArtistsInput from '../Utilities/FeaturedArtistsInput.vue';
 import ImageCropper from 'src/components/Utilities/ImageCropper.vue';
 import AiArtworkButton from 'src/components/Artwork/AiArtworkButton.vue';
 import type { ArtworkPick } from 'src/components/Artwork/AiArtworkDialog.vue';
@@ -365,6 +379,10 @@ const editingSlug = ref(false);
 
 /** An image drawn with AI, shown until another one is uploaded */
 const picked = ref('');
+
+const featuredError = computed(() =>
+  Object.entries(errors.value).find(([key]) => key.startsWith(`tracks.${props.index}.featured_ids`))?.[1],
+);
 
 const artistName = computed(
   () => artist.value?.name || artist.value?.label || null,

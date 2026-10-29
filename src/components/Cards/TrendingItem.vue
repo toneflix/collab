@@ -33,7 +33,7 @@
           {{ track.title }}
         </q-item-label>
         <q-item-label caption lines="1" class="mt-0">
-          {{ track.artist?.name || 'Unknown' }}<AlbumLink nested :track="track" v-if="!hideAlbum" />
+          {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" v-if="!hideAlbum" />
         </q-item-label>
       </q-item-section>
 
@@ -60,6 +60,7 @@ import { PropType } from 'vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
 import { TrackMenuTrigger, type TrackMenuContext } from 'src/utils/track-menu';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];

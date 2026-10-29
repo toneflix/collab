@@ -67,7 +67,7 @@
           <div class="truncate text-grey-4">
             <RouterLink :to="trackLink" @click="open = false" v-if="track.project">{{ track.project.title }}</RouterLink>
             <RouterLink :to="artistLink" @click="open = false" v-else-if="track.artist">{{ track.artist.name }}</RouterLink>
-            <AlbumLink :track="track" @navigate="open = false" />
+            <FeaturedArtists :track="track" @navigate="open = false" /><AlbumLink :track="track" @navigate="open = false" />
           </div>
         </div>
         <TInteraction
@@ -168,6 +168,7 @@ import QueueList from './QueueList.vue';
 import SeekBar from './SeekBar.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const open = defineModel<boolean>({ default: false });
 

@@ -77,7 +77,7 @@
               <RouterLink :to="artistLink" class="hover:underline" v-else-if="track.artist">
                 {{ track.artist.name }}
               </RouterLink>
-              <AlbumLink :track="track" />
+              <FeaturedArtists :track="track" /><AlbumLink :track="track" />
               <template v-if="year"> • {{ year }}</template>
             </span>
           </div>
@@ -188,6 +188,7 @@ import SeekBar from './SeekBar.vue';
 import NowPlayingDialog from './NowPlayingDialog.vue';
 import FullPlayer from './FullPlayer.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const player = usePlayerStore();
 const queueOpen = ref(false);

@@ -15,6 +15,7 @@ export type PlanForm = {
   features: Record<string, boolean | number>;
   is_default: boolean;
   active: boolean;
+  hidden: boolean;
   sort: number;
 }
 

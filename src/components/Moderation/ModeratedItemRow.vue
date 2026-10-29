@@ -6,10 +6,10 @@
     </q-avatar>
     <div class="min-w-0">
       <div class="flex items-center gap-2">
-        <q-badge rounded color="grey-8" class="flex-none!" :label="item.type" />
+        <q-badge rounded color="grey-8" class="flex-none!" :label="item.type" v-if="!hideType" />
         <component
-          :is="item.link ? 'router-link' : 'span'"
-          :to="item.link || undefined"
+          :is="item.link && !plain ? 'router-link' : 'span'"
+          :to="(!plain && item.link) || undefined"
           class="font-bold truncate"
         >
           {{ item.title }}
@@ -27,10 +27,22 @@
 <script setup lang="ts">
 import type { ModeratedItem } from 'src/utils/requests/moderation';
 
-withDefaults(defineProps<{ item: ModeratedItem; showOwner?: boolean; hideStatus?: boolean }>(), {
-  showOwner: false,
-  hideStatus: false,
-});
+withDefaults(
+  defineProps<{
+    item: ModeratedItem;
+    showOwner?: boolean;
+    hideStatus?: boolean;
+    hideType?: boolean;
+    /** Show the title as text, not a link */
+    plain?: boolean;
+  }>(),
+  {
+    showOwner: false,
+    hideStatus: false,
+    hideType: false,
+    plain: false,
+  },
+);
 
 const icons: Record<ModeratedItem['type'], string> = {
   release: 'lucide-disc-3',
@@ -38,6 +50,7 @@ const icons: Record<ModeratedItem['type'], string> = {
   sound: 'lucide-audio-waveform',
   song: 'lucide-quote',
   project: 'lucide-folder',
+  artist: 'lucide-mic-vocal',
   comment: 'lucide-message-square',
   user: 'lucide-user',
 };

@@ -32,7 +32,7 @@
           {{ track.title }}
         </h6>
         <div class="text-gray-400 truncate text-subtitle2">
-          {{ track.artist?.name }}<AlbumLink nested :track="track" />
+          {{ track.artist?.name }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" />
         </div>
       </q-card-section>
     </q-card>
@@ -44,6 +44,7 @@ import { Track } from 'src/utils/models';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
 import { TrackMenuTrigger } from 'src/utils/track-menu';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];

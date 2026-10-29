@@ -40,7 +40,7 @@
             {{ item.artist.name }}
           </RouterLink>
           <template v-else>{{ item.artist?.name || 'Unknown' }}</template>
-          <AlbumLink :track="item" @navigate="emit('navigate')" />
+          <FeaturedArtists :track="item" @navigate="emit('navigate')" /><AlbumLink :track="item" @navigate="emit('navigate')" />
         </q-item-label>
       </q-item-section>
       <q-item-section side class="text-xs">
@@ -60,6 +60,7 @@ import { usePlayerStore } from 'src/stores/player-store';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
 import { TrackMenuTrigger } from 'src/utils/track-menu';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 /** Fires when an artist link leaves the player, so the parent can close it */
 const emit = defineEmits<{ navigate: [] }>();

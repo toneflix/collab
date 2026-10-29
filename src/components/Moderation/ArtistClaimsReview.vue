@@ -15,12 +15,11 @@
     </div>
 
     <ListSkeleton :rows="3" v-if="loading && !claims.length" />
-    <div class="py-12 text-center text-grey-5" v-else-if="!claims.length">
-      <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" v-if="status === 'pending'" />
-      <div>
-        {{ search ? 'No claims match your search.' : status === 'pending' ? 'No artist claims waiting for review.' : 'Nothing here yet.' }}
-      </div>
-    </div>
+    <SimpleInfo
+      :icon="search ? 'lucide-search-x' : status === 'pending' ? 'lucide-circle-check' : 'lucide-inbox'"
+      :text="search ? 'No claims match your search.' : status === 'pending' ? 'No artist claims waiting for review.' : 'Nothing here yet.'"
+      v-else-if="!claims.length"
+    />
 
     <div class="flex flex-col gap-3" v-else>
       <q-card flat bordered class="bg-dark" :key="claim.id" v-for="claim in claims">
@@ -179,6 +178,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { exportFile } from 'quasar';
 import { reactive, ref, watch } from 'vue';
 import { notify, timeAgoStamp } from 'src/utils/helpers';

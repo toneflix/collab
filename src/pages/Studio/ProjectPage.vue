@@ -173,11 +173,11 @@
               class="flex flex-none! flex-row items-center justify-start gap-2"
             >
               <span
-                class="flex-none! flex items-center gap-1"
+                class="min-w-0 flex flex-nowrap! items-center gap-1"
                 v-if="track.artist"
               >
-                <q-icon name="lucide-user" size=".6rem" />
-                {{ track.artist.name }}
+                <q-icon name="lucide-user" size=".6rem" class="flex-none!" />
+                <span class="truncate">{{ artistCredit(track) }}</span>
               </span>
               <span class="flex-none! flex items-center gap-1">
                 <q-icon name="lucide-audio-waveform" size=".6rem" />
@@ -351,6 +351,7 @@ import { loadProjectRequest } from 'src/utils/requests/requests';
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { collabRole } from 'src/utils/presets';
+import { artistCredit } from 'src/utils/credits';
 import {
   projectReleaseBlocker,
   projectReleaseLabel,

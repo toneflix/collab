@@ -153,9 +153,11 @@
 
         <section>
           <h2 class="mb-4 text-lg font-bold">Songs</h2>
-          <div class="text-grey-5" v-if="!loading && !tracks.length">
-            No songs match{{ q ? ` “${q}”` : '' }}{{ filtering ? ' these filters' : '' }}.
-          </div>
+          <SimpleInfo
+            icon="lucide-search-x"
+            :text="`No songs match${q ? ` “${q}”` : ''}${filtering ? ' these filters' : ''}.`"
+            v-if="!loading && !tracks.length"
+          />
           <q-list dark class="rounded-xl songs" v-else>
             <q-item
               clickable
@@ -179,7 +181,7 @@
                 <q-item-label caption lines="1" class="flex items-center gap-1 no-wrap">
                   <span class="explicit flex-none!" title="Explicit" v-if="track.explicit">E</span>
                   <span class="truncate">
-                    {{ track.artist?.name || 'Unknown' }}<AlbumLink nested :track="track" />
+                    {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" />
                   </span>
                 </q-item-label>
                 <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" v-if="showTags" />
@@ -220,6 +222,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -233,6 +236,7 @@ import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
 import { TrackMenuTrigger } from 'src/utils/track-menu';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { loadPublicSongsRequest, type PublicSong } from 'src/utils/requests/composer';
 

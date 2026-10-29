@@ -32,7 +32,7 @@
               <RouterLink :to="artistLink" class="hover:underline" @click="open = false" v-else-if="track.artist">
                 {{ track.artist.name }}
               </RouterLink>
-              <AlbumLink :track="track" @navigate="open = false" />
+              <FeaturedArtists :track="track" @navigate="open = false" /><AlbumLink :track="track" @navigate="open = false" />
             </div>
           </div>
         </div>
@@ -76,6 +76,7 @@ import { useRoute } from 'vue-router';
 import QueueList from './QueueList.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 /**
  * The expanded player: large artwork beside the queue or the lyrics, like

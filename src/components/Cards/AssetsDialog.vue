@@ -140,7 +140,7 @@
               />
             </q-item-section>
           </q-item>
-          <q-item-label caption class="py-2" v-if="!loading && !assets.length">No other assets yet.</q-item-label>
+          <SimpleInfo dense icon="lucide-image" text="No other assets yet." v-if="!loading && !assets.length" />
         </q-list>
       </template>
 
@@ -183,6 +183,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import {
   FileAsset,
   FileType,

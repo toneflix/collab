@@ -4,8 +4,7 @@
       <BlockSkeleton :count="6" class="w-full" />
     </div>
     <div class="lyrics__state" v-else-if="!lyrics?.lines.length">
-      <q-icon name="lucide-type" size="28px" class="mb-2" />
-      <div>No lyrics for this song yet.</div>
+      <SimpleInfo icon="lucide-type" text="No lyrics for this song yet." />
     </div>
     <template v-else>
       <button
@@ -32,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import {
   activeLine,

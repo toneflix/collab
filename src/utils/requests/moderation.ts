@@ -1,7 +1,7 @@
 import { alova } from 'src/boot/alova'
 import type { Release, ResponseBody } from '../models'
 
-export type ReportableType = 'release' | 'track' | 'sound' | 'song' | 'project' | 'comment' | 'user'
+export type ReportableType = 'release' | 'track' | 'sound' | 'song' | 'project' | 'artist' | 'comment' | 'user'
 
 export type ReportReason =
   | 'copyright' | 'dmca' | 'spam' | 'abuse' | 'violent' | 'self-harm'

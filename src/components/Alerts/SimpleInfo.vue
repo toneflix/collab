@@ -4,6 +4,7 @@
       <q-icon :name="icon" :size="dense ? '18px' : '22px'" />
     </div>
     <div class="simple-info__text">
+      <div class="simple-info__title" v-if="title">{{ title }}</div>
       {{ text }}
       <slot />
     </div>
@@ -19,6 +20,8 @@
  */
 withDefaults(
   defineProps<{
+    /** Bold first line, with `text` as the hint under it. */
+    title?: string;
     text?: string;
     icon?: string;
     /** One compact row, for empty sections inside a page. */
@@ -56,6 +59,11 @@ withDefaults(
     line-height: 1.5;
   }
 
+  &__title {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
   &__actions {
     display: flex;
     flex-wrap: wrap;
@@ -78,6 +86,7 @@ withDefaults(
 
     .simple-info__text {
       display: flex;
+      flex-wrap: wrap;
       flex: 1 1 auto;
       align-items: center;
       justify-content: space-between;

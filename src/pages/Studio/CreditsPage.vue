@@ -135,11 +135,12 @@
               }}{{ entry.credits.toLocaleString() }}
             </q-item-section>
           </q-item>
-          <q-item v-if="loadedHistory && !history.length">
-            <q-item-section class="text-grey-6"
-              >No credits used or bought yet.</q-item-section
-            >
-          </q-item>
+          <SimpleInfo
+            class="m-3"
+            icon="lucide-coins"
+            text="No credits used or bought yet."
+            v-if="loadedHistory && !history.length"
+          />
         </q-list>
         <div class="flex justify-center mt-4" v-if="lastPage > 1">
           <q-pagination
@@ -158,6 +159,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { date, useMeta } from 'quasar';
 import { onMounted, ref } from 'vue';
 import PayButton from 'src/components/Payments/PayButton.vue';

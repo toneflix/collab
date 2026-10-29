@@ -164,7 +164,7 @@
               <TransactionItem :key="transaction.id" :transaction="transaction" v-for="transaction in transactions" />
             </q-list>
             <ListSkeleton dense side :rows="4" v-else-if="listLoading" />
-            <div class="py-8 text-center text-grey-5" v-else>Nothing here yet.</div>
+            <SimpleInfo text="Nothing here yet." v-else />
 
             <div class="flex justify-center py-4" v-if="listPages > 1">
               <q-pagination class="flex-none!" v-model="listPage" :max="listPages" :max-pages="7" direction-links />

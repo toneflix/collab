@@ -16,10 +16,10 @@
   </q-scroll-area>
   <div
     v-else-if="category.data?.list"
-    class="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7"
+    class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7"
   >
     <GenreCard
-      class="m-1"
+      class="w-full! md:w-full!"
       :key="genre.id"
       :genre="genre"
       :is-last="i === category.data.list.length - 1"

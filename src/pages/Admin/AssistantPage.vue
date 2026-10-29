@@ -26,7 +26,7 @@
           />
           <div class="chats__list" role="list">
             <ListSkeleton dense :avatar="false" :rows="5" v-if="chatsLoading && !chats.length" />
-            <div class="chats__empty" v-else-if="!chats.length">No chats yet.</div>
+            <SimpleInfo dense class="m-2" icon="lucide-message-circle" text="No chats yet." v-else-if="!chats.length" />
             <router-link
               role="listitem"
               class="chats__item"
@@ -186,6 +186,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { date, debounce, useMeta, useQuasar } from 'quasar';
@@ -465,13 +466,6 @@ onMounted(() => void loadChats());
     min-height: 0;
     padding: 12px 8px;
     overflow-y: auto;
-  }
-
-  &__empty {
-    padding: 24px 8px;
-    font-size: 13px;
-    text-align: center;
-    color: var(--tf-text-muted);
   }
 
   &__item {

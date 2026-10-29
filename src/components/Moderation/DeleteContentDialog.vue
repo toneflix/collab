@@ -8,6 +8,7 @@
             This can't be undone. The owner is told, and the deletion stays in their audit trail.
             <template v-if="item?.type === 'release'"> Its tracks are deleted too.</template>
             <template v-if="item?.type === 'project'"> Its tracks, comments and collaborators go with it.</template>
+            <template v-if="item?.type === 'artist'"> Its albums and tracks stay, without this artist.</template>
           </div>
         </q-card-section>
 

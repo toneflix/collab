@@ -33,17 +33,12 @@
         v-model="own"
       />
       <q-list class="grid grid-cols-1 md:grid-cols-2">
-        <q-banner
-          inline-actions
-          rounded
-          class="md:col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
+        <SimpleInfo
+          icon="lucide-folder-open"
+          class="m-3 md:col-span-2"
+          text="You do not have any projects yet."
           v-if="!projects.length"
-        >
-          <h3 class="text-3xl font-bold">You do not have any projects yet.</h3>
-          <template #avatar>
-            <q-icon name="lucide-info" />
-          </template>
-        </q-banner>
+        />
         <q-item
           clickable
           :to="{
@@ -149,6 +144,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { usePagination } from 'alova/client';
 import { date } from 'quasar';

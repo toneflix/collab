@@ -53,9 +53,11 @@
       <slot />
     </div>
 
-    <div class="py-6 text-sm text-center text-grey-5" v-if="!modelValue.length">
-      No effects yet. Add EQ, reverb, saturation, chorus and more.
-    </div>
+    <SimpleInfo
+      icon="lucide-sliders-horizontal"
+      text="No effects yet. Add EQ, reverb, saturation, chorus and more."
+      v-if="!modelValue.length"
+    />
 
     <div class="fx__item" :class="{ 'fx__item--off': effect.bypassed }" :key="i" v-for="(effect, i) in modelValue">
       <div class="fx__item-head">
@@ -111,6 +113,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import type { WamLibraryEntry } from '@dawcore/wam';
 import { useQuasar } from 'quasar';
 import { ref } from 'vue';

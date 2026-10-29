@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { reactive } from 'vue';
 import { notify } from 'src/utils/helpers';
 import { Track } from 'src/utils/models';
+import { artistCredit } from 'src/utils/credits';
 import { loadPlaylistRequest, loadTrackRequest } from 'src/utils/requests/requests';
 import { audioEngine } from 'src/utils/audio-engine';
 import { apiUrl } from 'src/utils/env';
@@ -49,6 +50,7 @@ const slim = (track: Track): Track =>
       ? { id: track.artist.id, name: track.artist.name, username: track.artist.username }
       : undefined,
     artistId: track.artistId,
+    featured: track.featured?.map(({ id, name, username }) => ({ id, name, username })),
     release: track.release
       ? { id: track.release.id, slug: track.release.slug, title: track.release.title, createdAt: track.release.createdAt }
       : undefined,
@@ -95,7 +97,7 @@ let nativeAttached = false;
 const toNative = (track: Track): NativeTrack => ({
   id: String(track.id),
   title: track.title || '',
-  artist: track.artist?.name || '',
+  artist: artistCredit(track),
   album: track.album?.title || '',
   artwork: track.imageUrl || '',
   duration: track.duration || 0,

@@ -262,6 +262,7 @@ export type Plan = {
   features: Record<string, boolean | number>;
   isDefault: boolean;
   active: boolean;
+  hidden: boolean;
   sort: number;
   subscribers?: number;
 };
@@ -336,7 +337,12 @@ export interface Genre {
   id: string | number;
   slug: string;
   title: string;
-  imageUrl: string;
+  description?: string | null;
+  /** The cover photo, null until an admin adds one */
+  imageUrl: string | null;
+  tracksCount?: number;
+  releasesCount?: number;
+  fansCount?: number;
 }
 
 export type ExploreItem<X> = {
@@ -523,6 +529,8 @@ export interface Track {
     | 'wma';
   privacy: 'public' | 'private';
   artist?: Artist;
+  /** Artists the track features, in credit order */
+  featured?: ArtistCredit[];
   release?: Release;
   /** The album the track sits on, left out for singles */
   album?: TrackAlbum;
@@ -594,6 +602,15 @@ export interface TrackCredits {
   artists: TrackCredit[];
   collaborators: TrackCredit[];
   details: Partial<Record<'composer' | 'publisher' | 'recordLabel' | 'isrc' | 'releaseDate' | 'genre', string>>;
+}
+
+/** An artist as credited on a track */
+export interface ArtistCredit {
+  id: string | number;
+  name: string;
+  username: string;
+  verified?: boolean;
+  imageUrl?: string;
 }
 
 export interface TrackAlbum {
@@ -704,6 +721,8 @@ export interface ProjectTrack {
   preview?: string | File;
   privacy: 'public' | 'private';
   artist?: Artist;
+  /** Artists the track features, in credit order */
+  featured?: ArtistCredit[];
   genreId?: string | number;
   imageUrl: string;
   duration: number;
