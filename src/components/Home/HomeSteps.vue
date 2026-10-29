@@ -32,7 +32,7 @@ const steps = [
   },
   {
     title: 'Release it',
-    text: 'Mix it down, release it to listeners and earn from sales and tips.',
+    text: 'Mix it down, release it to listeners and hear what the community thinks.',
   },
 ];
 </script>

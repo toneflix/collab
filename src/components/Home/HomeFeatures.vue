@@ -65,8 +65,8 @@ const features: Feature[] = [
     to: { name: 'studio.home' },
   },
   {
-    title: 'Release and get paid',
-    text: 'Publish songs and albums, sell stems, receive tips from fans and withdraw your earnings to your bank.',
+    title: 'Release your music',
+    text: 'Publish songs and albums, share your stems and grow a following of fans who hear every new release.',
     icon: 'lucide-award',
     color: '#34d399',
     action: 'Start a release',
