@@ -25,8 +25,40 @@
       <q-select dark dense outlined emit-value map-options class="w-36 flex-none!" :options="sorts" v-model="sort" />
     </div>
 
+    <div class="bulk-bar" :class="{ 'bulk-bar--active': marked.length }" v-if="list.length && actions.length">
+      <q-checkbox
+        dense
+        color="toneflix"
+        class="flex-none!"
+        :model-value="allMarked"
+        :label="marked.length ? `${marked.length} marked` : 'Mark all'"
+        @update:model-value="markAll"
+      />
+      <template v-if="marked.length">
+        <q-btn
+          outline
+          rounded
+          dense
+          no-caps
+          size="sm"
+          color="grey-4"
+          class="flex-none! px-3"
+          :key="action.key"
+          :label="action.label"
+          :loading="applying === action.key"
+          :disable="!!applying"
+          @click="apply(action)"
+          v-for="action in actions"
+        />
+        <q-btn flat dense no-caps size="sm" color="grey-5" label="Clear" class="flex-none! ml-auto" @click="marked = []" />
+      </template>
+    </div>
+
     <q-list separator class="rows" v-if="list.length">
       <q-item :key="item.id" clickable @click="edit(item)" v-for="item in list">
+        <q-item-section side class="pr-0" v-if="actions.length" @click.stop>
+          <q-checkbox dense color="toneflix" :val="item.id" :aria-label="`Mark ${item.title}`" v-model="marked" />
+        </q-item-section>
         <q-item-section class="min-w-0">
           <ModeratedItemRow show-owner hide-type hide-status plain class="w-full min-w-0" :item="item" />
         </q-item-section>
@@ -65,8 +97,15 @@ import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
 import DeleteContentDialog from 'src/components/Moderation/DeleteContentDialog.vue';
 import ContentEditDialog from './ContentEditDialog.vue';
+import { notify } from 'src/utils/helpers';
 import { contentSection } from 'src/utils/admin-content';
-import { loadAdminContentRequest, type AdminContent, type ContentKind } from 'src/utils/requests/adminContent';
+import {
+  bulkAdminContentRequest,
+  loadAdminContentRequest,
+  type AdminContent,
+  type BulkAction,
+  type ContentKind,
+} from 'src/utils/requests/adminContent';
 
 const props = defineProps<{ type: ContentKind; ownerId?: number | null }>();
 const emit = defineEmits<{ 'clear-owner': [] }>();
@@ -87,6 +126,8 @@ const editing = ref<AdminContent | null>(null);
 const deleting = ref<AdminContent | null>(null);
 const editOpen = ref(false);
 const deleteOpen = ref(false);
+const marked = ref<number[]>([]);
+const applying = ref('');
 
 watch(
   () => props.type,
@@ -97,6 +138,7 @@ watch(
 );
 
 watch([status, search, sort, () => props.ownerId, () => props.type], () => (page.value = 1));
+watch([status, search, sort, page, () => props.ownerId, () => props.type], () => (marked.value = []));
 
 const { data, loading, send } = useWatcher(
   () =>
@@ -113,6 +155,30 @@ const { data, loading, send } = useWatcher(
 
 const list = computed(() => data.value?.data || []);
 const pageCount = computed(() => data.value?.meta?.lastPage || 1);
+const actions = computed(() => data.value?.bulkActions || []);
+
+/** Checked when every row on the page is marked, half checked for some. */
+const allMarked = computed(() => (marked.value.length === 0 ? false : marked.value.length === list.value.length ? true : null));
+
+const markAll = () => {
+  marked.value = marked.value.length === list.value.length ? [] : list.value.map((item) => item.id);
+};
+
+const apply = async (action: BulkAction) => {
+  applying.value = action.key;
+
+  try {
+    const { message } = await bulkAdminContentRequest(props.type, action.key, marked.value).send();
+
+    notify(message, 'success');
+    marked.value = [];
+    refresh();
+  } catch (error) {
+    notify((error as { message?: string }).message || 'The change could not be applied.', 'error');
+  } finally {
+    applying.value = '';
+  }
+};
 
 /** Short status labels for a row */
 const badges = (item: AdminContent) => {
@@ -153,6 +219,20 @@ const refresh = () => void send();
 </script>
 
 <style lang="scss" scoped>
+.bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bulk-bar--active {
+  background: rgb(3 191 255 / 8%);
+}
+
 .rows {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
