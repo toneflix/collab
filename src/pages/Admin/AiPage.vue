@@ -566,11 +566,12 @@
 
           <template #moderator>
             <p class="mb-4 text-sm text-grey-5">
-              Reviews artist claims and releases waiting for approval. Admins
-              can send any of them from the moderation queue, and those always
-              get a decision. Items sent automatically are only decided when the
-              moderator is confident enough; the rest stay in the queue, flagged
-              for a person. It runs on the engine picked here.
+              Reviews artist claims and releases waiting for approval, and ranks
+              tracks uploaded straight to a release. Admins can send claims and
+              releases from the moderation queue and tracks from Content, and
+              those always get a decision. Items sent automatically are only
+              decided when the moderator is confident enough; the rest stay
+              flagged for a person. It runs on the engine picked here.
             </p>
             <div class="flex flex-col gap-3">
               <div
@@ -712,6 +713,7 @@ const form = reactive({
   ai_tags_auto: true,
   ai_moderator_claims_auto: false,
   ai_moderator_releases_auto: false,
+  ai_moderator_origins_auto: false,
   ai_moderator_engine: 'replicate' as AiEngine,
   ai_moderator_confidence: 80 as number | string,
   ai_assistant_engine: 'replicate' as AiEngine,
@@ -743,6 +745,7 @@ const composerCostLabels: Record<(typeof composerCosts)[number], string> = {
 const moderatorToggles = [
   'ai_moderator_claims_auto',
   'ai_moderator_releases_auto',
+  'ai_moderator_origins_auto',
 ] as const;
 
 type FormKey = keyof typeof form;
@@ -832,10 +835,11 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     key: 'moderator',
     icon: 'lucide-bot',
     title: 'AI moderator',
-    caption: 'Automatic reviews of claims and releases.',
+    caption: 'Automatic reviews of claims, releases and uploads.',
     fields: [
       'ai_moderator_claims_auto',
       'ai_moderator_releases_auto',
+      'ai_moderator_origins_auto',
       'ai_moderator_engine',
       'ai_moderator_confidence',
     ],
@@ -926,6 +930,7 @@ const fill = (data: AiAdminSettings) => {
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
   form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';
+  form.ai_moderator_origins_auto = f.ai_moderator_origins_auto?.value === '1';
   form.ai_moderator_engine = (f.ai_moderator_engine?.value ??
     'replicate') as AiEngine;
   form.ai_moderator_confidence = Number(f.ai_moderator_confidence?.value ?? 80);

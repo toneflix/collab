@@ -79,6 +79,7 @@
               emit-value
               map-options
               :label="label(field)"
+              :hint="field.hint"
               :options="field.options"
               :error="!!errors[field.key]"
               :error-message="errors[field.key]"
@@ -153,6 +154,17 @@
             @click="item && emit('remove', item)"
             v-if="item"
           />
+          <q-btn
+            flat
+            no-caps
+            color="grey-4"
+            icon="lucide-sparkles"
+            label="Ask AI moderator"
+            class="flex-none!"
+            :loading="asking"
+            @click="askModerator"
+            v-if="item?.fields.originPending"
+          />
           <q-space />
           <q-btn flat no-caps label="Cancel" class="flex-none!" v-close-popup />
           <q-btn
@@ -178,6 +190,7 @@ import GenreTile from 'src/components/Cards/GenreTile.vue';
 import ContentPicker from './ContentPicker.vue';
 import { useGenres } from 'src/composables/useGenres';
 import { notify } from 'src/utils/helpers';
+import { sendTrackToAiRequest } from 'src/utils/requests/moderation';
 import { contentSection, type ContentField } from 'src/utils/admin-content';
 import {
   saveAdminContentRequest,
@@ -196,6 +209,7 @@ const show = defineModel<boolean>({ default: false });
 const { genres } = useGenres();
 
 const saving = ref(false);
+const asking = ref(false);
 const errors = ref<Record<string, string>>({});
 const form = reactive<Record<string, Value>>({});
 const flags = reactive<Record<string, boolean>>({});
@@ -274,6 +288,24 @@ const body = (): ContentForm => {
   });
 
   return values;
+};
+
+/** Sends an unranked upload to the AI moderator to judge its rank. */
+const askModerator = async () => {
+  if (!props.item) return;
+
+  asking.value = true;
+
+  try {
+    const { message } = await sendTrackToAiRequest(props.item.id).send();
+
+    notify(message, 'success');
+    show.value = false;
+  } catch (error) {
+    notify((error as { message?: string }).message || 'It could not be sent.', 'error');
+  } finally {
+    asking.value = false;
+  }
 };
 
 const save = async () => {

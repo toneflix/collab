@@ -98,7 +98,7 @@ import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';
 import DeleteContentDialog from 'src/components/Moderation/DeleteContentDialog.vue';
 import ContentEditDialog from './ContentEditDialog.vue';
 import { notify } from 'src/utils/helpers';
-import { contentSection } from 'src/utils/admin-content';
+import { contentSection, trackOrigins } from 'src/utils/admin-content';
 import {
   bulkAdminContentRequest,
   loadAdminContentRequest,
@@ -192,6 +192,11 @@ const badges = (item: AdminContent) => {
     else list.push(f.published ? { label: 'Live', color: 'green-9' } : { label: 'Draft', color: 'grey-8' });
   }
   if (item.type === 'song') list.push(f.published ? { label: 'Published', color: 'green-9' } : { label: 'Private', color: 'grey-8' });
+  if (item.type === 'track') {
+    const origin = trackOrigins.find((option) => option.value === f.origin);
+
+    list.push(origin ? { label: origin.label, color: 'grey-8' } : { label: 'Unranked', color: 'orange-9' });
+  }
   if (item.type === 'track' || item.type === 'project') {
     list.push(f.privacy === 'private' ? { label: 'Private', color: 'grey-8' } : { label: 'Public', color: 'green-9' });
   }

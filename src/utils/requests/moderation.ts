@@ -185,6 +185,10 @@ export const rejectReleaseRequest = (id: number | string, note: string) =>
 export const sendReleaseToAiRequest = (id: number | string) =>
   alova.Post<ResponseBody<AiReview>>(`admin/moderation/releases/${id}/ai-review`)
 
+/** Ask the AI moderator to rank a track uploaded straight to a release. */
+export const sendTrackToAiRequest = (id: number | string) =>
+  alova.Post<ResponseBody<AiReview>>(`admin/moderation/tracks/${id}/ai-review`)
+
 export const loadMyTakedownsRequest = (page = 1) =>
   alova.Get<ResponseBody<Takedown[]>>('account/takedowns', { params: { page }, cacheFor: 0 })
 
