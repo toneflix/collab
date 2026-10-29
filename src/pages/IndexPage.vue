@@ -27,7 +27,7 @@
         <HomeShelfHeader
           title="Trending this week"
           subtitle="What listeners have on repeat right now."
-          :to="{ name: 'explore' }"
+          :to="{ name: 'tracks' }"
         />
         <TrackCategory hide-all-link v-model:category="shelves.trending" />
       </section>

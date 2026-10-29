@@ -23,6 +23,11 @@ export const mainNavigationLinks: NavigationLink[] = [
     title: 'Creators',
   },
   {
+    to: { name: 'tracks' },
+    icon: 'lucide-music',
+    title: 'Tracks',
+  },
+  {
     to: { name: 'albums' },
     icon: 'lucide-layers',
     title: 'Albums',
