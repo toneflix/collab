@@ -17,6 +17,11 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Auth/RegisterPage.vue')
       },
       {
+        path: '/join/:code',
+        name: 'auth.join',
+        redirect: (to) => ({ name: 'auth.register', query: { ref: String(to.params.code) } }),
+      },
+      {
         path: '/login',
         name: 'auth.login',
         component: () => import('pages/Auth/LoginPage.vue')

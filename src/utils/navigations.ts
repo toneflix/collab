@@ -235,6 +235,12 @@ export const accountSettingsLinks: AccountLink[] = [
     caption: 'How you use Toneflix Music and the sounds you like.',
   },
   {
+    to: { name: 'account.invites' },
+    icon: 'lucide-user-plus',
+    title: 'Invites',
+    caption: 'Your invite link and the people who joined with it.',
+  },
+  {
     to: { name: 'account.notifications' },
     icon: 'lucide-bell',
     title: 'Notifications',

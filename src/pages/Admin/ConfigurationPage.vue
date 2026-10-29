@@ -137,6 +137,13 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     ],
   },
   {
+    key: 'invites',
+    icon: 'lucide-user-plus',
+    title: 'Invites',
+    caption: 'What inviters earn.',
+    keys: ['loyalty_rate', 'loyalty_months'],
+  },
+  {
     key: 'withdrawals',
     icon: 'lucide-banknote',
     title: 'Withdrawals',

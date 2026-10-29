@@ -35,6 +35,11 @@ export default <RouteRecordRaw[]>[
             component: () => import('pages/Account/MusicPage.vue'),
           },
           {
+            path: 'invites',
+            name: 'account.invites',
+            component: () => import('pages/Account/InvitesPage.vue'),
+          },
+          {
             path: 'notifications',
             name: 'account.notifications',
             component: () => import('pages/Account/NotificationSettingsPage.vue'),
