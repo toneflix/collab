@@ -23,6 +23,11 @@ on:
         type: choice
         options: [production, test]
         default: production
+      bump:
+        description: Which part of the version to raise
+        type: choice
+        options: [patch, minor, major]
+        default: patch
       api:
         description: Which API the app talks to
         type: choice
@@ -42,6 +47,10 @@ jobs:
   android:
     runs-on: ubuntu-latest
 
+    # Commits the raised version back after a deploy
+    permissions:
+      contents: write
+
     env:
       VITE_APP_ENVIRONMENT: production
       VITE_API_ENVIRONMENT: production
@@ -49,6 +58,7 @@ jobs:
       DEPLOY: ${{ github.event_name == 'push' || inputs.deploy == true }}
       BUILD: ${{ inputs.build || 'production' }}
       API: ${{ inputs.api || 'production' }}
+      BUMP: ${{ inputs.bump || 'patch' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -98,6 +108,25 @@ jobs:
             echo "::warning::VITE_DEV_API_BASE_URL is not set, so the app uses the address in .env, which a phone can't reach."
           fi
 
+      # Raises package.json's version and build number. The build number is the
+      # Play version code, so it never goes below the run-based code used before.
+      - name: Set version
+        if: env.RELEASE == 'true'
+        env:
+          OFFSET: ${{ vars.ANDROID_VERSION_CODE_OFFSET || '0' }}
+        run: |
+          npm version "$BUMP" --no-git-tag-version > /dev/null
+          LAST=$(jq -r '.build // 0' package.json)
+          RUN=$(( ${{ github.run_number }} + OFFSET ))
+          CODE=$(( LAST + 1 > RUN ? LAST + 1 : RUN ))
+          jq --argjson code "$CODE" '.build = $code' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          NAME=$(jq -r .version package.json)
+          if [ "$BUILD" = test ]; then NAME="$NAME-test"; fi
+          echo "ANDROID_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "Version $NAME, build $CODE"
+
       # Builds the UI into src-capacitor/www and syncs it into the Android project
       - name: Build the app
         run: yarn build:android
@@ -124,16 +153,6 @@ jobs:
           fi
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.keystore"
           echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/upload.keystore" >> "$GITHUB_ENV"
-
-      - name: Set version
-        env:
-          OFFSET: ${{ vars.ANDROID_VERSION_CODE_OFFSET || '0' }}
-          NAME: ${{ vars.ANDROID_VERSION_NAME }}
-        run: |
-          echo "ANDROID_VERSION_CODE=$(( ${{ github.run_number }} + OFFSET ))" >> "$GITHUB_ENV"
-          NAME="${NAME:-$(jq -r .version package.json)}"
-          if [ "$BUILD" = test ]; then NAME="$NAME-test"; fi
-          echo "ANDROID_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
 
       - name: Check the Android build
         if: env.RELEASE != 'true'
@@ -169,3 +188,16 @@ jobs:
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
           track: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
+
+      # Keeps the raised version and build number once Google Play has the bundle
+      - name: Commit the new version
+        if: env.DEPLOY == 'true'
+        run: |
+          VERSION=$(jq -r .version package.json)
+          CODE=$(jq -r .build package.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: Android release $VERSION (build $CODE) [skip ci]"
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
