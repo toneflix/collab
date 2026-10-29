@@ -300,6 +300,7 @@ useMeta(() => {
     meta: {
       description: { name: 'description', content: album.value.description },
       ogImage: { property: 'og:image', content: album.value.imageUrl },
+      twitterImage: { name: 'twitter:image', content: album.value.imageUrl },
       ogTitle: { property: 'og:title', content: album.value.title },
       ogDescription: {
         property: 'og:description',

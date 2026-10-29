@@ -15,10 +15,13 @@ defineOptions({
 
 const router = useRouter();
 
-/** Default share image; pages with their own artwork replace `ogImage`, which X also reads. */
+const shareImage = `${frontUrl}/share-image.jpg`;
+
+/** Default share image; pages with their own artwork replace `ogImage` and `twitterImage`. */
 useMeta({
   meta: {
-    ogImage: { property: 'og:image', content: `${frontUrl}/share-image.jpg` },
+    ogImage: { property: 'og:image', content: shareImage },
+    twitterImage: { name: 'twitter:image', content: shareImage },
     twitterCard: { name: 'twitter:card', content: 'summary_large_image' },
   },
 });

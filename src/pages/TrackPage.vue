@@ -298,6 +298,7 @@ useMeta(() => {
     meta: {
       description: { name: 'description', content: track.value.description },
       ogImage: { property: 'og:image', content: track.value.imageUrl },
+      twitterImage: { name: 'twitter:image', content: track.value.imageUrl },
       ogTitle: { property: 'og:title', content: track.value.title },
       ogDescription: {
         property: 'og:description',

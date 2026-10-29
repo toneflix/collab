@@ -285,6 +285,7 @@ useMeta(() => {
             content: project.value.description,
           },
           ogImage: { property: 'og:image', content: project.value.imageUrl },
+          twitterImage: { name: 'twitter:image', content: project.value.imageUrl },
           ogTitle: { property: 'og:title', content: project.value.title },
           ogDescription: {
             property: 'og:description',
