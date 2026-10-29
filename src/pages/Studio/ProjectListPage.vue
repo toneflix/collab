@@ -125,6 +125,12 @@
                 },
                 {
                   show: project.isOwner,
+                  label: 'Stream Stats',
+                  icon: 'lucide-chart-column',
+                  to: { name: 'studio.stats', params: { type: 'project', id: project.id } },
+                },
+                {
+                  show: project.isOwner,
                   label: 'Delete Project',
                   icon: 'lucide-trash-2',
                   color: 'negative',

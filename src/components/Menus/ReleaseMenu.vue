@@ -11,6 +11,12 @@
         <TrackMenuItem icon="lucide-list-end" label="Add to queue" @click="addToQueue" />
       </template>
       <TrackMenuItem icon="lucide-user" label="Go to artist" :to="artistLink" v-if="artistLink" />
+      <TrackMenuItem
+        icon="lucide-chart-column"
+        label="Stream stats"
+        :to="{ name: 'studio.stats', params: { type: 'album', id: release.id } }"
+        v-if="release.owned"
+      />
       <TrackMenuItem icon="lucide-share-2" label="Share" @click="share" />
     </q-list>
   </MoreMenu>
