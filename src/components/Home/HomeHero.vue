@@ -26,7 +26,7 @@
           <template v-else>
             Stream new music, discover artists and producers, and make tracks
             with other creators from anywhere. Release your music and
-            get paid when fans buy or tip.
+            build a following in the community.
           </template>
         </p>
 

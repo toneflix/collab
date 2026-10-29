@@ -226,7 +226,7 @@ const footerLinks = [
 ];
 
 const description =
-  'Stream and discover music, share your releases and make tracks with other creators on Toneflix Music.';
+  'Create, stream and discover new and interesting music and people.';
 
 useMeta(() => ({
   title: 'Where music meets community',
@@ -238,7 +238,7 @@ useMeta(() => ({
     },
     ogTitle: {
       property: 'og:title',
-      content: 'Toneflix Music: where music meets community',
+      content: 'Toneflix Music - The biggest music community and workspace',
     },
     ogDescription: {
       property: 'og:description',
