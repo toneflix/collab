@@ -122,6 +122,12 @@
                   },
                 },
                 {
+                  show: !release.draft,
+                  label: 'Stream Stats',
+                  icon: 'lucide-chart-column',
+                  to: { name: 'studio.stats', params: { type: 'album', id: release.id } },
+                },
+                {
                   show: !release.draft && release.reviewStatus !== 'pending',
                   label: release.retired ? 'Restore Release' : 'Retire Release',
                   icon: release.retired ? 'lucide-rotate-ccw' : 'lucide-archive',

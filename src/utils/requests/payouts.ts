@@ -291,3 +291,41 @@ export const loadAdminStreamsRequest = (page = 1) =>
 /** Pay out a past month now, as YYYY-MM. */
 export const settleStreamsRequest = (month: string) =>
   alova.Post<ResponseBody<StreamPeriod>>('admin/payouts/streams/settle', { month })
+
+export type StreamCheckStatus = 'pending' | 'cleared' | 'confirmed'
+
+type StreamCheckPerson = {
+  id: number
+  username: string
+  name: string
+  imageUrl?: string | null
+  joinedAt: string
+}
+
+/** A listener whose paid streams in a month went mostly to one creator. */
+export type StreamCheck = {
+  id: number
+  month: string
+  plays: number
+  /** Percent of the listener's paid streams that month */
+  share: number
+  status: StreamCheckStatus
+  /** Paid to the creator when cleared after the month was paid out */
+  topUp: number | null
+  listener: StreamCheckPerson | null
+  owner: StreamCheckPerson | null
+  reviewer?: string | null
+  reviewedAt: string | null
+  tracks?: { title: string; plays: number }[]
+  createdAt: string
+}
+
+export const loadStreamChecksRequest = (params: { status?: StreamCheckStatus; page?: number }) =>
+  alova.Get<ResponseBody<StreamCheck[]> & { summary: { pendingCount: number }; rules: StreamRules }>('admin/payouts/stream-checks', {
+    cacheFor: 0,
+    params,
+  })
+
+/** Clear a check to pay its streams, or confirm it to keep them out of every payout. */
+export const reviewStreamCheckRequest = (id: number, decision: 'clear' | 'confirm') =>
+  alova.Put<ResponseBody<StreamCheck>>(`admin/payouts/stream-checks/${id}`, { decision })

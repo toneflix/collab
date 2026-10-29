@@ -15,9 +15,10 @@ export const saveReferralCodeRequest = (code: string) =>
   alova.Put<ResponseBody<ReferralSummary>>('account/referrals', { code });
 
 /**
- * The people the signed-in user invited, newest first.
+ * The people the signed-in user invited, newest first. With a month (YYYY-MM),
+ * also what each earned that month, biggest first.
  */
-export const loadInvitesRequest = (params: { page?: number; limit?: number } = {}) =>
+export const loadInvitesRequest = (params: { page?: number; limit?: number; month?: string } = {}) =>
   alova.Get<ResponseBody<ReferredUser[]>>('account/referrals/invites', { params, cacheFor: 0 });
 
 /**

@@ -62,7 +62,26 @@
       </template>
     </SettingsCard>
 
+    <SettingsCard title="What invites earned you" caption="Your earnings from invited people's payments, month by month." v-if="summary?.months?.length">
+      <MonthlyBars label="Invite earnings" :months="monthPoints" :format="price" />
+    </SettingsCard>
+
     <SettingsCard title="People you invited">
+      <div class="flex flex-wrap items-center gap-3 mb-3" v-if="summary?.invited">
+        <div class="text-sm text-grey-5">
+          {{ reportMonth ? `What each person's payments earned you in ${monthName(reportMonth)}.` : 'What each person\'s payments earned you so far.' }}
+        </div>
+        <q-select
+          dense
+          outlined
+          emit-value
+          map-options
+          class="ml-auto min-w-44 flex-none!"
+          :options="monthChoices"
+          v-model="reportMonth"
+        />
+      </div>
+
       <q-list separator v-if="invites.length">
         <q-item
           :key="person.id"
@@ -76,10 +95,18 @@
           </q-item-section>
           <q-item-section>
             <q-item-label class="font-bold">{{ person.fullname || person.username }}</q-item-label>
-            <q-item-label caption>Joined {{ joined(person.joinedAt) }}</q-item-label>
+            <q-item-label caption>
+              Joined {{ joined(person.joinedAt) }}
+              <template v-if="person.rewardsEndAt">
+                · {{ ended(person.rewardsEndAt) ? 'Stopped earning' : 'Earning until' }} {{ joined(person.rewardsEndAt) }}
+              </template>
+            </q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-item-label class="font-bold">{{ price(person.earned) }}</q-item-label>
+            <q-item-label class="font-bold">{{ price(reportMonth ? person.monthEarned || 0 : person.earned) }}</q-item-label>
+            <q-item-label caption>
+              {{ paymentsLine(reportMonth ? person.monthPayments || 0 : person.payments) }}
+            </q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
@@ -94,17 +121,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { copyToClipboard, date, useMeta } from 'quasar';
 import { useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import SettingsCard from 'src/components/Account/SettingsCard.vue';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
+import MonthlyBars from 'src/components/Stats/MonthlyBars.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { usePayments } from 'src/composables/usePayments';
 import { useSettingsForm } from 'src/composables/useSettingsForm';
 import { notify } from 'src/utils/helpers';
 import type { ReferralSummary } from 'src/utils/models';
+import { monthName } from 'src/utils/stream-stats';
 import {
   inviteLink,
   loadInvitesRequest,
@@ -137,11 +166,32 @@ const termsLine = computed(() => {
   return `${prefix}nvite people to join Toneflix Music with your link and earn ${terms.rate}% of what Toneflix Music keeps from their payments${period}.`;
 });
 
+const reportMonth = ref('');
+
+watch(reportMonth, () => (page.value = 1));
+
 const { data, loading } = useWatcher(
-  () => loadInvitesRequest({ page: page.value, limit: 20 }),
-  [page],
+  () => loadInvitesRequest({ page: page.value, limit: 20, month: reportMonth.value || undefined }),
+  [page, reportMonth],
   { immediate: true },
 );
+
+const monthPoints = computed(() =>
+  (summary.value?.months || []).map((m) => ({
+    month: m.month,
+    value: m.earned,
+    note: `${m.payments} payment${m.payments === 1 ? '' : 's'}`,
+  })),
+);
+
+const monthChoices = computed(() => [
+  { value: '', label: 'All time' },
+  ...[...(summary.value?.months || [])].reverse().map((m) => ({ value: m.month, label: monthName(m.month) })),
+]);
+
+const paymentsLine = (n: number) => `${n} payment${n === 1 ? '' : 's'}`;
+
+const ended = (at: string) => new Date(at).getTime() < Date.now();
 
 const invites = computed(() => data.value?.data || []);
 const pageCount = computed(() => data.value?.meta?.lastPage || 1);
