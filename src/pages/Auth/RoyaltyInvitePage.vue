@@ -3,8 +3,8 @@
     <template v-if="invite">
       <h1 class="auth-title">Join the royalty program</h1>
       <p class="auth-subtitle">
-        {{ invite.name }}, people who join Toneflix Music with your link earn you
-        {{ invite.rate }}% of what we keep from their payments{{
+        {{ invite.name }}, invite people to join Toneflix Music with your link
+        and earn {{ invite.rate }}% of what we keep from their payments{{
           invite.months ? ` for ${invite.months} months after they join` : ''
         }}.
       </p>

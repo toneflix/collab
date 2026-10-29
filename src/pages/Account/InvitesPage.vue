@@ -132,9 +132,9 @@ const termsLine = computed(() => {
   }
 
   const period = terms.months ? ` for ${terms.months} months after they join` : '';
-  const prefix = terms.program === 'royalty' ? 'Royalty contract: p' : 'P';
+  const prefix = terms.program === 'royalty' ? 'Royalty contract: i' : 'I';
 
-  return `${prefix}eople who join with it earn you ${terms.rate}% of what Toneflix Music keeps from their payments${period}.`;
+  return `${prefix}nvite people to join Toneflix Music with your link and earn ${terms.rate}% of what Toneflix Music keeps from their payments${period}.`;
 });
 
 const { data, loading } = useWatcher(
