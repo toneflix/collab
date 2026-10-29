@@ -219,6 +219,9 @@ export const createReleaseRequest = (f: Release) => {
       return Object.assign({}, e, {
         genre: undefined,
         artist: undefined,
+        // One comma-separated value, so an empty list still clears the features.
+        featured_ids: (e.featured ?? []).map((artist) => artist.id).join(','),
+        featured: undefined,
         imageUrl: undefined,
         streamUrl: undefined,
         createdAt: undefined,
@@ -648,6 +651,8 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project, options: { 
     privacy: f.privacy,
     genre_id: f.genreId,
     artist_id: f.artistId,
+    // Sent only when the form has them, as one comma-separated value.
+    featured_ids: f.featured ? f.featured.map((artist) => artist.id).join(',') : undefined,
     description: f.description,
     _method: f.id ? 'PUT' : 'POST',
   }, {

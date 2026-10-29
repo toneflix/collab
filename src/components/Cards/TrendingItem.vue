@@ -33,7 +33,7 @@
           {{ track.title }}
         </q-item-label>
         <q-item-label caption lines="1" class="mt-0">
-          {{ track.artist?.name || 'Unknown' }}<AlbumLink nested :track="track" v-if="!hideAlbum" />
+          {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" v-if="!hideAlbum" />
         </q-item-label>
       </q-item-section>
 
@@ -57,6 +57,7 @@ import { Track } from 'src/utils/models';
 import { usePlayerStore } from 'src/stores/player-store';
 import { PropType } from 'vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
 const emit = defineEmits<{
   scrollEnd: [value: boolean];

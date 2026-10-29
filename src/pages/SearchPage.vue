@@ -180,7 +180,7 @@
                 <q-item-label caption lines="1" class="flex items-center gap-1 no-wrap">
                   <span class="explicit flex-none!" title="Explicit" v-if="track.explicit">E</span>
                   <span class="truncate">
-                    {{ track.artist?.name || 'Unknown' }}<AlbumLink nested :track="track" />
+                    {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" />
                   </span>
                 </q-item-label>
                 <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" v-if="showTags" />
@@ -232,6 +232,7 @@ import type { Artist, Track } from 'src/utils/models';
 import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
+import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 import CompositionCard from 'src/components/Compositions/CompositionCard.vue';
 import { loadPublicSongsRequest, type PublicSong } from 'src/utils/requests/composer';
 

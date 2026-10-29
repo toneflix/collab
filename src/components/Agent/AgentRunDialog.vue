@@ -85,7 +85,9 @@
             <q-item :key="track.key" v-for="(track, i) in album.tracks">
               <q-item-section avatar class="text-grey-6">{{ i + 1 }}</q-item-section>
               <q-item-section>
-                <q-item-label>{{ track.title }}</q-item-label>
+                <q-item-label>
+                  {{ track.title }}<span class="text-grey-5" v-if="track.featured"> (feat. {{ track.featured }})</span>
+                </q-item-label>
                 <q-item-label caption>{{ track.instrumental ? 'Instrumental' : 'Vocals' }} · {{ track.style }}</q-item-label>
                 <q-item-label caption class="text-red-4" v-if="track.error">{{ track.error }}</q-item-label>
                 <q-item-label caption class="text-orange-4" v-else-if="track.lyrics">{{ track.lyrics }}</q-item-label>
@@ -260,6 +262,7 @@ import { debounce, useQuasar } from 'quasar';
 import type { RouteLocationRaw } from 'vue-router';
 import StepState from './AgentStepState.vue';
 import { countStr, notify } from 'src/utils/helpers';
+import { joinNames } from 'src/utils/credits';
 import { notifyError } from 'src/utils/composer';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { useFallbackPoll } from 'src/composables/useFallbackPoll';
@@ -386,6 +389,8 @@ const mixState = (step?: AgentStep) => {
   return { state: 'Ready', color: 'text-green-4', error: null };
 };
 
+const artistName = (key: string) => run.value?.plan?.artists.find((a) => a.key === key)?.name || '';
+
 const albums = computed(() =>
   (run.value?.plan?.albums || []).map((album) => {
     const release = steps.value.get(`release:${album.key}`);
@@ -395,12 +400,16 @@ const albums = computed(() =>
     return {
       key: album.key,
       title: album.title,
-      artist: run.value?.plan?.artists.find((a) => a.key === album.artist)?.name || '',
+      artist: artistName(album.artist),
       release,
       releases: album.release !== false,
       cover: coverState(steps.value.get(`cover:${album.key}`)),
       links,
-      tracks: album.tracks.map((track) => ({ ...track, ...trackState(track.key, track.instrumental) })),
+      tracks: album.tracks.map((track) => ({
+        ...track,
+        ...trackState(track.key, track.instrumental),
+        featured: joinNames((track.featuring ?? []).map((key) => artistName(key)).filter(Boolean)),
+      })),
     };
   }),
 );

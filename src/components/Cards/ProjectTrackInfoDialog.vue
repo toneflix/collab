@@ -73,7 +73,6 @@
               allow-create
               hide-bottom-space
               color="primary"
-              hint="You can add more artists when you're ready to release."
               class="custom-q-class no-fill"
               input-class="custom-input-class"
               :error="!!errors.artist_id"
@@ -86,6 +85,20 @@
                   form.artistId = e.id;
                 }
               "
+            />
+          </div>
+          <div class="col-span-2">
+            <label class="block mb-2 text-xl text-gray-400"> Featured artists </label>
+            <FeaturedArtistsInput
+              outlined
+              hide-bottom-space
+              color="primary"
+              class="custom-q-class no-fill"
+              input-class="custom-input-class"
+              :exclude="form.artistId"
+              :error="!!featuredError"
+              :error-message="featuredError"
+              v-model="form.featured"
             />
           </div>
 
@@ -129,6 +142,7 @@ import { PropType, computed, ref } from 'vue';
 import { useGenres } from 'src/composables/useGenres';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import UserSearchInput from '../Utilities/UserSearchInput.vue';
+import FeaturedArtistsInput from '../Utilities/FeaturedArtistsInput.vue';
 import { useForm } from 'alova/client';
 import { saveProjectTrackRequest } from 'src/utils/requests/requests';
 import { notify } from 'src/utils/helpers';
@@ -167,6 +181,9 @@ const errors = computed(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
 );
 const trackForm = ref();
+const featuredError = computed(
+  () => Object.entries(errors.value).find(([key]) => key.startsWith('featured_ids'))?.[1],
+);
 
 const trackPrivacyOptions = [
   { label: 'Private', value: 'private' },
@@ -192,6 +209,7 @@ const {
   store: false,
   initialForm: {
     ...props.track,
+    featured: props.track.featured,
     privacy: props.track.privacy || 'private',
   } as unknown as ProjectTrack & UploadData,
 });

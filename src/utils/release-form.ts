@@ -22,6 +22,7 @@ export const trackFormFields = (track: Track): Track & UploadData => {
   return Object.assign(track, {
     genre_id: track.genreId,
     artist_id: track.artistId,
+    featured: track.featured ?? [],
     project_track_id: track.projectTrackId,
     contains_music: track.containsMusic ? 1 : 0,
     stems_price: track.stemsPrice ?? 0,

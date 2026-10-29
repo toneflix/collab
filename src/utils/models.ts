@@ -521,6 +521,8 @@ export interface Track {
     | 'wma';
   privacy: 'public' | 'private';
   artist?: Artist;
+  /** Artists the track features, in credit order */
+  featured?: ArtistCredit[];
   release?: Release;
   /** The album the track sits on, left out for singles */
   album?: TrackAlbum;
@@ -558,6 +560,15 @@ export interface Track {
   project?: Pick<Project, 'id' | 'slug' | 'title'>;
   updatedAt: string;
   createdAt: string;
+}
+
+/** An artist as credited on a track */
+export interface ArtistCredit {
+  id: string | number;
+  name: string;
+  username: string;
+  verified?: boolean;
+  imageUrl?: string;
 }
 
 export interface TrackAlbum {
@@ -668,6 +679,8 @@ export interface ProjectTrack {
   preview?: string | File;
   privacy: 'public' | 'private';
   artist?: Artist;
+  /** Artists the track features, in credit order */
+  featured?: ArtistCredit[];
   genreId?: string | number;
   imageUrl: string;
   duration: number;
