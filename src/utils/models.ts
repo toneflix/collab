@@ -179,6 +179,10 @@ export type Configuration = {
   premium_max_stem_size: number;
   min_payout_amount: number;
   payout_hold_days: number;
+  /** Percent of the platform's share of an invited person's payments paid to the inviter */
+  loyalty_rate?: number;
+  /** Months after sign-up those payments count, 0 for no end */
+  loyalty_months?: number;
   payout_auto_approve: boolean;
   /** Hold published releases until an admin approves them */
   review_releases: boolean;
@@ -189,7 +193,7 @@ export type Configuration = {
 };
 
 export type PaymentPurpose =
-  'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment';
+  'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment' | 'referral';
 
 export type PaymentSession = {
   reference: string;
@@ -210,7 +214,7 @@ export type Transaction = {
   planName?: string | null;
   payer?: { id: string | number; fullname: string; username: string } | null;
   item?: {
-    type: 'release' | 'track' | 'user';
+    type: 'release' | 'track' | 'user' | 'invite';
     id: string | number;
     title: string;
     slug?: string;
@@ -298,6 +302,38 @@ export type PremiumStatus = {
   plan: Plan;
   features: Record<string, boolean | number>;
   currency: string;
+};
+
+export type ReferralTerms = {
+  program: 'loyalty' | 'royalty';
+  /** Percent of the platform's share of each payment */
+  rate: number;
+  /** Months after sign-up that payments count, 0 for no end */
+  months: number;
+};
+
+export type ReferralSummary = {
+  code: string;
+  terms: ReferralTerms;
+  invited: number;
+  earned: number;
+  currency: string;
+};
+
+export type ReferredUser = {
+  id: number;
+  username: string;
+  fullname: string;
+  imageUrl?: string | null;
+  joinedAt: string;
+  earned: number;
+};
+
+export type Referrer = {
+  code: string;
+  username: string;
+  fullname: string;
+  imageUrl?: string | null;
 };
 
 export type Earnings = {

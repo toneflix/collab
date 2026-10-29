@@ -3,8 +3,8 @@
     <div class="max-w-2xl mx-auto">
       <h1 class="mb-1 text-2xl font-bold">Earnings</h1>
       <p class="mb-8 text-sm text-grey-5">
-        What you've earned from release sales, stem sales and tips. You keep
-        {{ share }}% of each payment.
+        What you've earned from release sales, stem sales, tips and invites.
+        You keep {{ share }}% of each sale and tip.
       </p>
 
       <q-card flat bordered class="mb-8 bg-dark balance">
@@ -74,7 +74,7 @@
         </q-item>
       </q-card>
 
-      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-5">
         <q-card flat bordered class="col-span-2 bg-dark md:col-span-1">
           <q-card-section>
             <div class="text-xs text-grey-5">Total earned</div>
@@ -212,6 +212,7 @@ const kinds = [
   { key: 'release' as const, label: 'Releases' },
   { key: 'stems' as const, label: 'Stems' },
   { key: 'tip' as const, label: 'Tips' },
+  { key: 'referral' as const, label: 'Invites' },
 ];
 
 const tab = ref('');

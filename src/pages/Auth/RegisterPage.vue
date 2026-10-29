@@ -1,5 +1,12 @@
 <template>
   <AuthShell>
+    <div class="auth-invite" v-if="referrer">
+      <q-avatar size="28px" color="grey-9" icon="lucide-user">
+        <img :src="referrer.imageUrl" v-if="referrer.imageUrl" />
+      </q-avatar>
+      <span>Invited by <strong>{{ referrer.fullname || referrer.username }}</strong></span>
+    </div>
+
     <ol class="auth-steps" :aria-label="`Step ${step} of 3`">
       <li
         class="auth-steps__item"
@@ -201,7 +208,7 @@
 
 <script setup lang="ts">
 import AuthFormError from 'src/components/Auth/AuthFormError.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
 import { useForm } from 'alova/client';
 import { useRoute, useRouter } from 'vue-router';
@@ -213,7 +220,8 @@ import { alova } from 'src/boot/alova';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { authText } from 'src/utils/auth-pages';
 import { afterSignIn } from 'src/utils/auth-redirect';
-import { AccountTypeValue, ResponseBody, User } from 'src/utils/models';
+import { AccountTypeValue, Referrer, ResponseBody, User } from 'src/utils/models';
+import { loadReferrerRequest } from 'src/utils/requests/referrals';
 import { reboot } from 'src/utils/proccessor';
 
 const route = useRoute();
@@ -240,9 +248,28 @@ const { form, send, error, loading, onSuccess } = useForm(
       accept: false,
       password: '',
       password_confirmation: '',
+      referral_code: <string | undefined>undefined,
     },
   },
 );
+
+/** The person whose invite link brought them here, when the code is valid. */
+const referrer = ref<Referrer | null>(null);
+const inviteCode = typeof route.query.ref === 'string' ? route.query.ref.trim() : '';
+
+onMounted(() => {
+  if (!inviteCode) {
+    return;
+  }
+
+  loadReferrerRequest(inviteCode)
+    .send()
+    .then(({ data }) => {
+      referrer.value = data;
+      form.value.referral_code = data.code;
+    })
+    .catch(() => undefined);
+});
 
 const errors = computed<Record<string, string>>(
   () => (error.value as unknown as ResponseBody<string>)?.errors || {},
@@ -301,6 +328,23 @@ useMeta(() => ({ title: t('title') || 'Sign up', titleTemplate: (title) => `${ti
 </script>
 
 <style lang="scss" scoped>
+.auth-invite {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+
+  > * {
+    flex: none;
+  }
+}
+
 .auth-steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
