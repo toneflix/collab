@@ -52,10 +52,11 @@
         <template v-if="tab === 'queue'">
 
           <ListSkeleton :rows="4" v-if="loading && !queue.length" />
-          <div class="py-12 text-center text-grey-5" v-else-if="!queue.length">
-            <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
-            <div>{{ search ? 'Nothing matches your search.' : 'Nothing waiting for review.' }}</div>
-          </div>
+          <SimpleInfo
+            :icon="search ? 'lucide-search-x' : 'lucide-circle-check'"
+            :text="search ? 'Nothing matches your search.' : 'Nothing waiting for review.'"
+            v-else-if="!queue.length"
+          />
 
           <div class="flex flex-col gap-3" v-else>
             <q-card flat bordered class="bg-dark" :key="row.key" v-for="row in queue">
@@ -188,10 +189,11 @@
 
         <template v-else-if="tab === 'releases'">
           <ListSkeleton avatar="square" :rows="4" v-if="loading && !reviews.length" />
-          <div class="py-12 text-center text-grey-5" v-else-if="!reviews.length">
-            <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
-            <div>{{ search ? 'No releases match your search.' : 'No releases waiting for approval.' }}</div>
-          </div>
+          <SimpleInfo
+            :icon="search ? 'lucide-search-x' : 'lucide-circle-check'"
+            :text="search ? 'No releases match your search.' : 'No releases waiting for approval.'"
+            v-else-if="!reviews.length"
+          />
 
           <div class="flex flex-col gap-3" v-else>
             <q-card flat bordered class="bg-dark" :key="release.id" v-for="release in reviews">
@@ -280,9 +282,11 @@
 
         <template v-else>
           <ListSkeleton :rows="4" v-if="loading && !takedowns.length" />
-          <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
-            {{ search ? 'Nothing matches your search.' : tab === 'appealed' ? 'No appeals waiting.' : 'Nothing here yet.' }}
-          </div>
+          <SimpleInfo
+            :icon="search ? 'lucide-search-x' : tab === 'appealed' ? 'lucide-circle-check' : 'lucide-inbox'"
+            :text="search ? 'Nothing matches your search.' : tab === 'appealed' ? 'No appeals waiting.' : 'Nothing here yet.'"
+            v-else-if="!takedowns.length"
+          />
 
           <div class="flex flex-col gap-3" v-else>
             <q-card flat bordered class="bg-dark" :key="takedown.id" v-for="takedown in takedowns">
@@ -401,6 +405,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { computed, reactive, ref, watch } from 'vue';
 import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';

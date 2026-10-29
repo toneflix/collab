@@ -259,13 +259,12 @@
             </div>
 
             <q-list dark separator bordered class="rounded-xl">
-              <div
-                class="p-6 text-sm text-center text-grey-5"
+              <SimpleInfo
+                class="m-3"
+                icon="lucide-audio-lines"
+                text="No sounds yet. Add sync searches and press Sync now, or upload sounds you have the rights to share."
                 v-if="!library.length && !listing"
-              >
-                No sounds yet. Add sync searches and press Sync now, or upload
-                sounds you have the rights to share.
-              </div>
+              />
               <q-item :key="sound.id" v-for="sound in library">
                 <q-item-section avatar>
                   <IconBtn
@@ -369,6 +368,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { copyToClipboard, date, useQuasar } from 'quasar';
 import SettingsSections, {

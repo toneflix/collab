@@ -37,14 +37,16 @@
         </template>
       </q-input>
 
-      <div class="empty" v-if="!songs.length && !loading">
-        <q-icon size="40px" class="mb-2 text-toneflix" name="lucide-square-pen" />
-        <div class="text-base font-semibold" v-if="search">No compositions match "{{ search }}".</div>
-        <template v-else>
-          <div class="text-base font-semibold">No compositions yet.</div>
-          <div class="text-sm text-grey-5">Start one and write your first verse.</div>
-        </template>
-      </div>
+      <template v-if="!songs.length && !loading">
+        <SimpleInfo icon="lucide-search-x" class="mb-4" :text="`No compositions match “${search}”.`" v-if="search" />
+        <SimpleInfo
+          icon="lucide-square-pen"
+          class="mb-4"
+          title="No compositions yet."
+          text="Start one and write your first verse."
+          v-else
+        />
+      </template>
 
       <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         <router-link
@@ -90,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { date, useQuasar } from 'quasar';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -181,16 +184,6 @@ onMounted(() => void load(true));
 </script>
 
 <style lang="scss" scoped>
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 48px 16px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  text-align: center;
-}
-
 .song-card {
   display: flex;
   flex-direction: column;

@@ -398,9 +398,12 @@
                 >Credits and history</router-link
               >
             </div>
-            <div class="text-sm text-grey-6" v-if="!shownJobs.length">
-              Nothing yet. What you generate shows up here and on the track.
-            </div>
+            <SimpleInfo
+              dense
+              icon="lucide-sparkles"
+              text="Nothing yet. What you generate shows up here and on the track."
+              v-if="!shownJobs.length"
+            />
             <div
               class="job"
               :class="`job--${job.status}`"
@@ -503,6 +506,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { acceptFor } from 'src/utils/presets';
 import { date, useQuasar } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';

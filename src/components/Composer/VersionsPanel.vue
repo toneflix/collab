@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <div class="p-4 text-sm text-center text-grey-5" v-if="loaded && !versions.length">No versions yet.</div>
+    <SimpleInfo class="m-3" icon="lucide-history" text="No versions yet." v-if="loaded && !versions.length" />
     <div class="p-3 text-center" v-if="page < lastPage">
       <q-btn flat rounded no-caps label="Show older versions" :loading="loading" @click="load(page + 1)" />
     </div>
@@ -50,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { date, useQuasar } from 'quasar';
 import { ref } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';

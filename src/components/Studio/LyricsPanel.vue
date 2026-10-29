@@ -136,13 +136,16 @@
           />
 
           <template v-else>
-            <div class="text-sm text-grey-6" v-if="!lines.length && !loading">
-              No lyrics yet.
+            <SimpleInfo
+              icon="lucide-type"
+              title="No lyrics yet."
+              v-if="!lines.length && !loading"
+            >
               <template v-if="!readonly">
                 Type them in, paste them with "Edit as text", or write them
                 out from a vocals stem.
               </template>
-            </div>
+            </SimpleInfo>
 
             <div
               class="line"
@@ -229,6 +232,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useQuasar } from 'quasar';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';

@@ -5,9 +5,7 @@
       Search songs, lyrics and creators
     </router-link>
     <ChipNav label="Browse" :links="browseLinks" />
-    <div class="flex flex-col justify-center" :class="{ 'min-h-[60vh]': !loading }" v-if="empty">
-      <OopsAlert />
-    </div>
+    <SimpleInfo class="mt-8" icon="lucide-compass" text="Nothing to explore yet. New songs and albums show up here." v-if="empty && !loading" />
     <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else>
       <div class="col-span-5">
         <TrackList v-model:categories="categories.latest_tracks" />
@@ -36,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import ChipNav from 'src/components/Controllers/ChipNav.vue';
 import TrackList from 'src/components/Showcase/TrackList.vue';
 import ProjectList from 'src/components/Showcase/ProjectList.vue';

@@ -8,9 +8,7 @@
 
       <BlockSkeleton variant="stats" :count="8" v-if="loading && !stats" />
 
-      <div class="py-10 text-center text-grey-5" v-else-if="!stats">
-        {{ error || 'Your account has no admin permissions.' }}
-      </div>
+      <SimpleInfo icon="lucide-lock" :text="error || 'Your account has no admin permissions.'" v-else-if="!stats" />
 
       <div class="flex flex-col gap-4" v-else>
         <div class="grid gap-3 grid-cols-2 lg:grid-cols-4">
@@ -42,9 +40,12 @@
         <div class="grid gap-3 lg:grid-cols-2">
           <div class="section" v-if="stats.revenue">
             <div class="mb-4 font-bold">Payments by type</div>
-            <div class="text-grey-5" v-if="!stats.revenue.byPurpose.length">
-              No payments in the last {{ stats.days }} days.
-            </div>
+            <SimpleInfo
+              dense
+              icon="lucide-receipt"
+              :text="`No payments in the last ${stats.days} days.`"
+              v-if="!stats.revenue.byPurpose.length"
+            />
             <div class="row-item" :key="row.purpose" v-for="row in stats.revenue.byPurpose">
               <div>{{ purposeLabel(row.purpose) }}</div>
               <div class="text-grey-5">{{ row.count.toLocaleString() }}</div>
@@ -105,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, onMounted, ref } from 'vue';
 import { useMeta } from 'quasar';
 import DailyBars from 'src/components/Utilities/DailyBars.vue';

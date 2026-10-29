@@ -158,12 +158,12 @@
           :rows="6"
           v-if="loading && !items.length"
         />
-        <div
-          class="px-6 py-10 text-sm text-center text-grey-5"
+        <SimpleInfo
+          class="m-3"
+          :icon="search ? 'lucide-search-x' : 'lucide-audio-lines'"
+          :text="emptyText"
           v-else-if="!items.length"
-        >
-          {{ emptyText }}
-        </div>
+        />
 
         <q-item
           :key="item.key"
@@ -279,6 +279,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, ref, watch } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';
 import { useRoute } from 'vue-router';

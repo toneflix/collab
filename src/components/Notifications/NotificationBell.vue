@@ -74,9 +74,7 @@
           />
         </q-list>
         <ListSkeleton dense :rows="4" v-else-if="store.loading" />
-        <div class="px-4 py-8 text-center text-grey-5" v-else>
-          You're all caught up.
-        </div>
+        <SimpleInfo class="m-2" icon="lucide-bell" text="You're all caught up." v-else />
 
         <q-btn
           flat
@@ -93,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useNotificationStore } from 'src/stores/notification-store';

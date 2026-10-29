@@ -1,9 +1,7 @@
 <template>
   <q-page padding>
     <ChipNav label="Library" :links="libraryLinks" />
-    <div class="flex flex-col justify-center min-h-[60vh]" v-if="empty && !loading">
-      <OopsAlert />
-    </div>
+    <SimpleInfo class="mt-8" :icon="emptyState.icon" :text="emptyState.text" v-if="empty && !loading" />
     <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else-if="!loading">
       <div class="col-span-5">
         <TrendingList
@@ -35,8 +33,8 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
-import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ChipNav from 'src/components/Controllers/ChipNav.vue';
 import CreatorList from 'src/components/Showcase/CreatorList.vue';
 import TrendingList from 'src/components/Showcase/TrendingList.vue';
@@ -89,6 +87,14 @@ const boot = computed(() => useBootstrapStore());
 const route = useRoute();
 const type = computed(() => route.params.type as unknown as RouteType);
 const empty = computed(() => categoryChecker(categories.value[type.value]));
+const emptyState = computed(
+  () =>
+    ({
+      recent: { icon: 'lucide-music', text: 'Nothing played yet. Songs, artists and albums you play show up here.' },
+      liked: { icon: 'lucide-heart', text: 'Nothing liked yet. Songs and albums you like show up here.' },
+      collabs: { icon: 'lucide-users', text: 'No collab albums yet. Albums from projects you work on show up here.' },
+    })[type.value] ?? { icon: 'lucide-inbox', text: 'Nothing here yet.' },
+);
 
 const libraryLinks = computed(() => [
   ...(['liked', 'recent', 'collabs'] as const).map((key) => ({
