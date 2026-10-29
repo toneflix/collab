@@ -21,8 +21,21 @@
       />
       <q-item-label caption class="mt-1 text-red-4" v-if="run.error">{{ run.error }}</q-item-label>
     </q-item-section>
-    <q-item-section side top>
+    <q-item-section side top class="items-end gap-2">
       <q-badge rounded :color="runStatusLabels[run.status].color" :label="runStatusLabels[run.status].label" />
+      <q-btn
+        flat
+        dense
+        no-caps
+        size="sm"
+        color="red-4"
+        icon="lucide-square"
+        label="Stop"
+        class="px-2"
+        :loading="stopping"
+        @click.stop="emit('stop', run)"
+        v-if="isActiveRun(run)"
+      />
     </q-item-section>
   </q-item>
 </template>
@@ -30,10 +43,10 @@
 <script setup lang="ts">
 import { date } from 'quasar';
 import { countStr } from 'src/utils/helpers';
-import { runStatusLabels, type AgentRun } from 'src/utils/requests/agent';
+import { isActiveRun, runStatusLabels, type AgentRun } from 'src/utils/requests/agent';
 
-defineProps<{ run: AgentRun }>();
-const emit = defineEmits<{ open: [run: AgentRun] }>();
+defineProps<{ run: AgentRun; stopping?: boolean }>();
+const emit = defineEmits<{ open: [run: AgentRun]; stop: [run: AgentRun] }>();
 </script>
 
 <style lang="scss" scoped>

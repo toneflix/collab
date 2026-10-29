@@ -10,7 +10,14 @@
 
     <template #default>
       <q-list separator class="runs" v-if="list.length">
-        <AgentRunItem :key="run.id" :run="run" @open="openRun = run.id" v-for="run in list" />
+        <AgentRunItem
+          :key="run.id"
+          :run="run"
+          :stopping="stopping === run.id"
+          @open="openRun = run.id"
+          @stop="stopRun"
+          v-for="run in list"
+        />
       </q-list>
       <ListSkeleton v-else-if="loading" />
       <SimpleInfo v-else text="Nothing here." />
@@ -29,6 +36,7 @@ import { computed, ref, watch } from 'vue';
 import { debounce } from 'quasar';
 import { useWatcher } from 'alova/client';
 import { useFallbackPoll } from 'src/composables/useFallbackPoll';
+import { useStopAgentRun } from 'src/composables/useStopAgentRun';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { useRealtimeChannel } from 'src/utils/realtime';
 import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';
@@ -76,11 +84,19 @@ const sections = computed<SettingsSection<View>[]>(() => [
   { key: 'new', icon: 'lucide-sparkles', title: 'New prompt', caption: 'Instructions for the agent to build.' },
   { key: 'open', icon: 'lucide-loader', title: 'Queue', caption: 'Runs waiting or being built.', count: openCount.value },
   { key: 'succeeded', icon: 'lucide-circle-check', title: 'Finished', caption: 'Runs that built everything.' },
-  { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Runs that stopped or were cancelled.' },
+  { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Runs that failed or were stopped.' },
   ...(props.scope === 'admin'
     ? [{ key: 'accounts' as const, icon: 'lucide-users', title: 'Agent accounts', caption: 'Accounts the agent builds for.' }]
     : []),
 ]);
+
+const { stop, stopping } = useStopAgentRun(() => props.scope);
+
+const stopRun = async (run: AgentRun) => {
+  if (await stop(run)) {
+    void reload();
+  }
+};
 
 const queued = (run: AgentRun) => {
   view.value = 'open';
