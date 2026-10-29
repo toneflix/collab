@@ -119,8 +119,8 @@
 
 <script setup lang="ts">
 import { copyToClipboard, useMeta } from 'quasar';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import SongProjectDialog from 'src/components/Composer/SongProjectDialog.vue';
 import ReportDialog from 'src/components/Moderation/ReportDialog.vue';
@@ -147,7 +147,6 @@ defineOptions({
 });
 
 const boot = useBootstrapStore();
-const route = useRoute();
 const router = useRouter();
 
 const song = ref<PublicSong | null>((boot.pageData.current as { song?: PublicSong | null }).song ?? null);
@@ -225,19 +224,6 @@ const loadMore = async () => {
     more.value = [];
   }
 };
-
-/** Another song opened from this page reuses the page, so load it here */
-watch(
-  () => route.params.slug,
-  async (slug, before) => {
-    if (!slug || slug === before || route.name !== 'composition') return;
-    song.value = await loadPublicSongRequest(String(slug))
-      .send()
-      .then((res) => res.data)
-      .catch(() => null);
-    void loadMore();
-  },
-);
 
 onMounted(() => void loadMore());
 

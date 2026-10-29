@@ -189,7 +189,7 @@ import {
   loadTrackRequest,
   loadTracksRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import TInteraction from 'src/components/Utilities/TInteraction.vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
@@ -251,16 +251,14 @@ const {
   data: track,
   loading,
   send: reload,
-} = useWatcher(
+} = useRequest(
   () =>
     loadTrackRequest(route.params.track_id, {
       artist_id: String(route.params.artist_id),
       with: 'comments_count,artist,release,stems',
     }),
-  [() => route.params.artist_id],
   {
     immediate: false,
-    middleware: (_, next) => (route.params.artist_id ? next() : undefined),
     initialData: current.track || {},
   },
 );

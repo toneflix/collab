@@ -198,7 +198,7 @@ import {
   loadProjectRequest,
   loadUsersRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import { ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import AddCollaberDialog from 'src/components/Cards/AddCollaberDialog.vue';
@@ -256,21 +256,19 @@ const categories = ref({
       slug: 'collabers',
       title: 'Project Collabers',
       data: { list: current.creators, meta: current.creatorMeta },
-      params: { filters: 'creator', artist_id: route.params.project_id_id },
+      params: { filters: 'creator', project_id: route.params.project_id },
     },
   ],
 });
 
-const { data: project, loading } = useWatcher(
+const { data: project, loading } = useRequest(
   () =>
     loadProjectRequest(
       route.params.project_id,
       { with: 'comments_count,pending_data,tracks' },
       true,
     ),
-  [() => route.params.project_id],
   {
-    middleware: (_, next) => (route.params.project_id ? next() : undefined),
     immediate: false,
     initialData: current.project,
   },

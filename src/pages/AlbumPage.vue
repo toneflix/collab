@@ -196,7 +196,7 @@ import {
   loadReleasesRequest,
   loadTracksRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
@@ -255,15 +255,13 @@ const {
   data: album,
   loading,
   send: reload,
-} = useWatcher(
+} = useRequest(
   () =>
     loadReleaseRequest(route.params.album_id, {
       with: 'tracks,artist,comments_count',
       artist_id: route.params.artist_id as string,
     }),
-  [() => route.params.album_id],
   {
-    middleware: (_, next) => (route.params.album_id ? next() : undefined),
     immediate: false,
     initialData: current.album || {},
   },

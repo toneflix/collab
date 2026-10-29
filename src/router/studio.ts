@@ -44,6 +44,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'release/create/:release_id?',
         name: 'studio.release.create',
+        meta: { keepOnParamChange: true },
         component: () => import('pages/Studio/CreateReleasePage.vue'),
       },
       {

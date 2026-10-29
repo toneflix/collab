@@ -119,7 +119,7 @@ import {
   loadProjectsRequest,
   loadUserRequest,
 } from 'src/utils/requests/requests';
-import { useWatcher } from 'alova/client';
+import { useRequest } from 'alova/client';
 import { computed, ref } from 'vue';
 import OopsAlert from 'src/components/Alerts/OopsAlert.vue';
 import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
@@ -169,16 +169,14 @@ const categories = ref({
   ],
 });
 
-const { data: artist, loading } = useWatcher(
+const { data: artist, loading } = useRequest(
   () =>
     loadArtistRequest(
       route.params.artist_id as string,
       { with: 'tracks' },
       true,
     ),
-  [() => route.params.artist_id],
   {
-    middleware: (_, next) => (route.params.artist_id ? next() : undefined),
     immediate: false,
     initialData: current.artist || {},
   },

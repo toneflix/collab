@@ -309,7 +309,9 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view v-slot="{ Component, route: view }">
+        <component :is="Component" :key="pageKey(view)" />
+      </router-view>
       <ConversationDock v-if="boot.user?.id" />
     </q-page-container>
 
@@ -336,7 +338,7 @@ import ProfileDropdown from 'src/components/dropdowns/ProfileDropdown.vue';
 import ConversationDock from 'src/components/Conversation/ConversationDock.vue';
 import NotificationBell from 'src/components/Notifications/NotificationBell.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { RouteLocationNormalizedLoaded, useRoute, useRouter } from 'vue-router';
 import {
   conversationKey,
   useConversationStore,
@@ -424,6 +426,14 @@ const cache = boot.pageData.cache as unknown as {
 
 const route = useRoute();
 const router = useRouter();
+
+/**
+ * Remounts the page when its route params change, so a page opened for another
+ * track, album or artist starts from that one's prefetched data. Routes with
+ * `meta.keepOnParamChange` update in place instead.
+ */
+const pageKey = (view: RouteLocationNormalizedLoaded) =>
+  view.meta.keepOnParamChange ? '' : JSON.stringify(view.params);
 
 const isSearchRoute = computed(() => route.name === 'search');
 

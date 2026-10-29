@@ -273,7 +273,7 @@ const load = async () => {
   }
 };
 
-watch(id, load, { immediate: true });
+void load();
 
 const { data: list, loading: listLoading, send: reloadList } = useWatcher(
   () =>
