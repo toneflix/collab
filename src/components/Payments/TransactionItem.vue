@@ -26,7 +26,7 @@
       <q-item-label class="font-bold text-white">
         {{ price(transaction.earned ?? transaction.amount) }}
       </q-item-label>
-      <q-item-label caption v-if="transaction.earned !== undefined && !['adjustment', 'referral'].includes(transaction.purpose)">
+      <q-item-label caption v-if="transaction.earned !== undefined && !['adjustment', 'referral', 'streams'].includes(transaction.purpose)">
         of {{ price(transaction.amount) }}
       </q-item-label>
     </q-item-section>
@@ -54,6 +54,7 @@ const labels = {
   credits: 'AI credits',
   adjustment: 'Balance adjustment',
   referral: 'Invite reward',
+  streams: 'Streams',
 };
 
 const icons = {
@@ -64,6 +65,7 @@ const icons = {
   credits: 'lucide-wand-sparkles',
   adjustment: 'lucide-scale',
   referral: 'lucide-user-plus',
+  streams: 'lucide-audio-lines',
 };
 
 const label = computed(() => labels[props.transaction.purpose] || 'Payment');
@@ -78,6 +80,7 @@ const title = computed(() => {
   if (t.purpose === 'tip' && t.item) return `Tip to ${t.item.title}`;
   if (t.purpose === 'credits') return t.planName || label.value;
   if (t.purpose === 'referral' && t.item) return `Payment by ${t.item.title || t.item.username}`;
+  if (t.purpose === 'streams' && t.item) return `Streams in ${t.item.title}`;
   return t.item?.title || label.value;
 });
 
@@ -90,7 +93,7 @@ const when = computed(() =>
 
 const link = computed<RouteLocationRaw | undefined>(() => {
   const item = props.transaction.item;
-  if (props.transaction.purpose === 'adjustment') return undefined;
+  if (props.transaction.purpose === 'adjustment' || props.transaction.purpose === 'streams') return undefined;
   if (!item) return { name: 'premium' };
   if (item.type === 'user' || item.type === 'invite')
     return { name: 'creator', params: { artist_id: item.username } };

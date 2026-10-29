@@ -96,3 +96,27 @@ export const loadTrackDownloadRequest = (trackId: string | number) => {
     { cacheFor: 0 },
   );
 };
+
+/** How paid streams are counted and weighted, from the admin settings. */
+export type StreamRules = {
+  poolShare: number;
+  minSeconds: number;
+  dailyCap: number;
+  weights: { collaboration: number; recorded: number; agentic: number };
+};
+
+/** The creator's paid streams this month and what streams earned so far. */
+export type StreamSummary = {
+  eligible: boolean;
+  plays: number;
+  weighted: number;
+  /** This month's weighted streams at last month's rate */
+  estimate: number;
+  earned: number;
+  lastRate: number;
+  currency: string;
+  rules: StreamRules;
+};
+
+export const loadStreamSummaryRequest = () =>
+  alova.Get<ResponseBody<StreamSummary>>('account/earnings/streams', { cacheFor: 0 });

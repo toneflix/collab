@@ -14,6 +14,10 @@
           <PayoutProviderSettings />
         </template>
 
+        <template #streams>
+          <StreamPeriodsAdmin />
+        </template>
+
         <template #royals>
           <RoyaltyAdmin view="contracts" />
         </template>
@@ -102,6 +106,7 @@ import SettingsSections, { type SettingsSection } from 'src/components/Admin/Set
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
+import StreamPeriodsAdmin from 'src/components/Payments/StreamPeriodsAdmin.vue';
 import RoyaltyAdmin from 'src/components/Payments/RoyaltyAdmin.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { usePayments } from 'src/composables/usePayments';
@@ -124,11 +129,11 @@ const boot = useBootstrapStore();
 const { price } = usePayments();
 
 const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
-type View = PayoutStatus | 'all' | 'providers' | 'royals' | 'royalty-invites';
+type View = PayoutStatus | 'all' | 'providers' | 'royals' | 'royalty-invites' | 'streams';
 
 const view = ref<View>('pending');
 const status = computed<PayoutStatus | ''>(() =>
-  ['all', 'providers', 'royals', 'royalty-invites'].includes(view.value) ? '' : (view.value as PayoutStatus),
+  ['all', 'providers', 'royals', 'royalty-invites', 'streams'].includes(view.value) ? '' : (view.value as PayoutStatus),
 );
 const search = ref<string | null>('');
 const page = ref(1);
@@ -164,6 +169,7 @@ const sections = computed(() => {
     { key: 'paid', icon: 'lucide-circle-check', title: 'Paid', caption: 'Money that reached the creator.' },
     { key: 'failed', icon: 'lucide-circle-alert', title: 'Failed', caption: 'Rejected or bounced withdrawals.' },
     { key: 'all', icon: 'lucide-list', title: 'All', caption: 'Every withdrawal request.' },
+    { key: 'streams', icon: 'lucide-audio-lines', title: 'Streams', caption: 'The monthly stream pool.' },
     { key: 'royals', icon: 'lucide-crown', title: 'Royalties', caption: 'Royals and the terms they earn on.' },
     { key: 'royalty-invites', icon: 'lucide-mail', title: 'Royalty invites', caption: 'Invites sent to new royals.' },
   ];

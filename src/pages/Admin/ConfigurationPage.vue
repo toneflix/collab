@@ -47,6 +47,7 @@
                     outlined
                     bottom-slots
                     :type="inputType(fields[key])"
+                    :step="fields[key].type === 'decimal' ? 'any' : undefined"
                     :prefix="moneyKeys.includes(key) ? currency : undefined"
                     :label="fields[key].title"
                     :model-value="textValue(key)"
@@ -144,6 +145,20 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     keys: ['loyalty_rate', 'loyalty_months'],
   },
   {
+    key: 'streams',
+    icon: 'lucide-audio-lines',
+    title: 'Stream earnings',
+    caption: 'The monthly pool and what a stream counts.',
+    keys: [
+      'stream_pool_share',
+      'stream_min_seconds',
+      'stream_daily_cap',
+      'stream_weight_collaboration',
+      'stream_weight_recorded',
+      'stream_weight_agentic',
+    ],
+  },
+  {
     key: 'withdrawals',
     icon: 'lucide-banknote',
     title: 'Withdrawals',
@@ -184,7 +199,7 @@ const unsaved = computed(() =>
 );
 
 const inputType = (field: ConfigurationField) =>
-  field.type === 'number'
+  field.type === 'number' || field.type === 'decimal'
     ? 'number'
     : field.type === 'email'
       ? 'email'

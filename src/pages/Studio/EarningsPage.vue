@@ -3,7 +3,7 @@
     <div class="max-w-2xl mx-auto">
       <h1 class="mb-1 text-2xl font-bold">Earnings</h1>
       <p class="mb-8 text-sm text-grey-5">
-        What you've earned from release sales, stem sales, tips and invites.
+        What you've earned from release sales, stem sales, tips, invites and streams.
         You keep {{ share }}% of each sale and tip.
       </p>
 
@@ -74,8 +74,43 @@
         </q-item>
       </q-card>
 
-      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-4">
-        <q-card flat bordered class="col-span-2 bg-dark md:col-span-4">
+      <q-card flat bordered class="mb-6 bg-dark" v-if="streams">
+        <q-item class="py-4" v-if="streams.eligible">
+          <q-item-section avatar>
+            <q-avatar rounded color="grey-9" icon="lucide-audio-lines" size="40px" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="font-bold">
+              {{ streams.plays }} paid stream{{ streams.plays === 1 ? '' : 's' }} this month
+            </q-item-label>
+            <q-item-label caption>
+              Paid out on the 1st. Collaborations count
+              {{ streams.rules.weights.collaboration }}×, recorded music
+              {{ streams.rules.weights.recorded }}× and agentic
+              {{ streams.rules.weights.agentic }}×.
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side v-if="streams.lastRate">
+            <q-item-label caption>Estimate</q-item-label>
+            <q-item-label class="text-lg font-bold text-white">{{ price(streams.estimate) }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item class="py-4" v-else>
+          <q-item-section avatar>
+            <q-avatar rounded color="grey-9" icon="lucide-audio-lines" size="40px" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="font-bold">Earn from streams</q-item-label>
+            <q-item-label caption>Premium creators get a share of each month's stream pool.</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-btn outline rounded no-caps size="sm" color="white" label="See Premium" :to="{ name: 'premium' }" />
+          </q-item-section>
+        </q-item>
+      </q-card>
+
+      <div class="grid grid-cols-2 gap-3 mb-6 md:grid-cols-5">
+        <q-card flat bordered class="col-span-2 bg-dark md:col-span-5">
           <q-card-section>
             <div class="text-xs text-grey-5">Total earned</div>
             <div class="text-2xl font-bold">{{ price(summary.earned) }}</div>
@@ -178,7 +213,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMeta } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
-import { useWatcher } from 'alova/client';
+import { useRequest, useWatcher } from 'alova/client';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutAccountDialog from 'src/components/Payments/PayoutAccountDialog.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
@@ -189,7 +224,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { Earnings } from 'src/utils/models';
 import { useRealtimeChannel } from 'src/utils/realtime';
-import { loadEarningsRequest } from 'src/utils/requests/payments';
+import { loadEarningsRequest, loadStreamSummaryRequest } from 'src/utils/requests/payments';
 import {
   accountLine,
   cancelPayoutRequest,
@@ -213,7 +248,11 @@ const kinds = [
   { key: 'stems' as const, label: 'Stems' },
   { key: 'tip' as const, label: 'Tips' },
   { key: 'referral' as const, label: 'Invites' },
+  { key: 'streams' as const, label: 'Streams' },
 ];
+
+const { data: streamBody } = useRequest(loadStreamSummaryRequest);
+const streams = computed(() => streamBody.value?.data);
 
 const tab = ref('');
 const page = ref(1);
