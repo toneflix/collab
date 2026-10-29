@@ -134,6 +134,9 @@ export const actionActor = (entry: AdminAction) => {
   return entry.details.via === 'console' ? 'Console' : 'Removed admin';
 };
 
+/** What people call each kind of content. */
+const contentLabel = (type: unknown) => ({ song: 'composition', release: 'album' })[String(type)] ?? String(type);
+
 /** One line describing an audit entry. */
 export const describeAction = (entry: AdminAction, price: (n: number) => string) => {
   const d = entry.details as Record<string, unknown>;
@@ -155,7 +158,9 @@ export const describeAction = (entry: AdminAction, price: (n: number) => string)
     'funds.removed': `Took ${price(Math.abs(Number(d.amount)))} from the balance`,
     'credits.added': `Granted ${Number(d.credits)} AI credits`,
     'credits.removed': `Took back ${Number(d.credits)} AI credits`,
-    'content.deleted': `Deleted the ${d.type === 'song' ? 'composition' : d.type === 'release' ? 'album' : String(d.type)} “${String(d.title)}”${d.note ? `: ${String(d.note)}` : ''}`,
+    'content.deleted': `Deleted the ${contentLabel(d.type)} “${String(d.title)}”${d.note ? `: ${String(d.note)}` : ''}`,
+    'content.created': `Added the ${contentLabel(d.type)} “${String(d.title)}”`,
+    'content.updated': `Edited the ${contentLabel(d.type)} “${String(d.title)}”`,
   };
 
   return lines[entry.action] || entry.action;
