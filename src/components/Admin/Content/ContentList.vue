@@ -56,7 +56,7 @@
 
     <q-list separator class="rows" v-if="list.length">
       <q-item :key="item.id" clickable @click="edit(item)" v-for="item in list">
-        <q-item-section side class="pr-0" v-if="actions.length" @click.stop>
+        <q-item-section side class="pr-3" v-if="actions.length" @click.stop>
           <q-checkbox dense color="toneflix" :val="item.id" :aria-label="`Mark ${item.title}`" v-model="marked" />
         </q-item-section>
         <q-item-section class="min-w-0">
