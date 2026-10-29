@@ -153,9 +153,11 @@
 
         <section>
           <h2 class="mb-4 text-lg font-bold">Songs</h2>
-          <div class="text-grey-5" v-if="!loading && !tracks.length">
-            No songs match{{ q ? ` “${q}”` : '' }}{{ filtering ? ' these filters' : '' }}.
-          </div>
+          <SimpleInfo
+            icon="lucide-search-x"
+            :text="`No songs match${q ? ` “${q}”` : ''}${filtering ? ' these filters' : ''}.`"
+            v-if="!loading && !tracks.length"
+          />
           <q-list dark class="rounded-xl songs" v-else>
             <q-item
               clickable
@@ -218,6 +220,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

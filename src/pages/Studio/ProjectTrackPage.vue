@@ -281,15 +281,15 @@
       <div class="studio-body" :style="fit" ref="studioBody">
         <div class="studio-main">
           <DawSkeleton class="daw-loading" v-if="!loaded" />
-          <div
-            class="mb-4 text-sm empty-hint"
+          <SimpleInfo
+            class="mb-4"
+            icon="lucide-audio-lines"
+            text="No stems yet. Upload the parts of this track, press record, add a sound, or make a beat with an instrument."
             v-if="loaded && !stems.length && !viewOnly"
-          >
-            No stems yet. Upload the parts of this track, press record, add a
-            sound, or make a beat with an instrument.
-          </div>
+          />
           <SimpleInfo
             class="mt-8"
+            icon="lucide-audio-lines"
             text="This track has no stems."
             v-if="loaded && !stems.length && viewOnly"
           />
@@ -1310,13 +1310,6 @@ onBeforeUnmount(() => {
       display: none;
     }
   }
-}
-
-.empty-hint {
-  padding: 10px 14px;
-  color: #b8bcc4;
-  border-radius: 10px;
-  background: rgba(3, 191, 255, 0.08);
 }
 
 .studio-tools {

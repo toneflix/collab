@@ -11,11 +11,13 @@
           This is the start of the conversation.
         </div>
 
-        <div class="thread__empty" v-if="loaded && !messages.length">
-          <q-icon name="lucide-messages-square" size="40px" color="grey-7" />
-          <div class="mt-2 text-base font-bold">No messages yet</div>
-          <div class="text-sm text-grey-6">Say hello. Everyone on this {{ noun }} will see it.</div>
-        </div>
+        <SimpleInfo
+          icon="lucide-messages-square"
+          class="my-8"
+          title="No messages yet"
+          :text="`Say hello. Everyone on this ${noun} will see it.`"
+          v-if="loaded && !messages.length"
+        />
 
         <ListSkeleton :rows="4" v-if="!loaded" />
 
@@ -221,6 +223,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { copyToClipboard, date, useQuasar } from 'quasar';
@@ -671,14 +674,6 @@ $theirs: #23272f;
       font-size: 12px;
       color: #8a8f98;
     }
-  }
-
-  &__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 48px 16px;
-    text-align: center;
   }
 
   &__day {

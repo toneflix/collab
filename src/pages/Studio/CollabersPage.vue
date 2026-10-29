@@ -5,19 +5,12 @@
         <h4 class="text-xl flex-none! font-semibold md:text-2xl">Collabers</h4>
       </div>
       <q-list class="grid grid-cols-1 md:grid-cols-2">
-        <q-banner
-          inline-actions
-          rounded
-          class="md:col-span-2 p-5 m-3 text-center bg-blue-200 border border-solid text-primary border-primary rounded-xl"
+        <SimpleInfo
+          icon="lucide-users"
+          class="m-3 md:col-span-2"
+          text="You have not collaborated with any creators yet."
           v-if="!users.length"
-        >
-          <h3 class="text-3xl font-bold">
-            You have not collaborated with any creators yet.
-          </h3>
-          <template #avatar>
-            <q-icon name="lucide-info" />
-          </template>
-        </q-banner>
+        />
         <q-item
           clickable
           :to="{ name: 'creator', params: { artist_id: artist.username } }"
@@ -59,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { avatarFallback } from 'src/utils/imageFallback';
 import { usePagination } from 'alova/client';
 import TDropdown from 'src/components/Utilities/TDropdown.vue';

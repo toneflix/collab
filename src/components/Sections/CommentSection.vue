@@ -8,12 +8,11 @@
       class="w-full h-screen max-w-screen-sm max-h-screen p-4 mx-auto overflow-y-auto"
     >
       <div class="space-y-4">
-        <div
-          class="flex-1 px-8 py-2 leading-relaxed text-center border border-gray-700 border-solid rounded-lg sm:px-6 sm:py-4"
+        <SimpleInfo
+          icon="lucide-message-circle"
+          :text="`It's quiet here. Be the first to ${label}!`"
           v-if="!comments.length"
-        >
-          It's silent here, Be the first to {{ label }}!
-        </div>
+        />
         <q-form
           class="border border-gray-700 border-solid rounded-lg"
           ref="formRef"
@@ -64,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useForm, usePagination } from 'alova/client';
 import { notify } from 'src/utils/helpers';
 import { GenericData, ResponseBody, UserComment } from 'src/utils/models';

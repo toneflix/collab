@@ -39,10 +39,11 @@
         />
       </div>
 
-      <div class="py-12 text-center text-grey-5" v-if="!loading && !songs.length">
-        <template v-if="search">No published compositions match “{{ search }}”.</template>
-        <template v-else>No compositions published yet.</template>
-      </div>
+      <SimpleInfo
+        :icon="search ? 'lucide-search-x' : 'lucide-square-pen'"
+        :text="search ? `No published compositions match “${search}”.` : 'No compositions published yet.'"
+        v-if="!loading && !songs.length"
+      />
 
       <div class="grid">
         <CompositionCard :key="song.id" :song="song" v-for="song in songs" />
@@ -57,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

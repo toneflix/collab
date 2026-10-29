@@ -38,14 +38,10 @@
 
     <q-inner-loading dark :showing="loading" />
 
-    <div class="py-8 text-sm text-center text-grey-5" v-if="!word">
-      Click a word in your lyrics, or type one above.
-    </div>
+    <SimpleInfo icon="lucide-book-open" text="Click a word in your lyrics, or type one above." v-if="!word" />
 
     <template v-else-if="tab === 'definitions'">
-      <div class="py-8 text-sm text-center text-grey-5" v-if="loaded && !definitions.length">
-        No definitions for "{{ word }}".
-      </div>
+      <SimpleInfo icon="lucide-search-x" :text="`No definitions for “${word}”.`" v-if="loaded && !definitions.length" />
       <div class="definition" :key="i" v-for="(d, i) in definitions">
         <div class="text-xs font-bold uppercase text-grey-5" v-if="d.partOfSpeech">{{ d.partOfSpeech }}</div>
         <div class="text-sm">{{ d.text }}</div>
@@ -53,9 +49,7 @@
     </template>
 
     <template v-else>
-      <div class="py-8 text-sm text-center text-grey-5" v-if="loaded && !hits.length">
-        Nothing found for "{{ word }}".
-      </div>
+      <SimpleInfo icon="lucide-search-x" :text="`Nothing found for “${word}”.`" v-if="loaded && !hits.length" />
       <div class="mb-4" :key="group.label" v-for="group in groups">
         <div class="mb-1 text-xs font-bold text-grey-5" v-if="group.label">{{ group.label }}</div>
         <div class="flex flex-wrap gap-x-1 gap-y-0.5">
@@ -80,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, ref, watch } from 'vue';
 import ComposerSheet from 'src/components/Composer/ComposerSheet.vue';
 import {

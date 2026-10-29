@@ -9,10 +9,7 @@
 
       <ListSkeleton avatar="square" :rows="3" v-if="loading && !takedowns.length" />
 
-      <div class="py-12 text-center text-grey-5" v-else-if="!takedowns.length">
-        <q-icon name="lucide-circle-check" size="32px" class="mb-4" color="green-6" />
-        <div>Nothing of yours has been taken down.</div>
-      </div>
+      <SimpleInfo icon="lucide-circle-check" text="Nothing of yours has been taken down." v-else-if="!takedowns.length" />
 
       <div class="flex flex-col gap-3" v-else>
         <q-card flat bordered class="bg-dark" :key="takedown.id" v-for="takedown in takedowns">
@@ -101,6 +98,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { onMounted, reactive, ref } from 'vue';
 import ModeratedItemRow from 'src/components/Moderation/ModeratedItemRow.vue';

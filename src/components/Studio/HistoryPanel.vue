@@ -73,9 +73,12 @@
           </div>
         </template>
 
-        <div class="p-4 text-sm text-center text-grey-5" v-if="loaded && !versions.length">
-          Nothing has changed yet. Saves, new stems and removed stems will show up here.
-        </div>
+        <SimpleInfo
+          class="m-3"
+          icon="lucide-history"
+          text="Nothing has changed yet. Saves, new stems and removed stems will show up here."
+          v-if="loaded && !versions.length"
+        />
 
         <div class="p-3 text-center" v-if="page < lastPage">
           <q-btn flat rounded no-caps label="Show older versions" :loading="loading" @click="load(page + 1)" />
@@ -87,6 +90,7 @@
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { date, useQuasar } from 'quasar';
 import { computed, ref } from 'vue';
 import StudioSheet from 'src/components/Studio/StudioSheet.vue';

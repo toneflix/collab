@@ -12,16 +12,16 @@
 
       <div class="inbox__list" role="list">
         <ListSkeleton dense :rows="6" v-if="!store.loaded && store.loading" />
-        <div class="inbox__empty" v-else-if="!filtered.length">
-          <q-icon name="lucide-messages-square" size="36px" color="grey-7" />
-          <div class="mt-2 text-sm text-grey-5">
-            {{
-              search
-                ? 'No conversations match.'
-                : 'No conversations yet. Open a project track and start one from the Conversation button.'
-            }}
-          </div>
-        </div>
+        <SimpleInfo
+          class="m-3"
+          :icon="search ? 'lucide-search-x' : 'lucide-messages-square'"
+          :text="
+            search
+              ? 'No conversations match.'
+              : 'No conversations yet. Open a project track and start one from the Conversation button.'
+          "
+          v-else-if="!filtered.length"
+        />
 
         <router-link
           role="listitem"
@@ -92,15 +92,18 @@
       </template>
 
       <div class="chat__empty" v-else>
-        <q-icon name="lucide-message-circle" size="48px" color="grey-7" />
-        <div class="mt-4 text-lg font-bold">Your conversations</div>
-        <div class="text-sm text-grey-5">Pick one on the left to read and reply.</div>
+        <SimpleInfo
+          icon="lucide-message-circle"
+          title="Your conversations"
+          text="Pick one on the left to read and reply."
+        />
       </div>
     </section>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { date, useQuasar } from 'quasar';
@@ -258,10 +261,6 @@ onMounted(() => {
   }
 
   &__status,
-  &__empty {
-    padding: 32px 16px;
-    text-align: center;
-  }
 }
 
 .convo {
