@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from 'vue';
-import { copyToClipboard, EventBus, useQuasar } from 'quasar';
+import { EventBus } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import { usePlayerStore } from 'src/stores/player-store';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -56,6 +56,7 @@ import { removeFromPlaylistRequest } from 'src/utils/requests/playlists';
 import { loadTrackDownloadRequest } from 'src/utils/requests/payments';
 import { downloadFile } from 'src/utils/download';
 import { notify } from 'src/utils/helpers';
+import { shareLink } from 'src/utils/share';
 import type { CollabEvents, Track } from 'src/utils/models';
 import { openTrackDialog, type TrackMenuContext } from 'src/utils/track-menu';
 import TrackMenuItem from './TrackMenuItem.vue';
@@ -68,7 +69,6 @@ const props = withDefaults(
   { context: () => ({}) },
 );
 
-const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
 const player = usePlayerStore();
@@ -162,18 +162,10 @@ const removeFromPlaylist = async () => {
   notify(message, 'success');
 };
 
-const share = async () => {
+const share = () => {
   const url = new URL(router.resolve(trackLink.value).href, window.location.origin).href;
 
-  if ($q.platform.is.mobile && navigator.share) {
-    await navigator
-      .share({ title: props.track.title, text: props.track.title, url })
-      .catch(() => undefined);
-    return;
-  }
-
-  await copyToClipboard(url);
-  notify('Link copied.', 'success');
+  return shareLink(props.track.title, url);
 };
 
 const download = async () => {

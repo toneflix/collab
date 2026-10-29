@@ -97,6 +97,9 @@
                 />
                 <q-tooltip>Manage this artist? Claim the profile to edit it and manage the catalogue.</q-tooltip>
               </span>
+              <span class="flex-none!">
+                <ArtistMenu :artist="artist" />
+              </span>
             </div>
             <p class="block mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
               {{ artist.about }}
@@ -193,6 +196,7 @@ import ToggleFollow from 'src/components/Utilities/ToggleFollow.vue';
 import ArtistEditDialog from 'src/components/Artists/ArtistEditDialog.vue';
 import ArtistClaimDialog from 'src/components/Artists/ArtistClaimDialog.vue';
 import { usePlayerStore } from 'src/stores/player-store';
+import ArtistMenu from 'src/components/Menus/ArtistMenu.vue';
 
 defineOptions({
   async preFetch({ store, currentRoute }) {
