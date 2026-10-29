@@ -35,9 +35,12 @@ export const toBars = (samples: number[], count = BARS) => {
 
 /**
  * Record a voice note from the microphone. While recording, `levels` holds
- * the latest loudness readings for a live meter.
+ * the latest loudness readings for a live meter. Singing is best recorded
+ * with the browser's voice clean-up off.
  */
-export const useVoiceRecorder = () => {
+export const useVoiceRecorder = (
+  audio: MediaTrackConstraints = { echoCancellation: true, noiseSuppression: true },
+) => {
   const recording = ref(false);
   const elapsed = ref(0);
   const levels = ref<number[]>([]);
@@ -74,9 +77,7 @@ export const useVoiceRecorder = () => {
       return false;
     }
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
+      stream = await navigator.mediaDevices.getUserMedia({ audio });
     } catch (e) {
       error.value =
         (e as DOMException)?.name === 'NotAllowedError'

@@ -139,6 +139,15 @@
               :error-message="errors.prompt || errors.generate"
               v-model="form.prompt"
             />
+            <q-toggle
+              dark
+              dense
+              color="toneflix"
+              class="mt-1"
+              :label="`Sing in ${artistVoice.artistName || 'the artist'}'s voice`"
+              v-model="form.useVoice"
+              v-if="artistVoice"
+            />
             <div class="text-xs text-grey-6">
               Uses your credits ({{ ai.balance.total }} left). The song shows up on the track when it's ready.
             </div>
@@ -167,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import UserSearchInput from 'src/components/Utilities/UserSearchInput.vue';
 import { useGenres } from 'src/composables/useGenres';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -182,6 +191,7 @@ import {
   type Song,
   type SongProjectRef,
 } from 'src/utils/requests/composer';
+import { loadVoicesRequest, type ArtistVoice } from 'src/utils/requests/voices';
 
 const props = defineProps<{
   /** The writer's own song, or someone else's published song */
@@ -237,7 +247,24 @@ const form = reactive({
   privacy: 'private' as 'private' | 'public' | 'public_preview',
   generate: false,
   prompt: '',
+  useVoice: true,
 });
+
+/** The user's artists whose voices Composer songs can be sung in */
+const voices = ref<ArtistVoice[]>([]);
+const artistVoice = computed(() => voices.value.find((v) => v.artistId === form.artistId) ?? null);
+
+watch(
+  () => form.generate,
+  (on) => {
+    if (!on || voices.value.length) return;
+
+    loadVoicesRequest()
+      .send()
+      .then((res) => (voices.value = res.data.filter((v) => v.composer)))
+      .catch(() => (voices.value = []));
+  },
+);
 const artist = ref<(User & BaseOption) | null>(null);
 const errors = ref<Record<string, string>>({});
 const saving = ref(false);
@@ -263,6 +290,7 @@ const submit = async () => {
       artist_id: form.artistId,
       generate: form.generate || undefined,
       prompt: form.generate ? form.prompt.trim() : undefined,
+      voice_artist_id: form.generate && form.useVoice && artistVoice.value ? artistVoice.value.artistId : undefined,
     }).send();
     notify(res.message, 'success');
     open.value = false;

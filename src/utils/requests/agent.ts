@@ -5,7 +5,7 @@ export type AgentRunStatus = 'queued' | 'planning' | 'running' | 'succeeded' | '
 
 export type AgentRunView = 'open' | 'succeeded' | 'failed';
 
-export type AgentStepKind = 'artist' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'lyrics' | 'artwork' | 'release';
+export type AgentStepKind = 'artist' | 'voice' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'lyrics' | 'artwork' | 'release';
 
 export type AgentStepStatus = 'pending' | 'waiting' | 'done' | 'failed' | 'skipped';
 
@@ -48,7 +48,7 @@ export type AgentPlanTrack = {
 };
 
 export type AgentPlan = {
-  artists: { key: string; name: string; about: string }[];
+  artists: { key: string; name: string; about: string; voice?: string }[];
   albums: {
     key: string;
     title: string;

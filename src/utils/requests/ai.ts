@@ -33,6 +33,8 @@ export type MusicModel = {
   instrumentalOnly: boolean;
   references: ReferenceKind[];
   referenceMinSeconds: number;
+  /** Whether it can sing in an artist's voice */
+  voices?: boolean;
 };
 
 /** What the AI tools cost and whether they're on */
@@ -182,6 +184,8 @@ export type MusicForm = {
   reference?: File | null;
   reference_stem_id?: string | number | null;
   reference_kind?: ReferenceKind;
+  /** Sing in the voice of one of the user's artists */
+  voice_artist_id?: string | number | null;
 };
 
 export type AiAdminSettings = {

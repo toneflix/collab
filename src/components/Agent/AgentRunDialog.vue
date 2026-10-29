@@ -62,7 +62,9 @@
               :label="artist.name"
               :to="artist.id ? { name: 'artist', params: { artist_id: artist.id } } : undefined"
               v-for="artist in artists"
-            />
+            >
+              <q-tooltip v-if="artist.voice">{{ artist.voice }}</q-tooltip>
+            </q-chip>
           </div>
         </div>
 
@@ -320,10 +322,14 @@ const trackState = (key: string, instrumental: boolean) => {
   if (!next) return { state: 'Ready', color: 'text-green-4', error: null, lyrics: lyricsNote(steps.value.get(`lyrics:${key}`)) };
   if (next.status === 'pending' && next.kind !== 'music') return { state: 'Waiting', color: 'text-grey-6', error: null };
 
+  const voice = next.kind === 'music' && next.status === 'pending'
+    ? next.dependsOn.map((k) => steps.value.get(k)).find((step) => step?.kind === 'voice' && step.status !== 'done')
+    : undefined;
+
   const labels: Record<string, string> = {
     song: 'Writing lyrics',
     track: 'Adding track',
-    music: next.status === 'pending' ? 'Waiting for a free AI slot' : 'Making music',
+    music: voice ? 'Making the voice sample' : next.status === 'pending' ? 'Waiting for a free AI slot' : 'Making music',
     mix: 'Mixing',
     lyrics: 'Syncing lyrics',
   };
