@@ -39,7 +39,7 @@
 
       <q-item-section side>
         <div class="flex flex-row items-center gap-2">
-          {{ formatSeconds(track.duration) }}
+          <span class="track-row__duration">{{ formatSeconds(track.duration) }}</span>
           <IconBtn
             :icon="track.locked ? 'lucide-lock' : player.isPlaying(track) ? 'lucide-circle-pause' : 'lucide-circle-play'"
             :label="track.locked ? 'Part of a paid release' : player.isPlaying(track) ? 'Pause' : 'Play'"
