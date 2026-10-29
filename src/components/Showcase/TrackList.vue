@@ -40,8 +40,8 @@ const props = defineProps({
   verticalList: Boolean,
 });
 
-/** Page behind "See All"; the link is hidden without one. */
-const allLink = computed<RouteLocationRaw | undefined>(() => props.to);
+/** Page behind "See All": the given route, else the songs page. */
+const allLink = computed<RouteLocationRaw>(() => props.to ?? { name: 'songs' });
 
 const categories = defineModel('categories', {
   type: Array as PropType<Category<Track>[]>,
