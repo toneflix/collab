@@ -14,7 +14,7 @@
         <q-card-section class="pt-0" v-if="!boot.user.twoFactor">
           <div class="text-sm">
             Deleting content needs two-factor sign-in on your account.
-            <router-link class="underline" :to="{ name: 'account.settings' }">Turn it on in settings</router-link>,
+            <router-link class="underline" :to="{ name: 'account.security' }">Turn it on in security settings</router-link>,
             then come back.
           </div>
         </q-card-section>

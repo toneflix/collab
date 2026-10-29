@@ -299,7 +299,8 @@ const download = () => {
   &__title {
     margin: 0;
     font-size: 1.05rem;
-    font-weight: 600;
+    font-weight: 700;
+    line-height: 1.4;
   }
 
   &__caption {
