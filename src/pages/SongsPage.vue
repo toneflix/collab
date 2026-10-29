@@ -3,7 +3,7 @@
     <SimpleInfo
       class="mt-8"
       icon="lucide-music"
-      text="No tracks yet. New releases show up here."
+      text="No songs yet. New releases show up here."
       v-if="!categories.all[0].data?.list.length"
     />
     <div class="grid grid-cols-5 gap-x-3 gap-y-3" v-else>
@@ -34,7 +34,7 @@ defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
 
-    // This week's trending tracks, and every track newest first.
+    // This week's trending songs, and every song newest first.
     const [trending, latest] = await Promise.all([
       exploreRequest({ with: 'artist', trending: 30 }).send(),
       exploreRequest({ with: 'artist', latest_tracks: 30, period: 'years_2' }).send(),
@@ -47,14 +47,14 @@ defineOptions({
 const boot = useBootstrapStore();
 const data = boot.pageData.current as Partial<ExploreData>;
 
-const description = 'Listen to trending and new tracks from artists on Toneflix Music.';
+const description = 'Listen to trending and new songs from artists on Toneflix Music.';
 
 useMeta({
-  title: 'Tracks',
+  title: 'Songs',
   titleTemplate: (title) => `${title} - Toneflix Music`,
   meta: {
     description: { name: 'description', content: description },
-    ogTitle: { property: 'og:title', content: 'Tracks' },
+    ogTitle: { property: 'og:title', content: 'Songs' },
     ogDescription: { property: 'og:description', content: description },
   },
 });
@@ -71,9 +71,9 @@ const categories = reactive({
   ],
   all: [
     {
-      id: 'all-tracks',
-      slug: 'all-tracks',
-      title: 'All tracks',
+      id: 'all-songs',
+      slug: 'all-songs',
+      title: 'All songs',
       data: data.latestTracks,
       params: { filters: 'latest', period: 'years_2' },
     },

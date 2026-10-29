@@ -18,9 +18,9 @@ export default <RouteRecordRaw[]>[
     ],
   },
   {
-    path: '/songs/:slug?',
+    path: '/songs/:slug',
     redirect: (to) => ({
-      path: to.params.slug ? `/compositions/${String(to.params.slug)}` : '/compositions',
+      path: `/compositions/${String(to.params.slug)}`,
       query: to.query,
     }),
   },

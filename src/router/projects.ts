@@ -11,9 +11,13 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/ProjectsPage.vue')
       },
       {
+        path: '/songs',
+        name: 'songs',
+        component: () => import('pages/SongsPage.vue')
+      },
+      {
         path: '/tracks',
-        name: 'tracks',
-        component: () => import('pages/TracksPage.vue')
+        redirect: { name: 'songs' }
       },
       {
         path: '/albums',

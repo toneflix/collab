@@ -40,8 +40,8 @@ const props = defineProps({
   verticalList: Boolean,
 });
 
-/** Page behind "See All": the given route, else the tracks page. */
-const allLink = computed<RouteLocationRaw>(() => props.to ?? { name: 'tracks' });
+/** Page behind "See All": the given route, else the songs page. */
+const allLink = computed<RouteLocationRaw>(() => props.to ?? { name: 'songs' });
 
 const categories = defineModel('categories', {
   type: Array as PropType<Category<Track>[]>,

@@ -104,7 +104,7 @@ const browseLinks = [
   { label: 'Genres', icon: 'lucide-layout-grid', to: { name: 'genres' } },
   { label: 'Artists', icon: 'lucide-user', to: { name: 'artists' } },
   { label: 'Creators', icon: 'lucide-droplet', to: { name: 'creators' } },
-  { label: 'Tracks', icon: 'lucide-music', to: { name: 'tracks' } },
+  { label: 'Songs', icon: 'lucide-music', to: { name: 'songs' } },
   { label: 'Albums', icon: 'lucide-layers', to: { name: 'albums' } },
   { label: 'Projects', icon: 'lucide-speaker', to: { name: 'projects' } },
   { label: 'Compositions', icon: 'lucide-quote', to: { name: 'compositions' } },
