@@ -8,7 +8,7 @@
       </h1>
       <p class="mb-4 text-sm text-grey-5">
         Find songs by their title or a line of their lyrics, published compositions,
-        and creators by name.
+        artists and creators by name.
       </p>
 
       <!-- Tempo and key filters stay out of the way until asked for -->
@@ -115,7 +115,7 @@
 
       <template v-else>
         <section class="mb-8" v-if="q && artists.length">
-          <h2 class="mb-4 text-lg font-bold">Creators</h2>
+          <h2 class="mb-4 text-lg font-bold">Artists</h2>
           <div class="flex flex-wrap gap-3">
             <router-link
               class="artist flex-none!"
@@ -127,6 +127,23 @@
                 <q-img no-spinner :src="artist.imageUrl" :ratio="1" />
               </q-avatar>
               <span class="font-bold truncate">{{ artist.name }}</span>
+            </router-link>
+          </div>
+        </section>
+
+        <section class="mb-8" v-if="q && creators.length">
+          <h2 class="mb-4 text-lg font-bold">Creators</h2>
+          <div class="flex flex-wrap gap-3">
+            <router-link
+              class="artist flex-none!"
+              :key="creator.id"
+              :to="{ name: 'creator', params: { artist_id: creator.username } }"
+              v-for="creator in creators"
+            >
+              <q-avatar size="40px">
+                <q-img no-spinner :src="creator.imageUrl" :ratio="1" />
+              </q-avatar>
+              <span class="font-bold truncate">{{ creator.name }}</span>
             </router-link>
           </div>
         </section>
@@ -230,8 +247,8 @@ import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import { MUSICAL_KEYS } from 'src/utils/requests/tags';
 import { usePlayerStore } from 'src/stores/player-store';
 import { formatSeconds } from 'src/utils/helpers';
-import type { Artist, Track } from 'src/utils/models';
-import { loadArtistsRequest, loadTracksRequest } from 'src/utils/requests/requests';
+import type { Artist, Track, User } from 'src/utils/models';
+import { loadArtistsRequest, loadTracksRequest, loadUsersRequest } from 'src/utils/requests/requests';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import TrackMenuButton from 'src/components/Tracks/TrackMenuButton.vue';
@@ -304,6 +321,7 @@ const params = computed(() => ({
 }));
 const tracks = ref<SearchTrack[]>([]);
 const artists = ref<Artist[]>([]);
+const creators = ref<User[]>([]);
 const loading = ref(false);
 const page = ref(1);
 const lastPage = ref(1);
@@ -350,6 +368,17 @@ watch(
   { immediate: true },
 );
 
+/** User accounts whose name or username match */
+const loadCreators = async () => {
+  const term = q.value;
+  try {
+    const res = await loadUsersRequest({ search: term, limit: 8 }).send();
+    if (term === q.value) creators.value = res.data;
+  } catch {
+    creators.value = [];
+  }
+};
+
 const lyrics = ref<PublicSong[]>([]);
 const lyricsMore = ref(false);
 
@@ -370,9 +399,11 @@ watch(
   q,
   (term) => {
     artists.value = [];
+    creators.value = [];
     lyrics.value = [];
     if (term) {
       void loadArtists();
+      void loadCreators();
       void loadLyrics();
     }
   },
