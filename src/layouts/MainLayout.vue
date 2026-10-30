@@ -205,16 +205,6 @@
               </q-item-section>
 
               <q-item-section> {{ link.title }} </q-item-section>
-              <q-item-section
-                side
-                v-if="
-                  !collapsed &&
-                  link.badge === 'messages' &&
-                  conversations.unread
-                "
-              >
-                <q-badge rounded color="red-6" :label="unreadLabel" />
-              </q-item-section>
               <q-tooltip
                 anchor="center right"
                 self="center left"

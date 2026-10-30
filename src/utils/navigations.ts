@@ -55,10 +55,9 @@ export const mainNavigationLinks: NavigationLink[] = [
     separator: true,
   },
   {
-    to: { name: 'messages' },
-    icon: 'lucide-message-circle',
-    title: 'Messages',
-    badge: 'messages',
+    to: { name: 'studio.home' },
+    icon: 'lucide-mic',
+    title: 'Studio',
     requiresAuth: true,
   },
   {

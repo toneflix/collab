@@ -874,8 +874,6 @@ export type NavigationLink = {
   params?: GenericData;
   separator?: boolean;
   requiresAuth?: boolean;
-  /** Shows a count next to the link, e.g. unread messages */
-  badge?: 'messages';
   button?: {
     icon: string;
     action:
