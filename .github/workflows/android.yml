@@ -208,7 +208,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.toneflix.music.app
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
-          track: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
+          tracks: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
           # Priority 4 and up makes the app's in-app update immediate (src/utils/app-updates.ts)
