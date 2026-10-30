@@ -7,9 +7,9 @@
 import { computed } from 'vue';
 import { markdown } from 'src/utils/markdown';
 
-const props = defineProps<{ text: string }>();
+const props = defineProps<{ text?: string | null }>();
 
-const html = computed(() => markdown.render(props.text));
+const html = computed(() => markdown.render(props.text ?? ''));
 </script>
 
 <style lang="scss" scoped>
