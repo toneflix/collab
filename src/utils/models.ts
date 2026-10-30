@@ -874,6 +874,8 @@ export type NavigationLink = {
   params?: GenericData;
   separator?: boolean;
   requiresAuth?: boolean;
+  /** Hidden from listener accounts */
+  creatorOnly?: boolean;
   button?: {
     icon: string;
     action:

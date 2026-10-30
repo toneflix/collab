@@ -47,6 +47,7 @@ export const mainNavigationLinks: NavigationLink[] = [
     icon: 'lucide-pen-tool',
     title: 'Composer',
     requiresAuth: true,
+    creatorOnly: true,
   },
   {
     to: '',
@@ -59,6 +60,7 @@ export const mainNavigationLinks: NavigationLink[] = [
     icon: 'lucide-mic',
     title: 'Studio',
     requiresAuth: true,
+    creatorOnly: true,
   },
   {
     to: { name: 'library.page', params: { type: 'liked' } },
@@ -103,9 +105,18 @@ export const mainNavigationLinks: NavigationLink[] = [
         name: 'studio.projects.create',
       },
     },
-    requiresAuth: true
+    requiresAuth: true,
+    creatorOnly: true,
   },
 ]
+
+/** The main menu links someone may see, by whether they are signed in and a listener. */
+export const visibleNavigationLinks = (signedIn: boolean, isListener: boolean) =>
+  mainNavigationLinks.filter(
+    (link) =>
+      (!link.requiresAuth || signedIn) &&
+      (!link.creatorOnly || !isListener),
+  );
 
 export type AdminLink = {
   to: RouteLocationRaw;

@@ -12,14 +12,19 @@
         </div>
 
         <h1 class="home-hero__title font-circlular-std">
-          <template v-if="signedIn">What are we making today?</template>
+          <template v-if="signedIn && listener">What are we playing today?</template>
+          <template v-else-if="signedIn">What are we making today?</template>
           <template v-else>
             Where music meets <span class="text-toneflix">community</span>.
           </template>
         </h1>
 
         <p class="home-hero__lead">
-          <template v-if="signedIn">
+          <template v-if="signedIn && listener">
+            Find new music, catch up on your library or see what the community
+            is playing this week.
+          </template>
+          <template v-else-if="signedIn">
             Pick up a project, write your next song or see what the community
             is playing this week.
           </template>
@@ -32,7 +37,31 @@
 
         <!-- Phones: two equal buttons on one row, so they always fit -->
         <div class="home-hero__actions">
-          <template v-if="signedIn">
+          <template v-if="signedIn && listener">
+            <q-btn
+              unelevated
+              rounded
+              no-caps
+              color="toneflix"
+              text-color="dark"
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
+              icon="lucide-compass"
+              label="Explore music"
+              class="flex-none! font-bold"
+              :to="{ name: 'explore' }"
+            />
+            <q-btn
+              outline
+              rounded
+              no-caps
+              :size="$q.screen.lt.sm ? 'md' : 'lg'"
+              icon="lucide-library"
+              label="Your library"
+              class="flex-none!"
+              :to="{ name: 'library.page', params: { type: 'liked' } }"
+            />
+          </template>
+          <template v-else-if="signedIn">
             <q-btn
               unelevated
               rounded
@@ -116,6 +145,8 @@ import { computed, PropType } from 'vue';
 const props = defineProps({
   tracks: { type: Array as PropType<Track[]>, default: () => [] },
   signedIn: Boolean,
+  /** Listeners get listening actions instead of creation ones */
+  listener: Boolean,
   name: { type: String, default: '' },
 });
 

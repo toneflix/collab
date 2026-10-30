@@ -53,6 +53,7 @@ type Tab = {
   icon: string;
   to?: RouteLocationRaw;
   click?: () => void;
+  hide?: boolean;
 };
 
 const boot = useBootstrapStore();
@@ -83,12 +84,14 @@ const openCreate = () => {
   createOpen.value = true;
 };
 
-const tabs: Tab[] = [
-  { key: 'home', label: 'Home', icon: 'lucide-house', to: { name: 'home' } },
-  { key: 'explore', label: 'Explore', icon: 'lucide-compass', to: { name: 'explore' } },
-  { key: 'create', label: 'Create', icon: 'lucide-circle-plus', click: openCreate },
-  { key: 'library', label: 'Library', icon: 'lucide-library', to: { name: 'library.page', params: { type: 'liked' } } },
-];
+const tabs = computed<Tab[]>(() =>
+  [
+    { key: 'home', label: 'Home', icon: 'lucide-house', to: { name: 'home' } },
+    { key: 'explore', label: 'Explore', icon: 'lucide-compass', to: { name: 'explore' } },
+    { key: 'create', label: 'Create', icon: 'lucide-circle-plus', click: openCreate, hide: boot.isListener },
+    { key: 'library', label: 'Library', icon: 'lucide-library', to: { name: 'library.page', params: { type: 'liked' } } },
+  ].filter((tab) => !tab.hide),
+);
 
 const createItems = computed(() =>
   [

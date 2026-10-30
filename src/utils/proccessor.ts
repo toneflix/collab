@@ -120,6 +120,10 @@ export const authValidator = (
     return { name: 'auth.verify', params: { type: pending }, query: { redirect: to.fullPath } };
   }
 
+  if (to.meta.creatorOnly && boot.isListener) {
+    return { name: 'account.music' };
+  }
+
   return true;
 };
 

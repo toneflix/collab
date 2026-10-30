@@ -28,7 +28,7 @@
                 {
                   label: 'Project Studio',
                   icon: 'lucide-expand',
-                  show: project.isCollaber || project.isOwner,
+                  show: (project.isCollaber || project.isOwner) && !boot.isListener,
                   to: {
                     name: 'studio.project',
                     params: { project_id: project.slug },
@@ -37,7 +37,7 @@
                 {
                   label: 'Edit Project',
                   icon: 'lucide-pencil',
-                  show: project.isOwner,
+                  show: project.isOwner && !boot.isListener,
                   to: {
                     name: 'studio.projects.create',
                     params: { project_id: project.slug },
@@ -59,7 +59,8 @@
                   show:
                     !project.isCollaber &&
                     !project.isOwner &&
-                    !project.pendingData,
+                    !project.pendingData &&
+                    !boot.isListener,
                   click: () => collaberDialogRef.toggle(),
                 },
                 {
@@ -250,7 +251,8 @@ defineOptions({
 const route = useRoute();
 const collaberDialogRef = ref();
 
-const current = useBootstrapStore().pageData.current as {
+const boot = useBootstrapStore();
+const current = boot.pageData.current as {
   project: Project;
   creators: User[];
   comments: UserComment[];

@@ -1,5 +1,6 @@
-import { AccountTypeOption, Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
+import { AccountTypeOption, AccountTypeValue, Configuration, GenericData, PageData, PriviPerm, PriviRole, RealtimeSettings, SoundsConfig, User } from 'src/utils/models';
 import { defineStore } from 'pinia';
+import { saveInterestsRequest } from 'src/utils/requests/interests';
 import { AuthSession } from 'src/utils/auth-session';
 import type { AuthPagesConfig } from 'src/utils/auth-pages';
 
@@ -36,12 +37,22 @@ export const useBootstrapStore = defineStore('bootstrap', {
   getters: {
     getCache (state) {
       return state.pageData.cache;
-    }
+    },
+    /** Listeners get no studio or creation tools until they switch to a creator account */
+    isListener (state) {
+      return state.user.accountType === 'listener';
+    },
   },
 
   actions: {
     setUser (user: User) {
       this.user = user;
+    },
+    /** Switches the signed-in user between a creator and a listener account. */
+    async switchAccountType (type: AccountTypeValue) {
+      const { data } = await saveInterestsRequest({ account_type: type }).send();
+
+      this.user = { ...this.user, accountType: data.accountType, identities: data.identities };
     },
     setCache (data: GenericData[] | GenericData) {
       this.pageData.cache = data;

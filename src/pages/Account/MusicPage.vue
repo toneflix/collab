@@ -10,6 +10,9 @@
         <div>
           <span class="settings-card__label">How you use Toneflix Music</span>
           <AccountTypePicker v-model="interests.account_type" />
+          <p class="mt-2 text-xs text-fg-muted" v-if="boot.isListener">
+            Switch to Creator to open the studio, start projects and write songs.
+          </p>
         </div>
 
         <div v-if="identityOptions.length">

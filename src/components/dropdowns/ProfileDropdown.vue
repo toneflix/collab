@@ -56,7 +56,9 @@
                 clickable
                 active-class="text-primary"
                 :to="link.to"
+                :disable="switching && !!link.click"
                 :key="i + group.name"
+                @click="link.click?.()"
                 v-for="(link, i) in group.list"
               >
                 <q-item-section avatar class="min-w-0 pr-3">
@@ -113,7 +115,10 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { allowedAdminLinks } from 'src/utils/navigations';
 import { createReusableTemplate } from '@vueuse/core';
 import { computed, ref } from 'vue';
-import { RouteLocationRaw } from 'vue-router';
+import { RouteLocationRaw, useRouter } from 'vue-router';
+import { homeFor } from 'src/utils/auth-redirect';
+import { notifyError } from 'src/utils/composer';
+import { notify } from 'src/utils/helpers';
 
 type ProfileListItem = {
   hide?: boolean;
@@ -121,6 +126,7 @@ type ProfileListItem = {
   to?: RouteLocationRaw;
   href?: string;
   icon: string;
+  click?: () => void;
 };
 
 type ProfileOptions = {
@@ -129,7 +135,31 @@ type ProfileOptions = {
   list: ProfileListItem[];
 };
 
-const user = computed(() => useBootstrapStore().user);
+const boot = useBootstrapStore();
+const router = useRouter();
+const user = computed(() => boot.user);
+const switching = ref(false);
+
+/** Flips the account between creator and listener, then opens that type's home page. */
+const switchAccountType = async () => {
+  if (switching.value) return;
+
+  switching.value = true;
+
+  try {
+    await boot.switchAccountType(boot.isListener ? 'creator' : 'listener');
+
+    notify(
+      boot.isListener ? 'You are now a listener.' : 'You are now a creator. The studio is open to you.',
+      'success',
+    );
+    await router.push(homeFor(boot.user));
+  } catch (e) {
+    notifyError(e, 'We could not switch your account type.');
+  } finally {
+    switching.value = false;
+  }
+};
 
 const [DefineLabel, ReuseLabel] = createReusableTemplate();
 const [DefineMenu, ReuseMenu] = createReusableTemplate();
@@ -158,9 +188,15 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'lucide-bell',
         },
         {
+          hide: boot.isListener,
           name: 'Studio',
           to: { name: 'studio.home' },
           icon: 'lucide-mic',
+        },
+        {
+          name: boot.isListener ? 'Switch to creator' : 'Switch to listener',
+          icon: 'lucide-repeat',
+          click: switchAccountType,
         },
         {
           name: user.value.isPremium ? 'Premium' : 'Go Premium',
@@ -178,6 +214,7 @@ const options = computed<ProfileOptions[]>(() =>
           icon: 'lucide-circle-dollar-sign',
         },
         {
+          hide: boot.isListener,
           name: 'AI credits',
           to: { name: 'studio.credits' },
           icon: 'lucide-wand-sparkles',

@@ -42,7 +42,7 @@
         <q-item-section side v-if="track.duration">
           <span class="text-sm text-fg-muted">{{ clock(track.duration) }}</span>
         </q-item-section>
-        <q-item-section side v-if="project.opensStudio">
+        <q-item-section side v-if="project.opensStudio && !boot.isListener">
           <q-btn
             flat
             dense
@@ -63,6 +63,7 @@
 import { computed } from 'vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { usePlayerStore } from 'src/stores/player-store';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import type { Project, ProjectTrack, Track } from 'src/utils/models';
 
 /**
@@ -73,6 +74,7 @@ import type { Project, ProjectTrack, Track } from 'src/utils/models';
 const props = defineProps<{ project: Project }>();
 
 const player = usePlayerStore();
+const boot = useBootstrapStore();
 
 const tracks = computed(() => props.project.tracks || []);
 const member = computed(() => props.project.isOwner || props.project.isCollaber);

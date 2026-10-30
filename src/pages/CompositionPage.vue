@@ -49,42 +49,44 @@
           </div>
 
           <div class="actions">
-            <q-btn
-              unelevated
-              rounded
-              no-caps
-              color="toneflix"
-              text-color="dark"
-              icon="lucide-pencil"
-              label="Edit in Composer"
-              class="flex-none!"
-              :to="{ name: 'studio.composer.song', params: { song_id: song.id } }"
-              v-if="song.isOwner"
-            />
-            <template v-else>
+            <template v-if="!boot.isListener">
               <q-btn
                 unelevated
                 rounded
                 no-caps
                 color="toneflix"
                 text-color="dark"
-                icon="lucide-git-fork"
-                label="Fork"
+                icon="lucide-pencil"
+                label="Edit in Composer"
                 class="flex-none!"
-                :loading="forking"
-                @click="fork"
-                v-if="song.allowForks"
+                :to="{ name: 'studio.composer.song', params: { song_id: song.id } }"
+                v-if="song.isOwner"
               />
-              <q-btn
-                outline
-                rounded
-                no-caps
-                icon="lucide-library"
-                label="Start a project"
-                class="flex-none!"
-                @click="startProject"
-                v-if="song.allowProjects"
-              />
+              <template v-else>
+                <q-btn
+                  unelevated
+                  rounded
+                  no-caps
+                  color="toneflix"
+                  text-color="dark"
+                  icon="lucide-git-fork"
+                  label="Fork"
+                  class="flex-none!"
+                  :loading="forking"
+                  @click="fork"
+                  v-if="song.allowForks"
+                />
+                <q-btn
+                  outline
+                  rounded
+                  no-caps
+                  icon="lucide-library"
+                  label="Start a project"
+                  class="flex-none!"
+                  @click="startProject"
+                  v-if="song.allowProjects"
+                />
+              </template>
             </template>
             <IconBtn class="flex-none!" icon="lucide-share-2" aria-label="Copy the link" @click="share" />
             <ReportDialog type="song" label="composition" :id="song.id" v-if="!song.isOwner" />

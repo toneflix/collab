@@ -4,6 +4,7 @@
       <HomeHero
         :tracks="trending"
         :signed-in="signedIn"
+        :listener="boot.isListener"
         :name="boot.user.name"
       />
 
@@ -32,7 +33,7 @@
         <TrackCategory hide-all-link v-model:category="shelves.trending" />
       </section>
 
-      <HomeFeatures class="max-sm:hidden!" />
+      <HomeFeatures class="max-sm:hidden!" v-if="!boot.isListener" />
 
       <section v-if="shelves.projects.data?.list.length">
         <HomeShelfHeader
@@ -52,7 +53,7 @@
         <CompositionShelf :songs="songs" />
       </section>
 
-      <HomeSteps class="max-sm:hidden!" />
+      <HomeSteps class="max-sm:hidden!" v-if="!boot.isListener" />
 
       <section v-if="shelves.creators.data?.list.length">
         <HomeShelfHeader

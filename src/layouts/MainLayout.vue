@@ -186,7 +186,7 @@
         </q-list>
 
         <q-list padding class="menu-list" v-else>
-          <template v-for="link in mainNavigationLinks">
+          <template v-for="link in navigationLinks">
             <q-item
               dense
               exact
@@ -194,11 +194,7 @@
               v-ripple
               :to="link.to"
               :key="link.title"
-              v-if="
-                !link.group &&
-                !link.separator &&
-                (!link.requiresAuth || boot.user?.id)
-              "
+              v-if="!link.group && !link.separator"
             >
               <q-item-section avatar>
                 <q-icon :name="link.icon" />
@@ -220,7 +216,7 @@
             />
 
             <template
-              v-if="link.group && (!link.requiresAuth || boot.user?.id)"
+              v-if="link.group"
             >
               <q-item dense class="label" :key="link.group" v-if="!collapsed">
                 <q-item-section class="text-gray-400">
@@ -246,7 +242,7 @@
                 v-ripple
                 :to="routeBuilder(item, link.group)"
                 :key="link.group + item.title"
-                v-for="item in cache.mainLayoutGroups[link.group]"
+                v-for="item in cache.mainLayoutGroups?.[link.group]"
               >
                 <q-item-section avatar>
                   <q-icon name="lucide-file" />
@@ -341,7 +337,7 @@ import type {
   ChatMessage,
   Conversation,
 } from 'src/utils/requests/conversations';
-import { allowedAdminLinks, mainNavigationLinks } from 'src/utils/navigations';
+import { allowedAdminLinks, visibleNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
@@ -352,16 +348,16 @@ defineOptions({
   async preFetch({ store }) {
     const boot = useBootstrapStore(store);
     const loaded = boot.pageData.cache as unknown as {
-      mainLayoutUser?: number | null;
+      mainLayoutAccount?: string | null;
     };
-    const userId = boot.user?.id ?? null;
+    const account = boot.user?.id ? `${boot.user.id}:${boot.user.accountType}` : null;
 
     // Pages with route params run this again on each visit; in the browser the
-    // settings and menu only need loading again when the signed-in account changes.
+    // settings and menu only need loading again when the signed-in account or its type changes.
     if (
       !import.meta.env.SSR &&
       boot.ready &&
-      loaded.mainLayoutUser === userId
+      loaded.mainLayoutAccount === account
     ) {
       return;
     }
@@ -371,8 +367,8 @@ defineOptions({
     });
 
     const data = {} as Record<string, GenericData>;
-    const groups = mainNavigationLinks.filter(
-      (e) => !!e.group && (!e.requiresAuth || boot.user?.id),
+    const groups = visibleNavigationLinks(!!boot.user?.id, boot.isListener).filter(
+      (link) => !!link.group,
     );
 
     await Promise.all(
@@ -390,13 +386,16 @@ defineOptions({
 
     boot.setCache({
       mainLayoutGroups: data,
-      mainLayoutUser: boot.user?.id ?? null,
+      mainLayoutAccount: account,
     } as unknown as GenericData);
   },
 });
 
 const $q = useQuasar();
 const boot = useBootstrapStore();
+const navigationLinks = computed(() =>
+  visibleNavigationLinks(!!boot.user?.id, boot.isListener),
+);
 const showSearch = ref($q.screen.gt.xs);
 const searchText = ref('');
 const leftDrawerOpen = ref(false);
@@ -410,9 +409,12 @@ const mini = ref(false);
 const overlay = computed(() => $q.screen.width < drawerBreakpoint);
 /** Whether the menu shows icons only. */
 const collapsed = computed(() => mini.value && !overlay.value);
-const cache = boot.pageData.cache as unknown as {
-  mainLayoutGroups: Record<string, GenericData[]>;
-};
+const cache = computed(
+  () =>
+    boot.pageData.cache as unknown as {
+      mainLayoutGroups?: Record<string, GenericData[]>;
+    },
+);
 
 const route = useRoute();
 const router = useRouter();
