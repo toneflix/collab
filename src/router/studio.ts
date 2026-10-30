@@ -3,7 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 export default <RouteRecordRaw[]>[
   {
     path: '/studio',
-    meta: { requireAuth: true },
+    meta: { requireAuth: true, creatorOnly: true },
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
@@ -19,11 +19,13 @@ export default <RouteRecordRaw[]>[
       {
         path: 'earnings',
         name: 'studio.earnings',
+        meta: { creatorOnly: false },
         component: () => import('pages/Studio/EarningsPage.vue'),
       },
       {
         path: 'stats/:type(track|album|project)/:id',
         name: 'studio.stats',
+        meta: { creatorOnly: false },
         component: () => import('pages/Studio/StatsPage.vue'),
       },
       {
@@ -39,6 +41,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'takedowns',
         name: 'studio.takedowns',
+        meta: { creatorOnly: false },
         component: () => import('pages/Studio/TakedownsPage.vue'),
       },
       {
