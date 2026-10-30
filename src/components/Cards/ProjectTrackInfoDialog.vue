@@ -64,6 +64,20 @@
               :options="genres"
               v-model="form.genreId"
             />
+            <div class="flex items-center gap-2 mt-2 text-sm text-grey-5" v-if="suggestedGenre">
+              <q-icon name="lucide-sparkles" size="14px" />
+              <span>The audio sounds like {{ suggestedGenre.title }}.</span>
+              <q-btn
+                flat
+                dense
+                no-caps
+                size="sm"
+                color="primary"
+                label="Use it"
+                class="flex-none!"
+                @click="form.genreId = suggestedGenre.id"
+              />
+            </div>
           </div>
           <div class="col-span-2">
             <label class="block mb-2 text-xl text-gray-400"> Artist </label>
@@ -212,6 +226,13 @@ const {
     featured: props.track.featured,
     privacy: props.track.privacy || 'private',
   } as unknown as ProjectTrack & UploadData,
+});
+
+/** The genre the preview mix sounds like, offered when it isn't the chosen one */
+const suggestedGenre = computed(() => {
+  const id = props.track.styles?.suggestedGenreId;
+  if (!id || String(id) === String(form.value.genreId ?? '')) return null;
+  return genres.value.find((genre) => String(genre.id) === String(id)) ?? null;
 });
 
 onSuccess(({ data }) => {

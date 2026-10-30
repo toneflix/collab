@@ -5,6 +5,8 @@ export type GenreForm = {
   title: string;
   slug?: string;
   description?: string | null;
+  /** What the style tagger listens for */
+  prompt?: string | null;
   /** A new cover photo */
   image?: File | null;
   removeImage?: boolean;
@@ -28,6 +30,7 @@ export const saveGenreRequest = (form: GenreForm, id?: Genre['id']) => {
   data.append('title', form.title)
   if (form.slug) data.append('slug', form.slug)
   data.append('description', form.description || '')
+  data.append('prompt', form.prompt || '')
   if (form.image) data.append('image', form.image)
   if (form.removeImage) data.append('remove_image', '1')
 

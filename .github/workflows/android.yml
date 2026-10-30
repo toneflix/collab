@@ -37,6 +37,11 @@ on:
         description: Upload the bundle to Google Play
         type: boolean
         default: false
+      update:
+        description: How installed apps take this release (immediate blocks the app until updated)
+        type: choice
+        options: [flexible, immediate]
+        default: flexible
 
 concurrency:
   group: android-${{ github.ref }}
@@ -206,6 +211,8 @@ jobs:
           track: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
+          # Priority 4 and up makes the app's in-app update immediate (src/utils/app-updates.ts)
+          inAppUpdatePriority: ${{ inputs.update == 'immediate' && 5 || 2 }}
 
       # Keeps the raised version and build number once Google Play has the bundle
       - name: Commit the new version

@@ -7,28 +7,42 @@
       {{ tags.keyShort }}
       <span class="audio-tag__camelot">{{ tags.camelot }}</span>
     </span>
+    <component
+      :is="linkMoods ? 'router-link' : 'span'"
+      class="audio-tag audio-tag--mood"
+      :title="moodHint"
+      :to="linkMoods ? { name: 'search', query: { mood } } : undefined"
+      :key="mood"
+      v-for="mood in moods"
+    >
+      {{ moodLabel(mood) }}
+    </component>
     <button
       type="button"
       class="audio-tag audio-tag--edit"
-      :title="hasTags ? 'Change the tempo and key' : 'Add a tempo and key'"
+      :title="hasTags ? 'Change the tags' : 'Add tags'"
       @click="open = true"
       v-if="editable"
     >
       <q-icon :name="hasTags ? 'lucide-square-pen' : 'lucide-plus'" size="12px" />
-      <span v-if="!hasTags">Tempo and key</span>
+      <span v-if="!hasTags">Tags</span>
     </button>
 
     <q-dialog v-model="open" v-if="editable">
       <q-card dark class="w-full max-w-sm">
-        <q-card-section class="text-lg font-bold">Tempo and key</q-card-section>
+        <q-card-section class="text-lg font-bold">Tags</q-card-section>
         <q-card-section class="pt-0 text-sm text-grey-5">
           {{
-            tags?.source === 'manual'
+            tags?.source === 'manual' && (!withMoods || styles?.source === 'manual')
               ? 'You set these yourself.'
-              : tags?.source === 'detected'
+              : tags?.source || styles?.source
                 ? 'These were detected from the audio. Correct them if they are off.'
                 : 'Nothing was detected yet.'
           }}
+          <div class="mt-2 text-grey-4" v-if="suggestedGenre">
+            <q-icon name="lucide-sparkles" size="14px" class="mr-1" />
+            The audio sounds like {{ suggestedGenre }}. Change the genre in the track's details if that fits better.
+          </div>
         </q-card-section>
         <q-card-section class="flex flex-col gap-3 pt-0">
           <q-input
@@ -59,6 +73,22 @@
             :error-message="errors.key"
             v-model="form.key"
           />
+          <q-select
+            dark
+            outlined
+            dense
+            multiple
+            use-chips
+            emit-value
+            map-options
+            label="Moods"
+            :hint="`Up to ${MAX_MOODS}`"
+            :options="moodOptions"
+            :error="!!errors.moods"
+            :error-message="errors.moods"
+            v-model="form.moods"
+            v-if="withMoods"
+          />
         </q-card-section>
         <q-card-actions align="between">
           <q-btn
@@ -76,7 +106,7 @@
             label="Save"
             class="flex-none!"
             :loading="saving === 'save'"
-            :disable="!!saving || (!form.bpm && !form.key)"
+            :disable="!!saving || (!form.bpm && !form.key && !form.moods.length)"
             @click="save(false)"
           />
         </q-card-actions>
@@ -89,44 +119,100 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { notify } from 'src/utils/helpers';
 import type { ResponseBody } from 'src/utils/models';
-import { MUSICAL_KEYS, saveTagsRequest, type AudioTags, type TagTarget } from 'src/utils/requests/tags';
+import { useGenres } from 'src/composables/useGenres';
+import {
+  MAX_MOODS,
+  MOODS,
+  MUSICAL_KEYS,
+  moodLabel,
+  saveMoodsRequest,
+  saveTagsRequest,
+  type AudioTags,
+  type StyleTags,
+  type TagTarget,
+} from 'src/utils/requests/tags';
 
 const props = defineProps<{
   tags?: AudioTags | null;
+  /** Moods and suggested genre; moods show and can be edited when given */
+  styles?: StyleTags | null;
+  /** The genre the creator chose, so the suggestion only shows when it differs */
+  genreId?: number | string | null;
   /** Where corrections are saved; set it with editable */
   target?: TagTarget;
   editable?: boolean;
+  /** Each mood links to songs with that mood */
+  linkMoods?: boolean;
 }>();
 
-const emit = defineEmits<{ (e: 'update:tags', tags: AudioTags): void }>();
+const emit = defineEmits<{
+  (e: 'update:tags', tags: AudioTags): void;
+  (e: 'update:styles', styles: StyleTags): void;
+}>();
 
 const open = ref(false);
 const saving = ref<'save' | 'detect' | null>(null);
-const form = reactive<{ bpm: number | null; key: string | null }>({ bpm: null, key: null });
-const errors = reactive<{ bpm?: string; key?: string }>({});
+const form = reactive<{ bpm: number | null; key: string | null; moods: string[] }>({
+  bpm: null,
+  key: null,
+  moods: [],
+});
+const errors = reactive<{ bpm?: string; key?: string; moods?: string }>({});
+const { genres } = useGenres();
 
-const hasTags = computed(() => !!(props.tags?.bpm || props.tags?.key));
+const withMoods = computed(() => props.styles !== undefined);
+const moods = computed(() => props.styles?.moods ?? []);
+const hasTags = computed(() => !!(props.tags?.bpm || props.tags?.key || moods.value.length));
 const sourceHint = computed(() =>
   props.tags?.source === 'manual' ? 'Set by the creator' : 'Detected from the audio',
 );
+const moodHint = computed(() =>
+  props.styles?.source === 'manual' ? 'Mood set by the creator' : 'Mood heard in the audio',
+);
+const moodOptions = computed(() =>
+  MOODS.map((mood) => ({
+    ...mood,
+    disable: form.moods.length >= MAX_MOODS && !form.moods.includes(mood.value),
+  })),
+);
+const suggestedGenre = computed(() => {
+  const id = props.styles?.suggestedGenreId;
+  if (!id || String(id) === String(props.genreId ?? '')) return null;
+  return genres.value.find((genre) => String(genre.id) === String(id))?.title ?? null;
+});
 
 watch(open, (shown) => {
   if (!shown) return;
   form.bpm = props.tags?.bpm ? Math.round(props.tags.bpm * 10) / 10 : null;
   form.key = props.tags?.key ?? null;
-  errors.bpm = errors.key = undefined;
+  form.moods = [...moods.value];
+  errors.bpm = errors.key = errors.moods = undefined;
 });
+
+const sameMoods = () =>
+  form.moods.length === moods.value.length && form.moods.every((mood) => moods.value.includes(mood));
 
 const save = async (detect: boolean) => {
   if (!props.target) return;
   saving.value = detect ? 'detect' : 'save';
   try {
-    const res = await saveTagsRequest(
-      props.target,
-      detect ? { bpm: null, key: null } : { bpm: form.bpm || null, key: form.key || null },
-    ).send();
-    emit('update:tags', res.data);
-    notify(res.message || 'Saved.', 'success');
+    const target = props.target;
+    const keyChanged =
+      detect ||
+      (form.bpm || null) !== (props.tags?.bpm ? Math.round(props.tags.bpm * 10) / 10 : null) ||
+      (form.key || null) !== (props.tags?.key ?? null);
+    if (keyChanged && (detect || form.bpm || form.key)) {
+      const res = await saveTagsRequest(
+        target,
+        detect ? { bpm: null, key: null } : { bpm: form.bpm || null, key: form.key || null },
+      ).send();
+      emit('update:tags', res.data);
+    }
+    if (withMoods.value && (detect || !sameMoods())) {
+      const res = await saveMoodsRequest(target, detect ? [] : form.moods).send();
+      emit('update:styles', res.data);
+    }
+    notify(detect ? 'Detecting the tags again.' : 'Tags saved.', 'success');
     open.value = false;
   } catch (e) {
     const err = e as ResponseBody & { errors?: Record<string, string | string[]> };
@@ -136,7 +222,8 @@ const save = async (detect: boolean) => {
     };
     errors.bpm = first('bpm');
     errors.key = first('key');
-    if (!errors.bpm && !errors.key) notify(err?.message || "The tempo and key couldn't be saved.", 'error');
+    errors.moods = first('moods') || first('moods.0');
+    if (!errors.bpm && !errors.key && !errors.moods) notify(err?.message || "The tags couldn't be saved.", 'error');
   } finally {
     saving.value = null;
   }
@@ -170,6 +257,16 @@ const save = async (detect: boolean) => {
 .audio-tag__camelot {
   color: #4fd1ff;
   font-weight: 700;
+}
+
+.audio-tag--mood {
+  color: #d7c6ff;
+  text-decoration: none;
+  border-color: rgba(167, 139, 250, 0.35);
+}
+
+a.audio-tag--mood:hover {
+  background: rgba(167, 139, 250, 0.18);
 }
 
 .audio-tag--edit {
