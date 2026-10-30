@@ -17,6 +17,14 @@
         />
       </div>
 
+      <div class="flex items-center gap-3 mt-4 no-wrap" v-if="provider.payments">
+        <q-toggle color="toneflix" class="flex-none!" :aria-label="`Take payments with ${provider.name}`" v-model="toggles[`${provider.key}_payments_enabled`]" />
+        <div class="min-w-0 grow">
+          <div class="font-bold">Payments</div>
+          <div class="text-sm text-grey-5">{{ fields[`${provider.key}_payments_enabled`]?.hint }}</div>
+        </div>
+      </div>
+
       <div class="mt-4 text-xs text-grey-5" v-if="countsFor(provider.key)">
         {{ countryNames(provider.key) }}
       </div>
@@ -74,9 +82,9 @@ import {
 } from 'src/utils/requests/payouts';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 
-const providers: { key: PayoutProvider; name: string; settings: string[]; events?: string }[] = [
-  { key: 'paystack', name: 'Paystack', settings: [], events: 'transfer events' },
-  { key: 'flutterwave', name: 'Flutterwave', settings: [], events: 'transfer events' },
+const providers: { key: PayoutProvider; name: string; settings: string[]; events?: string; payments?: boolean }[] = [
+  { key: 'paystack', name: 'Paystack', settings: [], events: 'charge.success and transfer events', payments: true },
+  { key: 'flutterwave', name: 'Flutterwave', settings: [], events: 'charge and transfer events', payments: true },
   {
     key: 'stripe',
     name: 'Stripe Connect',
