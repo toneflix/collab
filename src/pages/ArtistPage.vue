@@ -35,12 +35,12 @@
               {{ artist.verified ? 'Verified Artist' : 'Artist' }}
             </h6>
 
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-circlular-std break-words">
+            <h1 class="mb-3 text-3xl leading-tight sm:text-4xl md:text-5xl font-circlular-std break-words">
               {{ artist?.name }}
             </h1>
 
             <div
-              class="flex flex-row items-center justify-center gap-2 font-semibold sm:justify-start"
+              class="flex flex-row items-center justify-center gap-2 text-sm font-semibold sm:justify-start"
             >
               <span class="flex-none!">
                 <ToggleFollow
@@ -58,7 +58,8 @@
                     no-caps
                     rounded
                     unelevated
-                    padding="6px 16px"
+                    size="sm"
+                  padding="4px 12px"
                     :outline="following"
                     :icon="following ? undefined : 'lucide-plus'"
                     :label="following ? 'Unfollow' : 'Follow'"
@@ -79,7 +80,8 @@
                   no-caps
                   rounded
                   outline
-                  padding="6px 16px"
+                  size="sm"
+                  padding="4px 12px"
                   icon="lucide-pen"
                   label="Edit profile"
                   @click="editing = true"
@@ -90,7 +92,8 @@
                   no-caps
                   rounded
                   outline
-                  padding="6px 16px"
+                  size="sm"
+                  padding="4px 12px"
                   icon="lucide-audio-lines"
                   label="Voice"
                   @click="voicing = true"
@@ -101,7 +104,8 @@
                   no-caps
                   rounded
                   outline
-                  padding="6px 16px"
+                  size="sm"
+                  padding="4px 12px"
                   icon="lucide-id-card"
                   label="Claim this artist"
                   @click="claimDialog?.open()"
