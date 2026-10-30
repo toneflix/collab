@@ -1,4 +1,5 @@
 import { defineBoot } from '#q-app'
+import { AppUpdates } from 'src/utils/app-updates'
 import { DeepLinks } from 'src/utils/deep-links'
 import { NativePush } from 'src/utils/native-push'
 import { watchCutout } from 'src/utils/native-screen'
@@ -8,4 +9,5 @@ export default defineBoot(({ router }) => {
   watchCutout()
   void NativePush.start(router)
   void DeepLinks.start(router)
+  void AppUpdates.start()
 })
