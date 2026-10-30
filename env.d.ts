@@ -7,6 +7,10 @@
 interface ImportMetaEnv {
   readonly VITE_FRONT_URL?: string;
   readonly VITE_DOCS_URL?: string;
+  /** SHA-256 fingerprints of the Android signing keys, comma-separated, for App Links */
+  readonly VITE_ANDROID_CERT_FINGERPRINTS?: string;
+  /** Apple team id, for Universal Links */
+  readonly VITE_IOS_TEAM_ID?: string;
   readonly VITE_DEV_API_BASE_URL?: string;
   readonly VITE_PROD_API_BASE_URL?: string;
   readonly VITE_STAGING_API_BASE_URL?: string;

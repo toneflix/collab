@@ -126,6 +126,7 @@ export default defineConfig((ctx) => {
     ssr: {
       prodPort: 3000, // The default port that the production server should use
       middlewares: [
+        'app-links',
         'render', // keep this as last one
       ],
       pwa: false,
