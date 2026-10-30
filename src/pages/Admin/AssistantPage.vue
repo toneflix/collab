@@ -1,186 +1,184 @@
 <template>
-  <q-page padding>
-    <div>
-      <div class="page-head">
-        <h1 class="text-3xl font-circlular-std">Assistant</h1>
-        <p class="text-grey-5">Ask for moderation work in plain words. Changes wait for your confirmation.</p>
-      </div>
+  <q-page class="assistant-page" :style-fn="fill">
+    <div class="page-head">
+      <h1 class="page-head__title">Assistant</h1>
+      <p class="page-head__subtitle">Ask for moderation work in plain words. Changes wait for your confirmation.</p>
+    </div>
 
-      <div class="unavailable" v-if="!available">
-        <q-icon name="lucide-circle-alert" size="20px" color="amber-6" class="flex-none!" />
-        <span>The assistant needs its AI keys set in .env.</span>
-        <q-btn flat dense no-caps color="primary" label="AI tools" class="flex-none!" :to="{ name: 'admin.ai' }" />
-      </div>
+    <div class="unavailable" v-if="!available">
+      <q-icon name="lucide-circle-alert" size="20px" color="amber-6" class="flex-none!" />
+      <span>The assistant needs its AI keys set in .env.</span>
+      <q-btn flat dense no-caps color="primary" label="AI tools" class="flex-none!" :to="{ name: 'admin.ai' }" />
+    </div>
 
-      <div class="assistant">
-        <aside class="chats" v-if="!narrow || !chatId">
+    <div class="assistant">
+      <aside class="chats" v-if="!narrow || !chatId">
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          text-color="dark"
+          icon="lucide-plus"
+          label="New chat"
+          class="flex-none! mx-3 mt-3"
+          :to="{ name: 'admin.assistant' }"
+        />
+        <div class="chats__list" role="list">
+          <ListSkeleton dense :avatar="false" :rows="5" v-if="chatsLoading && !chats.length" />
+          <SimpleInfo dense class="m-2" icon="lucide-message-circle" text="No chats yet." v-else-if="!chats.length" />
+          <router-link
+            role="listitem"
+            class="chats__item"
+            :class="{ 'chats__item--active': chat.id === chatId }"
+            :key="chat.id"
+            :to="{ name: 'admin.assistant', params: { chat: chat.id } }"
+            v-for="chat in chats"
+          >
+            <span class="chats__title">{{ chat.title || 'Chat' }}</span>
+            <q-spinner-dots size="16px" color="primary" class="flex-none!" v-if="chat.status === 'thinking'" />
+            <span class="chats__time" v-else>{{ ago(chat.updatedAt) }}</span>
+          </router-link>
           <q-btn
-            unelevated
+            flat
             no-caps
-            color="primary"
-            text-color="dark"
-            icon="lucide-plus"
-            label="New chat"
-            class="flex-none! mx-3 mt-3"
-            :to="{ name: 'admin.assistant' }"
+            size="sm"
+            color="grey-5"
+            label="More chats"
+            class="w-full"
+            :loading="chatsLoading"
+            @click="loadChats(chatsPage + 1)"
+            v-if="chatsPage < chatsLastPage"
           />
-          <div class="chats__list" role="list">
-            <ListSkeleton dense :avatar="false" :rows="5" v-if="chatsLoading && !chats.length" />
-            <SimpleInfo dense class="m-2" icon="lucide-message-circle" text="No chats yet." v-else-if="!chats.length" />
-            <router-link
-              role="listitem"
-              class="chats__item"
-              :class="{ 'chats__item--active': chat.id === chatId }"
-              :key="chat.id"
-              :to="{ name: 'admin.assistant', params: { chat: chat.id } }"
-              v-for="chat in chats"
-            >
-              <span class="chats__title">{{ chat.title || 'Chat' }}</span>
-              <q-spinner-dots size="16px" color="primary" class="flex-none!" v-if="chat.status === 'thinking'" />
-              <span class="chats__time" v-else>{{ ago(chat.updatedAt) }}</span>
-            </router-link>
-            <q-btn
-              flat
-              no-caps
-              size="sm"
-              color="grey-5"
-              label="More chats"
-              class="w-full"
-              :loading="chatsLoading"
-              @click="loadChats(chatsPage + 1)"
-              v-if="chatsPage < chatsLastPage"
-            />
-          </div>
-        </aside>
+        </div>
+      </aside>
 
-        <section class="thread" v-if="!narrow || chatId">
-          <header class="thread__head" v-if="chatId">
-            <IconBtn icon="lucide-arrow-left" label="All chats" class="flex-none!" :to="{ name: 'admin.assistant' }" v-if="narrow" />
-            <div class="thread__title">{{ current?.title || 'Chat' }}</div>
-          </header>
+      <section class="thread" v-if="!narrow || chatId">
+        <header class="thread__head" v-if="chatId">
+          <IconBtn icon="lucide-arrow-left" label="All chats" class="flex-none!" :to="{ name: 'admin.assistant' }" v-if="narrow" />
+          <div class="thread__title">{{ current?.title || 'Chat' }}</div>
+        </header>
 
-          <div class="thread__body" ref="scroller">
-            <template v-if="chatId">
-              <BlockSkeleton :count="3" v-if="messagesLoading && !messages.length" />
-              <template v-else>
-                <div class="text-center" v-if="cursor">
-                  <q-btn flat dense no-caps size="sm" color="grey-5" label="Earlier messages" :loading="olderLoading" @click="loadOlder" />
+        <div class="thread__body" ref="scroller">
+          <template v-if="chatId">
+            <BlockSkeleton :count="3" v-if="messagesLoading && !messages.length" />
+            <template v-else>
+              <div class="text-center" v-if="cursor">
+                <q-btn flat dense no-caps size="sm" color="grey-5" label="Earlier messages" :loading="olderLoading" @click="loadOlder" />
+              </div>
+
+              <template v-for="message in ordered" :key="message.id">
+                <div class="bubble bubble--admin" v-if="message.role === 'admin'">{{ message.content }}</div>
+
+                <MarkdownText class="bubble bubble--assistant" :text="message.content" v-else-if="message.role === 'assistant'" />
+
+                <div class="tool" :class="{ 'tool--failed': message.error }" v-else-if="message.role === 'tool'">
+                  <q-icon :name="message.error ? 'lucide-circle-x' : 'lucide-check'" size="14px" class="flex-none!" />
+                  <span>{{ toolLine(message) }}</span>
+                  <q-tooltip max-width="320px" v-if="message.error">{{ message.error }}</q-tooltip>
                 </div>
 
-                <template v-for="message in ordered" :key="message.id">
-                  <div class="bubble bubble--admin" v-if="message.role === 'admin'">{{ message.content }}</div>
-
-                  <MarkdownText class="bubble bubble--assistant" :text="message.content" v-else-if="message.role === 'assistant'" />
-
-                  <div class="tool" :class="{ 'tool--failed': message.error }" v-else-if="message.role === 'tool'">
-                    <q-icon :name="message.error ? 'lucide-circle-x' : 'lucide-check'" size="14px" class="flex-none!" />
-                    <span>{{ toolLine(message) }}</span>
-                    <q-tooltip max-width="320px" v-if="message.error">{{ message.error }}</q-tooltip>
+                <div class="action" :class="`action--${message.action.status}`" v-else-if="message.role === 'action' && message.action">
+                  <div class="action__head">
+                    <q-icon name="lucide-shield-half" size="18px" class="flex-none!" />
+                    <span class="action__label">{{ message.action.status === 'pending' ? 'Needs your confirmation' : 'Proposed change' }}</span>
+                    <q-badge
+                      rounded
+                      class="flex-none!"
+                      :color="actionStatusLabels[message.action.status].color"
+                      :label="actionStatusLabels[message.action.status].label"
+                    />
                   </div>
-
-                  <div class="action" :class="`action--${message.action.status}`" v-else-if="message.role === 'action' && message.action">
-                    <div class="action__head">
-                      <q-icon name="lucide-shield-half" size="18px" class="flex-none!" />
-                      <span class="action__label">{{ message.action.status === 'pending' ? 'Needs your confirmation' : 'Proposed change' }}</span>
-                      <q-badge
-                        rounded
-                        class="flex-none!"
-                        :color="actionStatusLabels[message.action.status].color"
-                        :label="actionStatusLabels[message.action.status].label"
-                      />
-                    </div>
-                    <div class="action__summary">{{ message.action.summary }}</div>
-                    <div class="action__error" v-if="message.action.error">{{ message.action.error }}</div>
-                    <div class="action__asks" v-if="message.action.status === 'pending' && message.action.asks?.length">
-                      <q-input
-                        dark
-                        filled
-                        dense
-                        :key="ask.field"
-                        :label="ask.label"
-                        :inputmode="ask.kind === 'code' ? 'numeric' : 'text'"
-                        :autocomplete="ask.kind === 'code' ? 'one-time-code' : 'off'"
-                        :error="!!answerErrors[message.action.id]?.[ask.field]"
-                        :error-message="answerErrors[message.action.id]?.[ask.field]"
-                        v-model="answerFor(message.action.id)[ask.field]"
-                        v-for="ask in message.action.asks"
-                      />
-                    </div>
-                    <div class="action__buttons" v-if="message.action.status === 'pending'">
-                      <q-btn
-                        unelevated
-                        no-caps
-                        color="primary"
-                        text-color="dark"
-                        label="Confirm"
-                        class="flex-none!"
-                        :loading="deciding === message.action.id"
-                        :disable="!answered(message.action)"
-                        @click="decide(message.action, 'confirm')"
-                      />
-                      <q-btn
-                        flat
-                        no-caps
-                        color="grey-4"
-                        label="Cancel"
-                        class="flex-none!"
-                        :disable="deciding === message.action.id"
-                        @click="decide(message.action, 'cancel')"
-                      />
-                    </div>
+                  <div class="action__summary">{{ message.action.summary }}</div>
+                  <div class="action__error" v-if="message.action.error">{{ message.action.error }}</div>
+                  <div class="action__asks" v-if="message.action.status === 'pending' && message.action.asks?.length">
+                    <q-input
+                      dark
+                      filled
+                      dense
+                      :key="ask.field"
+                      :label="ask.label"
+                      :inputmode="ask.kind === 'code' ? 'numeric' : 'text'"
+                      :autocomplete="ask.kind === 'code' ? 'one-time-code' : 'off'"
+                      :error="!!answerErrors[message.action.id]?.[ask.field]"
+                      :error-message="answerErrors[message.action.id]?.[ask.field]"
+                      v-model="answerFor(message.action.id)[ask.field]"
+                      v-for="ask in message.action.asks"
+                    />
                   </div>
-                </template>
-
-                <div class="thinking" v-if="current?.status === 'thinking'">
-                  <q-spinner-dots size="20px" color="primary" />
-                  <span>Working on it</span>
-                </div>
-                <div class="failed" v-else-if="current?.status === 'failed'">
-                  <q-icon name="lucide-circle-alert" size="16px" class="flex-none!" />
-                  <span>{{ current.error || 'The assistant couldn\'t answer. Try again.' }}</span>
+                  <div class="action__buttons" v-if="message.action.status === 'pending'">
+                    <q-btn
+                      unelevated
+                      no-caps
+                      color="primary"
+                      text-color="dark"
+                      label="Confirm"
+                      class="flex-none!"
+                      :loading="deciding === message.action.id"
+                      :disable="!answered(message.action)"
+                      @click="decide(message.action, 'confirm')"
+                    />
+                    <q-btn
+                      flat
+                      no-caps
+                      color="grey-4"
+                      label="Cancel"
+                      class="flex-none!"
+                      :disable="deciding === message.action.id"
+                      @click="decide(message.action, 'cancel')"
+                    />
+                  </div>
                 </div>
               </template>
-            </template>
 
-            <div class="welcome" v-else>
-              <q-icon name="lucide-bot" size="40px" color="grey-6" />
-              <div class="mt-3 text-lg font-bold">What should we look at?</div>
-              <div class="welcome__prompts">
-                <button type="button" class="welcome__prompt" :key="prompt" @click="send(prompt)" v-for="prompt in prompts">
-                  {{ prompt }}
-                </button>
+              <div class="thinking" v-if="current?.status === 'thinking'">
+                <q-spinner-dots size="20px" color="primary" />
+                <span>Working on it</span>
               </div>
+              <div class="failed" v-else-if="current?.status === 'failed'">
+                <q-icon name="lucide-circle-alert" size="16px" class="flex-none!" />
+                <span>{{ current.error || 'The assistant couldn\'t answer. Try again.' }}</span>
+              </div>
+            </template>
+          </template>
+
+          <div class="welcome" v-else>
+            <q-icon name="lucide-bot" size="40px" color="grey-6" />
+            <div class="mt-3 text-lg font-bold">What should we look at?</div>
+            <div class="welcome__prompts">
+              <button type="button" class="welcome__prompt" :key="prompt" @click="send(prompt)" v-for="prompt in prompts">
+                {{ prompt }}
+              </button>
             </div>
           </div>
+        </div>
 
-          <form class="composer" @submit.prevent="send()">
-            <q-input
-              dark
-              dense
-              outlined
-              autogrow
-              class="composer__input"
-              placeholder="Ask the assistant"
-              maxlength="4000"
-              :disable="!available"
-              v-model="draft"
-              @keydown.enter.exact.prevent="send()"
-            />
-            <q-btn
-              round
-              unelevated
-              color="primary"
-              text-color="dark"
-              icon="lucide-send"
-              type="submit"
-              aria-label="Send"
-              class="flex-none!"
-              :loading="sending"
-              :disable="!canSend"
-            />
-          </form>
-        </section>
-      </div>
+        <form class="composer" @submit.prevent="send()">
+          <q-input
+            dark
+            dense
+            outlined
+            autogrow
+            class="composer__input"
+            placeholder="Ask the assistant"
+            maxlength="4000"
+            :disable="!available"
+            v-model="draft"
+            @keydown.enter.exact.prevent="send()"
+          />
+          <q-btn
+            round
+            unelevated
+            color="primary"
+            text-color="dark"
+            icon="lucide-send"
+            type="submit"
+            aria-label="Send"
+            class="flex-none!"
+            :loading="sending"
+            :disable="!canSend"
+          />
+        </form>
+      </section>
     </div>
   </q-page>
 </template>
@@ -248,6 +246,9 @@ const deciding = ref<number | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 
 const narrow = computed(() => $q.screen.lt.md);
+
+/** Fills the space under the header, like the messages page */
+const fill = (offset: number) => ({ height: offset ? `calc(100vh - ${offset}px)` : '100vh' });
 const chatId = computed(() => (route.params.chat ? Number(route.params.chat) : null));
 const thinking = computed(() => current.value?.status === 'thinking');
 const canSend = computed(() => available.value && !thinking.value && draft.value.trim().length > 0);
@@ -429,8 +430,9 @@ onMounted(() => void loadChats());
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  flex: none;
   gap: 10px;
-  margin: 16px 0;
+  margin: 12px 16px 0;
   padding: 10px 14px;
   font-size: 14px;
   border: 1px solid rgba(255, 193, 7, 0.3);
@@ -438,17 +440,39 @@ onMounted(() => void loadChats());
   background: rgba(255, 193, 7, 0.08);
 }
 
+// Cancels the admin layout padding so the chat reaches the page edges
+.assistant-page {
+  margin: -16px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  min-height: 0 !important;
+  overflow: hidden;
+}
+
 .page-head {
-  padding: 24px 0 16px;
-  margin-bottom: 0;
+  flex: none;
+  padding: 18px 16px 14px;
   border-bottom: 1px solid var(--tf-border);
+
+  &__title {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--tf-text-subtle);
+  }
 }
 
 .assistant {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: nowrap;
-  height: calc(100vh - 230px);
-  min-height: 480px;
+  min-height: 0;
   overflow: hidden;
 }
 
