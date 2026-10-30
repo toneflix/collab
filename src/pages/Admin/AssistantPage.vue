@@ -1,11 +1,8 @@
 <template>
-  <q-page class="assistant-page" :style-fn="fill">
-    <div class="page-head">
-      <h1 class="page-head__title">Assistant</h1>
-      <p class="page-head__subtitle">Ask for moderation work in plain words. Changes wait for your confirmation.</p>
-    </div>
+  <PanePage title="Assistant">
+    <template #subtitle>Ask for moderation work in plain words. Changes wait for your confirmation.</template>
 
-    <div class="unavailable" v-if="!available">
+    <div class="unavailable flex-none!" v-if="!available">
       <q-icon name="lucide-circle-alert" size="20px" color="amber-6" class="flex-none!" />
       <span>The assistant needs its AI keys set in .env.</span>
       <q-btn flat dense no-caps color="primary" label="AI tools" class="flex-none!" :to="{ name: 'admin.ai' }" />
@@ -180,10 +177,11 @@
         </form>
       </section>
     </div>
-  </q-page>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import MarkdownText from 'src/components/Utilities/MarkdownText.vue';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
@@ -246,9 +244,6 @@ const deciding = ref<number | null>(null);
 const scroller = ref<HTMLElement | null>(null);
 
 const narrow = computed(() => $q.screen.lt.md);
-
-/** Fills the space under the header, like the messages page */
-const fill = (offset: number) => ({ height: offset ? `calc(100vh - ${offset}px)` : '100vh' });
 const chatId = computed(() => (route.params.chat ? Number(route.params.chat) : null));
 const thinking = computed(() => current.value?.status === 'thinking');
 const canSend = computed(() => available.value && !thinking.value && draft.value.trim().length > 0);
@@ -438,34 +433,6 @@ onMounted(() => void loadChats());
   border: 1px solid rgba(255, 193, 7, 0.3);
   border-radius: var(--tf-radius-lg);
   background: rgba(255, 193, 7, 0.08);
-}
-
-// Cancels the admin layout padding so the chat reaches the page edges
-.assistant-page {
-  margin: -16px;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  min-height: 0 !important;
-  overflow: hidden;
-}
-
-.page-head {
-  flex: none;
-  padding: 18px 16px 14px;
-  border-bottom: 1px solid var(--tf-border);
-
-  &__title {
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 1.2;
-  }
-
-  &__subtitle {
-    margin: 4px 0 0;
-    font-size: 14px;
-    color: var(--tf-text-subtle);
-  }
 }
 
 .assistant {

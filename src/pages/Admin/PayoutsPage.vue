@@ -1,112 +1,108 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Payouts</h1>
-        <p class="text-grey-5">
-          Creators' withdrawal requests. Approving one sends the money through the
-          provider that pays the creator's country.
-        </p>
-      </div>
+  <PanePage title="Payouts">
+    <template #subtitle>
+      Creators' withdrawal requests. Approving one sends the money through the
+      provider that pays the creator's country.
+    </template>
 
-      <SettingsSections :sections="sections" v-model="view">
-        <template #providers>
-          <PayoutProviderSettings />
-        </template>
+    <SettingsSections :sections="sections" v-model="view">
+      <template #providers>
+        <PayoutProviderSettings />
+      </template>
 
-        <template #regions>
-          <PaymentRegionsAdmin />
-        </template>
+      <template #regions>
+        <PaymentRegionsAdmin />
+      </template>
 
-        <template #streams>
-          <StreamPeriodsAdmin />
-        </template>
+      <template #streams>
+        <StreamPeriodsAdmin />
+      </template>
 
-        <template #stream-checks>
-          <StreamChecksAdmin @pending="(n) => (checksPending = n)" />
-        </template>
+      <template #stream-checks>
+        <StreamChecksAdmin @pending="(n) => (checksPending = n)" />
+      </template>
 
-        <template #royals>
-          <RoyaltyAdmin view="contracts" />
-        </template>
+      <template #royals>
+        <RoyaltyAdmin view="contracts" />
+      </template>
 
-        <template #royalty-invites>
-          <RoyaltyAdmin view="invites" />
-        </template>
+      <template #royalty-invites>
+        <RoyaltyAdmin view="invites" />
+      </template>
 
-        <template #default>
-          <q-banner rounded dense class="mb-8 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
-            {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
-          </q-banner>
+      <template #default>
+        <q-banner rounded dense class="mb-8 text-white bg-orange-10" v-if="view === 'pending' && summary.pendingCount">
+          {{ summary.pendingCount }} waiting for approval, {{ price(summary.pendingAmount) }} in total.
+        </q-banner>
 
-          <div class="flex flex-wrap items-center gap-3 mb-2">
-            <q-input
-              dark
-              dense
-              outlined
-              clearable
-              debounce="400"
-              placeholder="Search username, email or reference"
-              class="min-w-56"
-              v-model="search"
-            >
-              <template #prepend><q-icon name="lucide-search" /></template>
-            </q-input>
-          </div>
+        <div class="flex flex-wrap items-center gap-3 mb-2">
+          <q-input
+            dark
+            dense
+            outlined
+            clearable
+            debounce="400"
+            placeholder="Search username, email or reference"
+            class="min-w-56"
+            v-model="search"
+          >
+            <template #prepend><q-icon name="lucide-search" /></template>
+          </q-input>
+        </div>
 
-          <q-list separator v-if="list.length">
-            <PayoutItem :key="payout.id" :payout="payout" v-for="payout in list">
-              <template #actions v-if="payout.status === 'pending'">
-                <q-btn
-                  flat
-                  dense
-                  no-caps
-                  size="sm"
-                  color="red-4"
-                  label="Reject"
-                  :disable="!!busy"
-                  @click="reject(payout)"
-                />
-                <q-btn
-                  unelevated
-                  dense
-                  rounded
-                  no-caps
-                  size="sm"
-                  padding="0 sm"
-                  color="toneflix"
-                  label="Approve"
-                  :loading="busy === payout.id"
-                  :disable="!!busy && busy !== payout.id"
-                  @click="approve(payout)"
-                />
-              </template>
-              <template #actions v-else-if="payout.status === 'processing'">
-                <q-btn
-                  flat
-                  dense
-                  no-caps
-                  size="sm"
-                  label="Check status"
-                  :loading="busy === payout.id"
-                  @click="sync(payout)"
-                />
-              </template>
-            </PayoutItem>
-          </q-list>
-          <ListSkeleton side v-else-if="loading" />
-          <SimpleInfo v-else text="Nothing here." />
+        <q-list separator v-if="list.length">
+          <PayoutItem :key="payout.id" :payout="payout" v-for="payout in list">
+            <template #actions v-if="payout.status === 'pending'">
+              <q-btn
+                flat
+                dense
+                no-caps
+                size="sm"
+                color="red-4"
+                label="Reject"
+                :disable="!!busy"
+                @click="reject(payout)"
+              />
+              <q-btn
+                unelevated
+                dense
+                rounded
+                no-caps
+                size="sm"
+                padding="0 sm"
+                color="toneflix"
+                label="Approve"
+                :loading="busy === payout.id"
+                :disable="!!busy && busy !== payout.id"
+                @click="approve(payout)"
+              />
+            </template>
+            <template #actions v-else-if="payout.status === 'processing'">
+              <q-btn
+                flat
+                dense
+                no-caps
+                size="sm"
+                label="Check status"
+                :loading="busy === payout.id"
+                @click="sync(payout)"
+              />
+            </template>
+          </PayoutItem>
+        </q-list>
+        <ListSkeleton side v-else-if="loading" />
+        <SimpleInfo v-else text="Nothing here." />
 
-          <div class="flex justify-center mt-8" v-if="pageCount > 1">
-            <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
-          </div>
-        </template>
-      </SettingsSections>
-    </div>
-  </q-page>
+        <div class="flex justify-center mt-8" v-if="pageCount > 1">
+          <q-pagination class="flex-none!" v-model="page" :max="pageCount" direction-links />
+        </div>
+      </template>
+    </SettingsSections>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useMeta, useQuasar } from 'quasar';
 import { useWatcher } from 'alova/client';

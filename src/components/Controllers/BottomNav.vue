@@ -108,7 +108,7 @@ const createItems = computed(() =>
       to: { name: 'studio.composer' },
     },
     {
-      title: 'Content agent',
+      title: 'AI Studio',
       caption: 'Describe music and let AI build it',
       icon: 'lucide-bot',
       to: { name: 'studio.agent' },

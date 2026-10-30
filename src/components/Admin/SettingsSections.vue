@@ -121,10 +121,11 @@ watch(
 <style lang="scss" scoped>
 $line: rgba(255, 255, 255, 0.08);
 
+// Frameless list and detail panes; on a PanePage each scrolls on its own.
 .settings {
   display: grid;
-  border: 1px solid $line;
-  border-radius: 16px;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 
   @media (min-width: 1024px) {
@@ -135,6 +136,9 @@ $line: rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
+    padding: 8px;
+    overflow-y: auto;
 
     @media (min-width: 1024px) {
       border-right: 1px solid $line;
@@ -146,15 +150,11 @@ $line: rgba(255, 255, 255, 0.08);
     flex-wrap: nowrap;
     align-items: center;
     gap: 14px;
-    padding: 16px 18px;
+    padding: 14px 14px;
     color: inherit;
     text-decoration: none;
-    border-bottom: 1px solid $line;
+    border-radius: 10px;
     transition: background 0.15s;
-
-    &:last-child {
-      border-bottom: 0;
-    }
 
     &:hover {
       background: rgba(255, 255, 255, 0.03);
@@ -193,6 +193,8 @@ $line: rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   &__head {
@@ -200,8 +202,7 @@ $line: rgba(255, 255, 255, 0.08);
     flex-wrap: nowrap;
     align-items: flex-start;
     gap: 10px;
-    padding: 18px 20px;
-    border-bottom: 1px solid $line;
+    padding: 18px 20px 4px;
 
     > .min-w-0 {
       flex: 1 1 auto;
@@ -231,8 +232,11 @@ $line: rgba(255, 255, 255, 0.08);
     align-items: center;
     justify-content: flex-end;
     gap: 12px;
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
     padding: 14px 20px;
-    border-top: 1px solid $line;
+    background: var(--tf-bg);
   }
 
   // Phones show the list, then the picked section on its own.

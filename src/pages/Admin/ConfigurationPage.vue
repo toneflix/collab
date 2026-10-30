@@ -1,90 +1,86 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Configuration</h1>
-        <p class="text-grey-5">
-          General settings for the whole app. API keys are not here; they live
-          in the API's .env file.
-        </p>
-      </div>
+  <PanePage title="Configuration">
+    <template #subtitle>
+      General settings for the whole app. API keys are not here; they live
+      in the API's .env file.
+    </template>
 
-      <BlockSkeleton variant="form" :count="6" v-if="loading" />
+    <BlockSkeleton variant="form" :count="6" v-if="loading" />
 
-      <q-form @submit="save" v-else-if="settings">
-        <SettingsSections :sections="groups" :marked="unsaved">
-          <template #[group.key] :key="group.key" v-for="group in groups">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <template v-for="key in group.keys" :key="key">
-                <template v-if="fields[key]">
-                  <div
-                    class="toggle-card sm:col-span-2"
-                    v-if="fields[key].type === 'boolean'"
-                  >
-                    <q-toggle color="toneflix" v-model="form[key]" />
-                    <div class="min-w-0">
-                      <div class="font-bold">{{ fields[key].title }}</div>
-                      <div class="text-sm text-grey-5">
-                        {{ fields[key].hint }}
-                      </div>
+    <q-form @submit="save" v-else-if="settings">
+      <SettingsSections :sections="groups" :marked="unsaved">
+        <template #[group.key] :key="group.key" v-for="group in groups">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <template v-for="key in group.keys" :key="key">
+              <template v-if="fields[key]">
+                <div
+                  class="toggle-card sm:col-span-2"
+                  v-if="fields[key].type === 'boolean'"
+                >
+                  <q-toggle color="toneflix" v-model="form[key]" />
+                  <div class="min-w-0">
+                    <div class="font-bold">{{ fields[key].title }}</div>
+                    <div class="text-sm text-grey-5">
+                      {{ fields[key].hint }}
                     </div>
                   </div>
+                </div>
 
-                  <q-select
-                    dark
-                    outlined
-                    bottom-slots
-                    :options="fields[key].options"
-                    :label="fields[key].title"
-                    v-model="form[key]"
-                    v-else-if="fields[key].options"
-                  >
-                    <template #hint>{{ fields[key].hint }}</template>
-                  </q-select>
+                <q-select
+                  dark
+                  outlined
+                  bottom-slots
+                  :options="fields[key].options"
+                  :label="fields[key].title"
+                  v-model="form[key]"
+                  v-else-if="fields[key].options"
+                >
+                  <template #hint>{{ fields[key].hint }}</template>
+                </q-select>
 
-                  <q-input
-                    dark
-                    outlined
-                    bottom-slots
-                    :type="inputType(fields[key])"
-                    :step="fields[key].type === 'decimal' ? 'any' : undefined"
-                    :prefix="moneyKeys.includes(key) ? currency : undefined"
-                    :label="fields[key].title"
-                    :model-value="textValue(key)"
-                    @update:model-value="
-                      (value) => (form[key] = value as ConfigurationValue)
-                    "
-                    v-else
-                  >
-                    <template #hint>{{ fields[key].hint }}</template>
-                  </q-input>
-                </template>
+                <q-input
+                  dark
+                  outlined
+                  bottom-slots
+                  :type="inputType(fields[key])"
+                  :step="fields[key].type === 'decimal' ? 'any' : undefined"
+                  :prefix="moneyKeys.includes(key) ? currency : undefined"
+                  :label="fields[key].title"
+                  :model-value="textValue(key)"
+                  @update:model-value="
+                    (value) => (form[key] = value as ConfigurationValue)
+                  "
+                  v-else
+                >
+                  <template #hint>{{ fields[key].hint }}</template>
+                </q-input>
               </template>
-            </div>
-          </template>
+            </template>
+          </div>
+        </template>
 
-          <template #footer>
-            <span class="text-sm text-grey-5" v-if="changed"
-              >Unsaved changes</span
-            >
-            <q-btn
-              unelevated
-              no-caps
-              color="toneflix"
-              type="submit"
-              label="Save"
-              class="flex-none!"
-              :loading="saving"
-              :disable="!changed"
-            />
-          </template>
-        </SettingsSections>
-      </q-form>
-    </div>
-  </q-page>
+        <template #footer>
+          <span class="text-sm text-grey-5" v-if="changed"
+            >Unsaved changes</span
+          >
+          <q-btn
+            unelevated
+            no-caps
+            color="toneflix"
+            type="submit"
+            label="Save"
+            class="flex-none!"
+            :loading="saving"
+            :disable="!changed"
+          />
+        </template>
+      </SettingsSections>
+    </q-form>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useMeta } from 'quasar';
 import SettingsSections, {

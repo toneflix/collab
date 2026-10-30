@@ -1,123 +1,119 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Auth pages</h1>
-        <p class="text-grey-5">Layout, banner and text of sign-in, sign-up and recovery.</p>
-      </div>
+  <PanePage title="Auth pages">
+    <template #subtitle>Layout, banner and text of sign-in, sign-up and recovery.</template>
 
-      <BlockSkeleton variant="form" :count="6" v-if="loading && !settings" />
+    <BlockSkeleton variant="form" :count="6" v-if="loading && !settings" />
 
-      <q-form @submit="save" v-else-if="settings">
-        <SettingsSections :sections="sections" :marked="unsaved">
-          <template #layout>
-            <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              <button
-                type="button"
-                class="layout-card"
-                :class="{ 'layout-card--on': layout === option.key }"
-                :key="option.key"
-                @click="layout = option.key"
-                v-for="option in settings.layouts"
-              >
-                <span class="layout-card__preview">
-                  <span class="layout-card__form" :style="{ flexBasis: `${option.form}%` }">
-                    <i></i><i></i><i></i>
-                  </span>
-                  <span class="layout-card__banner" :style="{ flexBasis: `${option.banner}%` }" v-if="option.banner"></span>
+    <q-form @submit="save" v-else-if="settings">
+      <SettingsSections :sections="sections" :marked="unsaved">
+        <template #layout>
+          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <button
+              type="button"
+              class="layout-card"
+              :class="{ 'layout-card--on': layout === option.key }"
+              :key="option.key"
+              @click="layout = option.key"
+              v-for="option in settings.layouts"
+            >
+              <span class="layout-card__preview">
+                <span class="layout-card__form" :style="{ flexBasis: `${option.form}%` }">
+                  <i></i><i></i><i></i>
                 </span>
-                <span class="font-bold">{{ option.title }}</span>
-                <span class="text-sm text-grey-5">
-                  {{ option.banner ? `${option.form} / ${option.banner}` : 'No banner' }}
-                </span>
-              </button>
-            </div>
+                <span class="layout-card__banner" :style="{ flexBasis: `${option.banner}%` }" v-if="option.banner"></span>
+              </span>
+              <span class="font-bold">{{ option.title }}</span>
+              <span class="text-sm text-grey-5">
+                {{ option.banner ? `${option.form} / ${option.banner}` : 'No banner' }}
+              </span>
+            </button>
+          </div>
 
-            <div class="mt-8">
-              <div class="font-bold">Banner image</div>
-              <p class="text-sm text-grey-5">Shown behind the banner text. Without one, the banner shows an animated waveform.</p>
+          <div class="mt-8">
+            <div class="font-bold">Banner image</div>
+            <p class="text-sm text-grey-5">Shown behind the banner text. Without one, the banner shows an animated waveform.</p>
 
-              <div class="banner-pick">
-                <img :src="settings.banner" alt="" class="banner-pick__image" v-if="settings.banner" />
-                <div class="banner-pick__empty" v-else>
-                  <q-icon name="lucide-image" size="28px" />
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                  <q-btn
-                    outline
-                    no-caps
-                    icon="lucide-upload"
-                    class="flex-none!"
-                    :label="settings.banner ? 'Replace' : 'Upload'"
-                    :loading="uploading"
-                    @click="picker?.click()"
-                  />
-                  <q-btn
-                    flat
-                    no-caps
-                    color="negative"
-                    icon="lucide-trash-2"
-                    label="Remove"
-                    class="flex-none!"
-                    :loading="removing"
-                    @click="removeBanner"
-                    v-if="settings.banner"
-                  />
-                </div>
-                <input ref="picker" type="file" accept="image/*" class="hidden" @change="upload" />
+            <div class="banner-pick">
+              <img :src="settings.banner" alt="" class="banner-pick__image" v-if="settings.banner" />
+              <div class="banner-pick__empty" v-else>
+                <q-icon name="lucide-image" size="28px" />
               </div>
-            </div>
-          </template>
 
-          <template #[page.key] :key="page.key" v-for="page in settings.pages">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <q-input
-                dark
-                outlined
-                autogrow
-                stack-label
-                :class="{ 'sm:col-span-2': long(field.default) }"
-                :key="field.key"
-                :label="field.label"
-                :placeholder="field.default"
-                v-model="texts[field.key]"
-                v-for="field in page.fields"
-              >
-                <template #append v-if="texts[field.key]">
-                  <IconBtn
-                    size="sm"
-                    icon="lucide-rotate-ccw"
-                    aria-label="Use the default"
-                    @click="texts[field.key] = ''"
-                  >
-                    <q-tooltip>Use the default</q-tooltip>
-                  </IconBtn>
-                </template>
-              </q-input>
+              <div class="flex flex-wrap gap-2">
+                <q-btn
+                  outline
+                  no-caps
+                  icon="lucide-upload"
+                  class="flex-none!"
+                  :label="settings.banner ? 'Replace' : 'Upload'"
+                  :loading="uploading"
+                  @click="picker?.click()"
+                />
+                <q-btn
+                  flat
+                  no-caps
+                  color="negative"
+                  icon="lucide-trash-2"
+                  label="Remove"
+                  class="flex-none!"
+                  :loading="removing"
+                  @click="removeBanner"
+                  v-if="settings.banner"
+                />
+              </div>
+              <input ref="picker" type="file" accept="image/*" class="hidden" @change="upload" />
             </div>
-          </template>
+          </div>
+        </template>
 
-          <template #footer>
-            <span class="text-sm text-grey-5" v-if="changed">Unsaved changes</span>
-            <q-btn
-              unelevated
-              no-caps
-              color="toneflix"
-              type="submit"
-              label="Save"
-              class="flex-none!"
-              :loading="saving"
-              :disable="!changed"
-            />
-          </template>
-        </SettingsSections>
-      </q-form>
-    </div>
-  </q-page>
+        <template #[page.key] :key="page.key" v-for="page in settings.pages">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-input
+              dark
+              outlined
+              autogrow
+              stack-label
+              :class="{ 'sm:col-span-2': long(field.default) }"
+              :key="field.key"
+              :label="field.label"
+              :placeholder="field.default"
+              v-model="texts[field.key]"
+              v-for="field in page.fields"
+            >
+              <template #append v-if="texts[field.key]">
+                <IconBtn
+                  size="sm"
+                  icon="lucide-rotate-ccw"
+                  aria-label="Use the default"
+                  @click="texts[field.key] = ''"
+                >
+                  <q-tooltip>Use the default</q-tooltip>
+                </IconBtn>
+              </template>
+            </q-input>
+          </div>
+        </template>
+
+        <template #footer>
+          <span class="text-sm text-grey-5" v-if="changed">Unsaved changes</span>
+          <q-btn
+            unelevated
+            no-caps
+            color="toneflix"
+            type="submit"
+            label="Save"
+            class="flex-none!"
+            :loading="saving"
+            :disable="!changed"
+          />
+        </template>
+      </SettingsSections>
+    </q-form>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useMeta } from 'quasar';
 import SettingsSections, { type SettingsSection } from 'src/components/Admin/SettingsSections.vue';

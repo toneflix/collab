@@ -77,7 +77,7 @@
       </q-item>
     </q-list>
     <ListSkeleton avatar="square" class="px-4" v-else-if="loading" />
-    <SimpleInfo class="px-4 pb-4" :text="`No ${section.title.toLowerCase()} match.`" v-else />
+    <SimpleInfo class="mx-4 mb-4" :text="`No ${section.title.toLowerCase()} match.`" v-else />
 
     <div class="flex justify-center py-6" v-if="pageCount > 1">
       <q-pagination class="flex-none!" v-model="page" :max="pageCount" :max-pages="7" direction-links boundary-numbers />
