@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
+    <div>
+      <div class="page-head">
         <h1 class="text-3xl font-circlular-std">Assistant</h1>
         <p class="text-grey-5">Ask for moderation work in plain words. Changes wait for your confirmation.</p>
       </div>
@@ -430,7 +430,7 @@ onMounted(() => void loadChats());
   flex-wrap: nowrap;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin: 16px 0;
   padding: 10px 14px;
   font-size: 14px;
   border: 1px solid rgba(255, 193, 7, 0.3);
@@ -438,15 +438,18 @@ onMounted(() => void loadChats());
   background: rgba(255, 193, 7, 0.08);
 }
 
+.page-head {
+  padding: 24px 0 16px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--tf-border);
+}
+
 .assistant {
   display: flex;
   flex-wrap: nowrap;
-  height: calc(100vh - 300px);
+  height: calc(100vh - 230px);
   min-height: 480px;
   overflow: hidden;
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-lg);
-  background: var(--tf-surface-1);
 }
 
 .chats {
@@ -520,7 +523,6 @@ onMounted(() => void loadChats());
     gap: 8px;
     min-height: 52px;
     padding: 8px 16px;
-    border-bottom: 1px solid var(--tf-border);
   }
 
   &__title {
@@ -716,7 +718,6 @@ onMounted(() => void loadChats());
   align-items: flex-end;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid var(--tf-border);
 
   &__input {
     flex: 1 1 auto;
