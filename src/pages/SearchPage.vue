@@ -217,14 +217,6 @@
                     {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" />
                   </span>
                 </q-item-label>
-                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" :styles="track.styles ?? null" v-if="showTags" />
-              </q-item-section>
-              <q-item-section
-                side
-                class="max-sm:hidden!"
-                v-if="showTags && (track.tags?.bpm || track.tags?.key || track.styles?.moods?.length)"
-              >
-                <AudioTagChips :tags="track.tags" :styles="track.styles ?? null" />
               </q-item-section>
               <q-item-section side class="text-xs">
                 <div class="flex items-center gap-2 no-wrap">
@@ -263,7 +255,6 @@ import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { useMeta } from 'quasar';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import { MOODS, MUSICAL_KEYS, moodLabel } from 'src/utils/requests/tags';
 import { usePlayerStore } from 'src/stores/player-store';
 import { formatSeconds } from 'src/utils/helpers';
@@ -317,8 +308,6 @@ const setFilter = (name: FilterName, value: string | number | null) => setFilter
 
 /** Closed at first; filters already in the address show as chips beside the button. */
 const advanced = ref(false);
-/** Tempo, key and mood pills on results only matter while searching by them. */
-const showTags = computed(() => advanced.value || filtering.value);
 const filterCount = computed(
   () =>
     [filters.value.bpm_min || filters.value.bpm_max, filters.value.key, filters.value.mood.length].filter(Boolean).length,
