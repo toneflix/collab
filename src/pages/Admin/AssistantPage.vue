@@ -70,7 +70,7 @@
                 <template v-for="message in ordered" :key="message.id">
                   <div class="bubble bubble--admin" v-if="message.role === 'admin'">{{ message.content }}</div>
 
-                  <div class="bubble bubble--assistant" v-else-if="message.role === 'assistant'">{{ message.content }}</div>
+                  <MarkdownText class="bubble bubble--assistant" :text="message.content" v-else-if="message.role === 'assistant'" />
 
                   <div class="tool" :class="{ 'tool--failed': message.error }" v-else-if="message.role === 'tool'">
                     <q-icon :name="message.error ? 'lucide-circle-x' : 'lucide-check'" size="14px" class="flex-none!" />
@@ -187,6 +187,7 @@
 
 <script setup lang="ts">
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
+import MarkdownText from 'src/components/Utilities/MarkdownText.vue';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { date, debounce, useMeta, useQuasar } from 'quasar';
@@ -564,6 +565,7 @@ onMounted(() => void loadChats());
 
   &--assistant {
     align-self: flex-start;
+    white-space: normal;
     background: var(--tf-surface-2);
     border-bottom-left-radius: 4px;
   }
