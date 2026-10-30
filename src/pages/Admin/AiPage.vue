@@ -1,151 +1,267 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">AI tools</h1>
-        <p class="text-grey-5">
-          Plans choose who gets the tools and how many credits come each month.
-          Everyone with the tools can buy more credits.
-        </p>
-      </div>
+  <PanePage title="AI tools">
+    <template #subtitle>
+      Plans choose who gets the tools and how many credits come each month.
+      Everyone with the tools can buy more credits.
+    </template>
 
-      <BlockSkeleton variant="form" :count="6" v-if="loading && !settings" />
+    <BlockSkeleton variant="form" :count="6" v-if="loading && !settings" />
 
-      <q-form @submit="save" v-else-if="settings">
-        <SettingsSections :sections="sections" :marked="unsaved">
-          <template #general>
-            <div class="toggle-card">
-              <q-toggle color="toneflix" v-model="form.ai_enabled" />
-              <div class="min-w-0">
-                <div class="font-bold">AI tools in the studio</div>
-                <div class="text-sm text-grey-5">
-                  For people on plans that include them.
-                </div>
+    <q-form @submit="save" v-else-if="settings">
+      <SettingsSections :sections="sections" :marked="unsaved">
+        <template #general>
+          <div class="toggle-card">
+            <q-toggle color="toneflix" v-model="form.ai_enabled" />
+            <div class="min-w-0">
+              <div class="font-bold">AI tools in the studio</div>
+              <div class="text-sm text-grey-5">
+                For people on plans that include them.
               </div>
-              <q-badge
-                rounded
-                :color="settings.client.enabled ? 'green-9' : 'grey-8'"
-                :label="settings.client.enabled ? 'On' : 'Off'"
-              />
             </div>
+            <q-badge
+              rounded
+              :color="settings.client.enabled ? 'green-9' : 'grey-8'"
+              :label="settings.client.enabled ? 'On' : 'Off'"
+            />
+          </div>
 
-            <p class="mt-6 mb-4 text-sm text-grey-5">
-              Keys go in the API's .env. Replicate runs every tool unless you
-              switch it to Suno or Cloudflare Workers AI in its section.
-            </p>
-            <div class="engines">
-              <div class="engine">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="font-bold flex-none!">Replicate</span>
+          <p class="mt-6 mb-4 text-sm text-grey-5">
+            Keys go in the API's .env. Replicate runs every tool unless you
+            switch it to Suno or Cloudflare Workers AI in its section.
+          </p>
+          <div class="engines">
+            <div class="engine">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold flex-none!">Replicate</span>
+                <q-badge
+                  rounded
+                  class="flex-none!"
+                  :color="
+                    settings.client.engines.replicate ? 'green-9' : 'grey-8'
+                  "
+                  :label="
+                    settings.client.engines.replicate ? 'Ready' : 'No key'
+                  "
+                />
+              </div>
+              <p class="mb-2 text-xs text-grey-5">
+                Music models, Demucs stems, Whisper lyrics and the AI
+                moderator. Create a token at replicate.com/account/api-tokens.
+              </p>
+              <EnvKeys :keys="settings.keys.replicate" />
+            </div>
+            <div class="engine">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold flex-none!">Suno</span>
+                <q-badge
+                  rounded
+                  class="flex-none!"
+                  :color="settings.client.engines.suno ? 'green-9' : 'grey-8'"
+                  :label="settings.client.engines.suno ? 'Ready' : 'No key'"
+                />
+              </div>
+              <p class="mb-2 text-xs text-grey-5">
+                Songs and stems through sunoapi.org, a reseller, not Suno
+                itself. Its terms don't say who owns what it makes. Get a key
+                at sunoapi.org/api-key.
+              </p>
+              <EnvKeys :keys="settings.keys.suno" />
+            </div>
+            <div class="engine">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold flex-none!"
+                  >Cloudflare Workers AI</span
+                >
+                <q-badge
+                  rounded
+                  class="flex-none!"
+                  :color="
+                    settings.client.engines.cloudflare ? 'green-9' : 'grey-8'
+                  "
+                  :label="
+                    settings.client.engines.cloudflare ? 'Ready' : 'No key'
+                  "
+                />
+              </div>
+              <p class="mb-2 text-xs text-grey-5">
+                ElevenLabs and MiniMax music, Whisper lyrics, Composer and the
+                AI moderator. No stem splitting. Create a token with the
+                Workers AI permission at
+                dash.cloudflare.com/profile/api-tokens.
+              </p>
+              <EnvKeys :keys="settings.keys.cloudflare" />
+            </div>
+          </div>
+        </template>
+
+        <template #music>
+          <p class="mb-4 text-sm text-grey-5">
+            The studio generates music with this model. Each model has its own
+            price in credits. Jobs already started keep the model and price
+            they started with.
+          </p>
+          <div class="models">
+            <label
+              class="model"
+              :class="{ 'model--on': form.ai_music_model === model.id }"
+              :key="model.id"
+              v-for="model in settings.models"
+            >
+              <q-radio
+                dense
+                dark
+                color="toneflix"
+                class="flex-none!"
+                :val="model.id"
+                v-model="form.ai_music_model"
+              />
+              <div class="min-w-0 model__body">
+                <div class="flex items-baseline gap-2">
+                  <span class="font-bold flex-none!">{{ model.name }}</span>
+                  <code class="text-xs text-grey-6 flex-none!">{{
+                    model.id
+                  }}</code>
                   <q-badge
                     rounded
+                    color="orange-9"
                     class="flex-none!"
-                    :color="
-                      settings.client.engines.replicate ? 'green-9' : 'grey-8'
-                    "
-                    :label="
-                      settings.client.engines.replicate ? 'Ready' : 'No key'
-                    "
+                    label="Needs its key"
+                    v-if="!settings.client.engines[model.engine]"
                   />
                 </div>
-                <p class="mb-2 text-xs text-grey-5">
-                  Music models, Demucs stems, Whisper lyrics and the AI
-                  moderator. Create a token at replicate.com/account/api-tokens.
-                </p>
-                <EnvKeys :keys="settings.keys.replicate" />
+                <div class="text-sm text-grey-5">{{ model.description }}</div>
+                <div class="model__tags">
+                  <q-chip
+                    dense
+                    square
+                    dark
+                    color="grey-9"
+                    class="flex-none!"
+                    :key="tag"
+                    v-for="tag in modelTags(model)"
+                    >{{ tag }}</q-chip
+                  >
+                </div>
+                <q-input
+                  dark
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  class="model__credits"
+                  :label="
+                    model.pricing === 'per10s'
+                      ? 'Credits per 10 seconds'
+                      : 'Credits per song'
+                  "
+                  :hint="fields[model.creditsSetting]?.hint"
+                  v-model.number="form.credits[model.creditsSetting]"
+                />
+                <div class="model__extra" v-if="model.engine === 'suno'">
+                  <q-select
+                    dark
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    class="model__credits"
+                    :label="fields.ai_suno_model?.title"
+                    :hint="fields.ai_suno_model?.hint"
+                    :options="sunoVersions"
+                    v-model="form.ai_suno_model"
+                  />
+                  <q-toggle
+                    dark
+                    color="toneflix"
+                    :label="fields.ai_suno_keep_both?.title"
+                    v-model="form.ai_suno_keep_both"
+                  />
+                  <div class="text-xs text-grey-5">
+                    {{ fields.ai_suno_keep_both?.hint }}
+                  </div>
+                </div>
               </div>
-              <div class="engine">
-                <div class="flex items-center gap-2 mb-1">
+            </label>
+          </div>
+        </template>
+
+        <template #stems>
+          <p class="mb-4 text-sm text-grey-5">
+            {{ fields.ai_stems_engine?.hint }} Jobs already started keep the
+            engine and price they started with.
+          </p>
+          <div class="models">
+            <label
+              class="model"
+              :class="{ 'model--on': form.ai_stems_engine === 'replicate' }"
+            >
+              <q-radio
+                dense
+                dark
+                color="toneflix"
+                class="flex-none!"
+                val="replicate"
+                v-model="form.ai_stems_engine"
+              />
+              <div class="min-w-0 model__body">
+                <div class="font-bold">Demucs on Replicate</div>
+                <div class="text-sm text-grey-5">
+                  Vocals, drums, bass and other, as lossless parts that add up
+                  to the song exactly.
+                </div>
+                <q-input
+                  dark
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  class="mt-4 model__credits"
+                  label="Credits per split"
+                  :hint="fields.ai_stems_credits?.hint"
+                  v-model.number="form.ai_stems_credits"
+                />
+              </div>
+            </label>
+            <label
+              class="model"
+              :class="{ 'model--on': form.ai_stems_engine === 'suno' }"
+            >
+              <q-radio
+                dense
+                dark
+                color="toneflix"
+                class="flex-none!"
+                val="suno"
+                v-model="form.ai_stems_engine"
+              />
+              <div class="min-w-0 model__body">
+                <div class="flex items-baseline gap-2">
                   <span class="font-bold flex-none!">Suno</span>
                   <q-badge
                     rounded
+                    color="orange-9"
                     class="flex-none!"
-                    :color="settings.client.engines.suno ? 'green-9' : 'grey-8'"
-                    :label="settings.client.engines.suno ? 'Ready' : 'No key'"
+                    label="Needs its key"
+                    v-if="!settings.client.engines.suno"
                   />
                 </div>
-                <p class="mb-2 text-xs text-grey-5">
-                  Songs and stems through sunoapi.org, a reseller, not Suno
-                  itself. Its terms don't say who owns what it makes. Get a key
-                  at sunoapi.org/api-key.
-                </p>
-                <EnvKeys :keys="settings.keys.suno" />
-              </div>
-              <div class="engine">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="font-bold flex-none!"
-                    >Cloudflare Workers AI</span
-                  >
-                  <q-badge
-                    rounded
-                    class="flex-none!"
-                    :color="
-                      settings.client.engines.cloudflare ? 'green-9' : 'grey-8'
-                    "
-                    :label="
-                      settings.client.engines.cloudflare ? 'Ready' : 'No key'
-                    "
-                  />
+                <div class="text-sm text-grey-5">
+                  Up to 12 parts, like backing vocals, guitar and synth. Songs
+                  Suno made are split without uploading them again.
                 </div>
-                <p class="mb-2 text-xs text-grey-5">
-                  ElevenLabs and MiniMax music, Whisper lyrics, Composer and the
-                  AI moderator. No stem splitting. Create a token with the
-                  Workers AI permission at
-                  dash.cloudflare.com/profile/api-tokens.
-                </p>
-                <EnvKeys :keys="settings.keys.cloudflare" />
-              </div>
-            </div>
-          </template>
-
-          <template #music>
-            <p class="mb-4 text-sm text-grey-5">
-              The studio generates music with this model. Each model has its own
-              price in credits. Jobs already started keep the model and price
-              they started with.
-            </p>
-            <div class="models">
-              <label
-                class="model"
-                :class="{ 'model--on': form.ai_music_model === model.id }"
-                :key="model.id"
-                v-for="model in settings.models"
-              >
-                <q-radio
-                  dense
-                  dark
-                  color="toneflix"
-                  class="flex-none!"
-                  :val="model.id"
-                  v-model="form.ai_music_model"
-                />
-                <div class="min-w-0 model__body">
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-bold flex-none!">{{ model.name }}</span>
-                    <code class="text-xs text-grey-6 flex-none!">{{
-                      model.id
-                    }}</code>
-                    <q-badge
-                      rounded
-                      color="orange-9"
-                      class="flex-none!"
-                      label="Needs its key"
-                      v-if="!settings.client.engines[model.engine]"
-                    />
-                  </div>
-                  <div class="text-sm text-grey-5">{{ model.description }}</div>
-                  <div class="model__tags">
-                    <q-chip
-                      dense
-                      square
-                      dark
-                      color="grey-9"
-                      class="flex-none!"
-                      :key="tag"
-                      v-for="tag in modelTags(model)"
-                      >{{ tag }}</q-chip
-                    >
-                  </div>
+                <div class="model__extra">
+                  <q-select
+                    dark
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    class="model__credits"
+                    :label="fields.ai_stems_suno_type?.title"
+                    :hint="fields.ai_stems_suno_type?.hint"
+                    :options="sunoStemTypes"
+                    v-model="form.ai_stems_suno_type"
+                  />
                   <q-input
                     dark
                     outlined
@@ -153,518 +269,398 @@
                     type="number"
                     min="1"
                     class="model__credits"
-                    :label="
-                      model.pricing === 'per10s'
-                        ? 'Credits per 10 seconds'
-                        : 'Credits per song'
-                    "
-                    :hint="fields[model.creditsSetting]?.hint"
-                    v-model.number="form.credits[model.creditsSetting]"
-                  />
-                  <div class="model__extra" v-if="model.engine === 'suno'">
-                    <q-select
-                      dark
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                      class="model__credits"
-                      :label="fields.ai_suno_model?.title"
-                      :hint="fields.ai_suno_model?.hint"
-                      :options="sunoVersions"
-                      v-model="form.ai_suno_model"
-                    />
-                    <q-toggle
-                      dark
-                      color="toneflix"
-                      :label="fields.ai_suno_keep_both?.title"
-                      v-model="form.ai_suno_keep_both"
-                    />
-                    <div class="text-xs text-grey-5">
-                      {{ fields.ai_suno_keep_both?.hint }}
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </template>
-
-          <template #stems>
-            <p class="mb-4 text-sm text-grey-5">
-              {{ fields.ai_stems_engine?.hint }} Jobs already started keep the
-              engine and price they started with.
-            </p>
-            <div class="models">
-              <label
-                class="model"
-                :class="{ 'model--on': form.ai_stems_engine === 'replicate' }"
-              >
-                <q-radio
-                  dense
-                  dark
-                  color="toneflix"
-                  class="flex-none!"
-                  val="replicate"
-                  v-model="form.ai_stems_engine"
-                />
-                <div class="min-w-0 model__body">
-                  <div class="font-bold">Demucs on Replicate</div>
-                  <div class="text-sm text-grey-5">
-                    Vocals, drums, bass and other, as lossless parts that add up
-                    to the song exactly.
-                  </div>
-                  <q-input
-                    dark
-                    outlined
-                    dense
-                    type="number"
-                    min="1"
-                    class="mt-4 model__credits"
                     label="Credits per split"
-                    :hint="fields.ai_stems_credits?.hint"
-                    v-model.number="form.ai_stems_credits"
+                    :hint="fields.ai_stems_suno_credits?.hint"
+                    v-model.number="form.ai_stems_suno_credits"
                   />
                 </div>
-              </label>
-              <label
-                class="model"
-                :class="{ 'model--on': form.ai_stems_engine === 'suno' }"
+              </div>
+            </label>
+          </div>
+        </template>
+
+        <template #credits>
+          <p class="mb-4 text-sm text-grey-5">
+            A Demucs split costs us about $0.03, a 30 second ElevenLabs track
+            about $0.08, a MiniMax 2.6 song on Workers AI $0.15 and a Suno
+            song about $0.06. The defaults sell a credit for about four times
+            what it costs us.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="0"
+              step="0.001"
+              :prefix="settings.currency"
+              :label="fields.ai_credit_price?.title"
+              :hint="fields.ai_credit_price?.hint"
+              v-model.number="form.ai_credit_price"
+            />
+            <q-input
+              dark
+              outlined
+              :label="fields.ai_credit_packs?.title"
+              :hint="fields.ai_credit_packs?.hint"
+              v-model="form.ai_credit_packs"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="10"
+              max="300"
+              :label="fields.ai_music_max_seconds?.title"
+              :hint="fields.ai_music_max_seconds?.hint"
+              v-model.number="form.ai_music_max_seconds"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_edit_credits?.title"
+              :hint="fields.ai_edit_credits?.hint"
+              v-model.number="form.ai_edit_credits"
+            />
+          </div>
+
+          <div class="mt-8 text-sm" v-if="settings.client.packs.length">
+            <div class="mb-1 text-grey-5">Packs on sale</div>
+            <div class="flex flex-wrap gap-2">
+              <q-chip
+                dark
+                square
+                class="flex-none!"
+                :key="pack.credits"
+                v-for="pack in settings.client.packs"
               >
-                <q-radio
-                  dense
-                  dark
-                  color="toneflix"
-                  class="flex-none!"
-                  val="suno"
-                  v-model="form.ai_stems_engine"
-                />
-                <div class="min-w-0 model__body">
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-bold flex-none!">Suno</span>
-                    <q-badge
-                      rounded
-                      color="orange-9"
-                      class="flex-none!"
-                      label="Needs its key"
-                      v-if="!settings.client.engines.suno"
-                    />
-                  </div>
-                  <div class="text-sm text-grey-5">
-                    Up to 12 parts, like backing vocals, guitar and synth. Songs
-                    Suno made are split without uploading them again.
-                  </div>
-                  <div class="model__extra">
-                    <q-select
-                      dark
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                      class="model__credits"
-                      :label="fields.ai_stems_suno_type?.title"
-                      :hint="fields.ai_stems_suno_type?.hint"
-                      :options="sunoStemTypes"
-                      v-model="form.ai_stems_suno_type"
-                    />
-                    <q-input
-                      dark
-                      outlined
-                      dense
-                      type="number"
-                      min="1"
-                      class="model__credits"
-                      label="Credits per split"
-                      :hint="fields.ai_stems_suno_credits?.hint"
-                      v-model.number="form.ai_stems_suno_credits"
-                    />
-                  </div>
-                </div>
-              </label>
-            </div>
-          </template>
-
-          <template #credits>
-            <p class="mb-4 text-sm text-grey-5">
-              A Demucs split costs us about $0.03, a 30 second ElevenLabs track
-              about $0.08, a MiniMax 2.6 song on Workers AI $0.15 and a Suno
-              song about $0.06. The defaults sell a credit for about four times
-              what it costs us.
-            </p>
-            <div class="grid gap-3 sm:grid-cols-2">
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="0"
-                step="0.001"
-                :prefix="settings.currency"
-                :label="fields.ai_credit_price?.title"
-                :hint="fields.ai_credit_price?.hint"
-                v-model.number="form.ai_credit_price"
-              />
-              <q-input
-                dark
-                outlined
-                :label="fields.ai_credit_packs?.title"
-                :hint="fields.ai_credit_packs?.hint"
-                v-model="form.ai_credit_packs"
-              />
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="10"
-                max="300"
-                :label="fields.ai_music_max_seconds?.title"
-                :hint="fields.ai_music_max_seconds?.hint"
-                v-model.number="form.ai_music_max_seconds"
-              />
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                :label="fields.ai_edit_credits?.title"
-                :hint="fields.ai_edit_credits?.hint"
-                v-model.number="form.ai_edit_credits"
-              />
-            </div>
-
-            <div class="mt-8 text-sm" v-if="settings.client.packs.length">
-              <div class="mb-1 text-grey-5">Packs on sale</div>
-              <div class="flex flex-wrap gap-2">
-                <q-chip
-                  dark
-                  square
-                  class="flex-none!"
-                  :key="pack.credits"
-                  v-for="pack in settings.client.packs"
+                {{ pack.credits.toLocaleString() }} credits ·
+                {{ price(pack.price)
+                }}<template v-if="pack.discount">
+                  · {{ pack.discount }}% off</template
                 >
-                  {{ pack.credits.toLocaleString() }} credits ·
-                  {{ price(pack.price)
-                  }}<template v-if="pack.discount">
-                    · {{ pack.discount }}% off</template
-                  >
-                </q-chip>
-              </div>
+              </q-chip>
             </div>
-          </template>
+          </div>
+        </template>
 
-          <template #lyrics>
-            <p class="mb-4 text-sm text-grey-5">
-              Whisper writes out lyrics for about $0.001 a track, on Replicate
-              or Cloudflare Workers AI. Released tracks show synced lyrics in
-              the player and can be found by their words. Explicit words mark a
-              track explicit, and words to review send it to the moderation
-              queue.
-            </p>
-            <div class="toggle-card mb-4">
-              <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
-              <div class="min-w-0">
-                <div class="font-bold">{{ fields.ai_lyrics_auto?.title }}</div>
-                <div class="text-sm text-grey-5">
-                  {{ fields.ai_lyrics_auto?.hint }}
-                </div>
+        <template #lyrics>
+          <p class="mb-4 text-sm text-grey-5">
+            Whisper writes out lyrics for about $0.001 a track, on Replicate
+            or Cloudflare Workers AI. Released tracks show synced lyrics in
+            the player and can be found by their words. Explicit words mark a
+            track explicit, and words to review send it to the moderation
+            queue.
+          </p>
+          <div class="toggle-card mb-4">
+            <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
+            <div class="min-w-0">
+              <div class="font-bold">{{ fields.ai_lyrics_auto?.title }}</div>
+              <div class="text-sm text-grey-5">
+                {{ fields.ai_lyrics_auto?.hint }}
               </div>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2">
-              <q-select
-                dark
-                outlined
-                emit-value
-                map-options
-                :label="fields.ai_lyrics_engine?.title"
-                :hint="fields.ai_lyrics_engine?.hint"
-                :options="engineOptions('ai_lyrics_engine')"
-                v-model="form.ai_lyrics_engine"
-              >
-                <template #append>
-                  <q-badge
-                    rounded
-                    color="orange-9"
-                    label="Needs its key"
-                    v-if="needsKey(form.ai_lyrics_engine)"
-                  />
-                </template>
-              </q-select>
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                :label="fields.ai_lyrics_credits?.title"
-                :hint="fields.ai_lyrics_credits?.hint"
-                v-model.number="form.ai_lyrics_credits"
-              />
-              <q-input
-                dark
-                outlined
-                autogrow
-                :label="fields.ai_lyrics_explicit_words?.title"
-                :hint="fields.ai_lyrics_explicit_words?.hint"
-                v-model="form.ai_lyrics_explicit_words"
-              />
-              <q-input
-                dark
-                outlined
-                autogrow
-                :label="fields.ai_lyrics_review_words?.title"
-                :hint="fields.ai_lyrics_review_words?.hint"
-                v-model="form.ai_lyrics_review_words"
-              />
-            </div>
-          </template>
-
-          <template #artwork>
-            <p class="mb-4 text-sm text-grey-5">
-              Project, release, track and artist forms can draw their artwork
-              from a prompt. FLUX.1 [schnell] draws each image for about
-              $0.003, on Replicate or Cloudflare Workers AI, and people pick
-              the one they like.
-            </p>
-            <div class="grid gap-3 sm:grid-cols-2">
-              <q-select
-                dark
-                outlined
-                emit-value
-                map-options
-                :label="fields.ai_artwork_engine?.title"
-                :hint="fields.ai_artwork_engine?.hint"
-                :options="engineOptions('ai_artwork_engine')"
-                v-model="form.ai_artwork_engine"
-              >
-                <template #append>
-                  <q-badge
-                    rounded
-                    color="orange-9"
-                    label="Needs its key"
-                    v-if="needsKey(form.ai_artwork_engine)"
-                  />
-                </template>
-              </q-select>
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                :label="fields.ai_artwork_credits?.title"
-                :hint="fields.ai_artwork_credits?.hint"
-                v-model.number="form.ai_artwork_credits"
-              />
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                max="4"
-                :label="fields.ai_artwork_images?.title"
-                :hint="fields.ai_artwork_images?.hint"
-                v-model.number="form.ai_artwork_images"
-              />
-            </div>
-          </template>
-
-          <template #tags>
-            <p class="mb-4 text-sm text-grey-5">
-              New tracks and studio mixes are tagged with their BPM and key,
-              which show in the player, on track pages and in the studio, and
-              can be searched. Creators can correct them. Run
-              <code>php artisan tags:detect</code> once to tag older tracks.
-            </p>
-            <div class="toggle-card">
-              <q-toggle color="toneflix" v-model="form.ai_tags_auto" />
-              <div class="min-w-0">
-                <div class="font-bold">{{ fields.ai_tags_auto?.title }}</div>
-                <div class="text-sm text-grey-5">
-                  {{ fields.ai_tags_auto?.hint }}
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <template #composer>
-            <p class="mb-4 text-sm text-grey-5">
-              Composer is the lyrics notepad in the studio. Its suggestions run
-              on the engine picked here and need a plan with AI tools.
-            </p>
-            <div class="flex flex-col gap-3">
-              <div class="grid gap-3 sm:grid-cols-2">
-                <q-select
-                  dark
-                  outlined
-                  emit-value
-                  map-options
-                  :label="fields.composer_word_source?.title"
-                  :hint="fields.composer_word_source?.hint"
-                  :options="wordSources"
-                  v-model="form.composer_word_source"
-                />
-                <div class="text-sm" v-if="settings?.keys.datamuse">
-                  <EnvKeys :keys="settings.keys.datamuse" />
-                </div>
-                <q-select
-                  dark
-                  outlined
-                  emit-value
-                  map-options
-                  :label="fields.ai_composer_engine?.title"
-                  :hint="fields.ai_composer_engine?.hint"
-                  :options="engineOptions('ai_composer_engine')"
-                  v-model="form.ai_composer_engine"
-                >
-                  <template #append>
-                    <q-badge
-                      rounded
-                      color="orange-9"
-                      label="Needs its key"
-                      v-if="needsKey(form.ai_composer_engine)"
-                    />
-                  </template>
-                </q-select>
-                <q-input
-                  dark
-                  outlined
-                  :label="fields.ai_composer_cloudflare_model?.title"
-                  :hint="fields.ai_composer_cloudflare_model?.hint"
-                  v-model="form.ai_composer_cloudflare_model"
-                  v-if="form.ai_composer_engine === 'cloudflare'"
-                />
-                <q-input
-                  dark
-                  outlined
-                  :label="fields.ai_composer_model?.title"
-                  :hint="fields.ai_composer_model?.hint"
-                  v-model="form.ai_composer_model"
-                  v-else
-                />
-                <q-select
-                  dark
-                  outlined
-                  emit-value
-                  map-options
-                  :label="fields.ai_composer_music_model?.title"
-                  :hint="fields.ai_composer_music_model?.hint"
-                  :options="composerMusicModels"
-                  v-model="form.ai_composer_music_model"
-                />
-              </div>
-              <div class="grid gap-3 grid-cols-2 sm:grid-cols-4">
-                <q-input
-                  dark
-                  outlined
-                  type="number"
-                  min="1"
-                  :key="key"
-                  :label="composerCostLabels[key]"
-                  :hint="fields[key]?.hint"
-                  v-model.number="form[key]"
-                  v-for="key in composerCosts"
-                />
-              </div>
-            </div>
-          </template>
-
-          <template #moderator>
-            <p class="mb-4 text-sm text-grey-5">
-              Reviews artist claims and releases waiting for approval, and ranks
-              tracks uploaded straight to a release. Admins can send claims and
-              releases from the moderation queue and tracks from Content, and
-              those always get a decision. Items sent automatically are only
-              decided when the moderator is confident enough; the rest stay
-              flagged for a person. It runs on the engine picked here.
-            </p>
-            <div class="flex flex-col gap-3">
-              <div
-                class="toggle-card"
-                :key="key"
-                v-for="key in moderatorToggles"
-              >
-                <q-toggle color="toneflix" v-model="form[key]" />
-                <div class="min-w-0">
-                  <div class="font-bold">{{ fields[key]?.title }}</div>
-                  <div class="text-sm text-grey-5">{{ fields[key]?.hint }}</div>
-                </div>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <q-select
-                  dark
-                  outlined
-                  emit-value
-                  map-options
-                  :label="fields.ai_moderator_engine?.title"
-                  :hint="fields.ai_moderator_engine?.hint"
-                  :options="engineOptions('ai_moderator_engine')"
-                  v-model="form.ai_moderator_engine"
-                >
-                  <template #append>
-                    <q-badge
-                      rounded
-                      color="orange-9"
-                      label="Needs its key"
-                      v-if="needsKey(form.ai_moderator_engine)"
-                    />
-                  </template>
-                </q-select>
-                <q-input
-                  dark
-                  outlined
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  :label="fields.ai_moderator_confidence?.title"
-                  :hint="fields.ai_moderator_confidence?.hint"
-                  v-model.number="form.ai_moderator_confidence"
-                />
-              </div>
-            </div>
-          </template>
-
-          <template #assistant>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
             <q-select
               dark
               outlined
               emit-value
               map-options
-              :label="fields.ai_assistant_engine?.title"
-              :hint="fields.ai_assistant_engine?.hint"
-              :options="engineOptions('ai_assistant_engine')"
-              v-model="form.ai_assistant_engine"
+              :label="fields.ai_lyrics_engine?.title"
+              :hint="fields.ai_lyrics_engine?.hint"
+              :options="engineOptions('ai_lyrics_engine')"
+              v-model="form.ai_lyrics_engine"
             >
               <template #append>
                 <q-badge
                   rounded
                   color="orange-9"
                   label="Needs its key"
-                  v-if="needsKey(form.ai_assistant_engine)"
+                  v-if="needsKey(form.ai_lyrics_engine)"
                 />
               </template>
             </q-select>
-          </template>
-
-          <template #footer>
-            <span class="text-sm text-grey-5" v-if="changed"
-              >Unsaved changes</span
-            >
-            <q-btn
-              unelevated
-              rounded
-              no-caps
-              type="submit"
-              color="toneflix"
-              label="Save"
-              class="flex-none!"
-              :loading="saving"
-              :disable="!changed"
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_lyrics_credits?.title"
+              :hint="fields.ai_lyrics_credits?.hint"
+              v-model.number="form.ai_lyrics_credits"
             />
-          </template>
-        </SettingsSections>
-      </q-form>
-    </div>
-  </q-page>
+            <q-input
+              dark
+              outlined
+              autogrow
+              :label="fields.ai_lyrics_explicit_words?.title"
+              :hint="fields.ai_lyrics_explicit_words?.hint"
+              v-model="form.ai_lyrics_explicit_words"
+            />
+            <q-input
+              dark
+              outlined
+              autogrow
+              :label="fields.ai_lyrics_review_words?.title"
+              :hint="fields.ai_lyrics_review_words?.hint"
+              v-model="form.ai_lyrics_review_words"
+            />
+          </div>
+        </template>
+
+        <template #artwork>
+          <p class="mb-4 text-sm text-grey-5">
+            Project, release, track and artist forms can draw their artwork
+            from a prompt. FLUX.1 [schnell] draws each image for about
+            $0.003, on Replicate or Cloudflare Workers AI, and people pick
+            the one they like.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-select
+              dark
+              outlined
+              emit-value
+              map-options
+              :label="fields.ai_artwork_engine?.title"
+              :hint="fields.ai_artwork_engine?.hint"
+              :options="engineOptions('ai_artwork_engine')"
+              v-model="form.ai_artwork_engine"
+            >
+              <template #append>
+                <q-badge
+                  rounded
+                  color="orange-9"
+                  label="Needs its key"
+                  v-if="needsKey(form.ai_artwork_engine)"
+                />
+              </template>
+            </q-select>
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_artwork_credits?.title"
+              :hint="fields.ai_artwork_credits?.hint"
+              v-model.number="form.ai_artwork_credits"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              max="4"
+              :label="fields.ai_artwork_images?.title"
+              :hint="fields.ai_artwork_images?.hint"
+              v-model.number="form.ai_artwork_images"
+            />
+          </div>
+        </template>
+
+        <template #tags>
+          <p class="mb-4 text-sm text-grey-5">
+            New tracks and studio mixes are tagged with their BPM and key,
+            which show in the player, on track pages and in the studio, and
+            can be searched. Creators can correct them. Run
+            <code>php artisan tags:detect</code> once to tag older tracks.
+          </p>
+          <div class="toggle-card">
+            <q-toggle color="toneflix" v-model="form.ai_tags_auto" />
+            <div class="min-w-0">
+              <div class="font-bold">{{ fields.ai_tags_auto?.title }}</div>
+              <div class="text-sm text-grey-5">
+                {{ fields.ai_tags_auto?.hint }}
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template #composer>
+          <p class="mb-4 text-sm text-grey-5">
+            Composer is the lyrics notepad in the studio. Its suggestions run
+            on the engine picked here and need a plan with AI tools.
+          </p>
+          <div class="flex flex-col gap-3">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.composer_word_source?.title"
+                :hint="fields.composer_word_source?.hint"
+                :options="wordSources"
+                v-model="form.composer_word_source"
+              />
+              <div class="text-sm" v-if="settings?.keys.datamuse">
+                <EnvKeys :keys="settings.keys.datamuse" />
+              </div>
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.ai_composer_engine?.title"
+                :hint="fields.ai_composer_engine?.hint"
+                :options="engineOptions('ai_composer_engine')"
+                v-model="form.ai_composer_engine"
+              >
+                <template #append>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    label="Needs its key"
+                    v-if="needsKey(form.ai_composer_engine)"
+                  />
+                </template>
+              </q-select>
+              <q-input
+                dark
+                outlined
+                :label="fields.ai_composer_cloudflare_model?.title"
+                :hint="fields.ai_composer_cloudflare_model?.hint"
+                v-model="form.ai_composer_cloudflare_model"
+                v-if="form.ai_composer_engine === 'cloudflare'"
+              />
+              <q-input
+                dark
+                outlined
+                :label="fields.ai_composer_model?.title"
+                :hint="fields.ai_composer_model?.hint"
+                v-model="form.ai_composer_model"
+                v-else
+              />
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.ai_composer_music_model?.title"
+                :hint="fields.ai_composer_music_model?.hint"
+                :options="composerMusicModels"
+                v-model="form.ai_composer_music_model"
+              />
+            </div>
+            <div class="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="1"
+                :key="key"
+                :label="composerCostLabels[key]"
+                :hint="fields[key]?.hint"
+                v-model.number="form[key]"
+                v-for="key in composerCosts"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template #moderator>
+          <p class="mb-4 text-sm text-grey-5">
+            Reviews artist claims and releases waiting for approval, and ranks
+            tracks uploaded straight to a release. Admins can send claims and
+            releases from the moderation queue and tracks from Content, and
+            those always get a decision. Items sent automatically are only
+            decided when the moderator is confident enough; the rest stay
+            flagged for a person. It runs on the engine picked here.
+          </p>
+          <div class="flex flex-col gap-3">
+            <div
+              class="toggle-card"
+              :key="key"
+              v-for="key in moderatorToggles"
+            >
+              <q-toggle color="toneflix" v-model="form[key]" />
+              <div class="min-w-0">
+                <div class="font-bold">{{ fields[key]?.title }}</div>
+                <div class="text-sm text-grey-5">{{ fields[key]?.hint }}</div>
+              </div>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <q-select
+                dark
+                outlined
+                emit-value
+                map-options
+                :label="fields.ai_moderator_engine?.title"
+                :hint="fields.ai_moderator_engine?.hint"
+                :options="engineOptions('ai_moderator_engine')"
+                v-model="form.ai_moderator_engine"
+              >
+                <template #append>
+                  <q-badge
+                    rounded
+                    color="orange-9"
+                    label="Needs its key"
+                    v-if="needsKey(form.ai_moderator_engine)"
+                  />
+                </template>
+              </q-select>
+              <q-input
+                dark
+                outlined
+                type="number"
+                min="0"
+                max="100"
+                suffix="%"
+                :label="fields.ai_moderator_confidence?.title"
+                :hint="fields.ai_moderator_confidence?.hint"
+                v-model.number="form.ai_moderator_confidence"
+              />
+            </div>
+          </div>
+        </template>
+
+        <template #assistant>
+          <q-select
+            dark
+            outlined
+            emit-value
+            map-options
+            :label="fields.ai_assistant_engine?.title"
+            :hint="fields.ai_assistant_engine?.hint"
+            :options="engineOptions('ai_assistant_engine')"
+            v-model="form.ai_assistant_engine"
+          >
+            <template #append>
+              <q-badge
+                rounded
+                color="orange-9"
+                label="Needs its key"
+                v-if="needsKey(form.ai_assistant_engine)"
+              />
+            </template>
+          </q-select>
+        </template>
+
+        <template #footer>
+          <span class="text-sm text-grey-5" v-if="changed"
+            >Unsaved changes</span
+          >
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            type="submit"
+            color="toneflix"
+            label="Save"
+            class="flex-none!"
+            :loading="saving"
+            :disable="!changed"
+          />
+        </template>
+      </SettingsSections>
+    </q-form>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useMeta } from 'quasar';
 import SettingsSections, {

@@ -1,20 +1,16 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Content agent</h1>
-        <p class="text-grey-5">
-          Give it instructions to create new artists, albums and tracks on an agent account, or to fix
-          what's already there: fill in missing artwork, sync lyrics and release existing projects.
-        </p>
-      </div>
+  <PanePage title="Content agent">
+    <template #subtitle>
+      Give it instructions to create new artists, albums and tracks on an agent account, or to fix
+      what's already there: fill in missing artwork, sync lyrics and release existing projects.
+    </template>
 
-      <AgentWorkspace scope="admin" />
-    </div>
-  </q-page>
+    <AgentWorkspace scope="admin" />
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { useMeta } from 'quasar';
 import AgentWorkspace from 'src/components/Agent/AgentWorkspace.vue';
 

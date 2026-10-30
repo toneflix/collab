@@ -1,373 +1,369 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Sounds</h1>
-        <p class="text-grey-5">
-          The shared sound library in the studio, and Freesound search and
-          import. Only CC0 sounds are ever taken from Freesound, so creators can
-          use them in anything they sell, with no credit needed.
-        </p>
-      </div>
+  <PanePage title="Sounds">
+    <template #subtitle>
+      The shared sound library in the studio, and Freesound search and
+      import. Only CC0 sounds are ever taken from Freesound, so creators can
+      use them in anything they sell, with no credit needed.
+    </template>
 
-      <ListSkeleton avatar="square" v-if="loading" />
+    <ListSkeleton avatar="square" v-if="loading" />
 
-      <q-form v-else-if="settings" @submit="save">
-        <SettingsSections :sections="sections" :marked="unsaved">
-          <template #availability>
-            <div class="flex flex-col gap-3">
-              <div class="toggle-card">
-                <q-toggle
-                  color="toneflix"
-                  v-model="form.sounds_library_enabled"
-                />
-                <div class="min-w-0">
-                  <div class="font-bold">Sound library</div>
-                  <div class="text-sm text-grey-5">
-                    {{ settings.librarySize }}
-                    {{ settings.librarySize === 1 ? 'sound' : 'sounds' }},
-                    {{ settings.activeSize }} shown. The studio hides the
-                    library while it's off or has no sounds.
-                  </div>
+    <q-form v-else-if="settings" @submit="save">
+      <SettingsSections :sections="sections" :marked="unsaved">
+        <template #availability>
+          <div class="flex flex-col gap-3">
+            <div class="toggle-card">
+              <q-toggle
+                color="toneflix"
+                v-model="form.sounds_library_enabled"
+              />
+              <div class="min-w-0">
+                <div class="font-bold">Sound library</div>
+                <div class="text-sm text-grey-5">
+                  {{ settings.librarySize }}
+                  {{ settings.librarySize === 1 ? 'sound' : 'sounds' }},
+                  {{ settings.activeSize }} shown. The studio hides the
+                  library while it's off or has no sounds.
                 </div>
-                <q-badge
-                  rounded
-                  :color="settings.client.library ? 'green-9' : 'grey-8'"
-                  :label="settings.client.library ? 'Visible' : 'Hidden'"
-                />
               </div>
-
-              <div class="toggle-card">
-                <q-toggle color="toneflix" v-model="form.freesound_enabled" />
-                <div class="min-w-0">
-                  <div class="font-bold">Freesound for creators</div>
-                  <div class="text-sm text-grey-5">
-                    Creators can search Freesound and import CC0 sounds into My
-                    sounds with their own Freesound account.
-                  </div>
-                </div>
-                <q-badge
-                  rounded
-                  :color="settings.client.freesound ? 'green-9' : 'grey-8'"
-                  :label="settings.client.freesound ? 'On' : 'Off'"
-                />
-              </div>
-            </div>
-          </template>
-
-          <template #freesound>
-            <p class="mb-4 text-sm text-grey-5">
-              Create an API app at freesound.org/apiv2/apply and put its Client
-              ID and Client secret in the API's .env. Set the app's callback URL
-              to:
-            </p>
-            <div class="callback">
-              <code class="truncate">{{ callbackUrl }}</code>
-              <IconBtn
-                size="sm"
-                icon="lucide-copy"
-                aria-label="Copy the callback URL"
-                class="flex-none!"
-                @click="copyCallback"
+              <q-badge
+                rounded
+                :color="settings.client.library ? 'green-9' : 'grey-8'"
+                :label="settings.client.library ? 'Visible' : 'Hidden'"
               />
             </div>
-            <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
-          </template>
 
-          <template #sync>
-            <p class="mb-4 text-sm text-grey-5">
-              Each search adds CC0 sounds to the library, once a day and when
-              you press Sync now. Sounds already in the library are skipped.
-            </p>
-            <q-checkbox
-              dark
-              color="toneflix"
-              class="mb-4"
-              :label="
-                fields.freesound_sync_paused?.title || 'Pause library sync'
-              "
-              v-model="form.freesound_sync_paused"
-            />
-            <div
-              class="mb-8 -mt-2 text-sm text-grey-5"
-              v-if="fields.freesound_sync_paused?.hint"
-            >
-              {{ fields.freesound_sync_paused.hint }}
+            <div class="toggle-card">
+              <q-toggle color="toneflix" v-model="form.freesound_enabled" />
+              <div class="min-w-0">
+                <div class="font-bold">Freesound for creators</div>
+                <div class="text-sm text-grey-5">
+                  Creators can search Freesound and import CC0 sounds into My
+                  sounds with their own Freesound account.
+                </div>
+              </div>
+              <q-badge
+                rounded
+                :color="settings.client.freesound ? 'green-9' : 'grey-8'"
+                :label="settings.client.freesound ? 'On' : 'Off'"
+              />
             </div>
+          </div>
+        </template>
+
+        <template #freesound>
+          <p class="mb-4 text-sm text-grey-5">
+            Create an API app at freesound.org/apiv2/apply and put its Client
+            ID and Client secret in the API's .env. Set the app's callback URL
+            to:
+          </p>
+          <div class="callback">
+            <code class="truncate">{{ callbackUrl }}</code>
+            <IconBtn
+              size="sm"
+              icon="lucide-copy"
+              aria-label="Copy the callback URL"
+              class="flex-none!"
+              @click="copyCallback"
+            />
+          </div>
+          <EnvKeys class="mt-8" :keys="settings.keys.freesound" />
+        </template>
+
+        <template #sync>
+          <p class="mb-4 text-sm text-grey-5">
+            Each search adds CC0 sounds to the library, once a day and when
+            you press Sync now. Sounds already in the library are skipped.
+          </p>
+          <q-checkbox
+            dark
+            color="toneflix"
+            class="mb-4"
+            :label="
+              fields.freesound_sync_paused?.title || 'Pause library sync'
+            "
+            v-model="form.freesound_sync_paused"
+          />
+          <div
+            class="mb-8 -mt-2 text-sm text-grey-5"
+            v-if="fields.freesound_sync_paused?.hint"
+          >
+            {{ fields.freesound_sync_paused.hint }}
+          </div>
+          <q-input
+            dark
+            outlined
+            autogrow
+            type="textarea"
+            input-class="font-mono text-sm"
+            :label="fields.freesound_sync_queries?.title"
+            :hint="fields.freesound_sync_queries?.hint"
+            placeholder="Drums: drum loop 120bpm&#10;Bass: bass loop&#10;FX: riser"
+            v-model="form.freesound_sync_queries"
+          />
+          <div class="grid gap-3 mt-8 sm:grid-cols-2">
             <q-input
               dark
               outlined
-              autogrow
-              type="textarea"
-              input-class="font-mono text-sm"
-              :label="fields.freesound_sync_queries?.title"
-              :hint="fields.freesound_sync_queries?.hint"
-              placeholder="Drums: drum loop 120bpm&#10;Bass: bass loop&#10;FX: riser"
-              v-model="form.freesound_sync_queries"
+              type="number"
+              min="1"
+              max="150"
+              :label="fields.freesound_sync_limit?.title"
+              :hint="fields.freesound_sync_limit?.hint"
+              v-model.number="form.freesound_sync_limit"
             />
-            <div class="grid gap-3 mt-8 sm:grid-cols-2">
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                max="150"
-                :label="fields.freesound_sync_limit?.title"
-                :hint="fields.freesound_sync_limit?.hint"
-                v-model.number="form.freesound_sync_limit"
-              />
-              <q-input
-                dark
-                outlined
-                type="number"
-                min="1"
-                max="600"
-                :label="fields.freesound_sync_max_duration?.title"
-                :hint="fields.freesound_sync_max_duration?.hint"
-                v-model.number="form.freesound_sync_max_duration"
-              />
-            </div>
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              max="600"
+              :label="fields.freesound_sync_max_duration?.title"
+              :hint="fields.freesound_sync_max_duration?.hint"
+              v-model.number="form.freesound_sync_max_duration"
+            />
+          </div>
 
-            <div class="mt-8 text-sm">
-              <template v-if="settings.downloads.quality === 'original'">
-                Downloads original files with the Freesound account
-                <b>{{ settings.downloads.username || 'that was chosen' }}</b
-                >{{ settings.downloads.isMe ? ' (yours)' : '' }}.
-              </template>
-              <template v-else>
-                Downloads the high quality MP3 previews. Connect your Freesound
-                account and use it for the library to get the original files.
-              </template>
-            </div>
-            <div class="flex flex-wrap items-center gap-2 mt-2">
-              <q-btn
-                outline
-                rounded
-                no-caps
-                size="sm"
-                color="white"
-                class="flex-none!"
-                :label="
-                  settings.me.connected
-                    ? `Connected as ${settings.me.username || 'you'}`
-                    : 'Connect my Freesound account'
-                "
-                :icon="settings.me.connected ? 'check' : 'link'"
-                :disable="settings.me.connected || !settings.configured"
-                :loading="connecting"
-                @click="connect"
-              />
-              <q-btn
-                outline
-                rounded
-                no-caps
-                size="sm"
-                color="white"
-                class="flex-none!"
-                label="Use my account for the library"
-                :disable="!settings.me.connected || settings.downloads.isMe"
-                @click="useMine"
-              />
-            </div>
-            <div class="flex flex-wrap items-center gap-3 mt-8">
-              <q-btn
-                outline
-                rounded
-                no-caps
-                color="white"
-                icon="lucide-refresh-cw"
-                :label="settings.syncing ? 'Syncing…' : 'Sync now'"
-                class="flex-none!"
-                :loading="syncing"
-                :disable="
-                  !settings.configured ||
-                  changed ||
-                  settings.syncing ||
-                  syncPaused
-                "
-                @click="sync"
-              >
-                <q-tooltip v-if="changed">Save first</q-tooltip>
-                <q-tooltip v-else-if="syncPaused"
-                  >Library sync is paused</q-tooltip
-                >
-              </q-btn>
-              <span class="text-sm text-grey-5" v-if="settings.lastSync">
-                Last sync {{ when(settings.lastSync.at) }}:
-                {{ settings.lastSync.added }} added,
-                {{ settings.lastSync.skipped }} skipped<template
-                  v-if="settings.lastSync.failed"
-                  >, {{ settings.lastSync.failed }} failed</template
-                ><template v-if="settings.lastSync.paused"
-                  >, paused before it finished</template
-                >.
-              </span>
-            </div>
-            <q-banner
-              rounded
-              dense
-              class="mt-8 text-white bg-orange-10"
-              v-if="settings.lastSync?.errors.length"
-            >
-              <div class="font-bold">From the last sync:</div>
-              <div
-                class="text-sm"
-                :key="i"
-                v-for="(e, i) in settings.lastSync.errors"
-              >
-                {{ e }}
-              </div>
-            </q-banner>
-          </template>
-
-          <template #library>
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div class="flex items-center gap-2 no-wrap">
-                <q-input
-                  dense
-                  dark
-                  outlined
-                  clearable
-                  debounce="350"
-                  placeholder="Search"
-                  class="w-48"
-                  v-model="search"
-                >
-                  <template #prepend><q-icon name="lucide-search" /></template>
-                </q-input>
-                <input
-                  ref="fileInput"
-                  type="file"
-                  multiple
-                  class="hidden"
-                  accept="audio/*"
-                  @change="onFiles"
-                />
-                <q-btn
-                  unelevated
-                  rounded
-                  no-caps
-                  color="white"
-                  text-color="dark"
-                  icon="lucide-upload"
-                  label="Upload"
-                  class="flex-none!"
-                  :loading="uploading > 0"
-                  @click="fileInput?.click()"
-                />
-              </div>
-            </div>
-
-            <q-list dark separator bordered class="rounded-xl">
-              <SimpleInfo
-                class="m-3"
-                icon="lucide-audio-lines"
-                text="No sounds yet. Add sync searches and press Sync now, or upload sounds you have the rights to share."
-                v-if="!library.length && !listing"
-              />
-              <q-item :key="sound.id" v-for="sound in library">
-                <q-item-section avatar>
-                  <IconBtn
-                    :icon="
-                      playing === sound.id ? 'lucide-pause' : 'lucide-play'
-                    "
-                    :aria-label="`Play ${sound.name}`"
-                    @click="play(sound)"
-                  />
-                </q-item-section>
-                <q-item-section class="min-w-0">
-                  <q-item-label class="truncate">{{ sound.name }}</q-item-label>
-                  <q-item-label caption class="truncate">
-                    {{
-                      [
-                        sound.category,
-                        soundLength(sound.duration),
-                        sound.author ? `by ${sound.author}` : '',
-                        sound.source === 'freesound'
-                          ? `Freesound ${sound.quality === 'original' ? 'original' : 'preview'}`
-                          : 'Uploaded',
-                        readableSize(sound.size),
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')
-                    }}
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section
-                  side
-                  class="flex-row items-center gap-1 no-wrap"
-                >
-                  <IconBtn
-                    size="sm"
-                    icon="lucide-external-link"
-                    :href="sound.sourceUrl"
-                    target="_blank"
-                    aria-label="Open on Freesound"
-                    v-if="sound.sourceUrl"
-                  />
-                  <q-toggle
-                    dense
-                    size="sm"
-                    color="toneflix"
-                    :model-value="sound.isActive"
-                    :aria-label="
-                      sound.isActive ? 'Hide this sound' : 'Show this sound'
-                    "
-                    @update:model-value="setActive(sound, $event)"
-                  >
-                    <q-tooltip>{{
-                      sound.isActive ? 'Shown in the studio' : 'Hidden'
-                    }}</q-tooltip>
-                  </q-toggle>
-                  <IconBtn
-                    size="sm"
-                    icon="lucide-trash-2"
-                    :aria-label="`Delete ${sound.name}`"
-                    @click="remove(sound)"
-                  />
-                </q-item-section>
-              </q-item>
-            </q-list>
-            <div class="flex justify-center mt-4" v-if="hasMore">
-              <q-btn
-                flat
-                no-caps
-                label="Show more"
-                :loading="listing"
-                @click="list(true)"
-              />
-            </div>
-          </template>
-
-          <template #footer>
-            <span class="text-sm text-grey-5" v-if="changed"
-              >Unsaved changes</span
-            >
+          <div class="mt-8 text-sm">
+            <template v-if="settings.downloads.quality === 'original'">
+              Downloads original files with the Freesound account
+              <b>{{ settings.downloads.username || 'that was chosen' }}</b
+              >{{ settings.downloads.isMe ? ' (yours)' : '' }}.
+            </template>
+            <template v-else>
+              Downloads the high quality MP3 previews. Connect your Freesound
+              account and use it for the library to get the original files.
+            </template>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-2">
             <q-btn
-              unelevated
+              outline
               rounded
               no-caps
-              type="submit"
-              color="toneflix"
-              label="Save"
+              size="sm"
+              color="white"
               class="flex-none!"
-              :disable="!changed"
-              :loading="saving"
+              :label="
+                settings.me.connected
+                  ? `Connected as ${settings.me.username || 'you'}`
+                  : 'Connect my Freesound account'
+              "
+              :icon="settings.me.connected ? 'check' : 'link'"
+              :disable="settings.me.connected || !settings.configured"
+              :loading="connecting"
+              @click="connect"
             />
-          </template>
-        </SettingsSections>
-      </q-form>
-      <audio
-        ref="player"
-        class="hidden"
-        @ended="playing = 0"
-        @pause="playing = 0"
-      />
-    </div>
-  </q-page>
+            <q-btn
+              outline
+              rounded
+              no-caps
+              size="sm"
+              color="white"
+              class="flex-none!"
+              label="Use my account for the library"
+              :disable="!settings.me.connected || settings.downloads.isMe"
+              @click="useMine"
+            />
+          </div>
+          <div class="flex flex-wrap items-center gap-3 mt-8">
+            <q-btn
+              outline
+              rounded
+              no-caps
+              color="white"
+              icon="lucide-refresh-cw"
+              :label="settings.syncing ? 'Syncing…' : 'Sync now'"
+              class="flex-none!"
+              :loading="syncing"
+              :disable="
+                !settings.configured ||
+                changed ||
+                settings.syncing ||
+                syncPaused
+              "
+              @click="sync"
+            >
+              <q-tooltip v-if="changed">Save first</q-tooltip>
+              <q-tooltip v-else-if="syncPaused"
+                >Library sync is paused</q-tooltip
+              >
+            </q-btn>
+            <span class="text-sm text-grey-5" v-if="settings.lastSync">
+              Last sync {{ when(settings.lastSync.at) }}:
+              {{ settings.lastSync.added }} added,
+              {{ settings.lastSync.skipped }} skipped<template
+                v-if="settings.lastSync.failed"
+                >, {{ settings.lastSync.failed }} failed</template
+              ><template v-if="settings.lastSync.paused"
+                >, paused before it finished</template
+              >.
+            </span>
+          </div>
+          <q-banner
+            rounded
+            dense
+            class="mt-8 text-white bg-orange-10"
+            v-if="settings.lastSync?.errors.length"
+          >
+            <div class="font-bold">From the last sync:</div>
+            <div
+              class="text-sm"
+              :key="i"
+              v-for="(e, i) in settings.lastSync.errors"
+            >
+              {{ e }}
+            </div>
+          </q-banner>
+        </template>
+
+        <template #library>
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2 no-wrap">
+              <q-input
+                dense
+                dark
+                outlined
+                clearable
+                debounce="350"
+                placeholder="Search"
+                class="w-48"
+                v-model="search"
+              >
+                <template #prepend><q-icon name="lucide-search" /></template>
+              </q-input>
+              <input
+                ref="fileInput"
+                type="file"
+                multiple
+                class="hidden"
+                accept="audio/*"
+                @change="onFiles"
+              />
+              <q-btn
+                unelevated
+                rounded
+                no-caps
+                color="white"
+                text-color="dark"
+                icon="lucide-upload"
+                label="Upload"
+                class="flex-none!"
+                :loading="uploading > 0"
+                @click="fileInput?.click()"
+              />
+            </div>
+          </div>
+
+          <q-list dark separator bordered class="rounded-xl">
+            <SimpleInfo
+              class="m-3"
+              icon="lucide-audio-lines"
+              text="No sounds yet. Add sync searches and press Sync now, or upload sounds you have the rights to share."
+              v-if="!library.length && !listing"
+            />
+            <q-item :key="sound.id" v-for="sound in library">
+              <q-item-section avatar>
+                <IconBtn
+                  :icon="
+                    playing === sound.id ? 'lucide-pause' : 'lucide-play'
+                  "
+                  :aria-label="`Play ${sound.name}`"
+                  @click="play(sound)"
+                />
+              </q-item-section>
+              <q-item-section class="min-w-0">
+                <q-item-label class="truncate">{{ sound.name }}</q-item-label>
+                <q-item-label caption class="truncate">
+                  {{
+                    [
+                      sound.category,
+                      soundLength(sound.duration),
+                      sound.author ? `by ${sound.author}` : '',
+                      sound.source === 'freesound'
+                        ? `Freesound ${sound.quality === 'original' ? 'original' : 'preview'}`
+                        : 'Uploaded',
+                      readableSize(sound.size),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section
+                side
+                class="flex-row items-center gap-1 no-wrap"
+              >
+                <IconBtn
+                  size="sm"
+                  icon="lucide-external-link"
+                  :href="sound.sourceUrl"
+                  target="_blank"
+                  aria-label="Open on Freesound"
+                  v-if="sound.sourceUrl"
+                />
+                <q-toggle
+                  dense
+                  size="sm"
+                  color="toneflix"
+                  :model-value="sound.isActive"
+                  :aria-label="
+                    sound.isActive ? 'Hide this sound' : 'Show this sound'
+                  "
+                  @update:model-value="setActive(sound, $event)"
+                >
+                  <q-tooltip>{{
+                    sound.isActive ? 'Shown in the studio' : 'Hidden'
+                  }}</q-tooltip>
+                </q-toggle>
+                <IconBtn
+                  size="sm"
+                  icon="lucide-trash-2"
+                  :aria-label="`Delete ${sound.name}`"
+                  @click="remove(sound)"
+                />
+              </q-item-section>
+            </q-item>
+          </q-list>
+          <div class="flex justify-center mt-4" v-if="hasMore">
+            <q-btn
+              flat
+              no-caps
+              label="Show more"
+              :loading="listing"
+              @click="list(true)"
+            />
+          </div>
+        </template>
+
+        <template #footer>
+          <span class="text-sm text-grey-5" v-if="changed"
+            >Unsaved changes</span
+          >
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            type="submit"
+            color="toneflix"
+            label="Save"
+            class="flex-none!"
+            :disable="!changed"
+            :loading="saving"
+          />
+        </template>
+      </SettingsSections>
+    </q-form>
+    <audio
+      ref="player"
+      class="hidden"
+      @ended="playing = 0"
+      @pause="playing = 0"
+    />
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { copyToClipboard, date, useQuasar } from 'quasar';

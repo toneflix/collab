@@ -8,6 +8,11 @@
 .admin-layout {
   padding: 16px;
 
+  // Pane pages fill the space edge to edge, like /messages
+  &:has(> .pane-page) {
+    padding: 0;
+  }
+
   // Admin pages are q-pages; inside this layout they only need their content height.
   :deep(.q-page) {
     min-height: 0 !important;

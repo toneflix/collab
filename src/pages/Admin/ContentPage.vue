@@ -1,21 +1,17 @@
 <template>
-  <q-page padding>
-    <div class="max-w-6xl mx-auto">
-      <div class="py-8">
-        <h1 class="text-3xl font-circlular-std">Content</h1>
-        <p class="text-grey-5">Tracks, albums, compositions, projects and artists.</p>
-      </div>
+  <PanePage title="Content">
+    <template #subtitle>Tracks, albums, compositions, projects and artists.</template>
 
-      <SettingsSections :sections="sections" v-model="current">
-        <template #default="{ section }">
-          <ContentList :type="section as ContentKind" :owner-id="ownerId" @clear-owner="clearOwner" />
-        </template>
-      </SettingsSections>
-    </div>
-  </q-page>
+    <SettingsSections :sections="sections" v-model="current">
+      <template #default="{ section }">
+        <ContentList :type="section as ContentKind" :owner-id="ownerId" @clear-owner="clearOwner" />
+      </template>
+    </SettingsSections>
+  </PanePage>
 </template>
 
 <script setup lang="ts">
+import PanePage from 'src/components/Sections/PanePage.vue';
 import { computed, ref } from 'vue';
 import { useMeta } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
