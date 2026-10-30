@@ -15,7 +15,7 @@ defineOptions({
 
 const router = useRouter();
 
-const shareImage = `${frontUrl}/share-image-1200.jpg`;
+const shareImage = `${frontUrl}/share-image-v3.jpg`;
 
 /** Default share image; pages with their own artwork replace `ogImage` and `twitterImage`. */
 useMeta({
