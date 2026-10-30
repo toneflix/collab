@@ -163,6 +163,7 @@ export type Configuration = {
   verify_phone: boolean;
   token_lifespan: number;
   paystack_public_key: string;
+  flutterwave_public_key?: string | null;
   payment_verify_url: string;
   reference_prefix: string;
   previews_on_save: boolean;
@@ -197,11 +198,45 @@ export type Configuration = {
 export type PaymentPurpose =
   'premium' | 'release' | 'stems' | 'tip' | 'credits' | 'adjustment' | 'referral' | 'streams';
 
+export type PaymentProvider = 'paystack' | 'flutterwave';
+
 export type PaymentSession = {
   reference: string;
+  provider: PaymentProvider;
+  /** The price in the app currency */
   amount: number;
+  /** What the payer is charged, in `currency` */
+  chargeAmount: number;
+  currency: string;
   accessCode?: string;
   authorizationUrl?: string;
+  /** The app page the provider sends the payer back to */
+  returnUrl: string;
+};
+
+/** How the signed-in user pays: their region's currency and providers. */
+export type PaymentOptions = {
+  country?: string | null;
+  currency: string;
+  /** One unit of the app currency in `currency` */
+  rate: number;
+  /** In order of preference */
+  providers: PaymentProvider[];
+  region?: { id: number; name: string } | null;
+};
+
+/** A group of countries that pays through its own providers and currency. */
+export type PaymentRegion = {
+  id: number;
+  name: string;
+  countries: string[];
+  providers: PaymentProvider[];
+  currency: string;
+  /** Fixed units of `currency` per unit of the app currency; empty uses live rates */
+  exchangeRate?: number | null;
+  /** Percent added to live rates */
+  rateMarkup: number;
+  active: boolean;
 };
 
 export type Transaction = {
@@ -210,6 +245,11 @@ export type Transaction = {
   purpose: PaymentPurpose;
   status: 'pending' | 'complete' | 'rejected';
   amount: number;
+  currency?: string | null;
+  chargeAmount?: number | null;
+  provider?: PaymentProvider | null;
+  /** The app page the payment started on */
+  returnPath?: string | null;
   earned?: number;
   message?: string | null;
   plan?: string | null;

@@ -14,6 +14,8 @@ const thirdParty = {
     "https://js.paystack.co",
     "https://applepay.cdn-apple.com",
     "https://pay.google.com",
+    // Flutterwave Inline
+    "https://checkout.flutterwave.com",
     // Firebase Realtime Database long-polling fallback
     "https://*.firebaseio.com",
     "https://*.firebasedatabase.app"
@@ -26,6 +28,8 @@ const thirdParty = {
     "https://checkout.paystack.com",
     "https://*.paystack.com",
     "https://*.paystack.co",
+    "https://checkout.flutterwave.com",
+    "https://*.flutterwave.com",
     "https://*.firebaseapp.com"
   ]
 };
