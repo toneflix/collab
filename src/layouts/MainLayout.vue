@@ -339,13 +339,13 @@ import type {
 } from 'src/utils/requests/conversations';
 import { allowedAdminLinks, visibleNavigationLinks } from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
-import { reboot } from 'src/utils/proccessor';
+import { authValidator, reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
 import { alova } from 'src/boot/alova';
 import { docsUrl } from 'src/utils/env';
 
 defineOptions({
-  async preFetch({ store }) {
+  async preFetch({ store, currentRoute, redirect }) {
     const boot = useBootstrapStore(store);
     const loaded = boot.pageData.cache as unknown as {
       mainLayoutAccount?: string | null;
@@ -365,6 +365,13 @@ defineOptions({
     await reboot().then(({ init }) => {
       boot.configuration = init.configuration;
     });
+
+    // The route guard runs before the account loads on a fresh page, so check again now
+    const target = authValidator(currentRoute);
+
+    if (target !== true) {
+      return redirect(target);
+    }
 
     const data = {} as Record<string, GenericData>;
     const groups = visibleNavigationLinks(!!boot.user?.id, boot.isListener).filter(

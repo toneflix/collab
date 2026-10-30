@@ -46,7 +46,7 @@
               text-color="dark"
               :size="$q.screen.lt.sm ? 'md' : 'lg'"
               icon="lucide-compass"
-              label="Explore music"
+              label="Explore"
               class="flex-none! font-bold"
               :to="{ name: 'explore' }"
             />
