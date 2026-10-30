@@ -2,7 +2,7 @@ import type { AuthPagesConfig } from './auth-pages';
 import type { ArtistClaim } from './requests/artists';
 import { RouteLocationRaw } from 'vue-router';
 import type { StemMeta } from './daw';
-import type { AudioTags } from './requests/tags';
+import type { AudioTags, StyleTags } from './requests/tags';
 import type { PublicSong } from './requests/composer';
 
 export type FileType = 'zip' | 'audio' | 'image' | 'pdf' | 'txt' | 'lrc';
@@ -433,6 +433,8 @@ export interface Genre {
   slug: string;
   title: string;
   description?: string | null;
+  /** What the style tagger listens for; admin pages only */
+  prompt?: string | null;
   /** The cover photo, null until an admin adds one */
   imageUrl: string | null;
   tracksCount?: number;
@@ -655,6 +657,8 @@ export interface Track {
   takenDown?: boolean;
   /** Tempo and key */
   tags?: AudioTags;
+  /** Moods and the genre the audio sounds like */
+  styles?: StyleTags;
   /** Whether the signed in user released this track */
   owned?: boolean;
   /** An audio link that plays as is, without fetching a stream link, e.g. a project's preview mix */
@@ -836,6 +840,8 @@ export interface ProjectTrack {
   timeSignature?: string;
   /** Tempo and key detected in the preview mix, or set by a collaborator */
   tags?: AudioTags;
+  /** Moods and the genre the preview mix sounds like */
+  styles?: StyleTags;
   /** The studio's master volume, 0 to 1 */
   mixVolume?: number;
   /** The master bus effect chain, as JSON text */

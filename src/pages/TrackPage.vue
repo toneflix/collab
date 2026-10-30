@@ -111,13 +111,6 @@
                 <TrackMenuButton :track="track" />
               </span>
             </div>
-            <AudioTagChips
-              class="mt-4 max-sm:justify-center"
-              :tags="track.tags"
-              :editable="track.owned"
-              :target="{ trackId: track.id }"
-              @update:tags="track.tags = $event"
-            />
             <q-banner dense rounded class="mt-4 text-left text-white sm:mt-8 bg-red-10 max-w-96 max-sm:mx-auto" v-if="track.takenDown">
               <template #avatar><q-icon name="lucide-ban" /></template>
               This track was taken down, so only you can see it.
@@ -164,7 +157,6 @@
 
 <script setup lang="ts">
 import { emptyPage, missing } from 'src/utils/requests/prefetch';
-import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import AtroposViewer from 'src/components/Controllers/AtroposViewer.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';

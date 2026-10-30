@@ -78,6 +78,20 @@
             :error-message="errors.description"
             v-model="form.description"
           />
+          <q-input
+            dark
+            filled
+            dense
+            autogrow
+            counter
+            maxlength="300"
+            label="What the tagger listens for (optional)"
+            :placeholder="`This is a ${form.title || 'genre'} song.`"
+            hint="Describe the sound when the genre's name alone isn't well known."
+            :error="!!errors.prompt"
+            :error-message="errors.prompt"
+            v-model="form.prompt"
+          />
         </q-card-section>
 
         <q-card-actions class="flex-nowrap">
@@ -124,7 +138,7 @@ const emit = defineEmits<{ saved: [genre: Genre]; remove: [genre: Genre] }>();
 const show = defineModel<boolean>({ default: false });
 const saving = ref(false);
 const errors = ref<Record<string, string>>({});
-const form = reactive({ title: '', slug: '', description: '' });
+const form = reactive({ title: '', slug: '', description: '', prompt: '' });
 const cover = reactive<{ file: File | null; preview: string | null; removed: boolean }>({ file: null, preview: null, removed: false });
 
 const coverUrl = computed(() => cover.preview || (cover.removed ? null : props.genre?.imageUrl || null));
@@ -133,6 +147,7 @@ const reset = () => {
   form.title = props.genre?.title || '';
   form.slug = props.genre?.slug || '';
   form.description = props.genre?.description || '';
+  form.prompt = props.genre?.prompt || '';
   Object.assign(cover, { file: null, preview: null, removed: false });
   errors.value = {};
 };
@@ -159,6 +174,7 @@ const save = async () => {
         title: form.title.trim(),
         slug: form.slug.trim(),
         description: form.description,
+        prompt: form.prompt,
         image: cover.file,
         removeImage: cover.removed && !!props.genre?.imageUrl,
       },
