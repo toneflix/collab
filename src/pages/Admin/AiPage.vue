@@ -467,8 +467,8 @@
           <template #tags>
             <p class="mb-4 text-sm text-grey-5">
               New tracks and studio mixes are tagged with their BPM and key,
-              which show in the player, on track pages and in the studio, and
-              can be searched. Creators can correct them. Run
+              which show in a song's credits and in the studio, and can be
+              searched. Creators can correct them. Run
               <code>php artisan tags:detect</code> once to tag older tracks.
             </p>
             <div class="toggle-card">
@@ -482,7 +482,7 @@
             </div>
 
             <p class="mt-6 mb-4 text-sm text-grey-5">
-              Moods show beside the tempo and key and can be searched; the genre
+              Moods show with the tempo and key in a song's credits and can be searched; the genre
               the audio sounds like is offered to creators, never set for them.
               Push the model with the "Push style tagger" GitHub workflow, set
               its name below, then run <code>php artisan tags:styles</code> once
