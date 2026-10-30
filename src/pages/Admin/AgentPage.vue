@@ -1,5 +1,5 @@
 <template>
-  <PanePage title="Content agent">
+  <PanePage title="AI Studio">
     <template #subtitle>
       Give it instructions to create new artists, albums and tracks on an agent account, or to fix
       what's already there: fill in missing artwork, sync lyrics and release existing projects.
@@ -15,7 +15,7 @@ import { useMeta } from 'quasar';
 import AgentWorkspace from 'src/components/Agent/AgentWorkspace.vue';
 
 useMeta(() => ({
-  title: 'Content agent',
+  title: 'AI Studio',
   titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

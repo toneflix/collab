@@ -1,5 +1,5 @@
 <template>
-  <PanePage title="Content agent">
+  <PanePage title="AI Studio">
     <template #subtitle>
       Give it instructions to create new artists, albums and tracks, or to fix what you already have:
       fill in missing artwork, sync lyrics and release existing projects. It uses your AI credits.
@@ -10,7 +10,7 @@
       class="m-4 flex-none!"
       v-else
       icon="lucide-bot"
-      text="The content agent comes with some plans. Upgrade to describe albums, tracks and fixes in plain words and let AI build them in your studio."
+      text="AI Studio comes with some plans. Upgrade to describe albums, tracks and fixes in plain words and let AI build them in your studio."
     >
       <template #actions>
         <q-btn unelevated no-caps color="primary" label="See plans" :to="{ name: 'premium' }" />
@@ -29,7 +29,7 @@ import { useBootstrapStore } from 'src/stores/bootstrap-store';
 const boot = useBootstrapStore();
 
 useMeta(() => ({
-  title: 'Content agent',
+  title: 'AI Studio',
   titleTemplate: (title) => `${title} - Toneflix Music`,
 }));
 </script>

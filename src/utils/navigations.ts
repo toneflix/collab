@@ -195,7 +195,7 @@ export const adminNavigationLinks: AdminLink[] = [
   {
     to: { name: 'admin.agent' },
     icon: 'lucide-bot',
-    title: 'Content agent',
+    title: 'AI Studio',
     caption: 'Queued prompts that build artists, albums and songs',
     permission: 'manage-content',
   },
