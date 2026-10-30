@@ -52,6 +52,12 @@ const links = [
     to: { name: 'studio.agent' },
   },
   {
+    icon: 'lucide-clapperboard',
+    title: 'Music Videos',
+    description: 'AI plans and makes a video for your song, with you singing it.',
+    to: { name: 'studio.videos' },
+  },
+  {
     icon: 'lucide-list-checks',
     title: 'My Projects',
     description: 'Open the projects you own or joined.',

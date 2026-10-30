@@ -42,12 +42,15 @@ export type AiConfig = {
   enabled: boolean;
   creditPrice: number;
   packs: CreditPack[];
-  /** Credits per split into stems, per lyrics transcription, per section edit and per Composer suggestion */
+  /** Credits per split into stems, per lyrics transcription, per section edit, per Composer suggestion and per music video minute */
   costs: {
     stems: number;
     lyrics: number;
     edit?: number;
     artwork?: number;
+    /** Music video storyboard and render, per started minute of the song */
+    videoStoryboard?: number;
+    video?: number;
     composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
   };
   /** The model music is generated with */
@@ -199,6 +202,8 @@ export type AiAdminSettings = {
     sunoVersions: Record<string, string>;
     /** Kinds of Suno stem splits, id to label */
     sunoStemTypes: Record<string, string>;
+    /** Models that can animate music video b-roll, id to model */
+    videoBrollModels?: Record<string, string>;
     engines: Record<AiEngine, string>;
     /** The engines each switchable tool can run on, by its setting */
     toolEngines?: Record<string, AiEngine[]>;

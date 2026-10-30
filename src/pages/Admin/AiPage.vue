@@ -460,6 +460,57 @@
           </div>
         </template>
 
+        <template #videos>
+          <p class="mb-4 text-sm text-grey-5">
+            Creators turn their songs into music videos. A writing model plans
+            the shots on the beat and Seedream 4 draws a still for each one
+            (about $0.03). Singing shots are lip-synced by P-Video Avatar
+            ($0.04/s) and the rest animated by the b-roll model below, then
+            FFmpeg cuts them together over the song. Plans can include video
+            minutes and photo uploads; renders past the minutes use credits.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_video_storyboard_credits?.title"
+              :hint="fields.ai_video_storyboard_credits?.hint"
+              v-model.number="form.ai_video_storyboard_credits"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_video_credits?.title"
+              :hint="fields.ai_video_credits?.hint"
+              v-model.number="form.ai_video_credits"
+            />
+            <q-select
+              dark
+              outlined
+              emit-value
+              map-options
+              :label="fields.ai_video_broll_model?.title"
+              :hint="fields.ai_video_broll_model?.hint"
+              :options="videoBrollModels"
+              v-model="form.ai_video_broll_model"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="30"
+              max="600"
+              :label="fields.ai_video_max_seconds?.title"
+              :hint="fields.ai_video_max_seconds?.hint"
+              v-model.number="form.ai_video_max_seconds"
+            />
+          </div>
+        </template>
+
         <template #tags>
           <p class="mb-4 text-sm text-grey-5">
             New tracks and studio mixes are tagged with their BPM and key,
@@ -743,6 +794,10 @@ const form = reactive({
   ai_artwork_engine: 'replicate' as AiEngine,
   ai_artwork_credits: 3 as number | string,
   ai_artwork_images: 4 as number | string,
+  ai_video_storyboard_credits: 20 as number | string,
+  ai_video_credits: 190 as number | string,
+  ai_video_broll_model: 'p-video',
+  ai_video_max_seconds: 360 as number | string,
   ai_tags_auto: true,
   ai_styles_auto: true,
   ai_styles_model: '' as string | null,
@@ -847,6 +902,18 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     fields: ['ai_artwork_engine', 'ai_artwork_credits', 'ai_artwork_images'],
   },
   {
+    key: 'videos',
+    icon: 'lucide-clapperboard',
+    title: 'Music videos',
+    caption: 'Storyboard and render prices, the b-roll model and the longest song.',
+    fields: [
+      'ai_video_storyboard_credits',
+      'ai_video_credits',
+      'ai_video_broll_model',
+      'ai_video_max_seconds',
+    ],
+  },
+  {
     key: 'tags',
     icon: 'lucide-gauge',
     title: 'Tags',
@@ -915,6 +982,9 @@ const composerMusicModels = computed(() =>
     label: settings.value?.models.find((m) => m.id === id)?.name ?? id,
   })),
 );
+const videoBrollModels = computed(() =>
+  toOptions(settings.value?.options.videoBrollModels),
+);
 const sunoStemTypes = computed(() =>
   toOptions(settings.value?.options.sunoStemTypes),
 );
@@ -963,6 +1033,10 @@ const fill = (data: AiAdminSettings) => {
     'replicate') as AiEngine;
   form.ai_artwork_credits = Number(f.ai_artwork_credits?.value ?? 3);
   form.ai_artwork_images = Number(f.ai_artwork_images?.value ?? 4);
+  form.ai_video_storyboard_credits = Number(f.ai_video_storyboard_credits?.value ?? 20);
+  form.ai_video_credits = Number(f.ai_video_credits?.value ?? 190);
+  form.ai_video_broll_model = f.ai_video_broll_model?.value ?? 'p-video';
+  form.ai_video_max_seconds = Number(f.ai_video_max_seconds?.value ?? 360);
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   form.ai_styles_auto = f.ai_styles_auto?.value === '1';
   form.ai_styles_model = f.ai_styles_model?.value ?? '';
