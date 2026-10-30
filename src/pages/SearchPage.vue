@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto">
       <h1 class="mb-1 text-2xl font-bold">
         <template v-if="q">Results for “{{ q }}”</template>
-        <template v-else-if="filtering">Songs by tempo and key</template>
+        <template v-else-if="filtering">Songs by tempo, key and mood</template>
         <template v-else>Search</template>
       </h1>
       <p class="mb-4 text-sm text-grey-5">
@@ -11,7 +11,7 @@
         artists and creators by name.
       </p>
 
-      <!-- Tempo and key filters stay out of the way until asked for -->
+      <!-- Tempo, key and mood filters stay out of the way until asked for -->
       <div class="flex flex-wrap items-center gap-2 mb-4">
         <q-btn
           outline
@@ -96,6 +96,21 @@
             :model-value="filters.compatible"
             @update:model-value="setFilter('compatible', $event ? '1' : null)"
           />
+          <q-select
+            dark
+            dense
+            outlined
+            multiple
+            clearable
+            emit-value
+            map-options
+            use-chips
+            label="Mood"
+            class="filters__mood"
+            :options="MOODS"
+            :model-value="filters.mood"
+            @update:model-value="setFilter('mood', ($event as string[] | null)?.join(',') || null)"
+          />
           <q-btn
             flat
             rounded
@@ -103,14 +118,14 @@
             size="sm"
             label="Clear"
             class="flex-none!"
-            @click="setFilters({ bpm_min: null, bpm_max: null, key: null, compatible: null })"
+            @click="setFilters({ bpm_min: null, bpm_max: null, key: null, compatible: null, mood: null })"
             v-if="filtering"
           />
         </div>
       </q-slide-transition>
 
       <div class="text-grey-5" v-if="!q && !filtering">
-        Type in the search box above and press Enter, or use Advanced search to find songs by tempo and key.
+        Type in the search box above and press Enter, or use Advanced search to find songs by tempo, key and mood.
       </div>
 
       <template v-else>
@@ -202,10 +217,14 @@
                     {{ track.artist?.name || 'Unknown' }}<FeaturedArtists nested :track="track" /><AlbumLink nested :track="track" />
                   </span>
                 </q-item-label>
-                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" v-if="showTags" />
+                <AudioTagChips class="mt-1 sm:hidden!" :tags="track.tags" :styles="track.styles ?? null" v-if="showTags" />
               </q-item-section>
-              <q-item-section side class="max-sm:hidden!" v-if="showTags && (track.tags?.bpm || track.tags?.key)">
-                <AudioTagChips :tags="track.tags" />
+              <q-item-section
+                side
+                class="max-sm:hidden!"
+                v-if="showTags && (track.tags?.bpm || track.tags?.key || track.styles?.moods?.length)"
+              >
+                <AudioTagChips :tags="track.tags" :styles="track.styles ?? null" />
               </q-item-section>
               <q-item-section side class="text-xs">
                 <div class="flex items-center gap-2 no-wrap">
@@ -245,7 +264,7 @@ import { useMeta } from 'quasar';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
-import { MUSICAL_KEYS } from 'src/utils/requests/tags';
+import { MOODS, MUSICAL_KEYS, moodLabel } from 'src/utils/requests/tags';
 import { usePlayerStore } from 'src/stores/player-store';
 import { formatSeconds } from 'src/utils/helpers';
 import type { Artist, Track, User } from 'src/utils/models';
@@ -267,17 +286,22 @@ const menuTrigger = new TrackMenuTrigger();
 
 const q = computed(() => String(route.query.q ?? '').trim());
 
-type FilterName = 'bpm_min' | 'bpm_max' | 'key' | 'compatible';
+type FilterName = 'bpm_min' | 'bpm_max' | 'key' | 'compatible' | 'mood';
 
-/** Tempo and key filters, kept in the address so results can be shared */
+/** Tempo, key and mood filters, kept in the address so results can be shared */
 const filters = computed(() => ({
   bpm_min: (route.query.bpm_min as string) || null,
   bpm_max: (route.query.bpm_max as string) || null,
   key: (route.query.key as string) || null,
   compatible: route.query.compatible === '1',
+  mood: String(route.query.mood ?? '')
+    .split(',')
+    .filter((mood) => MOODS.some((m) => m.value === mood)),
 }));
 
-const filtering = computed(() => !!(filters.value.bpm_min || filters.value.bpm_max || filters.value.key));
+const filtering = computed(
+  () => !!(filters.value.bpm_min || filters.value.bpm_max || filters.value.key || filters.value.mood.length),
+);
 
 /** Changes several filters in one address update, so they don't overwrite each other. */
 const setFilters = (changes: Partial<Record<FilterName, string | number | null>>) => {
@@ -293,13 +317,16 @@ const setFilter = (name: FilterName, value: string | number | null) => setFilter
 
 /** Closed at first; filters already in the address show as chips beside the button. */
 const advanced = ref(false);
-/** Tempo and key pills on results only matter while searching by them. */
+/** Tempo, key and mood pills on results only matter while searching by them. */
 const showTags = computed(() => advanced.value || filtering.value);
-const filterCount = computed(() => [filters.value.bpm_min || filters.value.bpm_max, filters.value.key].filter(Boolean).length);
+const filterCount = computed(
+  () =>
+    [filters.value.bpm_min || filters.value.bpm_max, filters.value.key, filters.value.mood.length].filter(Boolean).length,
+);
 
 /** What's narrowing the songs, shown as chips while the panel is closed. */
 const activeFilters = computed(() => {
-  const { bpm_min: min, bpm_max: max, key, compatible } = filters.value;
+  const { bpm_min: min, bpm_max: max, key, compatible, mood } = filters.value;
   const chips: { label: string; clear: Partial<Record<FilterName, null>> }[] = [];
   if (min || max) {
     chips.push({
@@ -311,6 +338,9 @@ const activeFilters = computed(() => {
     const name = MUSICAL_KEYS.find((k) => k.camelot === key)?.short ?? key;
     chips.push({ label: `${name} (${key})${compatible ? ' + mixable' : ''}`, clear: { key: null, compatible: null } });
   }
+  if (mood.length) {
+    chips.push({ label: mood.map(moodLabel).join(' or '), clear: { mood: null } });
+  }
   return chips;
 });
 
@@ -319,6 +349,7 @@ const params = computed(() => ({
   ...(filters.value.bpm_min ? { bpm_min: filters.value.bpm_min } : {}),
   ...(filters.value.bpm_max ? { bpm_max: filters.value.bpm_max } : {}),
   ...(filters.value.key ? { key: filters.value.key, compatible: filters.value.compatible ? 1 : 0 } : {}),
+  ...(filters.value.mood.length ? { mood: filters.value.mood.join(',') } : {}),
 }));
 const tracks = ref<SearchTrack[]>([]);
 const artists = ref<Artist[]>([]);
@@ -445,6 +476,11 @@ useMeta(() => ({
 
   .filters__key {
     flex: 0 0 200px;
+  }
+
+  .filters__mood {
+    flex: 0 1 260px;
+    min-width: 180px;
   }
 }
 

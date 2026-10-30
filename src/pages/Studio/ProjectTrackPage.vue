@@ -24,9 +24,12 @@
         <AudioTagChips
           class="studio-title__tags max-sm:hidden!"
           :tags="track.tags"
+          :styles="track.styles ?? null"
+          :genre-id="track.genreId"
           :editable="!viewOnly"
           :target="{ projectId: project.id, trackId: track.id }"
           @update:tags="track.tags = $event"
+          @update:styles="track.styles = $event"
         />
         <q-btn
           flat
@@ -265,9 +268,12 @@
       <AudioTagChips
         class="flex-nowrap! sm:hidden!"
         :tags="track.tags"
+        :styles="track.styles ?? null"
+        :genre-id="track.genreId"
         :editable="!viewOnly"
         :target="{ projectId: project.id, trackId: track.id }"
         @update:tags="track.tags = $event"
+        @update:styles="track.styles = $event"
       />
       <IconBtn
         class="flex-none! expand-toggle max-sm:hidden!"
@@ -360,7 +366,7 @@ import AssetsDialog from 'src/components/Cards/AssetsDialog.vue';
 import ConversationDialog from 'src/components/Cards/ConversationDialog.vue';
 import ProjectTrackInfoDialog from 'src/components/Cards/ProjectTrackInfoDialog.vue';
 import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
-import type { AudioTags } from 'src/utils/requests/tags';
+import type { AudioTags, StyleTags } from 'src/utils/requests/tags';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
 import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
@@ -1057,6 +1063,7 @@ const onMix = (mix: MixState | null, fresh?: ProjectTrack) => {
   if (fresh) {
     track.value.preview = fresh.preview;
     track.value.tags = fresh.tags;
+    track.value.styles = fresh.styles;
   }
 
   clearTimeout(mixTimer);
@@ -1207,6 +1214,9 @@ const { live: trackLive } = useRealtimeChannel(
       historyPanel.value?.refresh();
     },
     'track.mix': () => void refreshMix(),
+    'styles.updated': (e: RealtimeMeta & { styles: StyleTags }) => {
+      track.value.styles = e.styles;
+    },
     'tags.updated': (e: RealtimeMeta & { tags: AudioTags }) => {
       track.value.tags = e.tags;
     },
