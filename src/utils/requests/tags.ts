@@ -51,3 +51,44 @@ export const saveTagsRequest = (
       : `creator/tracks/${target.trackId}/tags`,
     tags,
   );
+
+/** A track's moods, detected from its audio and lyrics or set by its creator */
+export type StyleTags = {
+  moods: string[];
+  source: 'detected' | 'manual' | null;
+  /** The genre the audio sounds like, when the detector was sure enough */
+  suggestedGenreId: number | null;
+};
+
+/** Every mood a track can carry, in the order pickers show them */
+export const MOODS = [
+  'happy',
+  'sad',
+  'energetic',
+  'calm',
+  'romantic',
+  'dark',
+  'uplifting',
+  'aggressive',
+  'dreamy',
+  'melancholic',
+  'playful',
+  'epic',
+  'tense',
+  'nostalgic',
+  'groovy',
+  'sensual',
+].map((value) => ({ value, label: value[0]!.toUpperCase() + value.slice(1) }));
+
+export const MAX_MOODS = 3;
+
+export const moodLabel = (mood: string) => MOODS.find((m) => m.value === mood)?.label ?? mood;
+
+/** Save a creator's moods. Sending none goes back to the detected ones. */
+export const saveMoodsRequest = (target: TagTarget, moods: string[]) =>
+  alova.Put<ResponseBody<StyleTags>>(
+    'projectId' in target
+      ? `creator/projects/${target.projectId}/tracks/${target.trackId}/moods`
+      : `creator/tracks/${target.trackId}/moods`,
+    { moods },
+  );

@@ -42,6 +42,19 @@
           </q-list>
         </section>
 
+        <section v-if="track && (hasSound || track.owned)">
+          <h3 class="credits__heading">Sound</h3>
+          <AudioTagChips
+            :tags="tags"
+            :styles="styles"
+            :genre-id="track.genreId"
+            :editable="track.owned"
+            :target="{ trackId: track.id }"
+            @update:tags="tags = $event"
+            @update:styles="styles = $event"
+          />
+        </section>
+
         <section v-if="details.length">
           <h3 class="credits__heading">Release</h3>
           <dl class="credits__details">
@@ -61,6 +74,8 @@ import { computed, ref } from 'vue';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import ResponsiveDialog from 'src/components/Controllers/ResponsiveDialog.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
+import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
+import type { AudioTags, StyleTags } from 'src/utils/requests/tags';
 import { loadTrackCreditsRequest } from 'src/utils/requests/requests';
 import type { Track, TrackCredit, TrackCredits } from 'src/utils/models';
 
@@ -72,6 +87,12 @@ const router = useRouter();
 
 const loading = ref(false);
 const credits = ref<TrackCredits | null>(null);
+/** Tempo, key and moods, kept here so the owner's edits show at once */
+const tags = ref<AudioTags | null>(null);
+const styles = ref<StyleTags | null>(null);
+const hasSound = computed(
+  () => !!(tags.value?.bpm || tags.value?.key || styles.value?.moods?.length),
+);
 
 const DETAILS = {
   composer: 'Composer',
@@ -116,6 +137,8 @@ const load = async () => {
   if (!props.track) return;
 
   credits.value = null;
+  tags.value = props.track.tags ?? null;
+  styles.value = props.track.styles ?? null;
   loading.value = true;
   try {
     credits.value = await loadTrackCreditsRequest(props.track.id).send();

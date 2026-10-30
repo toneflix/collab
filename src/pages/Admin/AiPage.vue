@@ -467,8 +467,8 @@
           <template #tags>
             <p class="mb-4 text-sm text-grey-5">
               New tracks and studio mixes are tagged with their BPM and key,
-              which show in the player, on track pages and in the studio, and
-              can be searched. Creators can correct them. Run
+              which show in a song's credits and in the studio, and can be
+              searched. Creators can correct them. Run
               <code>php artisan tags:detect</code> once to tag older tracks.
             </p>
             <div class="toggle-card">
@@ -477,6 +477,43 @@
                 <div class="font-bold">{{ fields.ai_tags_auto?.title }}</div>
                 <div class="text-sm text-grey-5">
                   {{ fields.ai_tags_auto?.hint }}
+                </div>
+              </div>
+            </div>
+
+            <p class="mt-6 mb-4 text-sm text-grey-5">
+              Moods show with the tempo and key in a song's credits and can be searched; the genre
+              the audio sounds like is offered to creators, never set for them.
+              Push the model with the "Push style tagger" GitHub workflow, set
+              its name below, then run <code>php artisan tags:styles</code> once
+              to tag older tracks.
+            </p>
+            <div class="flex flex-col gap-3">
+              <div class="toggle-card">
+                <q-toggle color="toneflix" v-model="form.ai_styles_auto" />
+                <div class="min-w-0">
+                  <div class="font-bold">{{ fields.ai_styles_auto?.title }}</div>
+                  <div class="text-sm text-grey-5">
+                    {{ fields.ai_styles_auto?.hint }}
+                  </div>
+                </div>
+              </div>
+              <q-input
+                dark
+                outlined
+                clearable
+                placeholder="toneflix/style-tagger"
+                :label="fields.ai_styles_model?.title"
+                :hint="fields.ai_styles_model?.hint"
+                v-model="form.ai_styles_model"
+              />
+              <div class="toggle-card">
+                <q-toggle color="toneflix" v-model="form.ai_styles_lyrics" />
+                <div class="min-w-0">
+                  <div class="font-bold">{{ fields.ai_styles_lyrics?.title }}</div>
+                  <div class="text-sm text-grey-5">
+                    {{ fields.ai_styles_lyrics?.hint }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -711,6 +748,9 @@ const form = reactive({
   ai_artwork_credits: 3 as number | string,
   ai_artwork_images: 4 as number | string,
   ai_tags_auto: true,
+  ai_styles_auto: true,
+  ai_styles_model: '' as string | null,
+  ai_styles_lyrics: true,
   ai_moderator_claims_auto: false,
   ai_moderator_releases_auto: false,
   ai_moderator_origins_auto: false,
@@ -813,9 +853,9 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
   {
     key: 'tags',
     icon: 'lucide-gauge',
-    title: 'Tempo and key',
-    caption: 'BPM and key tags on new tracks.',
-    fields: ['ai_tags_auto'],
+    title: 'Tags',
+    caption: 'Tempo, key, genre and mood on new tracks.',
+    fields: ['ai_tags_auto', 'ai_styles_auto', 'ai_styles_model', 'ai_styles_lyrics'],
   },
   {
     key: 'composer',
@@ -928,6 +968,9 @@ const fill = (data: AiAdminSettings) => {
   form.ai_artwork_credits = Number(f.ai_artwork_credits?.value ?? 3);
   form.ai_artwork_images = Number(f.ai_artwork_images?.value ?? 4);
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
+  form.ai_styles_auto = f.ai_styles_auto?.value === '1';
+  form.ai_styles_model = f.ai_styles_model?.value ?? '';
+  form.ai_styles_lyrics = f.ai_styles_lyrics?.value === '1';
   form.ai_moderator_claims_auto = f.ai_moderator_claims_auto?.value === '1';
   form.ai_moderator_releases_auto = f.ai_moderator_releases_auto?.value === '1';
   form.ai_moderator_origins_auto = f.ai_moderator_origins_auto?.value === '1';
