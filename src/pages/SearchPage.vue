@@ -168,14 +168,15 @@
           </div>
         </section>
 
-        <section>
+        <SimpleInfo
+          icon="lucide-search-x"
+          :text="`Nothing matches${q ? ` “${q}”` : ''}${filtering ? ' these filters' : ''}.`"
+          v-if="noResults"
+        />
+
+        <section v-if="loading || tracks.length">
           <h2 class="mb-4 text-lg font-bold">Songs</h2>
-          <SimpleInfo
-            icon="lucide-search-x"
-            :text="`No songs match${q ? ` “${q}”` : ''}${filtering ? ' these filters' : ''}.`"
-            v-if="!loading && !tracks.length"
-          />
-          <q-list dark class="rounded-xl songs" v-else>
+          <q-list dark class="rounded-xl songs" v-if="tracks.length">
             <q-item
               clickable
               class="song track-row"
@@ -395,19 +396,33 @@ const loadLyrics = async () => {
   }
 };
 
+/** Artists, creators and compositions still loading for the current term */
+const loadingOthers = ref(false);
+
 watch(
   q,
-  (term) => {
+  async (term) => {
     artists.value = [];
     creators.value = [];
     lyrics.value = [];
-    if (term) {
-      void loadArtists();
-      void loadCreators();
-      void loadLyrics();
-    }
+    if (!term) return;
+
+    loadingOthers.value = true;
+    await Promise.allSettled([loadArtists(), loadCreators(), loadLyrics()]);
+    if (term === q.value) loadingOthers.value = false;
   },
   { immediate: true },
+);
+
+/** Nothing at all matched once every search has finished */
+const noResults = computed(
+  () =>
+    !loading.value &&
+    !loadingOthers.value &&
+    !tracks.value.length &&
+    !artists.value.length &&
+    !creators.value.length &&
+    !lyrics.value.length,
 );
 
 useMeta(() => ({
