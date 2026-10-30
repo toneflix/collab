@@ -108,7 +108,7 @@
               This release was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
-            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
+            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto" v-if="album.description?.trim()">
               {{ album.description }}
             </p>
             <div class="flex items-center justify-center gap-3 mt-4 sm:mt-8 sm:justify-start" v-if="album.price">

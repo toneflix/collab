@@ -116,7 +116,7 @@
                 <ArtistMenu :artist="artist" />
               </span>
             </div>
-            <p class="block mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
+            <p class="block mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto" v-if="artist.about?.trim()">
               {{ artist.about }}
             </p>
             <div class="claim-status" v-if="artist.claimable && artist.yourClaim">

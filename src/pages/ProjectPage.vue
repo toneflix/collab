@@ -135,7 +135,7 @@
                 <ReportDialog type="project" label="project" :id="project.id" />
               </template>
             </div>
-            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
+            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto" v-if="project.description?.trim()">
               {{ project.description }}
             </p>
           </div>

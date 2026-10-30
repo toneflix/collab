@@ -116,7 +116,7 @@
               This track was taken down, so only you can see it.
               <router-link class="underline" :to="{ name: 'studio.takedowns' }">See why or appeal</router-link>
             </q-banner>
-            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto">
+            <p class="mt-4 text-sm sm:mt-8 max-w-96 max-sm:mx-auto" v-if="track.description?.trim()">
               {{ track.description }}
             </p>
             <TrackPurchases
