@@ -1,6 +1,9 @@
 import {
   Earnings,
+  PaymentOptions,
+  PaymentProvider,
   PaymentPurpose,
+  PaymentRegion,
   PaymentSession,
   PremiumStatus,
   ResponseBody,
@@ -21,15 +24,32 @@ export type PaymentBody = {
   credits?: number;
 };
 
+/** How a payment starts: the provider, and whether it runs in the provider's popup. */
+export type PaymentStart = {
+  provider?: PaymentProvider;
+  inline?: boolean;
+  /** The app page to go back to once the payment is confirmed */
+  return_path?: string;
+};
+
 /**
- * Start a payment. The API creates a pending transaction and a Paystack session.
+ * The currency the signed-in user pays in and the providers they can choose.
  */
-export const startPaymentRequest = (body: PaymentBody) => {
+export const loadPaymentOptionsRequest = () => {
+  return alova.Get<ResponseBody<PaymentOptions>>('payments/options', {
+    cacheFor: 60 * 1000,
+  });
+};
+
+/**
+ * Start a payment. The API creates a pending transaction and the provider's session.
+ */
+export const startPaymentRequest = (body: PaymentBody & PaymentStart) => {
   return alova.Post<ResponseBody<PaymentSession>>('payments', body);
 };
 
 /**
- * Ask the API to confirm a payment with Paystack.
+ * Ask the API to confirm a payment with its provider. A payment still in progress answers 202.
  */
 export const verifyPaymentRequest = (reference: string) => {
   return alova.Post<ResponseBody<Transaction>>(
@@ -197,3 +217,27 @@ export const loadStreamTracksRequest = (
  */
 export const loadStreamStatsRequest = (type: StatsType, id: number | string) =>
   alova.Get<ResponseBody<StreamStatsReport>>(`account/stats/${type}/${id}`, { cacheFor: 0 });
+
+/**
+ * Payment regions, for admins with manage-configuration.
+ */
+export const loadPaymentRegionsRequest = (params: { page?: number; limit?: number; search?: string } = {}) =>
+  alova.Get<ResponseBody<PaymentRegion[]>>('admin/payments/regions', { params, cacheFor: 0 });
+
+export type PaymentRegionBody = {
+  name: string;
+  countries: string[];
+  providers: PaymentProvider[];
+  currency: string;
+  exchange_rate?: number | null;
+  rate_markup?: number | null;
+  active?: boolean;
+};
+
+export const savePaymentRegionRequest = (body: PaymentRegionBody, id?: number) =>
+  id
+    ? alova.Put<ResponseBody<PaymentRegion>>(`admin/payments/regions/${id}`, body)
+    : alova.Post<ResponseBody<PaymentRegion>>('admin/payments/regions', body);
+
+export const deletePaymentRegionRequest = (id: number) =>
+  alova.Delete<ResponseBody<PaymentRegion>>(`admin/payments/regions/${id}`);

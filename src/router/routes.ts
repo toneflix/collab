@@ -75,6 +75,12 @@ const routes: RouteRecordRaw[] = [
         redirect: { name: 'help', hash: '#faq' },
       },
       {
+        path: '/payments/:reference',
+        name: 'payments.return',
+        meta: { requireAuth: true },
+        component: () => import('pages/PaymentReturnPage.vue')
+      },
+      {
         path: '/freesound/callback',
         name: 'freesound.callback',
         meta: { requireAuth: true },

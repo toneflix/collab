@@ -14,6 +14,10 @@
           <PayoutProviderSettings />
         </template>
 
+        <template #regions>
+          <PaymentRegionsAdmin />
+        </template>
+
         <template #streams>
           <StreamPeriodsAdmin />
         </template>
@@ -110,6 +114,7 @@ import SettingsSections, { type SettingsSection } from 'src/components/Admin/Set
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import PayoutItem from 'src/components/Payments/PayoutItem.vue';
 import PayoutProviderSettings from 'src/components/Payments/PayoutProviderSettings.vue';
+import PaymentRegionsAdmin from 'src/components/Payments/PaymentRegionsAdmin.vue';
 import StreamChecksAdmin from 'src/components/Payments/StreamChecksAdmin.vue';
 import StreamPeriodsAdmin from 'src/components/Payments/StreamPeriodsAdmin.vue';
 import RoyaltyAdmin from 'src/components/Payments/RoyaltyAdmin.vue';
@@ -135,7 +140,7 @@ const boot = useBootstrapStore();
 const { price } = usePayments();
 
 const canConfigure = computed(() => !!boot.user?.permissions?.includes('manage-configuration'));
-type View = PayoutStatus | 'all' | 'providers' | 'royals' | 'royalty-invites' | 'streams' | 'stream-checks';
+type View = PayoutStatus | 'all' | 'providers' | 'regions' | 'royals' | 'royalty-invites' | 'streams' | 'stream-checks';
 
 const view = ref<View>('pending');
 const status = computed<PayoutStatus | ''>(() =>
@@ -202,7 +207,13 @@ const sections = computed(() => {
           key: 'providers',
           icon: 'lucide-landmark',
           title: 'Providers',
-          caption: 'Paystack, Flutterwave and Stripe Connect.',
+          caption: 'Who takes payments and pays creators.',
+        },
+        {
+          key: 'regions',
+          icon: 'lucide-globe',
+          title: 'Payment regions',
+          caption: 'Providers and currency by country.',
         },
       ]
     : list;
