@@ -99,7 +99,7 @@ const sections: AboutSection[] = [
     icon: 'lucide-pen-tool',
     title: 'Write songs and share them',
     paragraphs: [
-      'The Composer is a notepad made for lyrics. It counts syllables, colours rhymes and helps you find the next line. When a song is ready, turn it into a project and record it.',
+      'The Composer is your smart songwriting assistant. It counts syllables, colours your rhymes and finds perfect, near and multi-syllable rhymes, words that sound alike, mean the same or often go together. When you are stuck, ask it for the next line, the next four lines, a whole verse or a better take on a line you already have. Write with your collaborators, go back to any earlier version, and turn a finished song into a project to record.',
       'Publish your compositions so other creators can read them, and choose whether they may fork them or record their own take. Forks keep the credit with the writer, so ideas travel through the community and the people who started them are never lost.',
     ],
   },
