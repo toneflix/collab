@@ -285,7 +285,13 @@ const gridClass = computed(() =>
 );
 
 const paysWithMinutes = computed(() => !!video.value && minutesLeft.value >= video.value.minutes);
-const renderCost = computed(() => (ai.value?.costs.video ?? 0) * Math.max(1, video.value?.minutes ?? 1));
+/** Clips kept from an earlier render aren't paid for again */
+const renderCost = computed(() => {
+  const full = (ai.value?.costs.video ?? 0) * Math.max(1, video.value?.minutes ?? 1);
+  const shots = video.value?.shots ?? [];
+  const missing = shots.filter((shot) => !shot.rendered).length;
+  return shots.length ? Math.max(1, Math.ceil((full * missing) / shots.length)) : full;
+});
 const short = computed(() => !paysWithMinutes.value && !!ai.value && ai.value.balance.total < renderCost.value);
 
 const missingStills = computed(() => video.value?.shots?.filter((shot) => !shot.keyframeUrl).length ?? 0);
