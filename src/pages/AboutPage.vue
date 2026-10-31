@@ -108,7 +108,7 @@ const sections: AboutSection[] = [
     title: 'AI that works with your music',
     paragraphs: [
       'Our AI tools sit inside the studio and work on your own projects. Generate a loop or a full song from a prompt and your lyrics, pull vocals, drums and bass out of a finished mix, or select part of a stem and describe how it should change. Record a sample of your voice for your artist and new songs can be sung in it.',
-      'Lyrics are transcribed and timed to the music for you, so your listeners can sing along. When a track is finished, turn it into a music video with singing shots of your artist and scenes cut to the beat. The AI tools come with Premium and run on AI credits.',
+      'Lyrics are transcribed and timed to the music for you, so your listeners can sing along. When a track is finished, turn it into a music video with singing shots of your artist and scenes cut to the beat.',
     ],
   },
   {
