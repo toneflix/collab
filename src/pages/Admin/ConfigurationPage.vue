@@ -9,7 +9,7 @@
 
     <q-form @submit="save" v-else-if="settings">
       <SettingsSections :sections="groups" :marked="unsaved">
-        <template #[group.key] :key="group.key" v-for="group in groups">
+        <template #[group.key] :key="group.key" v-for="group in fieldGroups">
           <div class="grid gap-3 sm:grid-cols-2">
             <template v-for="key in group.keys" :key="key">
               <template v-if="fields[key]">
@@ -233,6 +233,8 @@ const groups: (SettingsSection & { keys: string[] })[] = [
     keys: ['studio_plugins'],
   },
 ];
+/** Sections built from settings fields; Mail has its own slot. */
+const fieldGroups = groups.filter((group) => group.keys.length);
 const moneyKeys = ['min_tip_amount', 'min_payout_amount'];
 
 const boot = useBootstrapStore();
