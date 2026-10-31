@@ -24,6 +24,19 @@ export type MusicVideoShot = {
   keyframeUrl: string | null;
   /** Whether a clip is kept for it, so a new render skips it */
   rendered: boolean;
+  /** Keys of the characters seen in the shot */
+  characters: string[];
+};
+
+/** Someone in the video, with the character sheet their stills are drawn from */
+export type MusicVideoCharacter = {
+  id: number;
+  key: string;
+  name: string;
+  description: string;
+  singer: boolean;
+  /** The character sheet, while its link lasts */
+  sheetUrl: string | null;
 };
 
 export type MusicVideo = {
@@ -42,6 +55,7 @@ export type MusicVideo = {
   /** The finished video, while its link lasts */
   videoUrl: string | null;
   error: string | null;
+  characters?: MusicVideoCharacter[];
   shots?: MusicVideoShot[];
   createdAt: string;
   finishedAt: string | null;

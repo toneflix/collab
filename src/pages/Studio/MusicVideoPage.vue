@@ -124,6 +124,36 @@
           />
         </div>
 
+        <!-- Cast -->
+        <template v-if="video.characters?.length">
+          <h5 class="mb-1 text-base font-semibold">Cast</h5>
+          <p class="mb-3 text-xs text-grey-5">Every still of a character is drawn from their sheet, so they look the same in each shot.</p>
+          <div class="grid gap-3 mb-8 grid-cols-2 lg:grid-cols-3">
+            <div class="cast" :key="character.id" v-for="character in video.characters">
+              <a
+                class="cast__sheet"
+                target="_blank"
+                rel="noopener"
+                :href="character.sheetUrl"
+                v-if="character.sheetUrl"
+              >
+                <img :src="character.sheetUrl" :alt="`${character.name} character sheet`" loading="lazy" />
+              </a>
+              <div class="cast__sheet" v-else>
+                <q-spinner-dots size="20px" color="toneflix" v-if="busy" />
+                <q-icon name="lucide-image-off" size="24px" class="text-grey-7" v-else />
+              </div>
+              <div class="p-3">
+                <div class="flex items-center gap-2 text-sm font-semibold no-wrap">
+                  <q-icon name="lucide-mic-vocal" size="14px" class="flex-none! text-toneflix" v-if="character.singer" />
+                  <span class="truncate">{{ character.name }}</span>
+                </div>
+                <div class="mt-1 text-xs text-grey-5 line-clamp-2 sm:line-clamp-3">{{ character.description }}</div>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Storyboard -->
         <template v-if="video.shots?.length">
           <h5 class="mb-3 text-base font-semibold">Storyboard</h5>
@@ -137,6 +167,10 @@
                   {{ shot.kind === 'performance' ? 'Singing' : 'Scene' }}
                 </span>
                 <span class="shot__time">{{ clock(shot.start) }}–{{ clock(shot.end) }}</span>
+                <span class="shot__cast" v-if="castOf(shot)">
+                  <q-icon name="lucide-users" size="12px" />
+                  {{ castOf(shot) }}
+                </span>
               </div>
               <div class="p-3">
                 <template v-if="editing === shot.id">
@@ -261,6 +295,13 @@ const retryCost = computed(() => {
   return total ? Math.max(1, Math.ceil((full * missingStills.value) / total)) : full;
 });
 const retryShort = computed(() => !!ai.value && ai.value.balance.total < retryCost.value);
+
+/** Names of the characters seen in a shot */
+const castOf = (shot: MusicVideoShot) =>
+  (shot.characters ?? [])
+    .map((key) => video.value?.characters?.find((character) => character.key === key)?.name)
+    .filter(Boolean)
+    .join(', ');
 
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
@@ -465,6 +506,26 @@ useMeta(() => ({
   opacity: 0.35;
 }
 
+.cast {
+  overflow: hidden;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+
+  &__sheet {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    background: var(--tf-surface-2);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
 .shot {
   overflow: hidden;
   border: 1px solid var(--tf-border);
@@ -487,7 +548,8 @@ useMeta(() => ({
   }
 
   &__kind,
-  &__time {
+  &__time,
+  &__cast {
     position: absolute;
     top: 8px;
     display: inline-flex;
@@ -507,6 +569,16 @@ useMeta(() => ({
   &__time {
     right: 8px;
     font-variant-numeric: tabular-nums;
+  }
+
+  &__cast {
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__prompt {
