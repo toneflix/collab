@@ -69,10 +69,20 @@ export type MusicVideoPage = ResponseBody<MusicVideo[]> & {
   ownPhotos: boolean;
 };
 
+/** A character sheet the creator uploads, tagged with who it shows */
+export type CharacterSheetUpload = {
+  name: string;
+  description?: string;
+  singer: boolean;
+  sheet: File;
+};
+
 export type NewMusicVideo = {
   ratio: VideoRatio;
   brief?: string;
   photo?: File | null;
+  /** The creator's own character sheets; none are drawn when given */
+  characters?: CharacterSheetUpload[];
   consent?: boolean;
 };
 
@@ -101,15 +111,24 @@ export const loadOwnTracksRequest = (search = '', page = 1) =>
 export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   const url = `creator/tracks/${track}/videos`;
 
-  if (!form.photo) {
+  if (!form.photo && !form.characters?.length) {
     return alova.Post<ResponseBody<MusicVideo>>(url, { ratio: form.ratio, brief: form.brief || undefined });
   }
 
   const data = new FormData();
   data.append('ratio', form.ratio);
-  data.append('photo', form.photo);
   data.append('consent', form.consent ? '1' : '0');
   if (form.brief) data.append('brief', form.brief);
+  if (form.characters?.length) {
+    form.characters.forEach((character, i) => {
+      data.append(`characters[${i}][name]`, character.name);
+      data.append(`characters[${i}][singer]`, character.singer ? '1' : '0');
+      data.append(`characters[${i}][sheet]`, character.sheet);
+      if (character.description) data.append(`characters[${i}][description]`, character.description);
+    });
+  } else if (form.photo) {
+    data.append('photo', form.photo);
+  }
 
   const request = axios.Post<ResponseBody<MusicVideo>>(url, data);
   request.config.headers['Content-Type'] = 'multipart/form-data';
