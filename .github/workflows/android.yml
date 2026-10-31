@@ -2,8 +2,8 @@ name: Android
 
 # A published GitHub release builds a signed app bundle and sends it to Google Play.
 # The tag gives the version name and the tracks: 1.1.1 goes to production, alpha, beta
-# and qa, 1.1.1-alpha to alpha, beta and qa, 1.1.1-beta to beta and qa, and any other
-# pre-release to internal.
+# and internal, 1.1.1-alpha to alpha, beta and internal, 1.1.1-beta to beta and internal,
+# and any other pre-release to internal.
 # A manual run builds the same signed bundle and APK and keeps them as run artifacts;
 # it uploads to Google Play only when "deploy" is ticked.
 # A test build has debug logging on and only ever goes to the internal track.
@@ -143,9 +143,9 @@ jobs:
               *) [ "$PRERELEASE" = true ] && TRACK=internal || TRACK=production ;;
             esac
             case "$TRACK" in
-              production) TRACKS=production,alpha,beta,qa ;;
-              alpha) TRACKS=alpha,beta,qa ;;
-              beta) TRACKS=beta,qa ;;
+              production) TRACKS=production,alpha,beta,internal ;;
+              alpha) TRACKS=alpha,beta,internal ;;
+              beta) TRACKS=beta,internal ;;
               *) TRACKS="$TRACK" ;;
             esac
             npm version "$NAME" --no-git-tag-version --allow-same-version > /dev/null
