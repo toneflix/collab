@@ -13,6 +13,7 @@ export type ConfigurationField = {
 
 export type ConfigurationSettings = {
   fields: Record<string, ConfigurationField>;
+  mail?: { mailer: string; from: string | null };
 };
 
 export const loadConfigurationRequest = () =>
@@ -21,5 +22,13 @@ export const loadConfigurationRequest = () =>
     cacheFor: 0,
   });
 
-export const saveConfigurationRequest = (form: Record<string, ConfigurationValue>) =>
+export const saveConfigurationRequest = (
+  form: Record<string, ConfigurationValue>,
+) =>
   alova.Put<ResponseBody<ConfigurationSettings>>('admin/configuration', form);
+
+export const sendTestMailRequest = (email: string) =>
+  alova.Post<ResponseBody<{ email: string; mailer: string }>>(
+    'admin/configuration/test-mail',
+    { email },
+  );
