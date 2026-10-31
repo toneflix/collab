@@ -162,6 +162,7 @@ export const describeAction = (entry: AdminAction, price: (n: number) => string)
     'agent.removed': 'Turned off AI Studio',
     'two_factor.reset': 'Reset two-factor sign-in',
     'sessions.ended': 'Signed out everywhere',
+    'password.changed': d.sessions !== undefined ? 'Changed the password and signed out everywhere' : 'Changed the password',
     'content.deleted': `Deleted the ${contentLabel(d.type)} “${String(d.title)}”${d.note ? `: ${String(d.note)}` : ''}`,
     'content.created': `Added the ${contentLabel(d.type)} “${String(d.title)}”`,
     'content.updated': `Edited the ${contentLabel(d.type)} “${String(d.title)}”`,
