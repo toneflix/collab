@@ -34,6 +34,16 @@ export default <RouteRecordRaw[]>[
         component: () => import('pages/Studio/AgentPage.vue'),
       },
       {
+        path: 'videos',
+        name: 'studio.videos',
+        component: () => import('pages/Studio/MusicVideosPage.vue'),
+      },
+      {
+        path: 'videos/:video_id',
+        name: 'studio.videos.show',
+        component: () => import('pages/Studio/MusicVideoPage.vue'),
+      },
+      {
         path: 'credits',
         name: 'studio.credits',
         component: () => import('pages/Studio/CreditsPage.vue'),

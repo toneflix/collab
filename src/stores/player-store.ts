@@ -126,7 +126,7 @@ const plays = new PlayReporter(() => Number(useBootstrapStore().configuration.st
  */
 export const usePlayerStore = defineStore('player', {
   persist: {
-    pick: ['queue', 'index', 'source', 'volume', 'muted', 'repeat', 'shuffle', 'order'],
+    pick: ['queue', 'index', 'source', 'volume', 'muted', 'repeat', 'shuffle', 'order', 'videos'],
   },
 
   state: () => ({
@@ -147,6 +147,8 @@ export const usePlayerStore = defineStore('player', {
     muted: false,
     repeat: 'off' as RepeatMode,
     shuffle: false,
+    /** Whether Up Next shows a track's music video in place of its artwork */
+    videos: true,
 
     failedInARow: 0,
     /** Bumped on every load, so a slow request for an old track can't take over */
