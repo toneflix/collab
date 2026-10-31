@@ -10,13 +10,14 @@
   >
     <q-card ref="card" dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
       <div class="now-playing__body">
-        <!-- Big artwork and what's playing -->
-        <div class="now-playing__art">
-          <q-img
-            no-spinner
-            class="rounded-lg shadow-2xl bg-gray-800"
-            :ratio="1"
-            :src="track.imageUrl"
+        <!-- Big artwork, or the music video, and what's playing -->
+        <div class="now-playing__art" :class="{ 'now-playing__art--video': hasVideo }">
+          <TrackVideoArt
+            :track-id="open ? track.id : null"
+            :image-url="track.imageUrl"
+            :position="player.position"
+            :playing="player.playing"
+            @video="(v) => (hasVideo = !!v)"
           />
           <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
@@ -75,6 +76,7 @@ import { usePlayerStore } from 'src/stores/player-store';
 import { useRoute } from 'vue-router';
 import QueueList from './QueueList.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
+import TrackVideoArt from './TrackVideoArt.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
 
@@ -104,6 +106,8 @@ const artistLink = computed(() => ({
   name: 'artist',
   params: { artist_id: track.value.artist?.username || '-' },
 }));
+/** Whether the playing track's music video shows in place of its artwork */
+const hasVideo = ref(false);
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
 
 // Esc and clicks outside the panel close it. The player bar and popups keep it open.
@@ -144,6 +148,10 @@ watch([open, tab], ([on, current]) => {
   align-self: center;
   justify-self: center;
   width: min(100%, 440px);
+
+  &--video {
+    width: min(100%, 720px);
+  }
 
   @media (max-width: 1023px) {
     display: none;

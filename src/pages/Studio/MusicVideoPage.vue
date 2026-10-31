@@ -67,7 +67,7 @@
           <div class="min-w-0">
             <div class="font-semibold">Happy with the storyboard?</div>
             <div class="text-xs text-grey-5">
-              Change what any shot shows below, then make the video.
+              Drag shots to reorder them or change what any shot shows, then make the video.
               <template v-if="paysWithMinutes">
                 Uses {{ video.minutes }} of your {{ minutesLeft }} video {{ minutesLeft === 1 ? 'minute' : 'minutes' }}.
               </template>
@@ -97,7 +97,7 @@
         <!-- Storyboard -->
         <template v-if="video.shots?.length">
           <h5 class="mb-3 text-base font-semibold">Storyboard</h5>
-          <div class="grid gap-3" :class="gridClass">
+          <div ref="board" class="grid gap-3" :class="[gridClass, { 'storyboard--sortable': sortable }]">
             <div class="shot" :key="shot.id" v-for="shot in video.shots">
               <div class="shot__still" :style="{ aspectRatio: aspect }">
                 <img :src="shot.keyframeUrl" alt="" loading="lazy" v-if="shot.keyframeUrl" />
@@ -166,7 +166,8 @@
 
 <script setup lang="ts">
 import { useMeta } from 'quasar';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import Sortable, { type SortableEvent } from 'sortablejs';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -176,6 +177,7 @@ import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import {
   loadMusicVideoRequest,
   renderMusicVideoRequest,
+  reorderMusicVideoShotsRequest,
   updateMusicVideoShotRequest,
   VIDEO_RATIOS,
   videoBusy,
@@ -281,7 +283,63 @@ onMounted(() => {
   }, 8000);
 });
 
-onBeforeUnmount(() => clearInterval(poll));
+/** Shots can be dragged into a new order until the video is rendered */
+const board = ref<HTMLElement | null>(null);
+const sortable = computed(() => video.value?.status === 'storyboard' && editing.value === null);
+let sorter: Sortable | null = null;
+
+/** Puts the dragged shot in its new place, in the time slot of that place */
+const reorder = async (from: number, to: number) => {
+  if (!video.value?.shots || from === to) return;
+  const before = video.value.shots;
+  const slots = before.map((shot) => [shot.start, shot.end] as const);
+  const moved = [...before];
+  moved.splice(to, 0, ...moved.splice(from, 1));
+  video.value.shots = moved.map((shot, i) => {
+    const [start, end] = slots[i]!;
+    return { ...shot, position: i + 1, start, end, rendered: shot.rendered && shot.start === start };
+  });
+  try {
+    const res = await reorderMusicVideoShotsRequest(video.value.id, moved.map((shot) => shot.id)).send();
+    video.value = res.data;
+  } catch (e) {
+    if (video.value) video.value.shots = before;
+    notifyError(e, "The shots couldn't be reordered.");
+  }
+};
+
+const onSorted = (e: SortableEvent) => {
+  const { item, from, oldIndex, newIndex } = e;
+  if (oldIndex === undefined || newIndex === undefined) return;
+  // Hand the DOM back to Vue, which redraws the list in its new order.
+  item.remove();
+  from.insertBefore(item, from.children[oldIndex] ?? null);
+  void reorder(oldIndex, newIndex);
+};
+
+watch(
+  board,
+  (el) => {
+    sorter?.destroy();
+    sorter = el
+      ? Sortable.create(el, {
+          animation: 150,
+          delay: 150,
+          delayOnTouchOnly: true,
+          ghostClass: 'shot--ghost',
+          disabled: !sortable.value,
+          onUpdate: onSorted,
+        })
+      : null;
+  },
+  { flush: 'post' },
+);
+watch(sortable, (on) => sorter?.option('disabled', !on));
+
+onBeforeUnmount(() => {
+  clearInterval(poll);
+  sorter?.destroy();
+});
 
 useMeta(() => ({
   title: video.value?.track?.title ? `${video.value.track.title} music video` : 'Music video',
@@ -342,6 +400,14 @@ useMeta(() => ({
   border: 1px solid var(--tf-border-strong);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-surface-2);
+}
+
+.storyboard--sortable .shot {
+  cursor: grab;
+}
+
+.shot--ghost {
+  opacity: 0.35;
 }
 
 .shot {

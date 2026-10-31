@@ -110,3 +110,23 @@ export const renderMusicVideoRequest = (video: number) =>
 
 export const deleteMusicVideoRequest = (video: number) =>
   alova.Delete<ResponseBody<MusicVideo>>(`creator/videos/${video}`);
+
+/** A track's finished music video, as the player shows it */
+export type TrackVideo = {
+  id: number;
+  trackId: number;
+  ratio: VideoRatio;
+  duration: number | null;
+  videoUrl: string | null;
+  posterUrl: string | null;
+};
+
+/** The track's music video, or null when it has none */
+export const loadTrackVideoRequest = (track: number | string) =>
+  alova.Get(`tracks/${track}/video`, {
+    transform: (e: ResponseBody<TrackVideo | Record<string, never>>) =>
+      e.data && 'videoUrl' in e.data && e.data.videoUrl ? (e.data as TrackVideo) : null,
+  });
+
+export const reorderMusicVideoShotsRequest = (video: number, shots: number[]) =>
+  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/order`, { shots });

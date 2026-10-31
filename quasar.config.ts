@@ -85,6 +85,15 @@ export default defineConfig((ctx) => {
         }
       },
 
+      // Video.js elements are custom elements, not Vue components
+      viteVuePluginOptions: {
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag: string) => tag === 'background-video',
+          },
+        },
+      },
+
       vitePlugins: [
         [
           'vite-plugin-checker',
