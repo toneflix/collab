@@ -2,7 +2,7 @@
 // Writes Google Play "What's new" text from the pull requests and direct commits
 // made since the last Android release commit.
 //
-// Usage: node .github/scripts/release-notes.mjs <out-dir> [--locale en-US] [--skip-test-releases]
+// Usage: node .github/scripts/release-notes.mjs <out-dir> [--locale en-US] [--skip-prereleases]
 
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -25,10 +25,10 @@ class Git {
   }
 
   /**
-   * The newest release commit on any branch, so a manual run from main still
-   * sees releases made from the playstore branch.
+   * The newest release commit on any branch. Skipping pre-releases passes over
+   * versions with a suffix, such as 1.1.1-beta or 1.1.1-test.
    */
-  lastRelease(skipTestReleases) {
+  lastRelease(skipPrereleases) {
     const commits = this.lines(
       'log',
       '--all',
@@ -38,7 +38,7 @@ class Git {
       '--format=%H %s',
     );
     const release = commits.find(
-      (line) => !skipTestReleases || !/-test \(build/.test(line),
+      (line) => !skipPrereleases || !/\d-[0-9A-Za-z.]+ \(build/.test(line),
     );
 
     return release?.split(' ')[0] ?? null;
@@ -190,8 +190,8 @@ class ReleaseNotes {
     return text || ReleaseNotes.FALLBACK;
   }
 
-  write(dir, locale, skipTestReleases) {
-    const base = this.git.lastRelease(skipTestReleases);
+  write(dir, locale, skipPrereleases) {
+    const base = this.git.lastRelease(skipPrereleases);
     const text = this.render(this.changes(base));
 
     mkdirSync(dir, { recursive: true });
@@ -208,7 +208,7 @@ const locale = localeAt >= 0 ? args[localeAt + 1] : 'en-US';
 const { base, text } = new ReleaseNotes(new Git()).write(
   dir,
   locale,
-  args.includes('--skip-test-releases'),
+  args.includes('--skip-prereleases'),
 );
 
 console.log(`Changes since ${base ?? 'the last 50 commits'}:\n\n${text}`);

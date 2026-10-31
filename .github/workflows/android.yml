@@ -1,14 +1,16 @@
 name: Android
 
-# A push to the playstore branch builds a signed app bundle and sends it to Google Play.
+# A published GitHub release builds a signed app bundle and sends it to Google Play.
+# The tag gives the version name and the track: 1.1.1-alpha goes to alpha, 1.1.1-beta
+# to beta, 1.1.1 to production, and any other pre-release to internal.
 # A manual run builds the same signed bundle and APK and keeps them as run artifacts;
 # it uploads to Google Play only when "deploy" is ticked.
 # A test build has debug logging on and only ever goes to the internal track.
 # The api choice picks which VITE_*_API_BASE_URL the app talks to.
 # Pull requests that touch the app only check that the Android project builds.
 on:
-  push:
-    branches: [playstore]
+  release:
+    types: [published]
   pull_request:
     paths:
       - src-capacitor/**
@@ -60,7 +62,7 @@ jobs:
       VITE_APP_ENVIRONMENT: production
       VITE_API_ENVIRONMENT: production
       RELEASE: ${{ github.event_name != 'pull_request' }}
-      DEPLOY: ${{ github.event_name == 'push' || inputs.deploy == true }}
+      DEPLOY: ${{ github.event_name == 'release' || inputs.deploy == true }}
       BUILD: ${{ inputs.build || 'production' }}
       API: ${{ inputs.api || 'production' }}
       BUMP: ${{ inputs.bump || 'patch' }}
@@ -116,24 +118,51 @@ jobs:
             echo "::warning::VITE_DEV_API_BASE_URL is not set, so the app uses the address in .env, which a phone can't reach."
           fi
 
-      # Raises package.json's version and build number. The build number is the
+      # Sets package.json's version (from the release tag, or raised by the bump
+      # choice) and build number, and picks the Play track. The build number is the
       # Play version code, so it never goes below the run-based code used before.
       - name: Set version
         if: env.RELEASE == 'true'
         env:
           OFFSET: ${{ vars.ANDROID_VERSION_CODE_OFFSET || '0' }}
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+          DEFAULT_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
         run: |
-          npm version "$BUMP" --no-git-tag-version > /dev/null
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            NAME="${TAG#v}"
+            if ! [[ "$NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+              echo "::error::Release tag $TAG is not a version like 1.1.1, 1.1.1-alpha or 1.1.1-beta."
+              exit 1
+            fi
+            case "$NAME" in
+              *-alpha*) TRACK=alpha ;;
+              *-beta*) TRACK=beta ;;
+              *-*) TRACK=internal ;;
+              *) [ "$PRERELEASE" = true ] && TRACK=internal || TRACK=production ;;
+            esac
+            npm version "$NAME" --no-git-tag-version --allow-same-version > /dev/null
+          else
+            npm version "$BUMP" --no-git-tag-version > /dev/null
+            NAME=$(jq -r .version package.json)
+            TRACK="$DEFAULT_TRACK"
+            if [ "$BUILD" = test ]; then
+              NAME="$NAME-test"
+              TRACK=internal
+            fi
+          fi
           LAST=$(jq -r '.build // 0' package.json)
           RUN=$(( ${{ github.run_number }} + OFFSET ))
           CODE=$(( LAST + 1 > RUN ? LAST + 1 : RUN ))
           jq --argjson code "$CODE" '.build = $code' package.json > package.json.tmp
           mv package.json.tmp package.json
-          NAME=$(jq -r .version package.json)
-          if [ "$BUILD" = test ]; then NAME="$NAME-test"; fi
-          echo "ANDROID_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
-          echo "ANDROID_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
-          echo "Version $NAME, build $CODE"
+          {
+            echo "ANDROID_VERSION_CODE=$CODE"
+            echo "ANDROID_VERSION_NAME=$NAME"
+            echo "ANDROID_PACKAGE_VERSION=$(jq -r .version package.json)"
+            echo "ANDROID_TRACK=$TRACK"
+          } >> "$GITHUB_ENV"
+          echo "Version $NAME, build $CODE, $TRACK track"
 
       # Builds the UI into src-capacitor/www and syncs it into the Android project
       - name: Build the app
@@ -188,12 +217,12 @@ jobs:
           retention-days: 30
 
       # Play's "What's new" text from the PRs and direct commits since the last
-      # release. A production build skips past test releases.
+      # release. A production release skips past pre-releases and test builds.
       - name: Write release notes
         if: env.DEPLOY == 'true'
         run: |
           node .github/scripts/release-notes.mjs "$RUNNER_TEMP/whatsnew" \
-            ${{ env.BUILD == 'production' && '--skip-test-releases' || '' }}
+            ${{ env.ANDROID_TRACK == 'production' && '--skip-prereleases' || '' }}
           {
             echo '### Release notes'
             echo '```'
@@ -208,21 +237,32 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.toneflix.music.app
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
-          tracks: ${{ env.BUILD == 'test' && 'internal' || vars.PLAY_TRACK || 'internal' }}
+          tracks: ${{ env.ANDROID_TRACK }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
           # Priority 4 and up makes the app's in-app update immediate (src/utils/app-updates.ts)
           inAppUpdatePriority: ${{ inputs.update == 'immediate' && 5 || 2 }}
 
-      # Keeps the raised version and build number once Google Play has the bundle
+      # Keeps the version and build number once Google Play has the bundle. A release
+      # commits to the branch it was cut from, or the default branch for a commit.
       - name: Commit the new version
         if: env.DEPLOY == 'true'
+        env:
+          TARGET: ${{ github.event.release.target_commitish || github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          VERSION="$ANDROID_VERSION_NAME"
-          CODE="$ANDROID_VERSION_CODE"
+          BRANCH="$TARGET"
+          if ! git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+            BRANCH="$DEFAULT_BRANCH"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$BRANCH"
+          git checkout -f -B "$BRANCH" FETCH_HEAD
+          jq --arg version "$ANDROID_PACKAGE_VERSION" --argjson code "$ANDROID_VERSION_CODE" \
+            '.version = $version | .build = $code' package.json > package.json.tmp
+          mv package.json.tmp package.json
           git add package.json
-          git commit -m "chore: Android release $VERSION (build $CODE) [skip ci]"
-          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
-          git push origin "HEAD:$GITHUB_REF_NAME"
+          git commit -m "chore: Android release $ANDROID_VERSION_NAME (build $ANDROID_VERSION_CODE) [skip ci]"
+          git pull --rebase origin "$BRANCH"
+          git push origin "HEAD:$BRANCH"
