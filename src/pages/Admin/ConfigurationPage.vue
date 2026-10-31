@@ -1,8 +1,8 @@
 <template>
   <PanePage title="Configuration">
     <template #subtitle>
-      General settings for the whole app. API keys are not here; they live
-      in the API's .env file.
+      General settings for the whole app. API keys are not here; they live in
+      the API's .env file.
     </template>
 
     <BlockSkeleton variant="form" :count="6" v-if="loading" />
@@ -59,6 +59,52 @@
           </div>
         </template>
 
+        <template #mail>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <q-input
+              dark
+              outlined
+              readonly
+              label="Mailer"
+              :model-value="settings.mail?.mailer"
+            />
+            <q-input
+              dark
+              outlined
+              readonly
+              label="Sends from"
+              :model-value="settings.mail?.from"
+            />
+            <q-input
+              dark
+              outlined
+              bottom-slots
+              type="email"
+              label="Send a test email to"
+              class="sm:col-span-2"
+              v-model="testEmail"
+              @keydown.enter.prevent="sendTestMail"
+            >
+              <template #hint
+                >Mail settings live in the API's .env file.</template
+              >
+              <template #after>
+                <q-btn
+                  unelevated
+                  no-caps
+                  color="toneflix"
+                  label="Send test email"
+                  icon="lucide-send"
+                  class="flex-none!"
+                  :loading="sending"
+                  :disable="!testEmail"
+                  @click="sendTestMail"
+                />
+              </template>
+            </q-input>
+          </div>
+        </template>
+
         <template #footer>
           <span class="text-sm text-grey-5" v-if="changed"
             >Unsaved changes</span
@@ -92,6 +138,7 @@ import type { ResponseBody } from 'src/utils/models';
 import {
   loadConfigurationRequest,
   saveConfigurationRequest,
+  sendTestMailRequest,
   type ConfigurationField,
   type ConfigurationSettings,
   type ConfigurationValue,
@@ -113,6 +160,14 @@ const groups: (SettingsSection & { keys: string[] })[] = [
       'verify_phone',
       'token_lifespan',
     ],
+  },
+  {
+    key: 'mail',
+    icon: 'lucide-mail',
+    title: 'Mail',
+    caption: 'Mailer and a test email.',
+    keys: [],
+    hideFooter: true,
   },
   {
     key: 'accounts',
@@ -186,6 +241,8 @@ const saving = ref(false);
 const settings = ref<ConfigurationSettings>();
 const form = reactive<Record<string, ConfigurationValue>>({});
 const saved = ref<Record<string, ConfigurationValue>>({});
+const testEmail = ref(boot.user.email ?? '');
+const sending = ref(false);
 
 const fields = computed(() => settings.value?.fields ?? {});
 const currency = computed(() => String(form.app_currency ?? ''));
@@ -238,6 +295,20 @@ const save = async () => {
     notify(errorText(e, "The configuration couldn't be saved."), 'error');
   } finally {
     saving.value = false;
+  }
+};
+
+const sendTestMail = async () => {
+  if (!testEmail.value || sending.value) return;
+
+  sending.value = true;
+  try {
+    const body = await sendTestMailRequest(testEmail.value).send();
+    notify(body.message, 'success');
+  } catch (e) {
+    notify(errorText(e, "The test email couldn't be sent."), 'error');
+  } finally {
+    sending.value = false;
   }
 };
 
