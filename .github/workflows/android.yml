@@ -1,8 +1,9 @@
 name: Android
 
 # A published GitHub release builds a signed app bundle and sends it to Google Play.
-# The tag gives the version name and the track: 1.1.1-alpha goes to alpha, 1.1.1-beta
-# to beta, 1.1.1 to production, and any other pre-release to internal.
+# The tag gives the version name and the tracks: 1.1.1 goes to production, alpha, beta
+# and qa, 1.1.1-alpha to alpha, beta and qa, 1.1.1-beta to beta and qa, and any other
+# pre-release to internal.
 # A manual run builds the same signed bundle and APK and keeps them as run artifacts;
 # it uploads to Google Play only when "deploy" is ticked.
 # A test build has debug logging on and only ever goes to the internal track.
@@ -119,7 +120,7 @@ jobs:
           fi
 
       # Sets package.json's version (from the release tag, or raised by the bump
-      # choice) and build number, and picks the Play track. The build number is the
+      # choice) and build number, and picks the Play tracks. The build number is the
       # Play version code, so it never goes below the run-based code used before.
       - name: Set version
         if: env.RELEASE == 'true'
@@ -141,14 +142,22 @@ jobs:
               *-*) TRACK=internal ;;
               *) [ "$PRERELEASE" = true ] && TRACK=internal || TRACK=production ;;
             esac
+            case "$TRACK" in
+              production) TRACKS=production,alpha,beta,qa ;;
+              alpha) TRACKS=alpha,beta,qa ;;
+              beta) TRACKS=beta,qa ;;
+              *) TRACKS="$TRACK" ;;
+            esac
             npm version "$NAME" --no-git-tag-version --allow-same-version > /dev/null
           else
             npm version "$BUMP" --no-git-tag-version > /dev/null
             NAME=$(jq -r .version package.json)
             TRACK="$DEFAULT_TRACK"
+            TRACKS="$DEFAULT_TRACK"
             if [ "$BUILD" = test ]; then
               NAME="$NAME-test"
               TRACK=internal
+              TRACKS=internal
             fi
           fi
           LAST=$(jq -r '.build // 0' package.json)
@@ -161,8 +170,9 @@ jobs:
             echo "ANDROID_VERSION_NAME=$NAME"
             echo "ANDROID_PACKAGE_VERSION=$(jq -r .version package.json)"
             echo "ANDROID_TRACK=$TRACK"
+            echo "ANDROID_TRACKS=$TRACKS"
           } >> "$GITHUB_ENV"
-          echo "Version $NAME, build $CODE, $TRACK track"
+          echo "Version $NAME, build $CODE, tracks $TRACKS"
 
       # Builds the UI into src-capacitor/www and syncs it into the Android project
       - name: Build the app
@@ -237,7 +247,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.toneflix.music.app
           releaseFiles: src-capacitor/android/app/build/outputs/bundle/release/app-release.aab
-          tracks: ${{ env.ANDROID_TRACK }}
+          tracks: ${{ env.ANDROID_TRACKS }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
           # Priority 4 and up makes the app's in-app update immediate (src/utils/app-updates.ts)
