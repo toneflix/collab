@@ -154,53 +154,26 @@
         </q-btn>
       </q-toolbar>
 
-      <q-scroll-area
-        class="mt-28"
-        :class="adminMenu ? 'h-[calc(100%-169px)]' : 'h-[calc(100%-112px)]'"
-      >
-        <q-list padding class="menu-list" v-if="adminMenu">
-          <q-item dense class="label" v-if="!collapsed">
-            <q-item-section class="text-gray-400">Admin</q-item-section>
-          </q-item>
+      <div class="absolute-full top-28! column no-wrap">
+        <q-scroll-area class="col min-h-0">
+          <q-list padding class="menu-list" v-if="adminMenu">
+            <q-item dense class="label" v-if="!collapsed">
+              <q-item-section class="text-gray-400">Admin</q-item-section>
+            </q-item>
 
-          <q-item
-            dense
-            clickable
-            v-ripple
-            :exact="link.exact"
-            :to="link.to"
-            :key="link.title"
-            v-for="link in adminLinks"
-          >
-            <q-item-section avatar>
-              <q-icon :name="link.icon" size="18px" />
-            </q-item-section>
-            <q-item-section>{{ link.title }}</q-item-section>
-            <q-tooltip
-              anchor="center right"
-              self="center left"
-              v-if="collapsed"
-              >{{ link.title }}</q-tooltip
-            >
-          </q-item>
-        </q-list>
-
-        <q-list padding class="menu-list" v-else>
-          <template v-for="link in navigationLinks">
             <q-item
               dense
-              exact
               clickable
               v-ripple
+              :exact="link.exact"
               :to="link.to"
               :key="link.title"
-              v-if="!link.group && !link.separator"
+              v-for="link in adminLinks"
             >
               <q-item-section avatar>
-                <q-icon :name="link.icon" />
+                <q-icon :name="link.icon" size="18px" />
               </q-item-section>
-
-              <q-item-section> {{ link.title }} </q-item-section>
+              <q-item-section>{{ link.title }}</q-item-section>
               <q-tooltip
                 anchor="center right"
                 self="center left"
@@ -208,89 +181,119 @@
                 >{{ link.title }}</q-tooltip
               >
             </q-item>
+          </q-list>
 
-            <q-separator
-              class="q-my-lg"
-              :key="link.title"
-              v-if="link.separator"
-            />
-
-            <template
-              v-if="link.group"
-            >
-              <q-item dense class="label" :key="link.group" v-if="!collapsed">
-                <q-item-section class="text-gray-400">
-                  <router-link
-                    v-if="link.to"
-                    :to="link.to"
-                    class="label-link"
-                  >
-                    {{ link.title }}
-                  </router-link>
-                  <template v-else>{{ link.title }}</template>
-                </q-item-section>
-                <q-item-section side v-if="link.button">
-                  <q-btn dense outline size="sm" :to="link.button.action">
-                    <q-icon :name="link.button.icon" />
-                  </q-btn>
-                </q-item-section>
-              </q-item>
-
+          <q-list padding class="menu-list" v-else>
+            <template v-for="link in navigationLinks">
               <q-item
                 dense
+                exact
                 clickable
                 v-ripple
-                :to="routeBuilder(item, link.group)"
-                :key="link.group + item.title"
-                v-for="item in cache.mainLayoutGroups?.[link.group]"
+                :to="link.to"
+                :key="link.title"
+                v-if="!link.group && !link.separator"
               >
                 <q-item-section avatar>
-                  <q-icon name="lucide-file" />
+                  <q-icon :name="link.icon" />
                 </q-item-section>
 
-                <q-item-section> {{ item.title }} </q-item-section>
+                <q-item-section> {{ link.title }} </q-item-section>
                 <q-tooltip
                   anchor="center right"
                   self="center left"
                   v-if="collapsed"
-                  >{{ item.title }}</q-tooltip
+                  >{{ link.title }}</q-tooltip
                 >
               </q-item>
-            </template>
-          </template>
-        </q-list>
-      </q-scroll-area>
 
-      <div class="absolute-bottom bg-dark" v-if="adminMenu">
-        <q-separator />
-        <q-list padding class="menu-list">
-          <q-item
-            dense
-            clickable
-            v-ripple
-            :href="docsUrl"
-            target="_blank"
-            rel="noopener"
-            v-if="docsUrl"
-          >
-            <q-item-section avatar>
-              <q-icon name="lucide-book-open" />
-            </q-item-section>
-            <q-item-section>Setup docs</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed"
-              >Setup docs</q-tooltip
+              <q-separator
+                class="q-my-lg"
+                :key="link.title"
+                v-if="link.separator"
+              />
+
+              <template v-if="link.group">
+                <q-item dense class="label" :key="link.group" v-if="!collapsed">
+                  <q-item-section class="text-gray-400">
+                    <router-link
+                      v-if="link.to"
+                      :to="link.to"
+                      class="label-link"
+                    >
+                      {{ link.title }}
+                    </router-link>
+                    <template v-else>{{ link.title }}</template>
+                  </q-item-section>
+                  <q-item-section side v-if="link.button">
+                    <q-btn dense outline size="sm" :to="link.button.action">
+                      <q-icon :name="link.button.icon" />
+                    </q-btn>
+                  </q-item-section>
+                </q-item>
+
+                <q-item
+                  dense
+                  clickable
+                  v-ripple
+                  :to="routeBuilder(item, link.group)"
+                  :key="link.group + item.title"
+                  v-for="item in cache.mainLayoutGroups?.[link.group]"
+                >
+                  <q-item-section avatar>
+                    <q-icon name="lucide-file" />
+                  </q-item-section>
+
+                  <q-item-section> {{ item.title }} </q-item-section>
+                  <q-tooltip
+                    anchor="center right"
+                    self="center left"
+                    v-if="collapsed"
+                    >{{ item.title }}</q-tooltip
+                  >
+                </q-item>
+              </template>
+            </template>
+          </q-list>
+        </q-scroll-area>
+
+        <div class="col-auto bg-dark" v-if="adminMenu">
+          <q-separator />
+          <q-list padding class="menu-list">
+            <q-item
+              dense
+              clickable
+              v-ripple
+              :href="docsUrl"
+              target="_blank"
+              rel="noopener"
+              v-if="docsUrl"
             >
-          </q-item>
-          <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
-            <q-item-section avatar>
-              <q-icon name="lucide-arrow-left" />
-            </q-item-section>
-            <q-item-section>Back to app</q-item-section>
-            <q-tooltip anchor="center right" self="center left" v-if="collapsed"
-              >Back to app</q-tooltip
-            >
-          </q-item>
-        </q-list>
+              <q-item-section avatar>
+                <q-icon name="lucide-book-open" />
+              </q-item-section>
+              <q-item-section>Setup docs</q-item-section>
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                v-if="collapsed"
+                >Setup docs</q-tooltip
+              >
+            </q-item>
+            <q-item dense exact clickable v-ripple :to="{ name: 'home' }">
+              <q-item-section avatar>
+                <q-icon name="lucide-arrow-left" />
+              </q-item-section>
+              <q-item-section>Back to app</q-item-section>
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                v-if="collapsed"
+                >Back to app</q-tooltip
+              >
+            </q-item>
+          </q-list>
+        </div>
       </div>
     </q-drawer>
 
@@ -337,7 +340,10 @@ import type {
   ChatMessage,
   Conversation,
 } from 'src/utils/requests/conversations';
-import { allowedAdminLinks, visibleNavigationLinks } from 'src/utils/navigations';
+import {
+  allowedAdminLinks,
+  visibleNavigationLinks,
+} from 'src/utils/navigations';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { authValidator, reboot } from 'src/utils/proccessor';
 import { GenericData, ResponseBody } from 'src/utils/models';
@@ -350,7 +356,9 @@ defineOptions({
     const loaded = boot.pageData.cache as unknown as {
       mainLayoutAccount?: string | null;
     };
-    const account = boot.user?.id ? `${boot.user.id}:${boot.user.accountType}` : null;
+    const account = boot.user?.id
+      ? `${boot.user.id}:${boot.user.accountType}`
+      : null;
 
     // Pages with route params run this again on each visit; in the browser the
     // settings and menu only need loading again when the signed-in account or its type changes.
@@ -374,9 +382,10 @@ defineOptions({
     }
 
     const data = {} as Record<string, GenericData>;
-    const groups = visibleNavigationLinks(!!boot.user?.id, boot.isListener).filter(
-      (link) => !!link.group,
-    );
+    const groups = visibleNavigationLinks(
+      !!boot.user?.id,
+      boot.isListener,
+    ).filter((link) => !!link.group);
 
     await Promise.all(
       groups.map(async ({ group, params }) => {
