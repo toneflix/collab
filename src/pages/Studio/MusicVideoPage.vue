@@ -62,6 +62,36 @@
           </span>
         </div>
 
+        <!-- Retry a failed storyboard -->
+        <div class="render-bar mb-6" v-if="video.status === 'failed'">
+          <div class="min-w-0">
+            <div class="font-semibold">{{ missingStills ? 'Draw the missing scenes' : 'Draw the storyboard again' }}</div>
+            <div class="text-xs text-grey-5">
+              <template v-if="missingStills">
+                Scenes already drawn are kept; only the {{ missingStills }} missing
+                {{ missingStills === 1 ? 'one is' : 'ones are' }} drawn again.
+              </template>
+              {{ retryCost.toLocaleString() }} credits<template v-if="ai"> · {{ ai.balance.total.toLocaleString() }} left</template>
+              <template v-if="retryShort">
+                · <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
+              </template>
+            </div>
+          </div>
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            color="toneflix"
+            text-color="dark"
+            icon="lucide-rotate-ccw"
+            label="Try again"
+            class="flex-none!"
+            :loading="retrying"
+            :disable="retryShort"
+            @click="retry"
+          />
+        </div>
+
         <!-- Render bar -->
         <div class="render-bar mb-6" v-if="video.status === 'storyboard'">
           <div class="min-w-0">
@@ -94,6 +124,36 @@
           />
         </div>
 
+        <!-- Cast -->
+        <template v-if="video.characters?.length">
+          <h5 class="mb-1 text-base font-semibold">Cast</h5>
+          <p class="mb-3 text-xs text-grey-5">Every still of a character is drawn from their sheet, so they look the same in each shot.</p>
+          <div class="grid gap-3 mb-8 grid-cols-2 lg:grid-cols-3">
+            <div class="cast" :key="character.id" v-for="character in video.characters">
+              <a
+                class="cast__sheet"
+                target="_blank"
+                rel="noopener"
+                :href="character.sheetUrl"
+                v-if="character.sheetUrl"
+              >
+                <img :src="character.sheetUrl" :alt="`${character.name} character sheet`" loading="lazy" />
+              </a>
+              <div class="cast__sheet" v-else>
+                <q-spinner-dots size="20px" color="toneflix" v-if="busy" />
+                <q-icon name="lucide-image-off" size="24px" class="text-grey-7" v-else />
+              </div>
+              <div class="p-3">
+                <div class="flex items-center gap-2 text-sm font-semibold no-wrap">
+                  <q-icon name="lucide-mic-vocal" size="14px" class="flex-none! text-toneflix" v-if="character.singer" />
+                  <span class="truncate">{{ character.name }}</span>
+                </div>
+                <div class="mt-1 text-xs text-grey-5 line-clamp-2 sm:line-clamp-3">{{ character.description }}</div>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Storyboard -->
         <template v-if="video.shots?.length">
           <h5 class="mb-3 text-base font-semibold">Storyboard</h5>
@@ -107,6 +167,10 @@
                   {{ shot.kind === 'performance' ? 'Singing' : 'Scene' }}
                 </span>
                 <span class="shot__time">{{ clock(shot.start) }}–{{ clock(shot.end) }}</span>
+                <span class="shot__cast" v-if="castOf(shot)">
+                  <q-icon name="lucide-users" size="12px" />
+                  {{ castOf(shot) }}
+                </span>
               </div>
               <div class="p-3">
                 <template v-if="editing === shot.id">
@@ -177,6 +241,7 @@ import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import {
   loadMusicVideoRequest,
   renderMusicVideoRequest,
+  retryStoryboardRequest,
   reorderMusicVideoShotsRequest,
   updateMusicVideoShotRequest,
   VIDEO_RATIOS,
@@ -198,6 +263,7 @@ const rendering = ref(false);
 const editing = ref<number | null>(null);
 const draft = ref('');
 const savingShot = ref(false);
+const retrying = ref(false);
 let poll: ReturnType<typeof setInterval> | undefined;
 
 const statusText: Record<MusicVideoStatus, string> = {
@@ -221,6 +287,21 @@ const gridClass = computed(() =>
 const paysWithMinutes = computed(() => !!video.value && minutesLeft.value >= video.value.minutes);
 const renderCost = computed(() => (ai.value?.costs.video ?? 0) * Math.max(1, video.value?.minutes ?? 1));
 const short = computed(() => !paysWithMinutes.value && !!ai.value && ai.value.balance.total < renderCost.value);
+
+const missingStills = computed(() => video.value?.shots?.filter((shot) => !shot.keyframeUrl).length ?? 0);
+const retryCost = computed(() => {
+  const full = (ai.value?.costs.videoStoryboard ?? 0) * Math.max(1, video.value?.minutes ?? 1);
+  const total = video.value?.shots?.length ?? 0;
+  return total ? Math.max(1, Math.ceil((full * missingStills.value) / total)) : full;
+});
+const retryShort = computed(() => !!ai.value && ai.value.balance.total < retryCost.value);
+
+/** Names of the characters seen in a shot */
+const castOf = (shot: MusicVideoShot) =>
+  (shot.characters ?? [])
+    .map((key) => video.value?.characters?.find((character) => character.key === key)?.name)
+    .filter(Boolean)
+    .join(', ');
 
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
@@ -266,6 +347,21 @@ const render = async () => {
     notifyError(e, "The video couldn't be started.");
   } finally {
     rendering.value = false;
+  }
+};
+
+const retry = async () => {
+  if (!video.value) return;
+  retrying.value = true;
+  try {
+    const res = await retryStoryboardRequest(video.value.id).send();
+    video.value = res.data;
+    notify(res.message, 'success');
+    void loadAccount();
+  } catch (e) {
+    notifyError(e, "The storyboard couldn't be started again.");
+  } finally {
+    retrying.value = false;
   }
 };
 
@@ -410,6 +506,26 @@ useMeta(() => ({
   opacity: 0.35;
 }
 
+.cast {
+  overflow: hidden;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+
+  &__sheet {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    background: var(--tf-surface-2);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
 .shot {
   overflow: hidden;
   border: 1px solid var(--tf-border);
@@ -432,7 +548,8 @@ useMeta(() => ({
   }
 
   &__kind,
-  &__time {
+  &__time,
+  &__cast {
     position: absolute;
     top: 8px;
     display: inline-flex;
@@ -452,6 +569,16 @@ useMeta(() => ({
   &__time {
     right: 8px;
     font-variant-numeric: tabular-nums;
+  }
+
+  &__cast {
+    top: auto;
+    bottom: 8px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__prompt {
