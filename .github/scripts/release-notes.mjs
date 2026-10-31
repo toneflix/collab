@@ -62,6 +62,25 @@ class Git {
     });
   }
 
+  /**
+   * Files a change touched: a pull request against the branch it merged into,
+   * any other commit against its parent.
+   */
+  files(commit) {
+    if (commit.parents.length > 1) {
+      return this.lines('diff', '--name-only', commit.parents[0], commit.hash);
+    }
+
+    return this.lines(
+      'diff-tree',
+      '--root',
+      '--no-commit-id',
+      '--name-only',
+      '-r',
+      commit.hash,
+    );
+  }
+
   branchCommits(merge) {
     return this.lines('rev-list', `${merge.parents[0]}..${merge.parents[1]}`);
   }
@@ -79,18 +98,37 @@ class Change {
     const note = message.match(/^release[ -]note:\s*(.+)$/im)?.[1]?.trim();
     if (note && /^(none|skip|-)$/i.test(note)) return null;
 
-    const match = title.match(/^(\w+)(?:\([^)]*\))?!?:\s*(.+)$/);
+    const match = title.match(/^(\w+)(?:\(([^)]*)\))?!?:\s*(.+)$/);
     if (!match) return null;
 
     const section = Change.TYPES[match[1].toLowerCase()];
     if (!section) return null;
 
-    return new Change(section, note ?? match[2]);
+    return new Change(section, note ?? match[3], match[2] ?? '', match[3]);
   }
 
-  constructor(section, text) {
+  constructor(section, text, scope = '', title = text) {
     this.section = section;
     this.text = Change.tidy(text);
+    this.scope = scope.toLowerCase();
+    this.title = title;
+  }
+
+  /**
+   * Admin changes: an admin scope, a title that mentions admins, or files that
+   * all sit under admin pages, components or requests. A "Release note:" line
+   * keeps a change whose title mentions admins.
+   */
+  isAdmin(files) {
+    if (this.scope === 'admin') return true;
+    if (
+      this.text === Change.tidy(this.title) &&
+      /\badmins?\b/i.test(this.title)
+    ) {
+      return true;
+    }
+
+    return files.length > 0 && files.every((file) => /admin/i.test(file));
   }
 
   static tidy(text) {
@@ -137,13 +175,19 @@ class ReleaseNotes {
 
           const title = body.find((line) => line.trim())?.trim() ?? '';
 
-          return Change.parse(title, body.join('\n'));
+          return this.userFacing(Change.parse(title, body.join('\n')), commit);
         }
 
-        return Change.parse(subject, commit.message);
+        return this.userFacing(Change.parse(subject, commit.message), commit);
       })
       .filter(Boolean)
       .reverse();
+  }
+
+  userFacing(change, commit) {
+    if (!change || change.isAdmin(this.git.files(commit))) return null;
+
+    return change;
   }
 
   /**
