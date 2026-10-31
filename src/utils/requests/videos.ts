@@ -124,6 +124,8 @@ export type TrackVideo = {
 /** The track's music video, or null when it has none */
 export const loadTrackVideoRequest = (track: number | string) =>
   alova.Get(`tracks/${track}/video`, {
+    // Its links last hours, so a track seen again in the queue doesn't ask twice
+    cacheFor: 10 * 60 * 1000,
     transform: (e: ResponseBody<TrackVideo | Record<string, never>>) =>
       e.data && 'videoUrl' in e.data && e.data.videoUrl ? (e.data as TrackVideo) : null,
   });

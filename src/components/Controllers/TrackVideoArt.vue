@@ -1,5 +1,5 @@
 <template>
-  <div class="track-art" :style="frameStyle" v-if="video">
+  <div class="track-art" :style="frameStyle" v-if="video && show">
     <div class="track-art__visual" aria-hidden="true">
       <img :src="video.posterUrl || imageUrl" alt="" class="track-art__poster" />
       <background-video
@@ -29,13 +29,15 @@ import { loadTrackVideoRequest, type TrackVideo } from 'src/utils/requests/video
  * has no controls of its own and follows the song: it plays, pauses and seeks
  * with the audio player.
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   trackId?: number | string | null;
   imageUrl?: string;
   /** The song's position in seconds */
   position: number;
   playing: boolean;
-}>();
+  /** Show the video when there is one; otherwise the artwork shows */
+  show?: boolean;
+}>(), { show: true });
 
 const emit = defineEmits<{ video: [video: TrackVideo | null] }>();
 
@@ -62,8 +64,9 @@ const sync = () => {
 };
 
 const attach = async () => {
+  media?.pause();
   media = null;
-  if (!video.value) return;
+  if (!video.value || !props.show) return;
   await import('@videojs/html/media/background-video');
   await customElements.whenDefined('background-video');
   await nextTick();
@@ -91,6 +94,7 @@ const load = async (id?: number | string | null) => {
 };
 
 watch(() => props.trackId, (id) => void load(id));
+watch(() => props.show, () => void attach());
 watch(() => [props.position, props.playing], sync);
 
 onMounted(() => void load(props.trackId));

@@ -11,8 +11,24 @@
     <q-card ref="card" dark class="now-playing__card bg-glass" :style="{ marginBottom: `${offset}px`, height: `calc(100vh - ${offset + 64}px)` }">
       <div class="now-playing__body">
         <!-- Big artwork, or the music video, and what's playing -->
-        <div class="now-playing__art" :class="{ 'now-playing__art--video': hasVideo }">
+        <div class="now-playing__art" :class="{ 'now-playing__art--video': hasVideo && player.videos }">
+          <div class="flex justify-center mb-4" v-if="hasVideo">
+            <q-btn-toggle
+              dense
+              no-caps
+              rounded
+              unelevated
+              toggle-color="toneflix"
+              toggle-text-color="dark"
+              color="grey-9"
+              padding="xs md"
+              class="flex-none!"
+              :options="artOptions"
+              v-model="player.videos"
+            />
+          </div>
           <TrackVideoArt
+            :show="player.videos"
             :track-id="open ? track.id : null"
             :image-url="track.imageUrl"
             :position="player.position"
@@ -108,6 +124,10 @@ const artistLink = computed(() => ({
 }));
 /** Whether the playing track's music video shows in place of its artwork */
 const hasVideo = ref(false);
+const artOptions = [
+  { label: 'Song', value: false, icon: 'lucide-image' },
+  { label: 'Video', value: true, icon: 'lucide-clapperboard' },
+];
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
 
 // Esc and clicks outside the panel close it. The player bar and popups keep it open.
