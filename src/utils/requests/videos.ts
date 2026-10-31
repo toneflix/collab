@@ -108,6 +108,10 @@ export const updateMusicVideoShotRequest = (video: number, shot: number, prompt:
 export const renderMusicVideoRequest = (video: number) =>
   alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/render`);
 
+/** Draws a failed storyboard again, keeping the stills already drawn */
+export const retryStoryboardRequest = (video: number) =>
+  alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/storyboard`);
+
 export const deleteMusicVideoRequest = (video: number) =>
   alova.Delete<ResponseBody<MusicVideo>>(`creator/videos/${video}`);
 

@@ -62,6 +62,36 @@
           </span>
         </div>
 
+        <!-- Retry a failed storyboard -->
+        <div class="render-bar mb-6" v-if="video.status === 'failed'">
+          <div class="min-w-0">
+            <div class="font-semibold">{{ missingStills ? 'Draw the missing scenes' : 'Draw the storyboard again' }}</div>
+            <div class="text-xs text-grey-5">
+              <template v-if="missingStills">
+                Scenes already drawn are kept; only the {{ missingStills }} missing
+                {{ missingStills === 1 ? 'one is' : 'ones are' }} drawn again.
+              </template>
+              {{ retryCost.toLocaleString() }} credits<template v-if="ai"> · {{ ai.balance.total.toLocaleString() }} left</template>
+              <template v-if="retryShort">
+                · <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
+              </template>
+            </div>
+          </div>
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            color="toneflix"
+            text-color="dark"
+            icon="lucide-rotate-ccw"
+            label="Try again"
+            class="flex-none!"
+            :loading="retrying"
+            :disable="retryShort"
+            @click="retry"
+          />
+        </div>
+
         <!-- Render bar -->
         <div class="render-bar mb-6" v-if="video.status === 'storyboard'">
           <div class="min-w-0">
@@ -177,6 +207,7 @@ import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import {
   loadMusicVideoRequest,
   renderMusicVideoRequest,
+  retryStoryboardRequest,
   reorderMusicVideoShotsRequest,
   updateMusicVideoShotRequest,
   VIDEO_RATIOS,
@@ -198,6 +229,7 @@ const rendering = ref(false);
 const editing = ref<number | null>(null);
 const draft = ref('');
 const savingShot = ref(false);
+const retrying = ref(false);
 let poll: ReturnType<typeof setInterval> | undefined;
 
 const statusText: Record<MusicVideoStatus, string> = {
@@ -221,6 +253,14 @@ const gridClass = computed(() =>
 const paysWithMinutes = computed(() => !!video.value && minutesLeft.value >= video.value.minutes);
 const renderCost = computed(() => (ai.value?.costs.video ?? 0) * Math.max(1, video.value?.minutes ?? 1));
 const short = computed(() => !paysWithMinutes.value && !!ai.value && ai.value.balance.total < renderCost.value);
+
+const missingStills = computed(() => video.value?.shots?.filter((shot) => !shot.keyframeUrl).length ?? 0);
+const retryCost = computed(() => {
+  const full = (ai.value?.costs.videoStoryboard ?? 0) * Math.max(1, video.value?.minutes ?? 1);
+  const total = video.value?.shots?.length ?? 0;
+  return total ? Math.max(1, Math.ceil((full * missingStills.value) / total)) : full;
+});
+const retryShort = computed(() => !!ai.value && ai.value.balance.total < retryCost.value);
 
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
@@ -266,6 +306,21 @@ const render = async () => {
     notifyError(e, "The video couldn't be started.");
   } finally {
     rendering.value = false;
+  }
+};
+
+const retry = async () => {
+  if (!video.value) return;
+  retrying.value = true;
+  try {
+    const res = await retryStoryboardRequest(video.value.id).send();
+    video.value = res.data;
+    notify(res.message, 'success');
+    void loadAccount();
+  } catch (e) {
+    notifyError(e, "The storyboard couldn't be started again.");
+  } finally {
+    retrying.value = false;
   }
 };
 
