@@ -37,6 +37,9 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+      - name: Studio library tests
+        run: yarn studio:test
+
       - name: Build
         run: yarn build
 

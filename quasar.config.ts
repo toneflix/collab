@@ -44,6 +44,8 @@ export default defineConfig((ctx) => {
         vueShim: true,
         extendTsConfig(tsConfig) {
           tsConfig.compilerOptions = { ...tsConfig.compilerOptions, strict: true };
+          // Packages under packages/ are type checked with their own tsconfig
+          tsConfig.exclude = [...(tsConfig.exclude ?? []), './../packages'];
         },
       },
 

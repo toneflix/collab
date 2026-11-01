@@ -1,0 +1,30 @@
+{
+  "name": "@toneflix/studio",
+  "version": "0.1.0",
+  "description": "A browser DAW timeline: stems, freely movable clips, canvas waveforms and one undo history.",
+  "license": "MIT",
+  "author": "Toneflix <code@toneflix.com.ng>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toneflix/collab.git",
+    "directory": "packages/studio"
+  },
+  "keywords": ["daw", "audio", "waveform", "timeline", "web-audio", "music"],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "demo": "vite demo"
+  }
+}
