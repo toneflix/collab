@@ -291,4 +291,24 @@ const panLabel = computed(() => {
 .stem-strip__pan {
   max-width: 40%;
 }
+
+/* Phones keep colour, name, mute and solo; effects, volume and pan live in the menu and the mixer */
+@media (max-width: 599.98px) {
+  .stem-strip {
+    gap: 6px;
+    padding-left: 10px;
+  }
+
+  .stem-strip__fx,
+  .stem-strip__meter,
+  .stem-strip__sliders {
+    display: none;
+  }
+
+  .stem-strip__toggle {
+    min-width: 32px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
 </style>
