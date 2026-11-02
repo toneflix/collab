@@ -557,29 +557,17 @@ export const duplicateProjectTrackStemRequest = (id: string | number, p: Project
 }
 
 /**
- * Save a stem as heard through its plugins, for the server's mix to use
+ * Keep the mix the studio made in the browser as the track's preview
  *
- * @param id The stem's ID
  * @param p The project object
- * @param t The track object that owns the stem
- * @param audio The printed audio, as FLAC
- * @param start Where the audio starts on the timeline, in seconds
- * @param key A fingerprint of the clips and effects it was printed from
+ * @param t The track
+ * @param audio The mix, as FLAC
  */
-export const printProjectTrackStemRequest = (
-  id: string | number,
-  p: Project,
-  t: ProjectTrack,
-  audio: Blob,
-  start: number,
-  key: string,
-) => {
+export const uploadProjectTrackMixRequest = (p: Project, t: ProjectTrack, audio: Blob) => {
   const form = new FormData();
-  form.append('audio', audio, 'print.flac');
-  form.append('start', String(start));
-  form.append('key', key);
+  form.append('audio', audio, 'mix.flac');
 
-  const request = axios.Post<ResponseBody<Stem>>(`creator/projects/${p.id}/tracks/${t.id}/stems/${id}/print`, form);
+  const request = axios.Post<ResponseBody<ProjectTrack>>(`creator/projects/${p.id}/tracks/${t.id}/mix`, form);
   request.config.headers['Content-Type'] = 'multipart/form-data';
 
   return request;
@@ -653,10 +641,9 @@ export const saveProjectTrackAssetRequest = (f: UploadData, t: ProjectTrack) => 
  * @returns
  */
 /**
- * Save a project track. With `render`, the server mixes the saved stems into
- * a new preview.
+ * Save a project track.
  */
-export const saveProjectTrackRequest = (f: ProjectTrack, p: Project, options: { render?: boolean } = {}) => {
+export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
 
   const request = axios.Post<ResponseBody<ProjectTrack>>(`creator/projects/${p.id}/tracks${f.id ? '/' + f.id : ''}`, {
     title: f.title,
@@ -665,7 +652,6 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project, options: { 
     time_signature: f.timeSignature,
     preview: typeof f.preview !== 'string' ? f.preview : undefined,
     mix_volume: f.mixVolume,
-    render: options.render ? 1 : undefined,
     privacy: f.privacy,
     genre_id: f.genreId,
     artist_id: f.artistId,

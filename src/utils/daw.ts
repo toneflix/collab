@@ -49,8 +49,6 @@ export interface StemMeta {
   order?: number;
   /** The stem's colour in the editor */
   color?: string;
-  /** The stem as heard through its plugins, saved by the server for its mix */
-  print?: { file: string; start: number; key: string };
   /** Where a stem added from the sound library came from */
   sound?: { id?: number; source?: string; author?: string; license?: string; url?: string };
 }

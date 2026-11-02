@@ -473,10 +473,10 @@ import StemActivity, { type StemActivityItem } from './StemActivity.vue';
 import StemTrackHeader, { type StripHost } from './StemTrackHeader.vue';
 import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
-import { isPlugin, needsPrint, parseEffects, pluginName, serializeEffects, addFaustEffects, type StemEffect } from 'src/utils/studio/effects';
+import { isPlugin, parseEffects, pluginName, serializeEffects, addFaustEffects, type StemEffect } from 'src/utils/studio/effects';
 import { buildChain, chainNodes, disposeChain, type BuiltChain } from 'src/utils/studio/chain';
 import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
-import { flacOf, printKey, printTrack } from 'src/utils/studio/print';
+import { flacOf, renderMix } from 'src/utils/studio/mix';
 import { parsePattern } from 'src/utils/studio/instruments';
 import {
   applyStemClips,
@@ -1338,51 +1338,38 @@ const closePlugin = () => {
   pluginShown = null;
 };
 
-/**
- * Record each stem with a plugin on through its chain, when its clips or
- * effects changed since the last time, and hand the audio to `upload`. The
- * server mixes that audio in place of the stem. Plugin settings are read
- * back into the stem's effects first, so they're saved too.
- */
-const printPlugins = async (
-  upload: (stem: Stem, audio: Blob, start: number, key: string) => Promise<Stem>,
-  onRecord?: (stem: Stem) => void,
-) => {
-  if (!engine || !pluginsOn.value) return;
-  for (const [trackId, list] of effects) {
-    const stem = tracks.get(trackId);
-    const track = trackOf(trackId);
-    if (!stem || !track || !needsPrint(list) || unresolved(trackId)) continue;
-    if (pendingChains.has(trackId)) {
-      await context?.resume();
-      await applyEffects(trackId);
-    }
-
-    const live = chains.get(trackId)?.live ?? [];
-    // A plugin that didn't load would be left out; keep the last print.
-    if (list.some((e, i) => isPlugin(e) && !e.bypassed && !live.some((l) => l.index === i))) {
-      throw new Error(`A plugin on ${stemTitle(stem)} didn't load, so it wasn't recorded again.`);
-    }
-    for (const { index, plugin } of live) {
+/** Read each loaded plugin's settings back into its effect, so they're saved too. */
+const keepPluginStates = async () => {
+  for (const [key, chain] of chains) {
+    const list = key === '' ? master.value : effects.get(key);
+    if (!list) continue;
+    for (const { index, plugin } of chain.live) {
       if (plugin && isPlugin(list[index]!)) list[index]!.state = await plugin.audioNode.getState();
     }
-
-    const clips = clipsOf(trackId);
-    const key = await printKey({
-      src: stem.src,
-      clips: clips.map((c) => [c.start, c.offset, c.duration, c.gain, c.fadeIn, c.fadeOut, sourceStem(c.source, aliases)]),
-      effects: serializeEffects(list),
-      tempo: [tempo.value, meter.value],
-    });
-    if (stem.meta?.print?.key === key) continue;
-
-    onRecord?.(stem);
-    const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
-    const printed = await printTrack(engine, track, clips, list, { bpm: tempo.value, beats, unit });
-    if (!printed) continue;
-    const savedStem = await upload(stem, flacOf(printed.audio), printed.start, key);
-    stem.meta = { ...stem.meta, print: savedStem.meta?.print };
   }
+};
+
+/**
+ * Mix the whole track as it plays here, as FLAC, or null when there is
+ * nothing to mix. Throws while a stem's audio is still loading.
+ */
+const mixdown = async () => {
+  if (!engine) return null;
+  const clips = state().clips.filter((c) => !c.notes);
+  if (clips.some((c) => openEnded.has(c.id) || !engine!.hasBuffer(c.source))) {
+    throw new Error("Some stems are still loading. Save again once they've loaded.");
+  }
+
+  await keepPluginStates();
+  const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
+  const audio = await renderMix(
+    engine,
+    (track) => (track === null ? master.value : effects.get(track) ?? []),
+    { bpm: tempo.value, beats, unit },
+    pluginsOn.value,
+  );
+
+  return audio ? flacOf(audio) : null;
 };
 
 /** Apply chains that were waiting to load Faust effects or plugins. */
@@ -1908,7 +1895,8 @@ defineExpose({
   masterEffects: () => serializeEffects(master.value),
   moveStem,
   stop,
-  printPlugins,
+  keepPluginStates,
+  mixdown,
   highlight,
   currentTime,
   seek,
