@@ -134,6 +134,13 @@
           v-if="settings?.artwork"
           v-model="form.artwork"
         />
+
+        <q-toggle
+          dark
+          color="toneflix"
+          label="Write instrumentals as notes (drum and synth parts you can edit in the studio)"
+          v-model="form.parts"
+        />
       </div>
     </q-expansion-item>
 
@@ -177,6 +184,7 @@ const blank = (): AgentRunForm => ({
   owner_id: null,
   publish: false,
   artwork: true,
+  parts: false,
   max_tracks: 12,
   seconds: props.settings?.defaultSeconds || 120,
   label: '',
@@ -197,6 +205,7 @@ const newWorkSummary = computed(() =>
     privacyOptionsExtended.find((option) => option.value === form.project_privacy)?.label + ' projects',
     form.publish ? 'Published' : 'Drafts',
     props.settings?.artwork && form.artwork ? 'Artwork' : '',
+    form.parts ? 'Instrumentals as notes' : '',
   ]
     .filter(Boolean)
     .join(' · '),
