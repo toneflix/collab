@@ -1,7 +1,4 @@
-import type { ClipConfig, TrackConfig } from '@dawcore/components';
-import type { ClipTrack, FadeType } from '@waveform-playlist/core';
-
-export type { FadeType };
+export type FadeType = 'linear' | 'logarithmic' | 'exponential' | 'sCurve';
 
 /** One region of a stem on the timeline, in seconds. */
 export interface StemClip {
@@ -15,6 +12,8 @@ export interface StemClip {
   fadeIn?: number;
   fadeOut?: number;
   fadeType?: FadeType;
+  /** The stem whose audio the clip plays, when it was moved off that stem */
+  source?: string | number;
 }
 
 type LegacyFade = { shape?: FadeType; duration?: number | string };
@@ -83,8 +82,6 @@ const num = (value: unknown, fallback = 0) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-const bool = (value: unknown) => value === true || value === 'true' || value === 1 || value === '1';
-
 /** Display name for a stem. */
 export const stemTitle = (stem: Stem) => stem.title || stem.meta?.title || `Stem ${stem.id}`;
 
@@ -102,6 +99,7 @@ export const stemClips = (meta: StemMeta): StemClip[] => {
       fadeIn: Math.max(0, num(c.fadeIn)),
       fadeOut: Math.max(0, num(c.fadeOut)),
       fadeType: 'linear',
+      ...(typeof c.source === 'string' || typeof c.source === 'number' ? { source: c.source } : {}),
     }));
   }
 
@@ -119,76 +117,6 @@ export const stemClips = (meta: StemMeta): StemClip[] => {
       fadeType: 'linear',
     },
   ];
-};
-
-/**
- * Turn a stem into the config `<daw-editor>.addTrack()` takes. `audioUrl`
- * points the clips at audio already on this device instead of the network.
- */
-export const stemToTrack = (stem: Stem, audioUrl?: string): TrackConfig => {
-  const meta = stem.meta || ({} as StemMeta);
-  const src = audioUrl || meta.src || stem.src;
-
-  return {
-    name: stemTitle(stem),
-    volume: meta.gain !== undefined ? Math.min(1, Math.max(0, num(meta.gain, 1))) : 1,
-    pan: Math.min(1, Math.max(-1, num(meta.stereoPan))),
-    muted: bool(meta.muted),
-    soloed: bool(meta.soloed),
-    clips: stemClips(meta).map(
-      (c): ClipConfig => ({
-        src,
-        name: stemTitle(stem),
-        start: c.start,
-        offset: c.offset,
-        ...(c.duration ? { duration: c.duration } : {}),
-        gain: c.gain ?? 1,
-        fadeIn: c.fadeIn ?? 0,
-        fadeOut: c.fadeOut ?? 0,
-        fadeType: c.fadeType ?? 'linear',
-      }),
-    ),
-  };
-};
-
-const round = (n: number) => Math.round(n * 1000) / 1000;
-
-/**
- * Read a track's state from the editor's engine and turn it into the stem
- * `meta` the API keeps. The flat fields mirror the first clip, so older
- * clients can still read it.
- */
-export const trackToMeta = (stem: Stem, track: ClipTrack): StemMeta => {
-  const clips: StemClip[] = [...track.clips]
-    .sort((a, b) => a.startSample - b.startSample)
-    .map((c) => ({
-      start: round(c.startSample / c.sampleRate),
-      offset: round(c.offsetSamples / c.sampleRate),
-      duration: round(c.durationSamples / c.sampleRate),
-      gain: round(c.gain ?? 1),
-      fadeIn: round(c.fadeIn?.duration ?? 0),
-      fadeOut: round(c.fadeOut?.duration ?? 0),
-      fadeType: 'linear' as FadeType,
-    }));
-
-  const first = clips[0];
-
-  return {
-    name: stem.meta?.name ?? stem.id,
-    title: stemTitle(stem),
-    type: 'stem',
-    gain: round(track.volume),
-    stereoPan: round(track.pan),
-    muted: track.muted,
-    soloed: track.soloed,
-    start: first?.start ?? 0,
-    cuein: first?.offset ?? 0,
-    cueout: first ? round(first.offset + (first.duration ?? 0)) : 0,
-    duration: first?.duration ?? 0,
-    fadeIn: { shape: 'linear', duration: first?.fadeIn ?? 0 },
-    fadeOut: { shape: 'linear', duration: first?.fadeOut ?? 0 },
-    clips,
-  };
 };
 
 /**

@@ -1,4 +1,10 @@
-import type { EffectInstance } from '@dawcore/components';
+/** A running effect: where sound goes in and comes out, and how its settings change. */
+export interface EffectInstance {
+  input: AudioNode;
+  output: AudioNode;
+  applyParams: (params: Record<string, number>) => void;
+  dispose?: () => void;
+}
 
 /**
  * Web Audio graphs for the studio's own effects. Each has an FFmpeg twin in
@@ -258,8 +264,141 @@ const phaser: Create = (ctx) => {
   };
 };
 
+const db = (value: number) => Math.max(-40, Math.min(40, Number(value) || 0));
+
+const eq: Create = (ctx) => {
+  const low = ctx.createBiquadFilter();
+  const mid = ctx.createBiquadFilter();
+  const high = ctx.createBiquadFilter();
+  low.type = 'lowshelf';
+  low.frequency.value = 250;
+  mid.type = 'peaking';
+  mid.Q.value = 0.9;
+  high.type = 'highshelf';
+  high.frequency.value = 4000;
+  low.connect(mid).connect(high);
+
+  return {
+    input: low,
+    output: high,
+    applyParams: (p) => {
+      if (p.low !== undefined) low.gain.value = db(p.low);
+      if (p.mid !== undefined) mid.gain.value = db(p.mid);
+      if (p.midFrequency !== undefined) mid.frequency.value = Math.max(20, p.midFrequency);
+      if (p.high !== undefined) high.gain.value = db(p.high);
+    },
+    dispose: () => disconnect(low, mid, high),
+  };
+};
+
+/** A decaying noise burst, used as the room the reverb plays the sound in. */
+const impulse = (ctx: BaseAudioContext, seconds: number, decay: number) => {
+  const length = Math.max(1, Math.floor(ctx.sampleRate * Math.max(0.1, seconds)));
+  const buffer = ctx.createBuffer(2, length, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const data = buffer.getChannelData(c);
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** decay;
+  }
+  return buffer;
+};
+
+const reverb: Create = (ctx) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const convolver = ctx.createConvolver();
+  input.connect(dry).connect(output);
+  input.connect(convolver).connect(wet).connect(output);
+  let shape = '';
+
+  return {
+    input,
+    output,
+    applyParams: (p) => {
+      const size = p.size ?? 2.5;
+      const decay = p.decay ?? 3;
+      // A new room only when its shape changes, not on every mix change.
+      if (`${size}:${decay}` !== shape) {
+        shape = `${size}:${decay}`;
+        convolver.buffer = impulse(ctx, size, decay);
+      }
+      if (p.wet !== undefined) {
+        const w = Math.max(0, Math.min(1, p.wet));
+        wet.gain.value = w;
+        dry.gain.value = 1 - w * 0.5;
+      }
+    },
+    dispose: () => disconnect(input, output, convolver, wet, dry),
+  };
+};
+
+const delay: Create = (ctx) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const line = ctx.createDelay(10);
+  const feedback = ctx.createGain();
+  const wet = ctx.createGain();
+  const dry = ctx.createGain();
+  input.connect(dry).connect(output);
+  input.connect(line);
+  line.connect(feedback).connect(line);
+  line.connect(wet).connect(output);
+
+  return {
+    input,
+    output,
+    applyParams: (p) => {
+      if (p.delayTime !== undefined) line.delayTime.value = clamp(p.delayTime, 0, 10, 0.25);
+      if (p.feedback !== undefined) feedback.gain.value = clamp(p.feedback, 0, 0.95, 0.4);
+      if (p.wet !== undefined) {
+        wet.gain.value = clamp(p.wet, 0, 1, 0.35);
+        dry.gain.value = 1 - wet.gain.value;
+      }
+    },
+    dispose: () => disconnect(input, output, line, feedback, wet, dry),
+  };
+};
+
+const compressor: Create = (ctx) => {
+  const node = ctx.createDynamicsCompressor();
+
+  return {
+    input: node,
+    output: node,
+    applyParams: (p) => {
+      if (p.threshold !== undefined) node.threshold.value = p.threshold;
+      if (p.knee !== undefined) node.knee.value = p.knee;
+      if (p.ratio !== undefined) node.ratio.value = p.ratio;
+      if (p.attack !== undefined) node.attack.value = p.attack;
+      if (p.release !== undefined) node.release.value = p.release;
+    },
+    dispose: () => node.disconnect(),
+  };
+};
+
+const lowpass: Create = (ctx) => {
+  const node = ctx.createBiquadFilter();
+  node.type = 'lowpass';
+
+  return {
+    input: node,
+    output: node,
+    applyParams: (p) => {
+      if (p.frequency !== undefined) node.frequency.value = p.frequency;
+      if (p.q !== undefined) node.Q.value = p.q;
+    },
+    dispose: () => node.disconnect(),
+  };
+};
+
 /** Effect type → its Web Audio graph. */
 export const EFFECT_NODES: Record<string, Create> = {
+  'tf-eq': eq,
+  'tf-reverb': reverb,
+  'native-delay': delay,
+  'native-compressor': compressor,
+  'native-filter': lowpass,
   'tf-highpass': highpass,
   'tf-width': width,
   'tf-saturation': saturation,
