@@ -1,17 +1,7 @@
-import { createEffectInstance, type SerializedEffectEntry } from '@dawcore/components';
+import type { AudioEngine, Clip, Track } from '@toneflix/studio';
+import { buildChain, chainNodes, disposeChain, type BuiltChain } from './chain';
+import type { StemEffect } from './effects';
 import { encodeFlac } from './flac';
-
-/** One clip as the engine keeps it. */
-export interface PrintClip {
-  audioBuffer?: AudioBuffer;
-  sampleRate: number;
-  startSample: number;
-  offsetSamples: number;
-  durationSamples: number;
-  gain?: number;
-  fadeIn?: { duration: number };
-  fadeOut?: { duration: number };
-}
 
 /** The track's tempo and meter, so tempo-synced plugins lock to it. */
 export interface PrintTempo {
@@ -24,115 +14,70 @@ export interface PrintTempo {
 const TAIL = 4;
 
 /**
- * Render a stem's clips through its effect chain, plugins included, the way
- * it plays in the studio before volume and pan. The audio starts at `start`
- * seconds on the timeline.
+ * Render a track's clips through its effect chain, plugins included, the way
+ * it plays in the studio before volume and pan. Overlapping clips play as the
+ * editor plays them. The audio starts at `start` seconds on the timeline.
  */
-export const printStem = async (clips: PrintClip[], chain: SerializedEffectEntry[], tempo: PrintTempo) => {
-  const playable = clips.filter((c) => c.audioBuffer && c.durationSamples > 0);
-  if (!playable.length) return null;
+export const printTrack = async (
+  engine: AudioEngine,
+  track: Track,
+  clips: readonly Clip[],
+  effects: StemEffect[],
+  tempo: PrintTempo,
+) => {
+  const own = clips.filter((c) => c.track === track.id && !c.notes && c.duration > 0 && engine.hasBuffer(c.source));
+  if (!own.length) return null;
 
-  const rate = playable[0]!.sampleRate;
-  const start = Math.min(...playable.map((c) => c.startSample / c.sampleRate));
-  const end = Math.max(...playable.map((c) => (c.startSample + c.durationSamples) / c.sampleRate));
-  const ctx = new OfflineAudioContext({
-    numberOfChannels: 2,
-    length: Math.ceil((end - start + TAIL) * rate),
-    sampleRate: rate,
-  });
-  const cleanups: (() => void)[] = [];
+  const { AudioEngine: Engine } = await import('@toneflix/studio');
+  const start = Math.min(...own.map((c) => c.start));
+  const end = Math.max(...own.map((c) => c.start + c.duration));
+  const solo = new Engine({ context: engine.context });
+  const chains: BuiltChain[] = [];
 
   try {
-    const input = ctx.createGain();
-    const plugins: { scheduleEvents?: (...events: unknown[]) => void }[] = [];
-    let previous: AudioNode = input;
+    for (const clip of own) solo.setBuffer(clip.source, engine.getBuffer(clip.source)!);
+    solo.load({ tracks: [{ ...track, automation: undefined }], clips: own });
 
-    for (const entry of chain) {
-      if (entry.placeholder) continue;
-      if (entry.kind === 'native') {
-        const created = createEffectInstance(entry.type, ctx, entry.params);
-        if (entry.bypassed && !created.wetParam) {
-          created.instance.dispose?.();
-          continue;
+    const audio = await solo.render({
+      from: start,
+      to: end + TAIL,
+      effects: async (id, context, atStart) => {
+        if (id !== track.id) return [];
+
+        const chain = await buildChain(context, effects, { plugins: true, canLoad: true });
+        if (chain.errors.length) throw new Error('A plugin could not load.');
+        chains.push(chain);
+
+        // Tell plugins the song is playing from `start`, as the studio's transport does live.
+        const bar = (tempo.beats * 60 * 4) / (tempo.bpm * tempo.unit);
+        const currentBar = Math.floor(start / bar);
+        for (const { plugin, effect } of chain.live) {
+          if (!plugin) continue;
+          if (effect.state !== undefined) atStart(() => plugin.audioNode.setState(effect.state));
+          atStart(() =>
+            (plugin.audioNode as { scheduleEvents?: (...events: unknown[]) => void }).scheduleEvents?.({
+              type: 'wam-transport',
+              time: 0,
+              data: {
+                playing: true,
+                tempo: tempo.bpm,
+                timeSigNumerator: tempo.beats,
+                timeSigDenominator: tempo.unit,
+                currentBar,
+                currentBarStarted: currentBar * bar - start,
+              },
+            }),
+          );
         }
-        if (entry.bypassed && created.wetParam) created.instance.applyParams({ [created.wetParam]: 0 });
-        if (created.instance.dispose) cleanups.push(created.instance.dispose);
-        previous.connect(created.instance.input);
-        previous = created.instance.output;
-        continue;
-      }
-      if (entry.bypassed) continue;
 
-      const wam = await import('@dawcore/wam');
-      const { hostGroupId } = await wam.ensureWamHost(ctx);
-      let plugin;
-      if (entry.faustDsp !== undefined) {
-        const { compileFaustToWam } = await import('@dawcore/faust');
-        const compiled = await compileFaustToWam(entry.faustDsp, { name: entry.faustName });
-        const factory = compiled.factory as unknown as Parameters<typeof wam.createWamInstanceFromFactory>[0];
-        plugin = await wam.createWamInstanceFromFactory(factory, ctx, hostGroupId, {
-          initialState: entry.state,
-          label: compiled.name,
-        });
-      } else {
-        plugin = await wam.createWamInstance(entry.url ?? '', ctx, hostGroupId, { initialState: entry.state });
-      }
-      const live = plugin;
-      cleanups.push(() => void live.destroy());
-      plugins.push(plugin.audioNode as unknown as (typeof plugins)[number]);
-      previous.connect(plugin.audioNode);
-      previous = plugin.audioNode;
-    }
-    previous.connect(ctx.destination);
-
-    // Tell plugins the song is playing from `start`, as the studio's transport does live.
-    const bar = (tempo.beats * 60 * 4) / (tempo.bpm * tempo.unit);
-    const currentBar = Math.floor(start / bar);
-    plugins.forEach((node) =>
-      node.scheduleEvents?.({
-        type: 'wam-transport',
-        time: 0,
-        data: {
-          playing: true,
-          tempo: tempo.bpm,
-          timeSigNumerator: tempo.beats,
-          timeSigDenominator: tempo.unit,
-          currentBar,
-          currentBarStarted: currentBar * bar - start,
-        },
-      }),
-    );
-
-    for (const clip of playable) {
-      const when = clip.startSample / clip.sampleRate - start;
-      const duration = clip.durationSamples / clip.sampleRate;
-      const gain = clip.gain ?? 1;
-      const fadeIn = Math.min(clip.fadeIn?.duration ?? 0, duration);
-      const fadeOut = Math.min(clip.fadeOut?.duration ?? 0, duration - fadeIn);
-      const source = ctx.createBufferSource();
-      source.buffer = clip.audioBuffer!;
-      const level = ctx.createGain();
-      level.gain.setValueAtTime(fadeIn > 0 ? 0 : gain, when);
-      if (fadeIn > 0) level.gain.linearRampToValueAtTime(gain, when + fadeIn);
-      if (fadeOut > 0) {
-        level.gain.setValueAtTime(gain, when + duration - fadeOut);
-        level.gain.linearRampToValueAtTime(0, when + duration);
-      }
-      source.connect(level).connect(input);
-      source.start(when, clip.offsetSamples / clip.sampleRate, duration);
-    }
-
-    const audio = await ctx.startRendering();
+        return chainNodes(chain);
+      },
+    });
 
     return { audio, start };
   } finally {
-    cleanups.forEach((fn) => {
-      try {
-        fn();
-      } catch {
-        // Already gone.
-      }
-    });
+    chains.forEach(disposeChain);
+    solo.destroy();
   }
 };
 
