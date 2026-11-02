@@ -5,7 +5,7 @@ export type AgentRunStatus = 'queued' | 'planning' | 'running' | 'succeeded' | '
 
 export type AgentRunView = 'open' | 'succeeded' | 'failed';
 
-export type AgentStepKind = 'artist' | 'voice' | 'project' | 'song' | 'track' | 'music' | 'mix' | 'lyrics' | 'artwork' | 'describe' | 'release';
+export type AgentStepKind = 'artist' | 'voice' | 'project' | 'song' | 'track' | 'music' | 'parts' | 'mix' | 'lyrics' | 'artwork' | 'describe' | 'release';
 
 export type AgentStepStatus = 'pending' | 'waiting' | 'done' | 'failed' | 'skipped';
 
@@ -93,7 +93,7 @@ export type AgentRun = {
   id: number;
   prompt: string;
   status: AgentRunStatus;
-  options: { publish: boolean; artwork: boolean; maxTracks: number | null; seconds: number | null; label: string | null; projectPrivacy?: ProjectPrivacy };
+  options: { publish: boolean; artwork: boolean; parts?: boolean; maxTracks: number | null; seconds: number | null; label: string | null; projectPrivacy?: ProjectPrivacy };
   plan: AgentPlan | null;
   counts: { artists: number; albums: number; releases?: number; updates?: number; tracks: number; songs: number } | null;
   progress: { done: number; total: number } | null;
@@ -135,6 +135,8 @@ export type AgentRunForm = {
   owner_id: number | null;
   publish: boolean;
   artwork: boolean;
+  /** Write instrumentals as editable instrument parts instead of AI audio */
+  parts: boolean;
   max_tracks: number;
   seconds: number;
   label: string;
