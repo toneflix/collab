@@ -127,7 +127,7 @@ const compileFaust = (info: EffectInfo) => {
   const key = `${name}\n${source}`;
   let factory = compiled.get(key);
   if (!factory) {
-    factory = import('@dawcore/faust').then(async ({ compileFaustToWam }) => (await compileFaustToWam(source, { name })).factory as unknown as WamConstructor);
+    factory = import('@shren/faust2wam').then(({ default: generate }) => generate(source, name) as unknown as Promise<WamConstructor>);
     compiled.set(key, factory);
     factory.catch(() => compiled.delete(key));
   }
