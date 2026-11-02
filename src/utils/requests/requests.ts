@@ -652,6 +652,8 @@ export const saveProjectTrackRequest = (f: ProjectTrack, p: Project) => {
     time_signature: f.timeSignature,
     preview: typeof f.preview !== 'string' ? f.preview : undefined,
     mix_volume: f.mixVolume,
+    master_effects: f.masterEffects,
+    arrangement: f.arrangement,
     privacy: f.privacy,
     genre_id: f.genreId,
     artist_id: f.artistId,
