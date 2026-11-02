@@ -360,7 +360,7 @@ const artists = computed(() =>
 );
 
 const trackState = (key: string, instrumental: boolean) => {
-  const chain = [`${instrumental ? 'track' : 'song'}:${key}`, `music:${key}`, `parts:${key}`, `mix:${key}`, `lyrics:${key}`]
+  const chain = [`${instrumental ? 'track' : 'song'}:${key}`, `music:${key}`, `parts:${key}`, `beat:${key}`, `vocals:${key}`, `mix:${key}`, `lyrics:${key}`]
     .map((k) => steps.value.get(k))
     .filter((step): step is AgentStep => !!step);
   const failed = chain.find((step) => step.status === 'failed');
@@ -370,7 +370,7 @@ const trackState = (key: string, instrumental: boolean) => {
   if (failed) return { state: 'Failed', color: 'text-red-4', error: withFailure(failed, failed.error) };
   if (skipped) return { state: 'Stopped', color: 'text-grey-6', error: null };
   if (!next) return { state: 'Ready', color: 'text-green-4', error: null, lyrics: lyricsNote(steps.value.get(`lyrics:${key}`)) };
-  if (next.status === 'pending' && next.kind !== 'music' && next.kind !== 'parts') return { state: 'Waiting', color: 'text-grey-6', error: null };
+  if (next.status === 'pending' && !['music', 'parts', 'vocals'].includes(next.kind)) return { state: 'Waiting', color: 'text-grey-6', error: null };
 
   const voice = next.kind === 'music' && next.status === 'pending'
     ? next.dependsOn.map((k) => steps.value.get(k)).find((step) => step?.kind === 'voice' && step.status !== 'done')
@@ -381,7 +381,8 @@ const trackState = (key: string, instrumental: boolean) => {
     track: 'Adding track',
     music: voice ? 'Making the voice sample' : next.status === 'pending' ? 'Waiting for a free AI slot' : 'Making music',
     parts: 'Writing parts',
-    mix: 'Mixing',
+    vocals: next.status === 'pending' ? 'Waiting for a free AI slot' : 'Singing vocals',
+    mix: next.key.startsWith('beat:') ? 'Mixing the beat' : 'Mixing',
     lyrics: 'Syncing lyrics',
   };
 

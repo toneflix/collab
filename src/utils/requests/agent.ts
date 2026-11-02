@@ -126,6 +126,8 @@ export type AgentSettings = {
   vocals: boolean;
   instrumentals: boolean;
   artwork: boolean;
+  /** Songs written as notes get AI vocals sung over their beat */
+  singsParts?: boolean;
 };
 
 export type AgentRunsResponse = ResponseBody<AgentRun[]> & { agent: AgentSettings };
@@ -135,7 +137,7 @@ export type AgentRunForm = {
   owner_id: number | null;
   publish: boolean;
   artwork: boolean;
-  /** Write instrumentals as editable instrument parts instead of AI audio */
+  /** Write beats as editable instrument parts instead of AI audio; songs get AI vocals over them when the API can sing */
   parts: boolean;
   max_tracks: number;
   seconds: number;

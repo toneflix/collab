@@ -138,7 +138,11 @@
         <q-toggle
           dark
           color="toneflix"
-          label="Write instrumentals as notes (drum and synth parts you can edit in the studio)"
+          :label="
+            settings?.singsParts
+              ? 'Write beats as notes (drum and synth parts you can edit in the studio), with vocals sung over them for songs'
+              : 'Write instrumentals as notes (drum and synth parts you can edit in the studio)'
+          "
           v-model="form.parts"
         />
       </div>
@@ -205,7 +209,7 @@ const newWorkSummary = computed(() =>
     privacyOptionsExtended.find((option) => option.value === form.project_privacy)?.label + ' projects',
     form.publish ? 'Published' : 'Drafts',
     props.settings?.artwork && form.artwork ? 'Artwork' : '',
-    form.parts ? 'Instrumentals as notes' : '',
+    form.parts ? (props.settings?.singsParts ? 'Beats as notes' : 'Instrumentals as notes') : '',
   ]
     .filter(Boolean)
     .join(' · '),
