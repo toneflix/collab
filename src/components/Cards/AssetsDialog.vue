@@ -207,6 +207,9 @@ import {
 } from 'src/utils/requests/requests';
 import { useForm } from 'alova/client';
 import { acceptFor, assetsExts } from 'src/utils/presets';
+import { isInstrumentStem } from 'src/utils/studio/instrument-notes';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
+import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
 
 const emit = defineEmits<{
   stemUpdated: [value: UploadData];
@@ -231,20 +234,54 @@ const props = defineProps({
 
 const toggle = ref(false);
 
-/** The menu on a stem: its size and a download */
-const stemLinks = (stem: Stem): Link[] => [
-  {
-    label: formatBytes(stem.size, 2, true),
-    icon: 'lucide-package-open',
-    color: 'white',
-  },
-  {
-    label: 'Download Asset',
-    icon: 'lucide-cloud-download',
-    color: 'white',
-    click: () => download(stem.src as string, stem.name, '.wav'),
-  },
-];
+/** The menu on a stem: its size and a download. An instrument stem has no file; it is rendered here. */
+const stemLinks = (stem: Stem): Link[] =>
+  isInstrumentStem(stem)
+    ? [
+        {
+          label: 'Download Asset',
+          icon: 'lucide-cloud-download',
+          color: 'white',
+          click: () => void downloadInstrument(stem),
+        },
+      ]
+    : [
+        {
+          label: formatBytes(stem.size, 2, true),
+          icon: 'lucide-package-open',
+          color: 'white',
+        },
+        {
+          label: 'Download Asset',
+          icon: 'lucide-cloud-download',
+          color: 'white',
+          click: () => download(stem.src as string, stem.name, '.wav'),
+        },
+      ];
+
+/** Play an instrument stem's notes alone, with its effects, and save the audio as FLAC. */
+const downloadInstrument = async (stem: Stem) => {
+  notify('Rendering the instrument…', 'info');
+  try {
+    const { mixTrack } = await import('src/utils/studio/render-track');
+    const faust = await loadFaustEffectsRequest()
+      .send()
+      .then((res) => res.data ?? [])
+      .catch(() => []);
+    const meta = { ...stem.meta, gain: 1, stereoPan: 0, muted: false, soloed: false, automation: undefined };
+    const audio = await mixTrack(
+      { bpm: 120, timeSignature: '4/4', mixVolume: 1, masterEffects: '', stems: [{ ...stem, meta }] },
+      { plugins: !!useBootstrapStore().configuration.studio_plugins, faust },
+    );
+    if (!audio) {
+      notify('That instrument has no notes to play.', 'info');
+      return;
+    }
+    if (exportFile(stem.name.replaceAll(' ', '-').toLowerCase() + '.flac', audio) !== true) throw new Error('save');
+  } catch {
+    notify('Asset download failed.', 'error');
+  }
+};
 
 /** The menu on another asset: its size, a download and delete */
 const assetLinks = (asset: FileAsset, i: number): Link[] => [
