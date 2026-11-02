@@ -1847,11 +1847,8 @@ const rememberSound = (source: string, url: string) => {
   return url;
 };
 
-/** A browser tab that can also remove items (newer library versions show a button for it). */
-type SoundSource = LibrarySource & { remove?: (item: { name: string; data?: unknown }) => Promise<boolean> };
-
 /** A tab of sounds from the site's library, or the person's own with upload and delete. */
-const soundsSource = (id: 'library' | 'mine', label: string): SoundSource => ({
+const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => ({
   id,
   label,
   list: async ({ search, page }) => {
@@ -2321,12 +2318,6 @@ defineExpose({
       > * {
         flex: none;
       }
-    }
-
-    /* The piano roll's and keys' bars wrap so every control stays in reach */
-    &__stage :deep(.tfs-roll-bar) {
-      flex-wrap: wrap;
-      row-gap: 2px;
     }
   }
 
