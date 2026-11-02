@@ -215,7 +215,7 @@ const restore = async (v: TrackVersion) => {
       res.missing.length ? `${res.missing.join(', ')} couldn't be brought back.` : '',
       res.keptAudio.length ? `${res.keptAudio.join(', ')} kept their newer audio.` : '',
     ].filter(Boolean);
-    notify(['Version restored.', ...notes].join(' '), 'success');
+    if (notes.length) notify(notes.join(' '), 'warning');
     emit('restored', res);
     await load(1);
   } catch (e) {
