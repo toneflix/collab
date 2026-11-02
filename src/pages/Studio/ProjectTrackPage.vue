@@ -100,43 +100,6 @@
 
     <!-- Stems, assets and conversation. One row that scrolls sideways on phones. -->
     <div class="studio-tools">
-      <input
-        multiple
-        type="file"
-        class="hidden"
-        ref="fileInput"
-        :accept="acceptFor(audioExts())"
-        @change="onFilesPicked"
-      />
-      <ActionButton
-        label="Add stems"
-        icon="lucide-circle-plus"
-        :expanded="expanded"
-        :loading="uploading > 0"
-        :disable="viewOnly"
-        @click="fileInput?.click()"
-      />
-      <SoundsPanel
-        ref="soundsPanel"
-        :project-id="project.id"
-        :track-id="track.id"
-        :playhead="() => editor?.currentTime() ?? 0"
-        :disabled="!editorReady"
-        dock="#studio-dock"
-        @added="addStemFromSound"
-        v-if="!viewOnly"
-      >
-        <template #default="{ toggle, open }">
-          <ActionButton
-            label="Sounds"
-            icon="lucide-music"
-            :expanded="expanded"
-            :active="open"
-            :disable="!editorReady"
-            @click="toggle"
-          />
-        </template>
-      </SoundsPanel>
       <AiPanel
         ref="aiPanel"
         :project-id="project.id"
@@ -186,14 +149,6 @@
           />
         </template>
       </LyricsPanel>
-      <ActionButton
-        label="Instrument"
-        icon="lucide-layout-grid"
-        :expanded="expanded"
-        :disable="!editorReady"
-        @click="newInstrument"
-        v-if="!viewOnly"
-      />
       <HistoryPanel
         ref="historyPanel"
         :project-id="project.id"
@@ -362,14 +317,13 @@ import AudioTagChips from 'src/components/Utilities/AudioTagChips.vue';
 import type { AudioTags, StyleTags } from 'src/utils/requests/tags';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
-import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
 import { addSoundToTrackRequest } from 'src/utils/requests/sounds';
 import HistoryPanel from 'src/components/Studio/HistoryPanel.vue';
 import AiPanel from 'src/components/Studio/AiPanel.vue';
 import LyricsPanel from 'src/components/Studio/LyricsPanel.vue';
 import type { Lyrics } from 'src/utils/requests/lyrics';
 import type { AiJob } from 'src/utils/requests/ai';
-import { readInstrument, type InstrumentKind } from 'src/utils/studio/instrument-notes';
+import { readInstrument } from 'src/utils/studio/instrument-notes';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { useRealtimeChannel, type RealtimeMeta } from 'src/utils/realtime';
@@ -380,7 +334,6 @@ import {
   ResponseBody,
   UploadData,
 } from 'src/utils/models';
-import { acceptFor, audioExts } from 'src/utils/presets';
 import {
   projectReleaseBlocker,
   projectReleaseLabel,
@@ -461,9 +414,7 @@ const releaseBlocker = computed(() =>
 const tempoDirty = ref(false);
 const saving = ref(false);
 const uploading = ref(0);
-const fileInput = ref<HTMLInputElement>();
 const editor = ref<InstanceType<typeof StemEditor>>();
-const soundsPanel = ref<InstanceType<typeof SoundsPanel>>();
 const historyPanel = ref<InstanceType<typeof HistoryPanel>>();
 const studioBody = ref<HTMLElement>();
 const { style: fit, measure: fitBody } = useFitToScreen(studioBody);
@@ -662,7 +613,6 @@ const replaceAudio = async (stem: Stem, file: File) => {
     stems.value = stems.value.map((s) => (s.id === updated.id ? updated : s));
     editor.value?.removeStem(updated.id);
     await editor.value?.addStem(updated);
-    notify(`"${updated.title || updated.name}" has its audio back.`, 'success');
     historyPanel.value?.refresh();
   } catch (e) {
     notify(errorMessage(e, `"${file.name}" couldn't be uploaded.`), 'error');
@@ -706,20 +656,6 @@ const duplicateStem = async (stem: Stem, meta: StemMeta) => {
   } finally {
     uploading.value--;
   }
-};
-
-const onFilesPicked = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const files = Array.from(input.files || []);
-  input.value = '';
-  if (files.length) void upload(files);
-};
-
-/** A sound from the sounds panel was added as a stem. */
-const addStemFromSound = async (stem: Stem) => {
-  if (findStem(stem.id)) return;
-  stems.value.push(stem);
-  await editor.value?.addStem(stem);
 };
 
 /** Put the stems an AI job made on the timeline. */
@@ -805,7 +741,6 @@ const onRecorded = async (take: {
     );
     stems.value.push(stem);
     editor.value?.adoptStem(take.trackId, stem, take.imported);
-    if (!take.imported) notify(`"${take.name}" saved as a stem.`, 'success');
   } catch (e) {
     editor.value?.dropTrack(take.trackId);
     notify(errorMessage(e, "The recording couldn't be saved."), 'error');
@@ -827,26 +762,6 @@ const onSound = async (sound: { trackId: string; soundId: number; start: number;
   } finally {
     uploading.value--;
   }
-};
-
-/** Pick an instrument and add a track that plays it. */
-const newInstrument = () => {
-  $q.dialog({
-    dark: true,
-    title: 'Add an instrument',
-    message: 'Play it on the keys or draw its notes in the piano roll.',
-    options: {
-      type: 'radio',
-      model: 'synth',
-      items: [
-        { label: 'Synth', value: 'synth' },
-        { label: 'Drums', value: 'drums' },
-        { label: 'Sampler (plays your own sounds)', value: 'sampler' },
-      ],
-    },
-    cancel: true,
-    ok: { label: 'Add', color: 'toneflix', unelevated: true },
-  }).onOk((kind: InstrumentKind) => editor.value?.addInstrument(kind));
 };
 
 /** Save an instrument track made in the editor as a stem. It has notes, not audio. */
@@ -882,7 +797,6 @@ const removeStem = (stem: Stem) => {
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => s.id !== stem.id);
       void stemAudio.forget(stem.id);
-      notify('Stem removed.', 'success');
       historyPanel.value?.refresh();
     } catch (e) {
       notify(errorMessage(e, "The stem couldn't be removed."), 'error');
@@ -951,13 +865,7 @@ const save = async (withPreview = false) => {
     ed.markSaved();
     tempoDirty.value = false;
     historyPanel.value?.refresh();
-    if (!render) {
-      notify('Saved.', 'success');
-      return;
-    }
-
-    notify('Saved. Mixing the preview.', 'success');
-    await mixPreview(ed);
+    if (render) await mixPreview(ed);
   } catch (e) {
     notify(errorMessage(e, "The track couldn't be saved."), 'error');
   } finally {
@@ -1091,7 +999,6 @@ const { live: trackLive } = useRealtimeChannel(
         if (findStem(stem.id)) return;
         stems.value.push(stem);
         await editor.value?.addStem(stem);
-        notify(`${who(e)} added "${stem.title || stem.name}".`, 'info');
         historyPanel.value?.refresh();
       } catch {
         // It may have been removed already.
@@ -1124,7 +1031,6 @@ const { live: trackLive } = useRealtimeChannel(
       editor.value?.removeStem(stem.id);
       stems.value = stems.value.filter((s) => String(s.id) !== String(stem.id));
       void stemAudio.forget(stem.id);
-      notify(`${who(e)} removed "${stem.title || stem.name}".`, 'info');
       historyPanel.value?.refresh();
     },
     'track.saved': (

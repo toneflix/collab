@@ -25,7 +25,11 @@
             <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
             <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes. <b>Delete</b> removes the selected clips.</li>
             <li>The mixer button opens the mixer: each stem's fader, pan, mute, solo and effects, and the master.</li>
-            <li v-if="!readonly">The browser button opens sounds and effects. Drag one onto the timeline or a stem.</li>
+            <li v-if="!readonly">The <b>+</b> button adds stems: audio files from your device, or a synth, drums or sampler.</li>
+            <li v-if="!readonly">
+              The browser button opens sounds and effects. Drag one onto the timeline or a stem. Upload or delete your own under My sounds, and
+              search Freesound when it's on.
+            </li>
             <li v-if="!readonly">Use a stem's ⋮ menu to move it up or down, duplicate or remove it.</li>
             <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
             <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
@@ -175,7 +179,6 @@ import {
   starterBeat,
   type InstrumentKind,
 } from 'src/utils/studio/instrument-notes';
-import { uploadSoundRequest } from 'src/utils/requests/sounds';
 import {
   applyStemClips,
   fillLengths,
@@ -190,7 +193,19 @@ import {
   trackToMeta,
 } from 'src/utils/studio/stem-timeline';
 import { QIcon, useQuasar } from 'quasar';
-import { loadLibrarySoundsRequest, loadMySoundsRequest, loadSoundsStatusRequest, type Sound } from 'src/utils/requests/sounds';
+import {
+  analyseAudio,
+  connectFreesoundRequest,
+  deleteSoundRequest,
+  importFreesoundRequest,
+  loadLibrarySoundsRequest,
+  loadMySoundsRequest,
+  loadSoundsStatusRequest,
+  searchFreesoundRequest,
+  uploadSoundRequest,
+  type Sound,
+  type SoundsStatus,
+} from 'src/utils/requests/sounds';
 import { usePlayerStore } from 'src/stores/player-store';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
@@ -1561,6 +1576,35 @@ const importProject = async (input: File | File[]) => {
 };
 
 /** Pick a project file (.zip, .rpp or our own) to import. */
+/** Add stems: audio files from the device, or a new instrument. */
+const openAdd = () => {
+  $q.dialog({
+    dark: true,
+    title: 'Add a stem',
+    options: {
+      type: 'radio',
+      model: 'audio',
+      items: [
+        { label: 'Audio files from your device', value: 'audio' },
+        { label: 'Synth', value: 'synth' },
+        { label: 'Drums', value: 'drums' },
+        { label: 'Sampler (plays your own sounds)', value: 'sampler' },
+      ],
+    },
+    cancel: true,
+    ok: { label: 'Add', color: 'toneflix', unelevated: true },
+  }).onOk((choice: 'audio' | InstrumentKind) => {
+    if (choice !== 'audio') return void addInstrument(choice);
+
+    const input = Object.assign(document.createElement('input'), { type: 'file', multiple: true, accept: acceptFor(audioExts()) });
+    input.addEventListener('change', () => {
+      const files = [...(input.files ?? [])];
+      if (files.length) emit('files', files);
+    });
+    input.click();
+  });
+};
+
 const pickProject = () => {
   const input = Object.assign(document.createElement('input'), { type: 'file', accept: `.zip,.rpp,.${APP.extension},.tfstudio` });
   input.addEventListener('change', () => {
@@ -1653,6 +1697,12 @@ const toolbarActions = (): ToolbarAction[] => {
   return [
     ...(editing
       ? [
+          {
+            id: 'add-stem',
+            label: 'Add stems: audio files or an instrument',
+            icon: icon('lucide-circle-plus'),
+            onClick: () => openAdd(),
+          },
           {
             id: 'record-stem',
             label: 'Record from your microphone onto a new stem, or the keys onto the selected instrument',
@@ -1753,6 +1803,7 @@ const toolbarItems = () =>
   props.readonly
     ? ['play', 'stop', 'loop', '|', 'display', '|', 'zoomOut', 'fit', 'zoomIn', 'follow', '|', 'mixer', 'comment', 'grid', 'project-files', 'help']
     : [
+        'add-stem',
         'browser',
         '|',
         'play',
@@ -1796,8 +1847,11 @@ const rememberSound = (source: string, url: string) => {
   return url;
 };
 
-/** A tab of sounds from the site's library or the person's own. */
-const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => ({
+/** A browser tab that can also remove items (newer library versions show a button for it). */
+type SoundSource = LibrarySource & { remove?: (item: { name: string; data?: unknown }) => Promise<boolean> };
+
+/** A tab of sounds from the site's library, or the person's own with upload and delete. */
+const soundsSource = (id: 'library' | 'mine', label: string): SoundSource => ({
   id,
   label,
   list: async ({ search, page }) => {
@@ -1818,6 +1872,108 @@ const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => (
       more: res.meta.currentPage < res.meta.lastPage,
     };
   },
+  ...(id === 'mine' ? { action: { label: 'Upload sounds', run: uploadSounds }, remove: deleteSound } : {}),
+});
+
+/** Pick audio files and add them to My sounds. */
+const uploadSounds = () =>
+  new Promise<void>((resolve) => {
+    const input = Object.assign(document.createElement('input'), { type: 'file', multiple: true, accept: acceptFor(audioExts()) });
+    input.addEventListener('change', async () => {
+      for (const file of [...(input.files ?? [])]) {
+        try {
+          const info = await analyseAudio(file).catch(() => ({ duration: 0, waveform: [] as number[] }));
+
+          await uploadSoundRequest(file, { name: file.name.replace(/\.[^.]+$/, ''), ...info }).send();
+        } catch (e) {
+          notify((e as Error)?.message || `"${file.name}" couldn't be uploaded.`, 'error');
+        }
+      }
+      resolve();
+    });
+    input.addEventListener('cancel', () => resolve());
+    input.click();
+  });
+
+/** Delete one of the person's sounds, once they confirm. */
+const deleteSound = (item: { name: string; data?: unknown }) =>
+  new Promise<boolean>((resolve) => {
+    const soundId = (item.data as { soundId?: number } | undefined)?.soundId;
+    if (soundId === undefined) return resolve(false);
+
+    $q.dialog({
+      dark: true,
+      title: 'Delete sound',
+      message: `Delete "${item.name}" from My sounds? Stems already made from it stay in their tracks.`,
+      cancel: true,
+      ok: { label: 'Delete', color: 'negative', unelevated: true },
+    })
+      .onOk(() => {
+        deleteSoundRequest(soundId)
+          .send()
+          .then(() => resolve(true))
+          .catch((e) => {
+            notify((e as Error)?.message || "The sound couldn't be deleted.", 'error');
+            resolve(false);
+          });
+      })
+      .onCancel(() => resolve(false));
+  });
+
+/** Freesound imports by result id, so a sound is imported once however often it's added. */
+const freesoundImports = new Map<string, Promise<Sound>>();
+const importFreesound = (id: string) => {
+  let sound = freesoundImports.get(id);
+  if (!sound) {
+    sound = importFreesoundRequest(id)
+      .send()
+      .then((res) => res.data);
+    sound.catch(() => freesoundImports.delete(id));
+    freesoundImports.set(id, sound);
+  }
+
+  return sound;
+};
+
+/** Freesound search; adding a result imports it into My sounds first. */
+const freesoundSource = (status: SoundsStatus): LibrarySource => ({
+  id: 'freesound',
+  label: 'Freesound',
+  list: async ({ search, page }) => {
+    if (!search.trim()) return { items: [], more: false };
+
+    const res = await searchFreesoundRequest(search.trim(), page).send();
+
+    return {
+      items: res.data.map((result) => ({
+        id: result.id,
+        name: result.name,
+        kind: 'audio' as const,
+        detail: result.author ?? undefined,
+        duration: result.duration,
+        preview: result.previewUrl ?? undefined,
+        source: `freesound:${result.id}`,
+        load: async () => {
+          const sound = await importFreesound(result.id);
+          const audio = await fetch(rememberSound(`sound:${sound.id}`, sound.url));
+
+          return audio.arrayBuffer();
+        },
+        data: { freesoundId: result.id },
+      })),
+      more: page * 20 < res.meta.total,
+    };
+  },
+  ...(status.freesoundConnected
+    ? {}
+    : {
+        action: {
+          label: 'Connect Freesound to add sounds',
+          run: async () => {
+            window.location.href = await connectFreesoundRequest(window.location.pathname).send();
+          },
+        },
+      }),
 });
 
 /** Our effects, and plugins when they're on, as a browser tab. */
@@ -1837,9 +1993,20 @@ const effectsSource = (): LibrarySource => ({
  * A sound added from the browser becomes its own stem. A sound put on an
  * existing stem moves to a new track first, then the parent saves it.
  */
-const onBrowserAdd = ({ item, track, clip }: { item: { name: string; data?: unknown }; track: string | null; clip?: { id: string; start: number } }) => {
-  const soundId = (item.data as { soundId?: number } | undefined)?.soundId;
-  if (!clip || !track || !studio || soundId === undefined) return;
+const onBrowserAdd = async ({ item, track, clip }: { item: { name: string; data?: unknown }; track: string | null; clip?: { id: string; start: number } }) => {
+  const data = item.data as { soundId?: number; freesoundId?: string } | undefined;
+  if (!clip || !track || !studio || !data) return;
+
+  let soundId = data.soundId;
+  if (soundId === undefined && data.freesoundId) soundId = (await importFreesound(data.freesoundId).catch(() => null))?.id;
+  if (soundId === undefined) {
+    // The sound couldn't be fetched, so its clip goes again.
+    const s = studio;
+    quietly(s.removeClips(state(), new Set([clip.id])));
+    if (!tracks.has(track)) quietly(s.removeTrack(state(), track));
+    notify(`"${item.name}" couldn't be added.`, 'error');
+    return;
+  }
 
   let trackId = track;
   if (tracks.has(track)) {
@@ -1928,7 +2095,12 @@ onMounted(async () => {
     void loadSoundsStatusRequest()
       .send()
       .then((status) =>
-        browser?.setSources([...(status.library ? [soundsSource('library', 'Sounds')] : []), soundsSource('mine', 'My sounds'), effectsSource()]),
+        browser?.setSources([
+          ...(status.library ? [soundsSource('library', 'Sounds')] : []),
+          soundsSource('mine', 'My sounds'),
+          ...(status.freesound ? [freesoundSource(status)] : []),
+          effectsSource(),
+        ]),
       )
       .catch(() => undefined);
   }
