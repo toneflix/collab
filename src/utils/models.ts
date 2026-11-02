@@ -846,6 +846,8 @@ export interface ProjectTrack {
   mixVolume?: number;
   /** The master bus effect chain, as JSON text */
   masterEffects?: string;
+  /** The studio's markers and tempo changes, as JSON text (see utils/studio/arrangement) */
+  arrangement?: string;
   /** The Composer song the track was made from, for people who can edit it */
   song?: { id: number; title: string; body: string | null; bpm: number | null; key: string | null; mood: string | null };
   /** Where the server is with the newest preview mix */

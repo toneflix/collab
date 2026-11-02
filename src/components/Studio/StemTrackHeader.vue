@@ -25,6 +25,15 @@
                 <q-item-section>Instrument settings</q-item-section>
               </q-item>
             </template>
+            <q-item
+              v-for="lane in lanes"
+              :key="lane.param ?? 'hide'"
+              clickable
+              v-close-popup
+              @click="host.showAutomation(trackId, lane.param)"
+            >
+              <q-item-section>{{ lane.label }}</q-item-section>
+            </q-item>
             <q-item clickable v-close-popup :disable="!stem" @click="host.duplicate(trackId)">
               <q-item-section>Duplicate</q-item-section>
             </q-item>
@@ -143,6 +152,9 @@ export interface StripHost {
   openColors: (trackId: string) => void;
   editNotes: (trackId: string) => void;
   openInstrument: (trackId: string) => void;
+  /** The automation lane shown under a track, if any */
+  automation: (trackId: string) => 'volume' | 'pan' | null;
+  showAutomation: (trackId: string, param: 'volume' | 'pan' | null) => void;
   duplicate: (trackId: string) => void;
   move: (trackId: string, index: number) => void;
   remove: (trackId: string) => void;
@@ -158,6 +170,18 @@ const effects = computed(() => props.host.effects(props.trackId));
 const index = computed(() => props.host.index(props.trackId));
 const selected = computed(() => props.host.selected() === props.trackId);
 const stem = computed(() => props.host.hasStem(props.trackId));
+
+/** Menu items for the automation lanes this track isn't showing. */
+const lanes = computed(() => {
+  const shown = props.host.automation(props.trackId);
+  const all = [
+    { param: 'volume' as const, label: 'Volume automation' },
+    { param: 'pan' as const, label: 'Pan automation' },
+    { param: null, label: 'Hide automation' },
+  ];
+
+  return all.filter((lane) => lane.param !== shown && (lane.param || shown));
+});
 const panLabel = computed(() => {
   const pan = Math.round(channel.value.pan * 100);
   return pan === 0 ? 'centre' : `${Math.abs(pan)}% ${pan < 0 ? 'left' : 'right'}`;

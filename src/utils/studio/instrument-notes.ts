@@ -1,6 +1,6 @@
 import type { Clip, InstrumentChoice, Note, TimelineState, Track } from '@toneflix/studio';
 import { stemClips, stemTitle, type Stem } from '../daw';
-import { stemColor, stemTrackId } from './stem-timeline';
+import { stemAutomation, stemColor, stemTrackId } from './stem-timeline';
 
 /**
  * An instrument stem, saved in its `meta.instrument` as JSON text: the
@@ -149,12 +149,17 @@ export const isInstrumentStem = (stem: Stem) => !!readInstrument(stem);
 const patternSource = (stemId: string | number, key: string) => `notes:stem-${stemId}:${key}`;
 
 /** An instrument stem's track, playing its instrument. */
-export const instrumentTrack = (stem: Stem, save: InstrumentSave, index: number): Track => ({
-  id: stemTrackId(stem.id),
-  name: stemTitle(stem),
-  color: stemColor(stem.meta?.color, index),
-  instrument: save.instrument,
-});
+export const instrumentTrack = (stem: Stem, save: InstrumentSave, index: number): Track => {
+  const automation = stemAutomation(stem.meta);
+
+  return {
+    id: stemTrackId(stem.id),
+    name: stemTitle(stem),
+    color: stemColor(stem.meta?.color, index),
+    instrument: save.instrument,
+    ...(automation ? { automation } : {}),
+  };
+};
 
 /** An instrument stem's note clips. `uid` makes clip ids. */
 export const instrumentClips = (stem: Stem, save: InstrumentSave, trackId: string, uid: () => string): Clip[] =>

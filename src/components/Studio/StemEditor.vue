@@ -35,6 +35,12 @@
               An instrument stem (synth, drums or sampler) plays notes, not audio. <b>Edit notes</b> opens its piano roll and step grid,
               <b>Keys</b> plays it live and <b>Sound</b> changes how it sounds.
             </li>
+            <li v-if="!readonly">
+              The flag button adds a marker at the playhead, and double clicking the strip above the ruler adds one there. The gauge
+              button changes the tempo from the next bar. Drag a marker or tempo change to move it; right click it to rename, change or
+              delete it.
+            </li>
+            <li v-if="!readonly">A stem's ⋮ menu shows its volume or pan automation. Click the lane to add points and drag them to shape it.</li>
             <li v-if="!readonly">With an instrument stem picked, the record button records the notes you play on the keys or your computer keyboard.</li>
           </ul>
         </q-card-section>
@@ -215,6 +221,7 @@ import { computed, getCurrentInstance, h, nextTick, onBeforeUnmount, onMounted, 
 import { LocalStorage } from 'quasar';
 import StemActivity, { type StemActivityItem } from './StemActivity.vue';
 import StemTrackHeader, { type StripHost } from './StemTrackHeader.vue';
+import { arrangementJson, withArrangement } from 'src/utils/studio/arrangement';
 import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
 import { isPlugin, parseEffects, serializeEffects, addFaustEffects, type StemEffect } from 'src/utils/studio/effects';
@@ -239,6 +246,7 @@ import {
   STEM_COLORS,
   stemSource,
   stemToClips,
+  stemAutomation,
   stemToTrack,
   trackToMeta,
 } from 'src/utils/studio/stem-timeline';
@@ -273,6 +281,8 @@ const props = defineProps<{
   mixVolume?: number;
   /** The saved master effect chain, as JSON text */
   masterEffects?: string;
+  /** The saved markers and tempo changes, as JSON text */
+  arrangement?: string;
 }>();
 
 const emit = defineEmits<{
@@ -386,6 +396,8 @@ let takes = 0;
 /** The master bus effect chain, and how it was last saved */
 const master = ref<StemEffect[]>(parseEffects(props.masterEffects));
 let masterSaved = serializeEffects(master.value);
+/** The markers and tempo changes as last saved */
+let arrangementSaved = '';
 
 /** Track id → its effect chain */
 const effects = reactive(new Map<string, StemEffect[]>());
@@ -506,7 +518,7 @@ const checkDirty = () => {
     saved[id] ??= json;
     if (saved[id] !== json) dirty = true;
   }
-  emit('dirty', dirty || serializeEffects(master.value) !== masterSaved);
+  emit('dirty', dirty || serializeEffects(master.value) !== masterSaved || arrangementJson(state()) !== arrangementSaved);
 };
 
 /** Call after saving, so the current state counts as saved. */
@@ -514,6 +526,7 @@ const markSaved = () => {
   saved = Object.fromEntries(Object.entries(snapshot()).map(([id, meta]) => [id, JSON.stringify(meta)]));
   shared = { ...saved };
   masterSaved = serializeEffects(master.value);
+  arrangementSaved = arrangementJson(state());
   emit('dirty', false);
 };
 
@@ -551,6 +564,8 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
   const track = next.tracks.find((t) => t.id === trackId);
   if (meta.color && track && meta.color !== track.color) next = studio.updateTrack(next, trackId, { color: stemColor(meta.color, 0) });
   if (meta.order !== undefined && meta.order !== next.tracks.findIndex((t) => t.id === trackId)) next = studio.moveTrack(next, trackId, meta.order);
+  const automation = stemAutomation(meta);
+  if (track && JSON.stringify(automation ?? null) !== JSON.stringify(track.automation ?? null)) next = studio.updateTrack(next, trackId, { automation });
   quietly(next);
 
   const channel: Partial<ChannelSettings> = {};
@@ -886,6 +901,16 @@ watch(
       changed = true;
     }
     if (changed) applyTempo();
+  },
+);
+
+// Someone else saved new markers or tempo changes; unsaved ones here are kept.
+watch(
+  () => props.arrangement,
+  (value) => {
+    if (!ready.value || arrangementJson(state()) !== arrangementSaved) return;
+    quietly(withArrangement(state(), value));
+    arrangementSaved = arrangementJson(state());
   },
 );
 
@@ -1242,6 +1267,9 @@ const selectTrack = (trackId: string) => {
 
 const colorsOpen = ref(false);
 
+/** The automation lane shown under each track */
+const automationLanes = reactive(new Map<string, 'volume' | 'pan'>());
+
 /** What each track header shows and does. */
 const strips: StripHost = reactive({
   readonly: computed(() => !!props.readonly),
@@ -1273,6 +1301,8 @@ const strips: StripHost = reactive({
   },
   editNotes: (id: string) => editNotes(id),
   openInstrument: (id: string) => instrumentPanel?.open(id),
+  automation: (id: string) => automationLanes.get(id) ?? null,
+  showAutomation: (id: string, param: 'volume' | 'pan' | null) => timeline.value?.showAutomation(id, param),
   duplicate,
   move: moveTrack,
   remove: (id: string) => {
@@ -1586,6 +1616,32 @@ const toolbarActions = (): ToolbarAction[] => {
           },
         ]
       : []),
+    ...(editing
+      ? [
+          {
+            id: 'marker',
+            label: 'Add a marker at the playhead, like Verse or Chorus',
+            icon: icon('lucide-flag'),
+            onClick: () => {
+              const tl = timeline.value;
+              if (tl) tl.editMarkerName(tl.addMarker().id);
+            },
+          },
+          {
+            id: 'tempo-change',
+            label: 'Change the tempo from the next bar',
+            icon: icon('lucide-gauge'),
+            onClick: () => {
+              const tl = timeline.value;
+              if (!tl) return;
+              // Tempo changes sit on the bar lines, so show them.
+              if (!grid.value) setGrid(true);
+              const change = tl.addTempoChange();
+              if (change) tl.editTempo(change.id);
+            },
+          },
+        ]
+      : []),
     ...(props.commentable
       ? [
           {
@@ -1654,6 +1710,8 @@ const toolbarItems = () =>
         'undo',
         'redo',
         '|',
+        'marker',
+        'tempo-change',
         'comment',
         'ai-edit',
         '|',
@@ -1833,6 +1891,7 @@ onMounted(async () => {
     notes.on('stop', () => (recordingNotes.value = false)),
     tl.on('change', onChange),
     tl.on('zoom', ({ pxPerSecond }) => (zoom.value = pxPerSecond)),
+    tl.on('automation', ({ track, param }) => (param ? automationLanes.set(track, param) : automationLanes.delete(track))),
     tl.on('select', ({ clips }) => {
       const track = state().clips.find((c) => c.id === clips[0])?.track;
       if (track) selectTrack(track);
@@ -1889,6 +1948,7 @@ onMounted(async () => {
 
   const order = [...props.stems].sort((a, b) => (a.meta?.order ?? Infinity) - (b.meta?.order ?? Infinity));
   const placed = await Promise.all(order.map((stem) => placeStem(stem).catch(() => undefined)));
+  quietly(withArrangement(state(), props.arrangement));
   // Loading isn't something to undo.
   tl.history.clear();
   toolbar.refresh();
@@ -1941,6 +2001,7 @@ defineExpose({
   markSaved,
   mixVolume: () => engine?.mixer.master.settings.volume ?? props.mixVolume ?? 1,
   masterEffects: () => serializeEffects(master.value),
+  arrangement: () => arrangementJson(state()),
   moveStem,
   stop,
   keepPluginStates,

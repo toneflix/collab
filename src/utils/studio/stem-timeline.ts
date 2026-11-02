@@ -1,4 +1,4 @@
-import type { ChannelSettings, Clip, TimelineState, Track } from '@toneflix/studio';
+import type { Automation, AutomationPoint, ChannelSettings, Clip, TimelineState, Track } from '@toneflix/studio';
 import { stemClips, stemTitle, type Stem, type StemClip, type StemMeta } from '../daw';
 
 /** The editor's stem colours, in the order new stems get them. */
@@ -30,12 +30,58 @@ let clipCount = 0;
 
 const clipId = () => `sc${Date.now().toString(36)}${(clipCount++).toString(36)}`;
 
+/** The range of each automated setting: volume as gain up to +6 dB, pan from left to right. */
+const AUTOMATION_LIMITS = { volume: [0, 2], pan: [-1, 1] } as const;
+
+/** A stem's volume and pan automation, from its `meta.automation` JSON text. */
+export const stemAutomation = (meta: Partial<StemMeta> | undefined): Automation | undefined => {
+  let raw: unknown = meta?.automation;
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      return undefined;
+    }
+  }
+  if (!raw || typeof raw !== 'object') return undefined;
+
+  const out: Automation = {};
+  for (const [param, [min, max]] of Object.entries(AUTOMATION_LIMITS) as [keyof Automation, readonly [number, number]][]) {
+    const list = (raw as Record<string, unknown>)[param];
+    if (!Array.isArray(list)) continue;
+
+    const points: AutomationPoint[] = list
+      .map((p: Partial<AutomationPoint>) => ({ time: Math.max(0, num(p?.time, -1)), value: Math.min(max, Math.max(min, num(p?.value, NaN))) }))
+      .filter((p) => Number.isFinite(p.value))
+      .sort((a, b) => a.time - b.time)
+      .slice(0, 2000);
+    if (points.length) out[param] = points;
+  }
+
+  return Object.keys(out).length ? out : undefined;
+};
+
+/** A track's automation as saved in a stem's `meta.automation`, or undefined without any. */
+export const automationJson = (track: Pick<Track, 'automation'>) => {
+  const out: Record<string, AutomationPoint[]> = {};
+  for (const [param, points] of Object.entries(track.automation ?? {})) {
+    if (points?.length) out[param] = points.map((p) => ({ time: round(p.time), value: round(p.value) }));
+  }
+
+  return Object.keys(out).length ? JSON.stringify(out) : undefined;
+};
+
 /** A stem's track on the timeline. */
-export const stemToTrack = (stem: Stem, index: number): Track => ({
-  id: stemTrackId(stem.id),
-  name: stemTitle(stem),
-  color: stemColor(stem.meta?.color, index),
-});
+export const stemToTrack = (stem: Stem, index: number): Track => {
+  const automation = stemAutomation(stem.meta);
+
+  return {
+    id: stemTrackId(stem.id),
+    name: stemTitle(stem),
+    color: stemColor(stem.meta?.color, index),
+    ...(automation ? { automation } : {}),
+  };
+};
 
 /** A stem's mixer settings. Volume runs from 0 to 1, as the API keeps it. */
 export const stemChannel = (meta: Partial<StemMeta> | undefined): ChannelSettings => ({
@@ -136,6 +182,7 @@ export const trackToMeta = (
       };
     });
   const first = list[0];
+  const automation = automationJson(track);
 
   return {
     name: stem.meta?.name ?? stem.id,
@@ -154,6 +201,7 @@ export const trackToMeta = (
     clips: list,
     order,
     ...(track.color ? { color: track.color } : {}),
+    ...(automation ? { automation } : {}),
   };
 };
 

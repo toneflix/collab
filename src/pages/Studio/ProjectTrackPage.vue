@@ -313,6 +313,7 @@
             :time-signature="track.timeSignature"
             :mix-volume="track.mixVolume"
             :master-effects="track.masterEffects"
+            :arrangement="track.arrangement"
             commentable
             :ai-editable="!viewOnly"
             @comment="messageAboutRegion"
@@ -928,6 +929,7 @@ const save = async (withPreview = false) => {
       preview: undefined,
       mixVolume: ed.mixVolume(),
       masterEffects: ed.masterEffects(),
+      arrangement: ed.arrangement(),
       stems: Object.entries(metas).map(([id, meta]) => ({
         id,
         meta,
@@ -943,6 +945,7 @@ const save = async (withPreview = false) => {
     }));
     track.value.mixVolume = form.mixVolume;
     track.value.masterEffects = form.masterEffects;
+    track.value.arrangement = form.arrangement;
     ed.markSaved();
     tempoDirty.value = false;
     historyPanel.value?.refresh();

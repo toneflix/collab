@@ -43,8 +43,10 @@ export interface StemMeta {
   clips?: StemClip[];
   /** The stem's effect chain, as JSON text (see utils/studio/effects) */
   effects?: string;
-  /** The pattern an instrument stem was rendered from, as JSON text */
+  /** An instrument stem's instrument, patterns and clips, as JSON text (see utils/studio/instrument-notes) */
   instrument?: string;
+  /** Volume and pan changes over time, as JSON text: `{ volume?: [{ time, value }], pan?: [...] }` */
+  automation?: string;
   /** The stem's place from the top of the editor */
   order?: number;
   /** The stem's colour in the editor */
