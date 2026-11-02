@@ -3,6 +3,7 @@ import type { Stem } from 'src/utils/daw';
 import type { FaustEffect } from 'src/utils/requests/effects';
 import { addFaustEffects, parseEffects, type StemEffect } from './effects';
 import { flacOf, renderMix } from './mix';
+import { instrumentClips, instrumentTrack, readInstrument } from './instrument-notes';
 import { effectsToRack, rackLoader } from './rack-effects';
 import { stemChannel, stemSource, stemToClips, stemToTrack } from './stem-timeline';
 
@@ -34,16 +35,24 @@ export const mixTrack = async (track: RenderTrack, options: MixTrackOptions): Pr
 
   const engine = new s.AudioEngine();
   const rack = new s.PluginRack(engine, { load: rackLoader(() => options.plugins) });
+  engine.setInstruments(rack.instruments());
 
   try {
     const stems = [...track.stems].sort((a, b) => (a.meta?.order ?? Infinity) - (b.meta?.order ?? Infinity));
 
+    // Audio stems' files, and the samples instrument stems play.
+    const downloads = new Map<string, string>();
+    for (const stem of stems) {
+      const save = readInstrument(stem);
+      if (save) Object.entries(save.samples ?? {}).forEach(([source, url]) => downloads.set(source, url));
+      else downloads.set(stemSource(stem.id), stem.src);
+    }
     await Promise.all(
-      stems.map(async (stem) => {
-        const res = await fetch(stem.src);
-        if (!res.ok) throw new Error(`"${stem.title || stem.id}" couldn't be downloaded (${res.status}).`);
+      [...downloads].map(async ([source, url]) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Audio for ${source} couldn't be downloaded (${res.status}).`);
 
-        engine.setBuffer(stemSource(stem.id), await engine.context.decodeAudioData(await res.arrayBuffer()));
+        engine.setBuffer(source, await engine.context.decodeAudioData(await res.arrayBuffer()));
       }),
     );
 
@@ -51,8 +60,10 @@ export const mixTrack = async (track: RenderTrack, options: MixTrackOptions): Pr
     const lengthOf = (source: string) => engine.getBuffer(source)?.duration;
 
     stems.forEach((stem, i) => {
-      const lane = stemToTrack(stem, i);
-      state = s.addClips(s.addTrack(state, lane), stemToClips(stem, lane.id, lengthOf));
+      const save = readInstrument(stem);
+      const lane = save ? instrumentTrack(stem, save, i) : stemToTrack(stem, i);
+      const clips = save ? instrumentClips(stem, save, lane.id, () => s.uid('c')) : stemToClips(stem, lane.id, lengthOf);
+      state = s.addClips(s.addTrack(state, lane), clips);
     });
     engine.load(state);
 
