@@ -40,6 +40,7 @@
               button changes the tempo from the next bar. Drag a marker or tempo change to move it; right click it to rename, change or
               delete it.
             </li>
+            <li>The project files button exports the track as a REAPER project to open in another DAW<span v-if="!readonly">, or adds the tracks of a REAPER or Toneflix Studio project as new stems</span>.</li>
             <li v-if="!readonly">A stem's ⋮ menu shows its volume or pan automation. Click the lane to add points and drag them to shape it.</li>
             <li v-if="!readonly">With an instrument stem picked, the record button records the notes you play on the keys or your computer keyboard.</li>
           </ul>
@@ -283,6 +284,8 @@ const props = defineProps<{
   masterEffects?: string;
   /** The saved markers and tempo changes, as JSON text */
   arrangement?: string;
+  /** The track's title, for exported projects */
+  title?: string;
 }>();
 
 const emit = defineEmits<{
@@ -300,8 +303,11 @@ const emit = defineEmits<{
   'ai-edit': [region: SectionSelection];
   /** The tempo or meter was changed here */
   tempo: [value: { bpm: number; timeSignature: string }];
-  /** A take was recorded onto a new track; the parent uploads it and calls adoptStem */
-  recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string }];
+  /**
+   * A take was recorded, or a track imported, onto a new track; the parent
+   * uploads it and calls adoptStem. An imported one stays unsaved until the next save.
+   */
+  recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string; imported?: boolean }];
   /** A new instrument track was made; the parent saves it as a stem (no audio) and calls adoptStem */
   instrument: [instrument: { trackId: string; title: string; meta: StemMeta }];
   /** Copy a stem onto the track, with these settings for the copy */
@@ -1036,13 +1042,15 @@ const onTake = (take: Take) => {
  * before upload) to the stem it was saved as, so it saves and syncs like any
  * other stem.
  */
-const adoptStem = (trackId: string, stem: Stem) => {
+const adoptStem = (trackId: string, stem: Stem, unsaved = false) => {
   tracks.set(trackId, stem);
   added.add(String(stem.id));
   for (const clip of clipsOf(trackId)) if (!clip.notes && !clip.source.startsWith('stem:')) aliases.set(clip.source, stem.id);
   renameStem(stem.id, stemTitle(stem));
   const meta = snapshot()[String(stem.id)];
-  if (meta) {
+  // An imported track's clips, mix and automation are saved with the next save.
+  if (unsaved) saved[String(stem.id)] = '';
+  else if (meta) {
     saved[String(stem.id)] = JSON.stringify(meta);
     shared[String(stem.id)] = saved[String(stem.id)]!;
   }
@@ -1516,6 +1524,152 @@ const addLocal = async (file: File, name: string): Promise<string | null> => {
   }
 };
 
+/** The app named in exported projects */
+const APP = { name: 'Toneflix Music', id: 'toneflix-music', extension: 'tfproject', url: 'https://toneflix.net' };
+
+/** Download the track as a project for another DAW: Toneflix Studio's own format, or REAPER. */
+const exportProject = (format: 'app' | 'reaper') => {
+  const tl = timeline.value;
+  if (!studio || !tl || !engine) return;
+  const name = props.title || 'Toneflix track';
+
+  return studio
+    .saveProject(format, tl, engine, { app: APP, name, plugins: rack ?? undefined })
+    .then(({ blob, fileName }) => {
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: fileName });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    })
+    .catch((error: unknown) => notify(error instanceof Error ? error.message : "The project couldn't be saved.", 'error'));
+};
+
+/** Ask whether to export the track for another DAW, or import a project's tracks. */
+const openProjectFiles = () =>
+  $q
+    .dialog({
+      title: 'Project files',
+      message: 'Move this track to and from other DAWs: stems, clips, mix, automation and markers.',
+      options: {
+        type: 'radio',
+        model: 'reaper',
+        items: [
+          { label: 'Export as a REAPER project (.zip, without plugins)', value: 'reaper' },
+          { label: `Export as a ${APP.name} project (.${APP.extension})`, value: 'app' },
+          ...(props.readonly ? [] : [{ label: 'Import the tracks of a project…', value: 'import' }]),
+        ],
+      },
+      cancel: true,
+      dark: true,
+    })
+    .onOk((choice: 'app' | 'reaper' | 'import') => (choice === 'import' ? pickProject() : void exportProject(choice)));
+
+/**
+ * Add the tracks of a REAPER or Toneflix Studio project as new stems, with
+ * their clips, mix, automation and markers. A track that plays several audio
+ * files is bounced into one. Effects and plugins aren't brought in.
+ */
+const importProject = async (input: File | File[]) => {
+  const tl = timeline.value;
+  if (!studio || !tl || !engine || !context || props.readonly) return;
+
+  const s = studio;
+  const holder = document.createElement('div');
+  const scratchTl = new s.StudioTimeline(holder, {});
+  const scratch = new s.AudioEngine({ context });
+  if (rack) scratch.setInstruments(rack.instruments());
+  const activity = 'import-project';
+  setActivity(activity, { name: 'Opening project', phase: 'decode', loaded: 0, total: 0 });
+
+  try {
+    const opened = await s.openProject(input, scratchTl, scratch);
+    const from = scratchTl.state;
+    if (!from.tracks.length) {
+      notify('That project has no tracks.', 'info');
+      return;
+    }
+
+    let next = state();
+    const created: { id: string; name: string; audio?: AudioBuffer; start: number; instrument: boolean }[] = [];
+
+    for (const [i, track] of from.tracks.entries()) {
+      const clips = from.clips.filter((c) => c.track === track.id);
+      if (!clips.length) continue;
+
+      const id = s.uid('t');
+      const lane: Track = {
+        id,
+        name: track.name || `Track ${i + 1}`,
+        color: stemColor(undefined, next.tracks.length),
+        ...(track.automation ? { automation: track.automation } : {}),
+        ...(track.instrument ? { instrument: track.instrument } : {}),
+      };
+      const sources = [...new Set(clips.filter((c) => !c.notes).map((c) => c.source))];
+      let moved = clips.map((c) => ({ ...c, id: s.uid('c'), track: id }));
+      let audio: AudioBuffer | undefined;
+
+      if (!track.instrument && sources.length === 1) {
+        audio = scratch.getBuffer(sources[0]!);
+        if (!audio) continue;
+        const source = s.uid('local');
+        moved = moved.map((c) => ({ ...c, source }));
+        useAudio(source, audio, `import:${source}`);
+      } else if (!track.instrument) {
+        // Several files on one track: bounce it from its first clip into one file.
+        const start = Math.min(...clips.map((c) => c.start));
+        scratch.load({ tracks: [{ id: track.id, name: track.name }], clips });
+        scratch.mixer.set(track.id, { volume: 1, pan: 0, mute: false, solo: false });
+        audio = await scratch.render({ from: start });
+        const source = s.uid('local');
+        moved = [s.makeClip({ track: id, source, name: lane.name, start, offset: 0, duration: audio.duration })];
+        useAudio(source, audio, `import:${source}`);
+      }
+
+      next = s.addClips(s.addTrack(next, lane), moved);
+      engine.mixer.set(id, scratch.mixer.channel(track.id).settings);
+      created.push({ id, name: lane.name, audio, start: Math.min(...moved.map((c) => c.start)), instrument: !!track.instrument });
+    }
+
+    for (const marker of from.markers ?? []) next = { ...next, markers: [...(next.markers ?? []), { ...marker, id: s.uid('m') }] };
+    quietly(next);
+    engine.mixer.sync(state().tracks);
+
+    for (const item of created) {
+      if (item.instrument) {
+        const lane = trackOf(item.id)!;
+        const draft: Stem = { id: item.id, src: '', size: 0, name: item.name, meta: { name: item.name } };
+        const meta = trackToMeta(draft, lane, [], channelOf(item.id), orderOf(item.id));
+        const instrument = JSON.stringify(saveInstrument(state(), lane, () => undefined));
+        emit('instrument', { trackId: item.id, title: item.name, meta: { ...meta, instrument } });
+      } else if (item.audio) {
+        const file = new File([encodeWav(item.audio)], `${item.name}.wav`, { type: 'audio/wav' });
+        emit('recorded', { trackId: item.id, file, start: item.start, duration: item.audio.duration, name: item.name, imported: true });
+      }
+    }
+
+    const bpm = Math.round(scratchTl.grid.bpm);
+    const note = bpm !== Math.round(tempo.value) ? ` It was made at ${bpm} BPM.` : '';
+    const missingFiles = opened.missing.length ? ` ${opened.missing.length} audio file(s) were missing.` : '';
+    notify(`Added ${created.length} track(s) from the project.${note}${missingFiles} Save to keep their arrangement.`, 'success');
+  } catch (error) {
+    notify(error instanceof Error ? error.message : "The project couldn't be opened.", 'error');
+  } finally {
+    endActivity(activity);
+    scratchTl.destroy();
+    scratch.destroy();
+  }
+};
+
+/** Pick a project file (.zip, .rpp or our own) to import. */
+const pickProject = () => {
+  const input = Object.assign(document.createElement('input'), { type: 'file', accept: `.zip,.rpp,.${APP.extension},.tfstudio` });
+  input.addEventListener('change', () => {
+    const files = [...(input.files ?? [])];
+    if (files.length) void importProject(files.length === 1 ? files[0]! : files);
+  });
+  input.click();
+};
+
 /** Show an upload's progress under the toolbar until `done` is called. */
 const trackUpload = (key: string, name: string) => {
   const id = `upload-${key}`;
@@ -1640,6 +1794,7 @@ const toolbarActions = (): ToolbarAction[] => {
               if (change) tl.editTempo(change.id);
             },
           },
+
         ]
       : []),
     ...(props.commentable
@@ -1664,6 +1819,12 @@ const toolbarActions = (): ToolbarAction[] => {
           },
         ]
       : []),
+    {
+      id: 'project-files',
+      label: 'Export or import a project for another DAW',
+      icon: icon('lucide-folder-output'),
+      onClick: () => openProjectFiles(),
+    },
     {
       id: 'grid',
       label: 'Show bars and beats',
@@ -1690,7 +1851,7 @@ const toolbarActions = (): ToolbarAction[] => {
 /** The toolbar's buttons, in order. */
 const toolbarItems = () =>
   props.readonly
-    ? ['play', 'stop', 'loop', '|', 'display', '|', 'zoomOut', 'fit', 'zoomIn', 'follow', '|', 'mixer', 'comment', 'grid', 'help']
+    ? ['play', 'stop', 'loop', '|', 'display', '|', 'zoomOut', 'fit', 'zoomIn', 'follow', '|', 'mixer', 'comment', 'grid', 'project-files', 'help']
     : [
         'browser',
         '|',
@@ -1724,6 +1885,7 @@ const toolbarItems = () =>
         'grid',
         '|',
         'mixer',
+        'project-files',
         'help',
       ];
 
