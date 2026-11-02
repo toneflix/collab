@@ -314,6 +314,7 @@
             :mix-volume="track.mixVolume"
             :master-effects="track.masterEffects"
             :arrangement="track.arrangement"
+            :title="track.title"
             commentable
             :ai-editable="!viewOnly"
             @comment="messageAboutRegion"
@@ -789,6 +790,7 @@ const onRecorded = async (take: {
   start: number;
   duration: number;
   name: string;
+  imported?: boolean;
 }) => {
   uploading.value++;
   try {
@@ -802,8 +804,8 @@ const onRecorded = async (take: {
       take.name,
     );
     stems.value.push(stem);
-    editor.value?.adoptStem(take.trackId, stem);
-    notify(`"${take.name}" saved as a stem.`, 'success');
+    editor.value?.adoptStem(take.trackId, stem, take.imported);
+    if (!take.imported) notify(`"${take.name}" saved as a stem.`, 'success');
   } catch (e) {
     editor.value?.dropTrack(take.trackId);
     notify(errorMessage(e, "The recording couldn't be saved."), 'error');
