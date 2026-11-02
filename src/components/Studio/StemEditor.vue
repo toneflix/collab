@@ -6,264 +6,35 @@
     @dragleave.self="dropping = false"
     @drop.prevent="onDrop"
   >
-    <!-- Transport, editing and zoom -->
-    <div class="stem-editor__toolbar">
-      <div class="stem-editor__group stem-editor__core">
-        <IconBtn icon="lucide-skip-back:fill" aria-label="Back to start" class="max-sm:hidden!" :disable="!ready" @click="toStart">
-          <q-tooltip>Back to start</q-tooltip>
-        </IconBtn>
-        <q-btn
-          round
-          unelevated
-          color="glass"
-          class="white-glass flex-none!"
-          :aria-label="playing ? 'Pause' : 'Play'"
-          :disable="!ready"
-          @click="togglePlay"
-        >
-          <q-icon size="22px" :name="playing ? 'lucide-pause:fill' : 'lucide-play:fill'" />
-          <q-tooltip>{{ playing ? 'Pause' : 'Play' }} (Space)</q-tooltip>
-        </q-btn>
-        <IconBtn icon="lucide-square:fill" aria-label="Stop" :disable="!ready" @click="stop">
-          <q-tooltip>Stop</q-tooltip>
-        </IconBtn>
-        <IconBtn
-          class="record-btn"
-          :class="{ 'record-btn--on': recording }"
-          :icon="recording ? 'lucide-square:fill' : 'lucide-circle-dot'"
-          :aria-label="recording ? 'Stop recording' : 'Record'"
-          :loading="startingRecording"
-          :disable="!ready || (!recording && !canRecord)"
-          @click="toggleRecording"
-          v-if="!readonly"
-        >
-          <q-tooltip>{{ recording ? 'Stop recording' : canRecord ? 'Record from your microphone onto a new stem' : 'This browser can\'t record' }}</q-tooltip>
-        </IconBtn>
-        <div class="stem-editor__clock" aria-live="off">
-          {{ formatClock(time) }} <span class="text-grey-6 max-sm:hidden">/ {{ formatClock(duration) }}</span>
-        </div>
-      </div>
+    <!-- The studio's toolbar: transport, editing, zoom, mixer and browser -->
+    <div ref="toolbarHost" class="stem-editor__toolbar" />
 
-      <div class="stem-editor__group stem-editor__edit" v-if="!readonly">
-        <IconBtn icon="lucide-scissors" aria-label="Split at the playhead" :disable="!ready || !selectedTrackId" @click="split">
-          <q-tooltip>Split the selected stem at the playhead (S)</q-tooltip>
-        </IconBtn>
-        <IconBtn icon="lucide-undo-2" aria-label="Undo" :disable="!canUndo" @click="undo">
-          <q-tooltip>Undo (Ctrl+Z)</q-tooltip>
-        </IconBtn>
-        <IconBtn icon="lucide-redo-2" aria-label="Redo" :disable="!canRedo" @click="redo">
-          <q-tooltip>Redo (Ctrl+Shift+Z)</q-tooltip>
-        </IconBtn>
-      </div>
-
-      <IconBtn
-        icon="lucide-ellipsis"
-        class="stem-editor__more-btn sm:hidden!"
-        aria-label="More editor tools"
-        :aria-expanded="moreOpen"
-        @click="moreOpen = true"
-      />
-
-      <!-- Tempo, grid, zoom and master: inline on wider screens, a sheet on phones -->
-      <DefineTools>
-        <div class="stem-editor__group stem-editor__selection">
-          <IconBtn
-            icon="lucide-skip-back:fill"
-            class="sm:hidden!"
-            aria-label="Back to start"
-            :disable="!ready"
-            @click="toStart"
-          />
-          <IconBtn
-            icon="lucide-repeat"
-            :class="{ 'text-toneflix': loop }"
-            :aria-label="loop ? 'Stop looping the selection' : 'Loop the selection'"
-            :disable="!ready || !hasSelection"
-            @click="toggleLoop"
-          >
-            <q-tooltip>{{ hasSelection ? (loop ? 'Looping the selection' : 'Loop the selection') : 'Drag across the timeline to select a part to loop' }}</q-tooltip>
-          </IconBtn>
-          <IconBtn
-            icon="lucide-message-circle-more"
-            aria-label="Message about the selected part"
-            :disable="!ready || !hasSelection"
-            @click="messageAboutSelection"
-            v-if="commentable"
-          >
-            <q-tooltip>{{ hasSelection ? 'Message about this part' : 'Drag across the timeline to select a part to talk about' }}</q-tooltip>
-          </IconBtn>
-          <IconBtn
-            icon="lucide-wand-sparkles"
-            aria-label="Edit the selected part with AI"
-            :disable="!ready || !hasSelection"
-            @click="editSelection"
-            v-if="aiEditable && !readonly"
-          >
-            <q-tooltip>{{ hasSelection ? 'Edit this part with AI' : 'Drag across a stem to select a part to change with AI' }}</q-tooltip>
-          </IconBtn>
-        </div>
-
-        <div class="stem-editor__group stem-editor__tempo">
-          <label class="tempo-field">
-            <span class="sr-only">Tempo in beats per minute</span>
-            <input
-              type="number"
-              inputmode="decimal"
-              min="20"
-              max="300"
-              step="1"
-              aria-label="Tempo (BPM)"
-              :value="tempo"
-              :disabled="!ready || readonly || recording"
-              @change="onTempoInput"
-              @keydown.stop
-            />
-            <span class="text-grey-5">BPM</span>
-            <q-tooltip>The track's tempo, for the beat grid, metronome and instruments</q-tooltip>
-          </label>
-          <q-select
-            dense
-            borderless
-            dark
-            options-dense
-            class="meter-select"
-            aria-label="Time signature"
-            :options="TIME_SIGNATURES"
-            :model-value="meter"
-            :disable="!ready || readonly || recording"
-            @update:model-value="setMeter"
-          />
-          <IconBtn
-            icon="lucide-grid-3x3"
-            :class="{ 'text-toneflix': grid }"
-            :aria-label="grid ? 'Hide the beat grid' : 'Show the beat grid'"
-            :aria-pressed="grid"
-            :disable="!ready"
-            @click="setGrid(!grid)"
-          >
-            <q-tooltip>{{ grid ? 'Hide the beat grid' : 'Show bars and beats, and snap clips to them' }}</q-tooltip>
-          </IconBtn>
-          <q-select
-            dense
-            borderless
-            dark
-            options-dense
-            emit-value
-            map-options
-            class="snap-select"
-            aria-label="Snap to"
-            :options="SNAP_OPTIONS"
-            :model-value="snap"
-            @update:model-value="setSnap"
-            v-if="grid"
-          >
-            <q-tooltip>What clips snap to when you move them</q-tooltip>
-          </q-select>
-          <IconBtn
-            icon="lucide-timer"
-            :class="{ 'text-toneflix': metronome }"
-            :aria-label="metronome ? 'Turn the metronome off' : 'Turn the metronome on'"
-            :aria-pressed="metronome"
-            :disable="!ready"
-            @click="setMetronome(!metronome)"
-          >
-            <q-tooltip>Metronome {{ metronome ? 'on' : 'off' }}</q-tooltip>
-          </IconBtn>
-          <IconBtn
-            icon="lucide-hourglass"
-            :class="{ 'text-toneflix': countIn }"
-            :aria-label="countIn ? 'Turn the count-in off' : 'Count in one bar before recording'"
-            :aria-pressed="countIn"
-            :disable="!ready"
-            @click="setCountIn(!countIn)"
-            v-if="!readonly"
-          >
-            <q-tooltip>Count in one bar before recording: {{ countIn ? 'on' : 'off' }}</q-tooltip>
-          </IconBtn>
-        </div>
-
-        <div class="stem-editor__group stem-editor__zoom">
-          <IconBtn icon="lucide-minus" aria-label="Zoom out" :disable="!ready || !canZoomOut" @click="setZoom(zoom / 2)">
-            <q-tooltip>Zoom out</q-tooltip>
-          </IconBtn>
-          <IconBtn icon="lucide-scan" aria-label="Fit to screen" :disable="!ready" @click="fit">
-            <q-tooltip>Fit everything on screen</q-tooltip>
-          </IconBtn>
-          <IconBtn icon="lucide-plus" aria-label="Zoom in" :disable="!ready || !canZoomIn" @click="setZoom(zoom * 2)">
-            <q-tooltip>Zoom in</q-tooltip>
-          </IconBtn>
-          <IconBtn
-            icon="lucide-locate"
-            :class="{ 'text-toneflix': follow }"
-            :aria-label="follow ? 'Stop following the playhead' : 'Follow the playhead'"
-            :aria-pressed="follow"
-            :disable="!ready"
-            @click="setFollow(!follow)"
-          >
-            <q-tooltip>{{ follow ? 'Following the playhead while it plays' : 'Follow the playhead while it plays' }}</q-tooltip>
-          </IconBtn>
-        </div>
-
-        <div class="stem-editor__group stem-editor__master">
-          <q-btn
-            outline
-            rounded
-            dense
-            no-caps
-            size="sm"
-            color="grey-4"
-            class="flex-none! px-2 mr-1"
-            icon="lucide-sliders-horizontal"
-            :label="master.length ? `Master FX (${master.length})` : 'Master FX'"
-            :disable="!ready"
-            @click="masterEffectsOpen = true"
-          >
-            <q-tooltip>Effects on the whole mix, after the master volume</q-tooltip>
-          </q-btn>
-          <span class="master-meter" aria-hidden="true" :style="{ '--level': masterLevel }"><i /></span>
-          <q-icon :name="masterVolume ? 'lucide-volume-2' : 'lucide-volume-x'" size="20px" class="flex-none!" />
-          <q-slider
-            dense
-            color="toneflix"
-            track-size="3px"
-            thumb-size="12px"
-            :min="0"
-            :max="100"
-            :model-value="masterVolume"
-            :disable="!ready"
-            aria-label="Master volume"
-            @update:model-value="setMasterVolume"
-          />
-          <IconBtn icon="lucide-circle-question-mark" aria-label="How to use the editor" class="max-sm:hidden!">
-            <q-menu dark anchor="bottom right" self="top right" class="p-4 max-w-80">
-              <div class="mb-2 font-bold">Using the editor</div>
-              <ul class="pl-8 space-y-1 text-sm list-disc">
-                <li><b>Space</b> plays and pauses.</li>
-                <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
-                <li v-if="!readonly">Drag a clip to move it, even onto another stem or over another clip (the later one plays on top). Drag its edges to trim it, its top corners to fade it.</li>
-                <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
-                <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
-                <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes. <b>Delete</b> removes the selected clips.</li>
-                <li>Each stem has its own volume, pan, mute (M) and solo (S).</li>
-                <li v-if="!readonly">Use a stem's ⋮ menu to move it up or down, duplicate or remove it.</li>
-                <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
-                <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
-                <li><b>+ −</b> zoom, <b>0</b> fits, <b>L</b> loops the selection, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
-                <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
-              </ul>
-            </q-menu>
-          </IconBtn>
-        </div>
-      </DefineTools>
-      <div class="stem-editor__more" v-if="!compact">
-        <ReuseTools />
-      </div>
-      <AppSheet title="Editor tools" v-model="moreOpen" v-else>
-        <div class="stem-editor__sheet">
-          <ReuseTools />
-        </div>
-      </AppSheet>
-    </div>
+    <q-dialog v-model="helpOpen">
+      <q-card dark class="max-w-[28rem]">
+        <q-card-section class="flex items-center gap-2 py-3">
+          <div class="font-bold">Using the editor</div>
+          <q-space />
+          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
+        </q-card-section>
+        <q-card-section class="pt-0">
+          <ul class="pl-6 space-y-1 text-sm list-disc">
+            <li><b>Space</b> plays and pauses.</li>
+            <li>Click the timeline to move the playhead. Drag across it to select a part, then loop it.</li>
+            <li v-if="!readonly">Drag a clip to move it, even onto another stem or over another clip (the later one plays on top). Drag its edges to trim it, its top corners to fade it.</li>
+            <li v-if="!readonly">Click a stem, then <b>S</b> splits it at the playhead.</li>
+            <li v-if="aiEditable && !readonly">Drag across a stem to select a part, then the wand button changes it with AI.</li>
+            <li v-if="!readonly"><b>Ctrl+Z</b> undoes, <b>Ctrl+Shift+Z</b> redoes. <b>Delete</b> removes the selected clips.</li>
+            <li>The mixer button opens the mixer: each stem's fader, pan, mute, solo and effects, and the master.</li>
+            <li v-if="!readonly">The browser button opens sounds and effects. Drag one onto the timeline or a stem.</li>
+            <li v-if="!readonly">Use a stem's ⋮ menu to move it up or down, duplicate or remove it.</li>
+            <li><b>↑ ↓</b> pick the stem above or below. <b>M</b> mutes it, <b>Shift+S</b> solos it.</li>
+            <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
+            <li><b>+ −</b> zoom, <b>0</b> fits, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
+            <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
+          </ul>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <!-- Fades for the selected stem. Always shown, so the timeline doesn't jump. -->
     <!-- Phones only show it once a stem is picked -->
@@ -299,7 +70,7 @@
           class="flex-none! px-4"
           icon="lucide-sliders-horizontal"
           :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
-          @click="effectsOpen = true"
+          @click="openMixer"
         />
         <IconBtn size="sm"
           color="grey-4"
@@ -330,7 +101,7 @@
     <div class="stem-editor__recording" role="status" v-if="recording || countingIn">
       <span class="rec-dot" />
       <template v-if="countingIn">Count-in {{ countBeat }}…</template>
-      <template v-else>Recording {{ formatClock(recordedFor) }}. Press stop when you're done.</template>
+      <template v-else>Recording {{ formatClock(recordedFor) }}. Press the record button again when you're done.</template>
     </div>
 
     <div class="stem-editor__missing" v-if="missing.length">
@@ -373,43 +144,11 @@
       />
     </div>
 
-    <div class="stem-editor__stage">
+    <div ref="stage" class="stem-editor__stage">
       <StemActivity :items="[...activity.values()]" :finished="finished" v-if="activity.size" />
       <div ref="host" class="stem-editor__host" />
       <DawSkeleton class="stem-editor__skeleton" :lanes="Math.min(Math.max(stems.length, 2), 6)" v-if="!ready" />
     </div>
-
-    <q-dialog v-model="effectsOpen">
-      <q-card dark class="fx-card">
-        <EffectsPanel
-          :plugins="pluginsOn"
-          :name="selected.name"
-          :model-value="selectedEffects"
-          @update:model-value="setEffects(selected!.id, $event)"
-          @param="(i, params) => setEffectParams(selected!.id, i, params)"
-          @commit="checkDirty"
-          @open="openPlugin(selected!.id, $event)"
-          v-if="selected"
-        >
-          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
-        </EffectsPanel>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="masterEffectsOpen">
-      <q-card dark class="fx-card">
-        <EffectsPanel
-          name="the master"
-          :readonly="readonly"
-          :model-value="master"
-          @update:model-value="setMasterEffects"
-          @param="setMasterEffectParams"
-          @commit="checkDirty"
-        >
-          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
-        </EffectsPanel>
-      </q-card>
-    </q-dialog>
 
     <q-dialog v-model="colorsOpen">
       <q-card dark>
@@ -436,17 +175,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="pluginOpen" @hide="closePlugin">
-      <q-card dark class="max-w-[95vw]">
-        <q-card-section class="flex items-center gap-2 py-2">
-          <div class="font-bold">{{ pluginTitle }}</div>
-          <q-space />
-          <IconBtn icon="lucide-x" aria-label="Close" v-close-popup />
-        </q-card-section>
-        <div ref="pluginHost" class="stem-editor__plugin" />
-      </q-card>
-    </q-dialog>
-
     <div class="stem-editor__dropzone" v-if="dropping">
       <q-icon name="lucide-cloud-upload" size="40px" />
       <div class="mt-2 text-lg font-bold">Drop audio files to add them as stems</div>
@@ -458,23 +186,29 @@
 import type {
   AudioEngine,
   ChannelSettings,
+  LibrarySource,
+  PluginChoice,
+  PluginRack,
   Recorder,
   SnapTo,
+  StudioBrowser,
+  StudioMixer,
   StudioTimeline,
+  StudioToolbar,
   Take,
   TimelineState,
+  ToolbarAction,
   Track,
   Waveforms,
 } from '@toneflix/studio';
 import { computed, getCurrentInstance, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, render, shallowRef, watch } from 'vue';
 import { LocalStorage } from 'quasar';
-import EffectsPanel from './EffectsPanel.vue';
 import StemActivity, { type StemActivityItem } from './StemActivity.vue';
 import StemTrackHeader, { type StripHost } from './StemTrackHeader.vue';
 import DawSkeleton from 'src/components/Skeletons/DawSkeleton.vue';
 import { stemAudio } from 'src/utils/studio/stem-audio';
-import { isPlugin, parseEffects, pluginName, serializeEffects, addFaustEffects, type StemEffect } from 'src/utils/studio/effects';
-import { buildChain, chainNodes, disposeChain, type BuiltChain } from 'src/utils/studio/chain';
+import { isPlugin, parseEffects, serializeEffects, addFaustEffects, type StemEffect } from 'src/utils/studio/effects';
+import { EFFECT_CHANGE, effectCatalog, effectsToRack, rackLoader, rackToEffects } from 'src/utils/studio/rack-effects';
 import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
 import { flacOf, renderMix } from 'src/utils/studio/mix';
 import { parsePattern } from 'src/utils/studio/instruments';
@@ -490,9 +224,8 @@ import {
   stemToTrack,
   trackToMeta,
 } from 'src/utils/studio/stem-timeline';
-import { useQuasar } from 'quasar';
-import { createReusableTemplate } from '@vueuse/core';
-import AppSheet from 'src/components/Controllers/AppSheet.vue';
+import { QIcon, useQuasar } from 'quasar';
+import { loadLibrarySoundsRequest, loadMySoundsRequest, loadSoundsStatusRequest, type Sound } from 'src/utils/requests/sounds';
 import { usePlayerStore } from 'src/stores/player-store';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
@@ -545,31 +278,31 @@ const emit = defineEmits<{
   'edit-instrument': [stem: Stem];
   /** Copy a stem onto the track, with these settings for the copy */
   duplicate: [stem: Stem, meta: StemMeta];
+  /** A sound from the browser was put on a new track; the parent adds it as a stem and calls adoptStem */
+  sound: [sound: { trackId: string; soundId: number; start: number; name: string }];
   /** New audio was picked for a stem whose audio couldn't be loaded */
   replace: [stem: Stem, file: File];
   ready: [];
 }>();
 
 const $q = useQuasar();
-/** Phones keep one row of controls and put the rest in a sheet. */
-const compact = computed(() => $q.screen.width < 640);
-const moreOpen = ref(false);
-const [DefineTools, ReuseTools] = createReusableTemplate();
-watch(compact, (on) => {
-  if (!on) moreOpen.value = false;
-});
 const appContext = getCurrentInstance()!.appContext;
 const host = ref<HTMLElement>();
+const toolbarHost = ref<HTMLElement>();
+const stage = ref<HTMLElement>();
+const helpOpen = ref(false);
 const timeline = shallowRef<StudioTimeline>();
 let studio: Studio | null = null;
 let engine: AudioEngine | null = null;
 let recorder: Recorder | null = null;
 let waveforms: Waveforms | null = null;
 let context: AudioContext | null = null;
+let rack: PluginRack | null = null;
+let toolbar: StudioToolbar | null = null;
+let mixer: StudioMixer | null = null;
+let browser: StudioBrowser | null = null;
 const unlink: (() => void)[] = [];
 
-/** The master output level, 0 to 1 */
-const masterLevel = ref(0);
 /** Track id → its output level, 0 to 1, while playing */
 const levels = reactive(new Map<string, number>());
 /** Track id → its mixer settings, mirrored from the engine */
@@ -582,25 +315,13 @@ const MIN_ZOOM = 2;
 const MAX_ZOOM = 400;
 
 const TIME_SIGNATURES = ['2/4', '3/4', '4/4', '5/4', '6/8', '7/8', '12/8'];
-const SNAP_OPTIONS: { label: string; value: SnapTo }[] = [
-  { label: 'No snap', value: 'off' },
-  { label: 'Bar', value: 'bar' },
-  { label: 'Beat', value: 'beat' },
-  { label: '1/8', value: '1/8' },
-  { label: '1/16', value: '1/16' },
-];
 
 const ready = ref(false);
 const playing = ref(false);
 const time = ref(0);
-const duration = ref(0);
 const zoom = ref(40);
-const canUndo = ref(false);
-const canRedo = ref(false);
-const loop = ref(false);
 const selection = ref<{ start: number; end: number } | null>(null);
 const selectedTrackId = ref<string | null>(null);
-const masterVolume = ref(Math.round((props.mixVolume ?? 1) * 100));
 const dropping = ref(false);
 const fade = reactive({ in: 0, out: 0 });
 
@@ -623,7 +344,6 @@ const remember = (key: string, value: unknown) => {
 };
 const grid = ref(pref('grid', false));
 const snap = ref<SnapTo>(pref<SnapTo>('snap', 'beat'));
-const metronome = ref(false);
 const countIn = ref(pref('countIn', true));
 const follow = ref(pref('follow', true));
 
@@ -661,8 +381,6 @@ let shareTimer: ReturnType<typeof setTimeout> | undefined;
 
 const hasSelection = computed(() => !!selection.value && selection.value.end - selection.value.start > 0.05);
 const canDrop = computed(() => !props.readonly);
-const canZoomIn = computed(() => zoom.value < MAX_ZOOM);
-const canZoomOut = computed(() => zoom.value > MIN_ZOOM);
 
 const state = (): TimelineState => timeline.value?.state ?? { tracks: [], clips: [] };
 const trackOf = (trackId: string | null) => (trackId ? state().tracks.find((t) => t.id === trackId) : undefined);
@@ -824,7 +542,7 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
     const incomingFx = parseEffects(meta.effects ?? '');
     if (serializeEffects(incomingFx) !== serializeEffects(effects.get(trackId) ?? [])) {
       effects.set(trackId, incomingFx);
-      void applyEffects(trackId);
+      void loadChain(trackId, incomingFx);
     }
   }
 
@@ -850,8 +568,6 @@ const applyRemoteAll = (changes: Record<string, StemMeta>, asSaved = false) =>
 /** Mirror the timeline after any change. */
 const onChange = ({ state: now, final }: { state: TimelineState; final: boolean }) => {
   trackList.value = now.tracks;
-  syncHistory();
-  duration.value = studio?.timelineEnd(now) ?? 0;
   if (final) {
     engine?.mixer.sync(now.tracks);
     // A selected clip moved to another stem takes the selection with it.
@@ -861,11 +577,6 @@ const onChange = ({ state: now, final }: { state: TimelineState; final: boolean 
     syncFades();
     checkDirty();
   }
-};
-
-const syncHistory = () => {
-  canUndo.value = !!timeline.value?.history.canUndo;
-  canRedo.value = !!timeline.value?.history.canRedo;
 };
 
 const syncFades = () => {
@@ -894,16 +605,10 @@ const applyFades = () => {
   });
 };
 
-const togglePlay = async () => {
+const togglePlay = () => {
   if (!engine) return;
-  if (playing.value) return engine.pause();
-
-  if (loop.value && selection.value) {
-    const { start, end } = selection.value;
-    await engine.play(time.value >= start && time.value < end ? time.value : start);
-  } else {
-    await engine.play();
-  }
+  if (engine.isPlaying) engine.pause();
+  else void engine.play();
 };
 
 const stop = () => engine?.stop();
@@ -914,12 +619,6 @@ const toStart = () => seek(0);
 const seek = (seconds: number) => {
   engine?.seek(Math.max(0, seconds));
   time.value = Math.max(0, seconds);
-};
-
-const toggleLoop = () => {
-  if (!engine || !selection.value) return;
-  loop.value = !loop.value;
-  engine.setLoop(loop.value ? selection.value : null);
 };
 
 /** Split the selected clips at the playhead, or the selected stem's clip under it. */
@@ -991,6 +690,7 @@ const setFollow = (on: boolean) => {
   follow.value = on;
   remember('follow', on);
   timeline.value?.setOptions({ follow: on });
+  toolbar?.refresh();
 };
 
 /**
@@ -1057,9 +757,6 @@ const highlight = (region: { start: number; end: number; stemId?: string | numbe
   return true;
 };
 
-const undo = () => timeline.value?.undo();
-const redo = () => timeline.value?.redo();
-
 const setZoom = (pxPerSecond: number) => {
   timeline.value?.setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pxPerSecond)));
 };
@@ -1067,33 +764,35 @@ const setZoom = (pxPerSecond: number) => {
 /** Send the tempo, meter, grid and snap settings to the timeline and metronome. */
 const applyTempo = () => {
   const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
-  const options = { bpm: tempo.value, meter: [beats, unit] as [number, number], snap: grid.value ? snap.value : ('off' as SnapTo) };
+  const options = { bpm: tempo.value, meter: [beats, unit] as [number, number], snap: snap.value };
   timeline.value?.setGrid({ ...options, show: grid.value });
   engine?.metronome.grid.set(options);
+  toolbar?.refresh();
 };
 
 const emitTempo = () => emit('tempo', { bpm: tempo.value, timeSignature: meter.value });
 
-const setTempo = (value: number) => {
-  const bpm = Math.round(Math.min(300, Math.max(20, value)) * 100) / 100;
-  if (!Number.isFinite(bpm) || bpm === tempo.value) return;
+/** Take the tempo, meter or snap changed in the toolbar. */
+const onToolbarChange = () => {
+  const g = timeline.value?.grid;
+  if (!g) return;
+
+  if (g.snap !== snap.value) {
+    snap.value = g.snap;
+    remember('snap', g.snap);
+  }
+
+  const bpm = Math.round(Math.min(300, Math.max(20, g.bpm)) * 100) / 100;
+  const sig = `${g.meter[0]}/${g.meter[1]}`;
+  const changed = bpm !== tempo.value || (TIME_SIGNATURES.includes(sig) && sig !== meter.value);
+  if (TIME_SIGNATURES.includes(sig)) meter.value = sig;
   tempo.value = bpm;
-  applyTempo();
-  emitTempo();
-};
-
-const onTempoInput = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const value = Number(input.value);
-  if (Number.isFinite(value) && value > 0) setTempo(value);
-  input.value = String(tempo.value);
-};
-
-const setMeter = (value: string) => {
-  if (!TIME_SIGNATURES.includes(value) || value === meter.value) return;
-  meter.value = value;
-  applyTempo();
-  emitTempo();
+  // Keep the grid inside what the track allows.
+  if (bpm !== g.bpm || !TIME_SIGNATURES.includes(sig)) applyTempo();
+  if (changed) {
+    rack?.syncTransport();
+    emitTempo();
+  }
 };
 
 const setGrid = (on: boolean) => {
@@ -1102,20 +801,10 @@ const setGrid = (on: boolean) => {
   applyTempo();
 };
 
-const setSnap = (value: SnapTo) => {
-  snap.value = value;
-  remember('snap', value);
-  applyTempo();
-};
-
-const setMetronome = (on: boolean) => {
-  metronome.value = on;
-  if (engine) engine.metronome.enabled = on;
-};
-
 const setCountIn = (on: boolean) => {
   countIn.value = on;
   remember('countIn', on);
+  toolbar?.refresh();
 };
 
 // Someone else changed the track's tempo, or it was saved.
@@ -1266,87 +955,60 @@ const dropTrack = (trackId: string) => {
 /** Web Audio Module plugins, which an admin can turn on. */
 const pluginsOn = computed(() => !!useBootstrapStore().configuration.studio_plugins);
 
-/** Live chains by track id ('' is the master), and chains still missing Faust effects or plugins */
-const chains = new Map<string, BuiltChain>();
-const chainVersions = new Map<string, number>();
-const pendingChains = new Set<string>();
-let faustLoaded = false;
+/** Effects the mixer's add button offers; Faust ones join once they load. */
+const catalog: PluginChoice[] = [];
 
-/** Rebuild a chain on its mixer channel from `effects` ('' is the master). */
-const applyEffects = async (key: string) => {
-  if (!engine || !context) return;
-  const list = key === '' ? master.value : effects.get(key) ?? [];
-  const version = (chainVersions.get(key) ?? 0) + 1;
-  chainVersions.set(key, version);
+/** Chains being loaded from saved effects, whose rack changes aren't edits */
+let restoring = 0;
 
-  const chain = await buildChain(context, list, { plugins: pluginsOn.value, canLoad: context.state === 'running' && faustLoaded });
-  if (chainVersions.get(key) !== version || !engine) return disposeChain(chain);
+/** Plugin names by URL, as the plugins call themselves */
+const pluginNames = new Map<string, string>();
 
-  const channel = key === '' ? engine.mixer.master : engine.mixer.channel(key);
-  channel.setEffects(chainNodes(chain));
-  disposeChain(chains.get(key));
-  chains.set(key, chain);
+/** A chain as saved: each plugin's URL, bypass and settings. */
+const savedChain = async (track: string | null) =>
+  Promise.all(
+    (rack?.slots(track) ?? []).map(async (slot) => ({
+      url: slot.url,
+      bypass: slot.bypass,
+      state: await slot.plugin.audioNode.getState().catch(() => undefined),
+    })),
+  );
 
-  if (chain.complete) pendingChains.delete(key);
-  else pendingChains.add(key);
-  for (const { effect, error } of chain.errors) notify(`${pluginName(effect)} couldn't load: ${String((error as Error)?.message ?? error)}`, 'error');
-  for (const { effect, plugin } of chain.live) {
-    if (isPlugin(effect) && !effect.name && plugin) effect.name = plugin.descriptor?.name ?? plugin.name;
-  }
+/** Read a chain back from the rack into the stem's (or master's) saved effects. */
+const syncEffects = async (track: string | null) => {
+  if (!rack) return;
+  for (const slot of rack.slots(track)) if (!slot.name.endsWith('(off)')) pluginNames.set(slot.url, slot.name);
+  const list = rackToEffects(await savedChain(track), (url) => pluginNames.get(url));
+
+  if (track === null) master.value = list;
+  else if (tracks.has(track)) effects.set(track, list);
 };
 
-const pluginOpen = ref(false);
-const pluginTitle = ref('');
-const pluginHost = ref<HTMLElement>();
-let pluginShown: { close: () => void } | null = null;
-
-/** Show a plugin's own controls in a dialog. */
-const openPlugin = async (trackId: string, index: number) => {
-  const effect = effects.get(trackId)?.[index];
-  if (!effect || !context) return;
-  if (context.state !== 'running') {
-    await context.resume();
-    await applyEffects(trackId);
-  }
-  const plugin = chains.get(trackId)?.live.find((l) => l.index === index)?.plugin;
-  if (!plugin) {
-    notify(`${pluginName(effect)} isn't loaded.`, 'error');
-    return;
-  }
-  pluginTitle.value = pluginName(effect);
-  pluginOpen.value = true;
-  await nextTick();
+/** Put a saved chain into the rack, replacing what's there. */
+const loadChain = async (track: string | null, list: StemEffect[]) => {
+  if (!rack) return;
+  restoring++;
   try {
-    if (!plugin.createGui) throw new Error('No editor');
-    const gui = await plugin.createGui();
-    pluginHost.value!.append(gui);
-    pluginShown = {
-      close: () => {
-        plugin.destroyGui?.(gui);
-        gui.remove();
-      },
-    };
-  } catch (err) {
-    pluginOpen.value = false;
-    notify(`${pluginName(effect)} has no controls to show.`, 'info');
-    console.warn('[stem editor] plugin gui', err);
-  }
-};
-
-const closePlugin = () => {
-  pluginShown?.close();
-  pluginShown = null;
-};
-
-/** Read each loaded plugin's settings back into its effect, so they're saved too. */
-const keepPluginStates = async () => {
-  for (const [key, chain] of chains) {
-    const list = key === '' ? master.value : effects.get(key);
-    if (!list) continue;
-    for (const { index, plugin } of chain.live) {
-      if (plugin && isPlugin(list[index]!)) list[index]!.state = await plugin.audioNode.getState();
+    rack.clear(track);
+    for (const e of list) if (isPlugin(e) && e.url && e.name) pluginNames.set(e.url, e.name);
+    for (const saved of effectsToRack(list)) {
+      try {
+        const slot = await rack.add(track, saved.url, { state: saved.state, bypass: saved.bypass });
+        // Many plugins only take their settings once made.
+        if (saved.state !== undefined) await slot.plugin.audioNode.setState(saved.state).catch(() => undefined);
+      } catch (error) {
+        notify(`An effect couldn't load: ${String((error as Error)?.message ?? error)}`, 'error');
+      }
     }
+  } finally {
+    restoring--;
   }
+};
+
+/** Read every plugin's settings back into the saved effects, so they're saved too. */
+const keepPluginStates = async () => {
+  await syncEffects(null);
+  for (const trackId of tracks.keys()) await syncEffects(trackId);
 };
 
 /**
@@ -1354,30 +1016,16 @@ const keepPluginStates = async () => {
  * nothing to mix. Throws while a stem's audio is still loading.
  */
 const mixdown = async () => {
-  if (!engine) return null;
+  if (!engine || !rack) return null;
   const clips = state().clips.filter((c) => !c.notes);
   if (clips.some((c) => openEnded.has(c.id) || !engine!.hasBuffer(c.source))) {
     throw new Error("Some stems are still loading. Save again once they've loaded.");
   }
 
-  await keepPluginStates();
   const [beats, unit] = meter.value.split('/').map(Number) as [number, number];
-  const audio = await renderMix(
-    engine,
-    (track) => (track === null ? master.value : effects.get(track) ?? []),
-    { bpm: tempo.value, beats, unit },
-    pluginsOn.value,
-  );
+  const audio = await renderMix(engine, rack, { bpm: tempo.value, beats, unit });
 
   return audio ? flacOf(audio) : null;
-};
-
-/** Apply chains that were waiting to load Faust effects or plugins. */
-const applyPending = () => {
-  if (context?.state !== 'running' || !faustLoaded) return;
-  const waiting = [...pendingChains];
-  pendingChains.clear();
-  waiting.forEach((key) => void applyEffects(key));
 };
 
 /** Load the server's Faust effects so the add menu offers them and saved ones can play. */
@@ -1388,29 +1036,25 @@ const loadFaust = async () => {
   } catch (err) {
     console.warn('[stem editor] faust effects', err);
   }
-  faustLoaded = true;
-  applyPending();
 };
 
-const setEffects = (trackId: string, list: StemEffect[]) => {
-  effects.set(trackId, list.map((e) => ({ ...e, params: { ...e.params } })));
-  void applyEffects(trackId).then(checkDirty);
+/** The effects the mixer and browser offer: ours, then plugins when they're on. */
+const fillCatalog = () => {
+  const plugins = pluginsOn.value && studio ? [...studio.curatedWams(), ...studio.communityWams({ allow: (plugin) => !plugin.isInstrument })] : [];
+  catalog.splice(0, catalog.length, ...effectCatalog(), ...plugins.map((p) => ({ name: p.name, url: p.url })));
 };
 
-/** Change one effect's settings while it plays. */
-const setEffectParams = (key: string, index: number, params: Record<string, number>) => {
-  const list = key === '' ? master.value : effects.get(key);
-  if (!list?.[index]) return;
-  list[index] = { ...list[index], params: { ...params } };
-  chains.get(key)?.live.find((l) => l.index === index)?.node.applyParams(params);
-};
+/** Settings changed in an effect's own controls: read every chain back. */
+const onEffectChange = () => void keepPluginStates().then(checkDirty);
 
-const setMasterEffects = (list: StemEffect[]) => {
-  master.value = list.map((e) => ({ ...e, params: { ...e.params } }));
-  void applyEffects('').then(checkDirty);
-};
+// The toolbar's own buttons follow the editor's state.
+watch([recording, countingIn, startingRecording, hasSelection], () => toolbar?.refresh());
 
-const setMasterEffectParams = (index: number, params: Record<string, number>) => setEffectParams('', index, params);
+/** Show the mixer, where each stem's effects are. */
+const openMixer = () => {
+  mixer?.show();
+  toolbar?.refresh();
+};
 
 /** Ask the parent to copy a stem, placed just below it. */
 const duplicate = (trackId: string) => {
@@ -1444,8 +1088,6 @@ const selectTrack = (trackId: string) => {
   syncFades();
 };
 
-const effectsOpen = ref(false);
-const masterEffectsOpen = ref(false);
 const colorsOpen = ref(false);
 
 /** What each track header shows and does. */
@@ -1471,7 +1113,7 @@ const strips: StripHost = reactive({
   openEffects: (id: string) => {
     if (!tracks.has(id)) return;
     selectTrack(id);
-    effectsOpen.value = true;
+    openMixer();
   },
   openColors: (id: string) => {
     selectTrack(id);
@@ -1513,7 +1155,7 @@ const onKey = (e: KeyboardEvent) => {
   const mod = e.ctrlKey || e.metaKey;
   let handled = true;
 
-  if (e.key === ' ' && !mod && !(e.target instanceof HTMLButtonElement)) void togglePlay();
+  if (e.key === ' ' && !mod && !(e.target instanceof HTMLButtonElement)) togglePlay();
   else if (mod && key === 'd' && current) duplicate(current);
   else if (mod) handled = false;
   else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -1529,7 +1171,6 @@ const onKey = (e: KeyboardEvent) => {
   else if (e.key === '+' || e.key === '=') setZoom(zoom.value * 2);
   else if (e.key === '-' || e.key === '_') setZoom(zoom.value / 2);
   else if (e.key === '0') fit();
-  else if (key === 'l' && hasSelection.value) toggleLoop();
   else if (key === 'f') setFollow(!follow.value);
   else if (e.key === 'Home') toStart();
   else handled = false;
@@ -1540,10 +1181,6 @@ const onKey = (e: KeyboardEvent) => {
 /** Zoom so the whole project fits on screen. */
 const fit = () => timeline.value?.fit();
 
-const setMasterVolume = (value: number | null) => {
-  masterVolume.value = value ?? 0;
-  engine?.mixer.set(null, { volume: masterVolume.value / 100 });
-};
 
 /** Stem ids already in the editor, so a stem is never added twice */
 const added = new Set<string>();
@@ -1628,7 +1265,7 @@ const placeStem = async (stem: Stem): Promise<string | undefined> => {
   const fx = parseEffects(stem.meta?.effects);
   if (fx.length) {
     effects.set(track.id, fx);
-    await applyEffects(track.id);
+    await loadChain(track.id, fx);
   }
 
   return track.id;
@@ -1710,9 +1347,7 @@ const removeStem = (stemId: string | number) => {
     if (String(stem.id) !== String(stemId)) continue;
     tracks.delete(trackId);
     effects.delete(trackId);
-    disposeChain(chains.get(trackId));
-    chains.delete(trackId);
-    pendingChains.delete(trackId);
+    rack?.clear(trackId);
     if (studio) quietly(studio.removeTrack(state(), trackId));
     // Undo can't bring back a stem that was deleted.
     timeline.value?.history.clear();
@@ -1751,8 +1386,6 @@ const tick = () => {
     const [left, right] = engine.mixer.channel(track.id).levels();
     levels.set(track.id, Math.min(1, Math.max(left, right)));
   }
-  const [left, right] = engine.mixer.master.levels();
-  masterLevel.value = Math.min(1, Math.max(left, right));
   frame = playing.value ? requestAnimationFrame(tick) : 0;
 };
 
@@ -1760,7 +1393,179 @@ const quiet = () => {
   cancelAnimationFrame(frame);
   frame = 0;
   levels.clear();
-  masterLevel.value = 0;
+};
+
+/** A Quasar icon as an element, for the studio's toolbar buttons. */
+const icon = (name: string) => () => {
+  const el = document.createElement('span');
+  const vnode = h(QIcon, { name, size: '20px' });
+  vnode.appContext = appContext;
+  render(vnode, el);
+
+  return el.firstElementChild ?? el;
+};
+
+/** Collab's own toolbar buttons, beside the studio's. */
+const toolbarActions = (): ToolbarAction[] => {
+  const editing = !props.readonly;
+
+  return [
+    ...(editing
+      ? [
+          {
+            id: 'record-stem',
+            label: canRecord ? 'Record from your microphone onto a new stem' : "This browser can't record",
+            icon: icon('lucide-circle-dot'),
+            pressed: () => recording.value || countingIn.value,
+            disabled: () => !canRecord || startingRecording.value,
+            onClick: () => toggleRecording(),
+          },
+          {
+            id: 'count-in',
+            label: 'Count in one bar before recording',
+            icon: icon('lucide-timer'),
+            pressed: () => countIn.value,
+            onClick: () => setCountIn(!countIn.value),
+          },
+        ]
+      : []),
+    ...(props.commentable
+      ? [
+          {
+            id: 'comment',
+            label: 'Message about the selected part',
+            icon: icon('lucide-message-square'),
+            disabled: () => !hasSelection.value,
+            onClick: () => messageAboutSelection(),
+          },
+        ]
+      : []),
+    ...(props.aiEditable && editing
+      ? [
+          {
+            id: 'ai-edit',
+            label: 'Edit the selected part with AI',
+            icon: icon('lucide-wand-sparkles'),
+            disabled: () => !hasSelection.value,
+            onClick: () => editSelection(),
+          },
+        ]
+      : []),
+    {
+      id: 'grid',
+      label: 'Show bars and beats',
+      icon: icon('lucide-grid-3x3'),
+      pressed: () => grid.value,
+      onClick: () => setGrid(!grid.value),
+    },
+    {
+      id: 'follow',
+      label: 'Follow the playhead while it plays',
+      icon: icon('lucide-locate-fixed'),
+      pressed: () => follow.value,
+      onClick: () => setFollow(!follow.value),
+    },
+    {
+      id: 'help',
+      label: 'How to use the editor',
+      icon: icon('lucide-circle-question-mark'),
+      onClick: () => void (helpOpen.value = true),
+    },
+  ];
+};
+
+/** The toolbar's buttons, in order. */
+const toolbarItems = () =>
+  props.readonly
+    ? ['play', 'stop', 'loop', '|', 'display', '|', 'zoomOut', 'fit', 'zoomIn', 'follow', '|', 'mixer', 'comment', 'grid', 'help']
+    : [
+        'browser',
+        '|',
+        'play',
+        'stop',
+        'record-stem',
+        'count-in',
+        'loop',
+        'metronome',
+        '|',
+        'display',
+        '|',
+        'split',
+        'duplicate',
+        'delete',
+        'undo',
+        'redo',
+        '|',
+        'comment',
+        'ai-edit',
+        '|',
+        'zoomOut',
+        'fit',
+        'zoomIn',
+        'follow',
+        '|',
+        'snap',
+        'grid',
+        '|',
+        'mixer',
+        'help',
+      ];
+
+/** A tab of sounds from the site's library or the person's own. */
+const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => ({
+  id,
+  label,
+  list: async ({ search, page }) => {
+    const params = { search: search || undefined, page };
+    const res = await (id === 'library' ? loadLibrarySoundsRequest(params) : loadMySoundsRequest(params)).send();
+
+    return {
+      items: res.data.map((sound: Sound) => ({
+        id: String(sound.id),
+        name: sound.name,
+        kind: 'audio' as const,
+        detail: [sound.category, sound.author].filter(Boolean).join(' · ') || undefined,
+        duration: sound.duration,
+        url: sound.url,
+        source: `sound:${sound.id}`,
+        data: { soundId: sound.id },
+      })),
+      more: res.meta.currentPage < res.meta.lastPage,
+    };
+  },
+});
+
+/** Our effects, and plugins when they're on, as a browser tab. */
+const effectsSource = (): LibrarySource => ({
+  id: 'effects',
+  label: 'Effects',
+  list: ({ search }) => {
+    const items = catalog
+      .map((c) => ({ id: c.url, name: c.name, kind: 'plugin' as const, url: c.url }))
+      .filter((item) => !search || item.name.toLowerCase().includes(search.toLowerCase()));
+
+    return { items };
+  },
+});
+
+/**
+ * A sound added from the browser becomes its own stem. A sound put on an
+ * existing stem moves to a new track first, then the parent saves it.
+ */
+const onBrowserAdd = ({ item, track, clip }: { item: { name: string; data?: unknown }; track: string | null; clip?: { id: string; start: number } }) => {
+  const soundId = (item.data as { soundId?: number } | undefined)?.soundId;
+  if (!clip || !track || !studio || soundId === undefined) return;
+
+  let trackId = track;
+  if (tracks.has(track)) {
+    trackId = studio.uid('t');
+    const now = state();
+    const moved = studio.addTrack(now, { id: trackId, name: item.name, color: stemColor(undefined, now.tracks.length) });
+    quietly({ ...moved, clips: moved.clips.map((c) => (c.id === clip.id ? { ...c, track: trackId } : c)) });
+  }
+  // A stem added on the server isn't something to undo here.
+  timeline.value?.history.clear();
+  emit('sound', { trackId, soundId, start: Math.round(clip.start * 1000) / 1000, name: item.name });
 };
 
 onMounted(async () => {
@@ -1771,15 +1576,14 @@ onMounted(async () => {
   const s = studio;
   engine = new s.AudioEngine();
   context = engine.context as AudioContext;
-  context.addEventListener('statechange', applyPending);
-  void loadFaust();
+  const faust = loadFaust();
   recorder = new s.Recorder(engine, { channels: 2 });
   waveforms = new s.Waveforms();
-  engine.metronome.enabled = metronome.value;
-  engine.mixer.set(null, { volume: masterVolume.value / 100 });
+  rack = new s.PluginRack(engine, { load: rackLoader(() => pluginsOn.value), mouseOnly: (url) => s.isMouseOnlyWam(url) });
+  engine.mixer.set(null, { volume: props.mixVolume ?? 1 });
 
   const tl = new s.StudioTimeline(host.value!, {
-    grid: { bpm: tempo.value, snap: grid.value ? snap.value : 'off' },
+    grid: { bpm: tempo.value, snap: snap.value },
     showGrid: grid.value,
     pxPerSecond: zoom.value,
     minPxPerSecond: MIN_ZOOM,
@@ -1794,6 +1598,46 @@ onMounted(async () => {
     renderHeader,
   });
   timeline.value = tl;
+
+  // The mixer and browser slide over the timeline.
+  mixer = new s.StudioMixer(stage.value!, {
+    timeline: tl,
+    engine,
+    plugins: props.readonly ? undefined : rack,
+    catalog,
+    hidden: true,
+    maxVolume: 1,
+  });
+  browser = props.readonly
+    ? null
+    : new s.StudioBrowser(stage.value!, {
+        timeline: tl,
+        engine,
+        plugins: rack,
+        hidden: true,
+        labels: { title: 'Sounds and effects' },
+        onSource: (id, buffer) => void waveforms?.get(`library:${id}`, () => buffer).then((peaks) => timeline.value?.setSource({ id }, peaks)),
+        sources: [effectsSource()],
+      });
+  // Sound tabs join once we know which the site offers.
+  if (browser) {
+    void loadSoundsStatusRequest()
+      .send()
+      .then((status) =>
+        browser?.setSources([...(status.library ? [soundsSource('library', 'Sounds')] : []), soundsSource('mine', 'My sounds'), effectsSource()]),
+      )
+      .catch(() => undefined);
+  }
+  toolbar = new s.StudioToolbar(toolbarHost.value!, {
+    timeline: tl,
+    engine,
+    mixer,
+    ...(browser ? { browser } : {}),
+    plugins: rack,
+    items: toolbarItems(),
+    actions: toolbarActions(),
+  });
+  toolbarHost.value!.addEventListener('change', onToolbarChange);
   applyTempo();
 
   unlink.push(
@@ -1808,11 +1652,7 @@ onMounted(async () => {
     tl.on('range', ({ range }) => {
       selection.value = range && range.end - range.start > 0.05 ? { start: range.start, end: range.end } : null;
       if (range?.tracks.length === 1) selectTrack(range.tracks[0]!);
-      if (selection.value && loop.value) engine?.setLoop(selection.value);
-      if (!selection.value && loop.value) {
-        loop.value = false;
-        engine?.setLoop(null);
-      }
+      toolbar?.refresh();
     }),
     tl.on('seek', ({ time: at }) => (time.value = at)),
     engine.on('play', () => {
@@ -1844,16 +1684,26 @@ onMounted(async () => {
     recorder.on('stop', ({ take }) => {
       if (!take) cleanupRecording(true);
     }),
+    rack.on('change', ({ track }) => {
+      if (restoring) return;
+      void syncEffects(track).then(checkDirty);
+    }),
+    rack.on('error', ({ url, error }) => console.warn('[stem editor] plugin', url, error)),
+    ...(browser ? [browser.on('add', onBrowserAdd)] : []),
   );
-
-  if (master.value.length) await applyEffects('');
+  // An effect's own controls changed a setting.
+  document.addEventListener(EFFECT_CHANGE, onEffectChange);
   document.addEventListener('keydown', onKey);
+
+  await faust;
+  fillCatalog();
+  if (master.value.length) await loadChain(null, master.value);
 
   const order = [...props.stems].sort((a, b) => (a.meta?.order ?? Infinity) - (b.meta?.order ?? Infinity));
   const placed = await Promise.all(order.map((stem) => placeStem(stem).catch(() => undefined)));
   // Loading isn't something to undo.
   tl.history.clear();
-  syncHistory();
+  toolbar.refresh();
 
   ready.value = true;
   await nextTick();
@@ -1873,8 +1723,12 @@ onBeforeUnmount(() => {
   if (recording.value) void recorder?.stop();
   cleanupRecording();
   document.removeEventListener('keydown', onKey);
+  document.removeEventListener(EFFECT_CHANGE, onEffectChange);
   unlink.forEach((off) => off());
-  chains.forEach((chain) => disposeChain(chain));
+  toolbar?.destroy();
+  browser?.destroy();
+  mixer?.destroy();
+  rack?.destroy();
   timeline.value?.destroy();
   recorder?.destroy();
   engine?.destroy();
@@ -1891,7 +1745,7 @@ defineExpose({
   applyRemoteAll,
   snapshot,
   markSaved,
-  mixVolume: () => masterVolume.value / 100,
+  mixVolume: () => engine?.mixer.master.settings.volume ?? props.mixVolume ?? 1,
   masterEffects: () => serializeEffects(master.value),
   moveStem,
   stop,
@@ -1929,40 +1783,9 @@ defineExpose({
   }
 
   &__toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 16px;
-    padding: 8px 12px;
+    padding: 4px 8px;
     background: rgba(32, 32, 32, 0.6);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  &__group {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 4px;
-
-    > * {
-      flex: none;
-    }
-  }
-
-  &__clock {
-    min-width: 7.5em;
-    margin: 0 8px;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.95rem;
-  }
-
-  &__master {
-    margin-left: auto;
-
-    .q-slider {
-      flex: none;
-      width: 110px;
-    }
   }
 
   &__selected {
@@ -2010,79 +1833,16 @@ defineExpose({
     min-height: 160px;
   }
 
-  /* Groups keep their order on wider screens, where the "more" wrapper is see-through */
-  &__core {
-    order: 1;
-  }
-
-  &__selection {
-    order: 2;
-  }
-
-  &__edit {
-    order: 3;
-  }
-
-  &__tempo {
-    order: 4;
-    gap: 2px;
-  }
-
-  &__zoom {
-    order: 5;
-  }
-
-  &__master {
-    order: 6;
-  }
-
-  &__more {
-    display: contents;
-  }
-
-  /* The same groups inside the phone sheet */
-  &__sheet {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-
-    .stem-editor__group {
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .stem-editor__master {
-      margin-left: 0;
-
-      .q-slider {
-        flex: 1 1 auto;
-        width: auto;
-        min-width: 120px;
-      }
-    }
-  }
-
-  /* Phones: one row of transport and editing, the rest in a sheet */
+  /* Phones: the toolbar and the selected stem's bar scroll sideways */
   @media (max-width: 639.98px) {
     &__toolbar {
-      flex-wrap: nowrap;
-      gap: 2px;
-      padding: 4px 6px;
-    }
+      overflow-x: auto;
+      scrollbar-width: none;
 
-    &__clock {
-      min-width: 0;
-      margin: 0 4px;
-      font-size: 0.85rem;
-    }
-
-    &__edit {
-      gap: 0;
-    }
-
-    &__more-btn {
-      order: 7;
-      margin-left: auto;
+      :deep(.tfs-toolbar) {
+        flex-wrap: nowrap;
+        width: max-content;
+      }
     }
 
     &__selected {
@@ -2108,13 +1868,6 @@ defineExpose({
     color: #ffd7d7;
     background: rgba(229, 57, 53, 0.16);
     border-bottom: 1px solid rgba(229, 57, 53, 0.35);
-  }
-
-  &__plugin {
-    min-width: min(320px, 90vw);
-    max-height: 80vh;
-    overflow: auto;
-    padding: 0 12px 12px;
   }
 
   &__dropzone {
@@ -2165,23 +1918,6 @@ defineExpose({
   }
 }
 
-.master-meter {
-  position: relative;
-  flex: none;
-  width: 6px;
-  height: 22px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
-
-  i {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(0deg, #2ed47a 0%, #2ed47a 70%, #ffc93c 85%, #ff5c5c 100%);
-    clip-path: inset(calc(100% - var(--level, 0) * 100%) 0 0 0);
-  }
-}
-
 .rec-dot {
   flex: none;
   width: 10px;
@@ -2197,55 +1933,13 @@ defineExpose({
   }
 }
 
-.record-btn {
-  color: #ff6b6b;
-
-  &--on {
-    color: #fff;
-    background: #e53935;
-  }
+.stem-editor {
+  --tfs-toolbar-bg: transparent;
+  --tfs-mixer-bg: #161616;
+  --tfs-menu-bg: #1f1f1f;
 }
 
-.tempo-field {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  font-size: 0.8rem;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-
-  input {
-    width: 3.2em;
-    font-size: 0.95rem;
-    font-variant-numeric: tabular-nums;
-    color: inherit;
-    text-align: right;
-    background: transparent;
-    outline: none;
-    -moz-appearance: textfield;
-
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-      margin: 0;
-      -webkit-appearance: none;
-    }
-  }
-}
-
-.meter-select {
-  width: 64px;
-  padding-left: 6px;
-  font-size: 0.85rem;
-}
-
-.snap-select {
-  width: 84px;
-  font-size: 0.85rem;
-}
-
-:deep(.tfs) {
+.stem-editor__host :deep(.tfs) {
   --tfs-bg: #121212;
   --tfs-lane: #181818;
   --tfs-lane-alt: #1b1b1b;
@@ -2258,5 +1952,40 @@ defineExpose({
   position: absolute;
   inset: 0;
   height: auto;
+}
+</style>
+
+<style lang="scss">
+/* An effect's own controls, shown in the mixer's plugin window */
+.tf-effect-gui {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(300px, 86vw);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+
+  &__about {
+    margin: 0;
+    color: #9e9e9e;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 7.5em 1fr 5.5em;
+    align-items: center;
+    gap: 10px;
+
+    input {
+      width: 100%;
+      accent-color: #03bfff;
+    }
+
+    output {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+  }
 }
 </style>

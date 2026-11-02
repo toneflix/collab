@@ -326,6 +326,7 @@
             @change="shareChanges"
             @tempo="onTempo"
             @recorded="onRecorded"
+            @sound="onSound"
             @edit-instrument="editInstrument"
             v-if="loaded && (stems.length || !viewOnly)"
           />
@@ -370,6 +371,7 @@ import type { AudioTags, StyleTags } from 'src/utils/requests/tags';
 import SimpleInfo from 'src/components/Alerts/SimpleInfo.vue';
 import StemEditor from 'src/components/Studio/StemEditor.vue';
 import SoundsPanel from 'src/components/Studio/SoundsPanel.vue';
+import { addSoundToTrackRequest } from 'src/utils/requests/sounds';
 import HistoryPanel from 'src/components/Studio/HistoryPanel.vue';
 import AiPanel from 'src/components/Studio/AiPanel.vue';
 import LyricsPanel from 'src/components/Studio/LyricsPanel.vue';
@@ -811,6 +813,21 @@ const onRecorded = async (take: {
   } catch (e) {
     editor.value?.dropTrack(take.trackId);
     notify(errorMessage(e, "The recording couldn't be saved."), 'error');
+  } finally {
+    uploading.value--;
+  }
+};
+
+/** Save a sound put on the timeline from the studio's browser as a stem. */
+const onSound = async (sound: { trackId: string; soundId: number; start: number; name: string }) => {
+  uploading.value++;
+  try {
+    const { data: stem } = await addSoundToTrackRequest(project.value.id, track.value.id, sound.soundId, sound.start).send();
+    stems.value.push(stem);
+    editor.value?.adoptStem(sound.trackId, stem);
+  } catch (e) {
+    editor.value?.dropTrack(sound.trackId);
+    notify(errorMessage(e, `"${sound.name}" couldn't be added.`), 'error');
   } finally {
     uploading.value--;
   }

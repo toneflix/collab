@@ -1,6 +1,4 @@
-import { timelineEnd, type AudioEngine } from '@toneflix/studio';
-import { buildChain, chainNodes, disposeChain, type BuiltChain } from './chain';
-import type { StemEffect } from './effects';
+import { timelineEnd, type AudioEngine, type PluginRack } from '@toneflix/studio';
 import { encodeFlac } from './flac';
 
 /** The track's tempo and meter, so tempo-synced plugins lock to it. */
@@ -17,61 +15,45 @@ const TAIL = 4;
 export const CEILING = 10 ** (-0.1 / 20);
 
 /**
- * Render the whole track as it plays in the studio: every clip, effect and
- * plugin (when `plugins` is on), volume, pan, mute, solo and the master.
- * `effectsOf` gives a track's chain, or the master's for null. Null when
+ * Render the whole track as it plays in the studio: every clip, the rack's
+ * effects and plugins, volume, pan, mute, solo and the master. Null when
  * there is nothing to mix.
  */
-export const renderMix = async (
-  engine: AudioEngine,
-  effectsOf: (track: string | null) => StemEffect[],
-  tempo: MixTempo,
-  plugins: boolean,
-) => {
+export const renderMix = async (engine: AudioEngine, rack: PluginRack, tempo: MixTempo) => {
   const state = engine.state;
   if (!state.clips.some((c) => c.duration > 0)) return null;
 
-  const chains: BuiltChain[] = [];
+  const audio = await engine.render({
+    from: 0,
+    to: timelineEnd(state) + TAIL,
+    effects: async (track, context, atStart) => {
+      const nodes = await rack.renderEffects(track, context, atStart);
 
-  try {
-    const audio = await engine.render({
-      from: 0,
-      to: timelineEnd(state) + TAIL,
-      effects: async (track, context, atStart) => {
-        const chain = await buildChain(context, effectsOf(track), { plugins, canLoad: true });
-        if (chain.errors.length) throw new Error('A plugin could not load.');
-        chains.push(chain);
+      // Tell plugins the song is playing from the start, as the studio's transport does live.
+      for (const node of nodes) {
+        atStart(() =>
+          (node as { scheduleEvents?: (...events: unknown[]) => void }).scheduleEvents?.({
+            type: 'wam-transport',
+            time: 0,
+            data: {
+              playing: true,
+              tempo: tempo.bpm,
+              timeSigNumerator: tempo.beats,
+              timeSigDenominator: tempo.unit,
+              currentBar: 0,
+              currentBarStarted: 0,
+            },
+          }),
+        );
+      }
 
-        // Tell plugins the song is playing from the start, as the studio's transport does live.
-        for (const { plugin, effect } of chain.live) {
-          if (!plugin) continue;
-          if (effect.state !== undefined) atStart(() => plugin.audioNode.setState(effect.state));
-          atStart(() =>
-            (plugin.audioNode as { scheduleEvents?: (...events: unknown[]) => void }).scheduleEvents?.({
-              type: 'wam-transport',
-              time: 0,
-              data: {
-                playing: true,
-                tempo: tempo.bpm,
-                timeSigNumerator: tempo.beats,
-                timeSigDenominator: tempo.unit,
-                currentBar: 0,
-                currentBarStarted: 0,
-              },
-            }),
-          );
-        }
+      return nodes;
+    },
+  });
 
-        return chainNodes(chain);
-      },
-    });
+  limit(audio);
 
-    limit(audio);
-
-    return audio;
-  } finally {
-    chains.forEach(disposeChain);
-  }
+  return audio;
 };
 
 /** Turn the audio down to the ceiling when it would clip. */
