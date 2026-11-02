@@ -226,44 +226,6 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@dawcore/components@0.0.37":
-  version "0.0.37"
-  resolved "https://registry.yarnpkg.com/@dawcore/components/-/components-0.0.37.tgz#88cef108609df79215986b4978e214f826741ae3"
-  integrity sha512-qRKZD0s56vTtevveSdsv1Vd00EI+teAWIHCU642KVzN1rZdIfcMgRWG03V2Etb4stWfDplzmz7KvrVDAtN3/kg==
-  dependencies:
-    "@dawcore/spectrogram" "0.0.7"
-    "@waveform-playlist/media-element-playout" "12.3.2"
-    lit "^3.3.3"
-    waveform-data "^4.5.2"
-
-"@dawcore/faust@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@dawcore/faust/-/faust-0.0.1.tgz#e0541aa514c84a5f2a7adfca2775f156121440f5"
-  integrity sha512-UlN/hfg4vd5becG71se7sBKSpuHmR/Og1+YVUQqbKL+4+2lzIoyfDsVJAo1TD+9XMen5tf3ZiwFXerOjfjCC2Q==
-  dependencies:
-    "@shren/faust2wam" "0.0.16"
-
-"@dawcore/spectrogram@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@dawcore/spectrogram/-/spectrogram-0.0.7.tgz#350403b7e19c8c5e77e54ed0bccc4e0d8ea76899"
-  integrity sha512-6Y9vuREDk7dQvu5Z7YFJ1YAgk6Vhc47D88Olo9T0BcaEpWkRIep5wvqrxYMLXsUDwdUH221g5h4M9r8U60/uLQ==
-  dependencies:
-    "@waveform-playlist/core" "12.6.1"
-    fft.js "^4.0.4"
-
-"@dawcore/transport@0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@dawcore/transport/-/transport-0.0.14.tgz#cbe3d061ca2e2f0c8c131ffb45f41613af5cf6c0"
-  integrity sha512-bTW6UEZ2Xj+XUl5Nhb5+e6CLS4Z3gMDhNwkW97AvGxSjavJZe2fm0jOygfTP3MpogZmL2P4p5vhF3zJKynIMEw==
-
-"@dawcore/wam@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@dawcore/wam/-/wam-0.0.3.tgz#b627f311874f5367c7b1ffe36441f50894c78c32"
-  integrity sha512-Z4yAepZ0Qjdm42fCaruy8b6dJ3zlm/dDomYFJcVWLNZUd6Fq2DHItcWXZblQr3ReelTPvc4x82tFvD+/Qf0y/g==
-  dependencies:
-    "@webaudiomodules/api" "2.0.0-alpha.6"
-    "@webaudiomodules/sdk" "0.0.12"
-
 "@douxcode/vue-spring-bottom-sheet@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@douxcode/vue-spring-bottom-sheet/-/vue-spring-bottom-sheet-3.2.0.tgz#04b9008df1070b1b66b5dcffaf2dc4de0a58b9fe"
@@ -2782,29 +2744,7 @@
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-14.4.0.tgz#4e89813c7859d153d48c03d74bff78739f96723b"
   integrity sha512-JRgY90Sz8DDtPMsaDflvPMp9xYk69JZAmbuDvAquUVXKr2gEjqtzGNTTthLfckH0BzBqvnu31gb4a8TGLRe79g==
 
-"@waveform-playlist/core@12.6.1":
-  version "12.6.1"
-  resolved "https://registry.yarnpkg.com/@waveform-playlist/core/-/core-12.6.1.tgz#5a7f3f0d1ca34110173de9b81bf0f7647b57a934"
-  integrity sha512-q3WUWTAtUcTUz4I3hDhvqxBtF3rETyGSgdtyTJHptVxdz+H06PXA7xfalzx6hELncAs2yJDV7eMwfdHXh9Q3JQ==
-
-"@waveform-playlist/engine@13.6.0":
-  version "13.6.0"
-  resolved "https://registry.yarnpkg.com/@waveform-playlist/engine/-/engine-13.6.0.tgz#8a820b83a46e8a53151610c01525492a138423af"
-  integrity sha512-pnAy71FhvljzW6GhFEL1Jhnt8NqyR/y/iFLvkkrUsv/QvcgTmaj/D3Nn7F0ZmkprZfsktwfT4BLFNkXlBWSjGw==
-
-"@waveform-playlist/media-element-playout@12.3.2":
-  version "12.3.2"
-  resolved "https://registry.yarnpkg.com/@waveform-playlist/media-element-playout/-/media-element-playout-12.3.2.tgz#b11bfe094046e14fa8a8b75e30263707b89a861f"
-  integrity sha512-Wz/+F1lcPdJDpRYqOdHoiYfmI7WPi4+AWtYFLyETQ5/kx/u78gdtCLuzHerD2eAR0I1pWtumo7Ywli0bg3wRlA==
-  dependencies:
-    "@waveform-playlist/core" "12.6.1"
-
-"@waveform-playlist/worklets@13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@waveform-playlist/worklets/-/worklets-13.0.0.tgz#4adf1d2a1df8311aadc72d01164e02a2c738a409"
-  integrity sha512-0DsUQ0IKa6pqMhq/WMEfMmMfmjZzIHIZU1eKXrKUnk8CsCXdd03lfALoRd8iqfL0MClSlDr4TZF6z9R6PZ84ig==
-
-"@webaudiomodules/api@2.0.0-alpha.6", "@webaudiomodules/api@^2.0.0-alpha.6":
+"@webaudiomodules/api@^2.0.0-alpha.6":
   version "2.0.0-alpha.6"
   resolved "https://registry.yarnpkg.com/@webaudiomodules/api/-/api-2.0.0-alpha.6.tgz#85333478ee8ac4782b25952325ced738a70da704"
   integrity sha512-GFyp7fVgNd26aFlmk7svGWtwrS1PqrwWajR+JDnbF3aSka9TteZbIcKA6lQ1D7gMc+n8h+te69h+zG5DWwYKIw==
@@ -2813,11 +2753,6 @@
   version "0.0.13"
   resolved "https://registry.yarnpkg.com/@webaudiomodules/sdk-parammgr/-/sdk-parammgr-0.0.13.tgz#6c57b2182b62004aa65d494fe1ac0f2f0d64f82e"
   integrity sha512-1KPjO9BlEfBAeMjfZZ6vfq2wOpRI01FHDyk9ZcCtMACciaHZZmeGobWkf4OToZs5kInGm1fN2dwStgQkiMk09Q==
-
-"@webaudiomodules/sdk@0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@webaudiomodules/sdk/-/sdk-0.0.12.tgz#70f37047b49fc4e33de050c5ce6df98112e52734"
-  integrity sha512-8eV+7wX8Wjrkjs3sIysq508ehS4mBEkLdwk8xinY3IXGi/zvWIfoipbWfvQ+AsaKnN3hBMGZI0AgLf1GlApBIA==
 
 "@webaudiomodules/sdk@^0.0.11":
   version "0.0.11"
@@ -3731,11 +3666,6 @@ fflate@^0.8.2:
   resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.8.3.tgz#bc27d8eb30343d4d512abb03480202ce65d825fc"
   integrity sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==
 
-fft.js@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/fft.js/-/fft.js-4.0.4.tgz#ffed83a397e58039141c804c1dbe1910dced8e6e"
-  integrity sha512-f9c00hphOgeQTlDyavwTtu6RiK8AIFjD6+jvXkNkpeQ7rirK3uFWVpalkoS4LAwbdX7mfZ8aoBfFVQX1Re/8aw==
-
 "file-entry-cache@11.1.5 || >11.1.6 <12":
   version "11.1.5"
   resolved "https://registry.yarnpkg.com/file-entry-cache/-/file-entry-cache-11.1.5.tgz#c8210eb055de63e68685ccfb6a017e386d4577d0"
@@ -4417,7 +4347,7 @@ lit-html@^3.3.0:
   dependencies:
     "@types/trusted-types" "^2.0.2"
 
-lit@3.3.3, lit@^3.3.3:
+lit@3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/lit/-/lit-3.3.3.tgz#93579885e51a20a772c68482a34706fe1636e8f0"
   integrity sha512-fycuvZg/hkpozL00lm1pEJH5nN/lr9ZXd6mJI2HSN4+Bzc+LDNdEApJ6HFbPkdFNHLvOplIIuJvxkS4XUxqirw==
@@ -5897,11 +5827,6 @@ w3c-keyname@^2.2.4:
   version "2.2.8"
   resolved "https://registry.yarnpkg.com/w3c-keyname/-/w3c-keyname-2.2.8.tgz#7b17c8c6883d4e8b86ac8aba79d39e880f8869c5"
   integrity sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==
-
-waveform-data@^4.5.2:
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/waveform-data/-/waveform-data-4.5.2.tgz#6818620df01e5aeebab06f477250b30b77454f39"
-  integrity sha512-1wDQ2LmaCM76xXXkOamWui1dp7uS2UHVeNccuHDS/qnoOrczrXR6g7Q9m/UjlibHfukxBrceoRIVTKKY1tDLdA==
 
 web-vitals@^4.2.4:
   version "4.2.4"
