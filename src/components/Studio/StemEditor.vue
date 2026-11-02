@@ -48,68 +48,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Fades for the selected stem. Always shown, so the timeline doesn't jump. -->
-    <!-- Phones only show it once a stem is picked -->
-    <div class="stem-editor__selected" :class="{ 'max-sm:hidden!': !selected }" v-if="!readonly">
-      <template v-if="selected">
-        <div class="flex items-center gap-2 flex-none! max-w-48">
-          <button
-            type="button"
-            class="stem-dot"
-            :style="{ background: selectedColor }"
-            aria-label="Change colour"
-            @click="colorsOpen = true"
-          />
-          <span class="font-bold truncate">{{ selected.name }}</span>
-        </div>
-        <label class="stem-editor__fade">
-          <span>Fade in</span>
-          <q-slider dense color="toneflix" :min="0" :max="maxFade" :step="0.1" v-model="fade.in" @change="applyFades" />
-          <span class="w-10 text-right">{{ fade.in.toFixed(1) }}s</span>
-        </label>
-        <label class="stem-editor__fade">
-          <span>Fade out</span>
-          <q-slider dense color="toneflix" :min="0" :max="maxFade" :step="0.1" v-model="fade.out" @change="applyFades" />
-          <span class="w-10 text-right">{{ fade.out.toFixed(1) }}s</span>
-        </label>
-        <q-btn
-          outline
-          rounded
-          dense
-          no-caps
-          size="sm"
-          color="grey-4"
-          class="flex-none! px-4"
-          icon="lucide-sliders-horizontal"
-          :label="selectedEffects.length ? `Effects (${selectedEffects.length})` : 'Effects'"
-          @click="openMixer"
-        />
-        <IconBtn size="sm"
-          color="grey-4"
-          class="flex-none!"
-          icon="lucide-copy"
-          aria-label="Duplicate stem"
-          @click="duplicate(selected.id)"
-        >
-          <q-tooltip>Duplicate this stem (Ctrl+D)</q-tooltip>
-        </IconBtn>
-        <q-btn
-          outline
-          rounded
-          dense
-          no-caps
-          size="sm"
-          color="grey-4"
-          class="flex-none! px-4"
-          :icon="selectedInstrument === 'drums' ? 'lucide-layout-grid' : 'lucide-piano'"
-          label="Edit notes"
-          @click="editNotes(selected.id)"
-          v-if="selectedInstrument"
-        />
-      </template>
-      <div class="text-grey-5" v-else>Click a stem to fade it, colour it, or add effects like EQ and reverb.</div>
-    </div>
-
     <div class="stem-editor__recording" role="status" v-if="recording || countingIn || recordingNotes">
       <span class="rec-dot" />
       <template v-if="recordingNotes">Recording notes. Play the keys, then press the record button again when you're done.</template>
@@ -361,7 +299,6 @@ const zoom = ref(40);
 const selection = ref<{ start: number; end: number } | null>(null);
 const selectedTrackId = ref<string | null>(null);
 const dropping = ref(false);
-const fade = reactive({ in: 0, out: 0 });
 
 // Tempo and grid. The tempo belongs to the track; the rest is remembered on this device.
 const tempo = ref(props.bpm && props.bpm >= 20 ? props.bpm : 120);
@@ -446,7 +383,6 @@ const selected = computed(() => {
   return id && track && tracks.has(id) ? { id, name: track.name } : null;
 });
 
-const selectedEffects = computed(() => (selected.value ? effects.get(selected.value.id) ?? [] : []));
 const selectedColor = computed(() => trackList.value.find((t) => t.id === selected.value?.id)?.color);
 /** The instrument an instrument track plays, like "synth" or "drums", or null for an audio track. */
 const instrumentOf = (trackId: string | undefined) => trackList.value.find((t) => t.id === trackId)?.instrument?.id ?? null;
@@ -454,13 +390,6 @@ const selectedInstrument = computed(() => instrumentOf(selected.value?.id));
 
 /** Links to the audio of instrument samples, by source id, so they're saved with the stem */
 const sampleUrls = new Map<string, string>();
-
-const maxFade = computed(() => {
-  // Read the mirrored tracks so this follows edits.
-  void trackList.value;
-  const first = selected.value ? clipsOf(selected.value.id)[0] : undefined;
-  return first ? Math.max(0.5, Math.floor(first.duration * 10) / 10) : 10;
-});
 
 /** Whether a track still waits for the length of audio it runs to the end of. */
 const unresolved = (trackId: string) => state().clips.some((c) => c.track === trackId && openEnded.has(c.id));
@@ -601,7 +530,6 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
     shared[id] = json;
     if (asSaved || !wasDirty) saved[id] = json;
   }
-  if (selectedTrackId.value === trackId) syncFades();
   checkDirty();
 };
 
@@ -660,35 +588,8 @@ const onChange = ({ state: now, final }: { state: TimelineState; final: boolean 
     const moved = now.clips.find((c) => c.id === timeline.value?.selection[0])?.track;
     if (moved && moved !== selectedTrackId.value) selectedTrackId.value = moved;
     if (selectedTrackId.value && !now.tracks.some((t) => t.id === selectedTrackId.value)) selectedTrackId.value = null;
-    syncFades();
     checkDirty();
   }
-};
-
-const syncFades = () => {
-  const clips = clipsOf(selectedTrackId.value);
-  if (!clips.length) return;
-  fade.in = clips[0]!.fadeIn;
-  fade.out = clips[clips.length - 1]!.fadeOut;
-};
-
-/** Fade in the selected stem's first clip and fade out its last one. */
-const applyFades = () => {
-  const clips = clipsOf(selectedTrackId.value);
-  if (!clips.length || !studio) return;
-  const first = clips[0]!;
-  const last = clips[clips.length - 1]!;
-
-  timeline.value?.model.apply('Fades', (now) => {
-    let next = now;
-    for (const clip of clips) {
-      next = studio!.setFades(next, clip.id, {
-        fadeIn: clip === first ? fade.in : 0,
-        fadeOut: clip === last ? fade.out : 0,
-      });
-    }
-    return next;
-  });
 };
 
 const togglePlay = () => {
@@ -1270,7 +1171,6 @@ const setColor = (trackId: string, color: string) => {
 const selectTrack = (trackId: string) => {
   if (!trackOf(trackId) || selectedTrackId.value === trackId) return;
   selectedTrackId.value = trackId;
-  syncFades();
 };
 
 const colorsOpen = ref(false);
@@ -2205,29 +2105,6 @@ defineExpose({
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  &__selected {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 20px;
-    min-height: 48px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    background: rgba(3, 191, 255, 0.08);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  &__fade {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 8px;
-
-    .q-slider {
-      width: 120px;
-    }
-  }
-
   /* Holds the timeline; loading progress floats over its top edge. */
   &__stage {
     position: relative;
@@ -2306,16 +2183,6 @@ defineExpose({
     background: rgba(3, 191, 255, 0.12);
     pointer-events: none;
   }
-}
-
-.stem-dot {
-  flex: none;
-  width: 12px;
-  height: 12px;
-  padding: 0;
-  cursor: pointer;
-  border: none;
-  border-radius: 50%;
 }
 
 .stem-colors {
