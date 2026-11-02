@@ -2,6 +2,12 @@ import { RouteRecordRaw } from 'vue-router';
 
 export default <RouteRecordRaw[]>[
   {
+    // Mixes a track in headless Chrome for the API, from signed links; no sign-in
+    path: '/studio/render',
+    name: 'studio.render',
+    component: () => import('pages/Studio/RenderMixPage.vue'),
+  },
+  {
     path: '/studio',
     meta: { requireAuth: true, creatorOnly: true },
     component: () => import('layouts/MainLayout.vue'),
