@@ -55,7 +55,7 @@
         >
           <q-spinner-audio size="11px" color="toneflix" class="mr-1" />
           Mixing preview
-          <q-tooltip>The server is mixing the saved stems into the preview</q-tooltip>
+          <q-tooltip>Mixing the saved stems into the preview</q-tooltip>
         </q-badge>
         <q-badge
           rounded
@@ -347,7 +347,7 @@
 </template>
 
 <script setup lang="ts">
-import { LocalStorage, useQuasar, type QNotifyUpdateOptions } from 'quasar';
+import { LocalStorage, useQuasar } from 'quasar';
 import {
   computed,
   onBeforeUnmount,
@@ -404,12 +404,12 @@ import { stemAudio } from 'src/utils/studio/stem-audio';
 import {
   deleteProjectTrackStemRequest,
   duplicateProjectTrackStemRequest,
-  printProjectTrackStemRequest,
   loadProjectRequest,
   loadProjectTrackRequest,
   loadProjectTrackStemRequest,
   loadProjectTrackStemsRequest,
   saveProjectTrackRequest,
+  uploadProjectTrackMixRequest,
   saveProjectTrackStemRequest,
   shareLiveStemsRequest,
 } from 'src/utils/requests/requests';
@@ -965,8 +965,8 @@ const renameStem = async (form: UploadData) => {
 
 /**
  * Save every stem's arrangement. With `withPreview`, or when the site
- * renders previews on every save, the server also mixes the saved stems
- * into a new preview.
+ * renders previews on every save, the studio then mixes the track here and
+ * uploads it as the new preview.
  */
 const save = async (withPreview = false) => {
   const ed = editor.value;
@@ -976,9 +976,7 @@ const save = async (withPreview = false) => {
   saving.value = true;
 
   try {
-    await printPlugins(ed).catch((e) =>
-      notify(errorMessage(e, "A stem couldn't be recorded through its plugins, so the preview may sound different."), 'warning'),
-    );
+    await ed.keepPluginStates();
     const metas = ed.snapshot();
     const render = (withPreview || conf.value.previews_on_save) && stems.value.length > 0;
     const form = {
@@ -992,7 +990,7 @@ const save = async (withPreview = false) => {
       })) as unknown as StemMeta[],
     } as unknown as ProjectTrack;
 
-    await saveProjectTrackRequest(form, project.value, { render }).send();
+    await saveProjectTrackRequest(form, project.value).send();
 
     // Keep the saved arrangement, so leaving and coming back shows it.
     stems.value = stems.value.map((s) => ({
@@ -1003,9 +1001,14 @@ const save = async (withPreview = false) => {
     track.value.masterEffects = form.masterEffects;
     ed.markSaved();
     tempoDirty.value = false;
-    if (render) onMix({ status: 'rendering' });
-    notify(render ? 'Saved. Mixing the preview.' : 'Saved.', 'success');
     historyPanel.value?.refresh();
+    if (!render) {
+      notify('Saved.', 'success');
+      return;
+    }
+
+    notify('Saved. Mixing the preview.', 'success');
+    await mixPreview(ed);
   } catch (e) {
     notify(errorMessage(e, "The track couldn't be saved."), 'error');
   } finally {
@@ -1013,38 +1016,40 @@ const save = async (withPreview = false) => {
   }
 };
 
-/**
- * Record stems with plugins through them, so the server's mix sounds like the
- * studio. Only stems whose clips or effects changed are recorded again.
- */
-const printPlugins = async (ed: NonNullable<typeof editor.value>) => {
-  let progress: ((props?: QNotifyUpdateOptions) => void) | undefined;
+/** Mix the track in the browser and upload it as the preview. */
+const mixPreview = async (ed: NonNullable<typeof editor.value>) => {
+  const was = track.value.mix ?? null;
+  mixingHere = true;
+  clearTimeout(mixTimer);
+  track.value.mix = { status: 'rendering' };
   try {
-    await ed.printPlugins(
-      async (stem, audio, start, key) => {
-        const { data } = await printProjectTrackStemRequest(stem.id, project.value, track.value, audio, start, key).send();
-        stems.value = stems.value.map((s) => (s.id === stem.id ? { ...s, meta: { ...s.meta, print: data.meta?.print } } : s));
+    const audio = await ed.mixdown();
+    if (!audio) {
+      track.value.mix = was;
+      notify('There is nothing to mix.', 'info');
+      return;
+    }
 
-        return data;
-      },
-      (stem) => {
-        const message = `Recording ${stem.title || 'a stem'} through its plugins…`;
-        if (progress) progress({ message });
-        else progress = $q.notify({ message, spinner: true, timeout: 0, group: false });
-      },
-    );
+    const { data } = await uploadProjectTrackMixRequest(project.value, track.value, audio).send();
+    onMix(data.mix ?? null, data);
+  } catch (e) {
+    onMix({ status: 'failed', error: errorMessage(e, "The preview couldn't be mixed.") });
   } finally {
-    progress?.();
+    mixingHere = false;
   }
 };
 
-/** Whether the server is mixing the preview. */
+/** Whether the preview is being mixed. */
 const rendering = computed(() => track.value.mix?.status === 'rendering');
 
 let mixTimer: ReturnType<typeof setTimeout> | undefined;
 
+/** Set while this page mixes the preview, so checks don't overwrite its state. */
+let mixingHere = false;
+
 /** Fetch the track's preview and mix state again. */
 const refreshMix = async () => {
+  if (mixingHere) return;
   try {
     const fresh = await loadProjectTrackRequest(project.value, String(track.value.id)).send(true);
     onMix(fresh.mix ?? null, fresh);

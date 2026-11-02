@@ -276,11 +276,8 @@ export const effectInfo = (type: string) => allEffects().find((e) => e.type === 
 
 export const isFaust = (type: string) => type.startsWith('faust-');
 
-/** A Web Audio Module plugin loaded from a link, which the server can't run. */
+/** A Web Audio Module plugin loaded from a link. */
 export const isPlugin = (effect: StemEffect) => effect.type === 'wam';
-
-/** Whether a chain needs printing to audio for the server's mix. */
-export const needsPrint = (list: StemEffect[]) => list.some((e) => isPlugin(e) && !e.bypassed);
 
 /** A plugin's name, or the folder of its link. */
 export const pluginName = (effect: StemEffect) => {
