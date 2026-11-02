@@ -31,6 +31,11 @@
             <li v-if="!readonly"><b>Alt+↑ ↓</b> move it, <b>Ctrl+D</b> duplicates it.</li>
             <li><b>+ −</b> zoom, <b>0</b> fits, <b>F</b> follows the playhead, <b>Home</b> goes to the start.</li>
             <li v-if="!readonly">Drop audio files here to upload them as stems.</li>
+            <li v-if="!readonly">
+              An instrument stem (synth, drums or sampler) plays notes, not audio. <b>Edit notes</b> opens its piano roll and step grid,
+              <b>Keys</b> plays it live and <b>Sound</b> changes how it sounds.
+            </li>
+            <li v-if="!readonly">With an instrument stem picked, the record button records the notes you play on the keys or your computer keyboard.</li>
           </ul>
         </q-card-section>
       </q-card>
@@ -89,18 +94,19 @@
           size="sm"
           color="grey-4"
           class="flex-none! px-4"
-          :icon="selectedPattern.kind === 'drums' ? 'lucide-layout-grid' : 'lucide-piano'"
-          label="Edit pattern"
-          @click="emit('edit-instrument', tracks.get(selected.id)!)"
-          v-if="selectedPattern"
+          :icon="selectedInstrument === 'drums' ? 'lucide-layout-grid' : 'lucide-piano'"
+          label="Edit notes"
+          @click="editNotes(selected.id)"
+          v-if="selectedInstrument"
         />
       </template>
       <div class="text-grey-5" v-else>Click a stem to fade it, colour it, or add effects like EQ and reverb.</div>
     </div>
 
-    <div class="stem-editor__recording" role="status" v-if="recording || countingIn">
+    <div class="stem-editor__recording" role="status" v-if="recording || countingIn || recordingNotes">
       <span class="rec-dot" />
-      <template v-if="countingIn">Count-in {{ countBeat }}…</template>
+      <template v-if="recordingNotes">Recording notes. Play the keys, then press the record button again when you're done.</template>
+      <template v-else-if="countingIn">Count-in {{ countBeat }}…</template>
       <template v-else>Recording {{ formatClock(recordedFor) }}. Press the record button again when you're done.</template>
     </div>
 
@@ -189,8 +195,12 @@ import type {
   LibrarySource,
   PluginChoice,
   PluginRack,
+  NoteRecorder,
   Recorder,
   SnapTo,
+  StudioInstrumentPanel,
+  StudioKeys,
+  StudioPianoRoll,
   StudioBrowser,
   StudioMixer,
   StudioTimeline,
@@ -211,7 +221,15 @@ import { isPlugin, parseEffects, serializeEffects, addFaustEffects, type StemEff
 import { EFFECT_CHANGE, effectCatalog, effectsToRack, rackLoader, rackToEffects } from 'src/utils/studio/rack-effects';
 import { loadFaustEffectsRequest } from 'src/utils/requests/effects';
 import { flacOf, renderMix } from 'src/utils/studio/mix';
-import { parsePattern } from 'src/utils/studio/instruments';
+import {
+  instrumentClips,
+  instrumentTrack,
+  readInstrument,
+  saveInstrument,
+  starterBeat,
+  type InstrumentKind,
+} from 'src/utils/studio/instrument-notes';
+import { uploadSoundRequest } from 'src/utils/requests/sounds';
 import {
   applyStemClips,
   fillLengths,
@@ -274,8 +292,8 @@ const emit = defineEmits<{
   tempo: [value: { bpm: number; timeSignature: string }];
   /** A take was recorded onto a new track; the parent uploads it and calls adoptStem */
   recorded: [take: { trackId: string; file: File; start: number; duration: number; name: string }];
-  /** Open the instrument editor for a stem made from a pattern */
-  'edit-instrument': [stem: Stem];
+  /** A new instrument track was made; the parent saves it as a stem (no audio) and calls adoptStem */
+  instrument: [instrument: { trackId: string; title: string; meta: StemMeta }];
   /** Copy a stem onto the track, with these settings for the copy */
   duplicate: [stem: Stem, meta: StemMeta];
   /** A sound from the browser was put on a new track; the parent adds it as a stem and calls adoptStem */
@@ -301,6 +319,10 @@ let rack: PluginRack | null = null;
 let toolbar: StudioToolbar | null = null;
 let mixer: StudioMixer | null = null;
 let browser: StudioBrowser | null = null;
+let pianoRoll: StudioPianoRoll | null = null;
+let keys: StudioKeys | null = null;
+let instrumentPanel: StudioInstrumentPanel | null = null;
+let notes: NoteRecorder | null = null;
 const unlink: (() => void)[] = [];
 
 /** Track id → its output level, 0 to 1, while playing */
@@ -355,6 +377,7 @@ const startingRecording = ref(false);
 const countingIn = ref(false);
 const countBeat = ref(0);
 const recordedFor = ref(0);
+const recordingNotes = ref(false);
 let recordTrackId: string | null = null;
 let recordStartedAt = 0;
 let recordTimer: ReturnType<typeof setInterval> | undefined;
@@ -407,13 +430,12 @@ const selected = computed(() => {
 
 const selectedEffects = computed(() => (selected.value ? effects.get(selected.value.id) ?? [] : []));
 const selectedColor = computed(() => trackList.value.find((t) => t.id === selected.value?.id)?.color);
-const patternOf = (trackId: string | undefined) => {
-  // Only stems in the editor's own list are reactive, so read through props.
-  const stem = trackId ? tracks.get(trackId) : undefined;
-  const fresh = stem ? props.stems.find((s) => String(s.id) === String(stem.id)) ?? stem : undefined;
-  return fresh && !props.readonly ? parsePattern(fresh.meta?.instrument) : null;
-};
-const selectedPattern = computed(() => patternOf(selected.value?.id));
+/** The instrument an instrument track plays, like "synth" or "drums", or null for an audio track. */
+const instrumentOf = (trackId: string | undefined) => trackList.value.find((t) => t.id === trackId)?.instrument?.id ?? null;
+const selectedInstrument = computed(() => instrumentOf(selected.value?.id));
+
+/** Links to the audio of instrument samples, by source id, so they're saved with the stem */
+const sampleUrls = new Map<string, string>();
 
 const maxFade = computed(() => {
   // Read the mirrored tracks so this follows edits.
@@ -440,13 +462,15 @@ const snapshot = (): Record<string, StemMeta> => {
   return out;
 };
 
-/** Add what the timeline doesn't keep: the stem's effects, and an instrument stem's pattern. */
+/** Add what the timeline doesn't keep: the stem's effects, and an instrument stem's notes. */
 function withExtras(stem: Stem, trackId: string, meta: StemMeta): StemMeta {
   const fx = serializeEffects(effects.get(trackId) ?? []);
+  const track = trackOf(trackId);
+  const instrument = track?.instrument ? JSON.stringify(saveInstrument(state(), track, (source) => sampleUrls.get(source))) : null;
   return {
     ...meta,
     ...(fx ? { effects: fx } : {}),
-    ...(stem.meta?.instrument ? { instrument: stem.meta.instrument } : {}),
+    ...(instrument ? { instrument } : {}),
     ...(stem.meta?.sound ? { sound: stem.meta.sound } : {}),
   };
 }
@@ -522,7 +546,8 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
   const wasDirty = !!before && saved[id] !== undefined && saved[id] !== JSON.stringify(before);
 
   const incoming: Stem = { ...stem, meta: { ...stem.meta, ...meta, clips: meta.clips } };
-  let next = applyStemClips(state(), incoming, trackId, lengthOf, openEnded, stemName);
+  const notesSave = meta.instrument ? readInstrument(incoming) : null;
+  let next = notesSave ? withNotes(state(), incoming, trackId) : applyStemClips(state(), incoming, trackId, lengthOf, openEnded, stemName);
   const track = next.tracks.find((t) => t.id === trackId);
   if (meta.color && track && meta.color !== track.color) next = studio.updateTrack(next, trackId, { color: stemColor(meta.color, 0) });
   if (meta.order !== undefined && meta.order !== next.tracks.findIndex((t) => t.id === trackId)) next = studio.moveTrack(next, trackId, meta.order);
@@ -557,6 +582,46 @@ const applyRemote = (stemId: string | number, meta: StemMeta, asSaved = false) =
   }
   if (selectedTrackId.value === trackId) syncFades();
   checkDirty();
+};
+
+/**
+ * Put an instrument stem's saved instrument and note clips on its track.
+ * Clips keep their ids in order, so an open piano roll stays open.
+ */
+function withNotes(now: TimelineState, stem: Stem, trackId: string): TimelineState {
+  const save = readInstrument(stem);
+  if (!save || !studio) return now;
+
+  const s = studio;
+  const old = now.clips
+    .filter((c) => c.track === trackId)
+    .sort((a, b) => a.start - b.start)
+    .map((c) => c.id);
+  let i = 0;
+  const clips = instrumentClips(stem, save, trackId, () => old[i++] ?? s.uid('c'));
+  void loadSamples(save.samples);
+
+  return {
+    ...s.updateTrack(now, trackId, { instrument: save.instrument }),
+    clips: [...now.clips.filter((c) => c.track !== trackId), ...clips],
+  };
+}
+
+/** Load the audio of instrument samples by their links, so the instruments can play them. */
+const loadSamples = async (samples: Record<string, string> | undefined) => {
+  await Promise.all(
+    Object.entries(samples ?? {}).map(async ([source, url]) => {
+      sampleUrls.set(source, url);
+      if (!engine || !context || engine.getBuffer(source)) return;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(String(res.status));
+        engine.setBuffer(source, await context.decodeAudioData(await res.arrayBuffer()));
+      } catch (error) {
+        console.warn('[stem editor] sample', source, error);
+      }
+    }),
+  );
 };
 
 /** Show changes to several stems, moving stems top first so each lands where it was put. */
@@ -856,6 +921,20 @@ const toggleRecording = async () => {
   if (!engine || !recorder || !studio) return;
   if (recording.value) return void stopRecording();
 
+  // An instrument track records the notes played on the keys instead.
+  if (notes?.isRecording) {
+    notes.stop();
+    engine.pause();
+    return;
+  }
+  const noteTrack = selectedTrackId.value && instrumentOf(selectedTrackId.value) ? selectedTrackId.value : null;
+  if (noteTrack && notes) {
+    keys?.setTrack(noteTrack);
+    keys?.show();
+    await notes.start(noteTrack);
+    return;
+  }
+
   startingRecording.value = true;
   try {
     await recorder.open();
@@ -935,7 +1014,7 @@ const onTake = (take: Take) => {
 const adoptStem = (trackId: string, stem: Stem) => {
   tracks.set(trackId, stem);
   added.add(String(stem.id));
-  for (const clip of clipsOf(trackId)) if (!clip.source.startsWith('stem:')) aliases.set(clip.source, stem.id);
+  for (const clip of clipsOf(trackId)) if (!clip.notes && !clip.source.startsWith('stem:')) aliases.set(clip.source, stem.id);
   renameStem(stem.id, stemTitle(stem));
   const meta = snapshot()[String(stem.id)];
   if (meta) {
@@ -1048,12 +1127,85 @@ const fillCatalog = () => {
 const onEffectChange = () => void keepPluginStates().then(checkDirty);
 
 // The toolbar's own buttons follow the editor's state.
-watch([recording, countingIn, startingRecording, hasSelection], () => toolbar?.refresh());
+watch([recording, countingIn, startingRecording, hasSelection, recordingNotes, selectedInstrument], () => toolbar?.refresh());
 
 /** Show the mixer, where each stem's effects are. */
 const openMixer = () => {
   mixer?.show();
   toolbar?.refresh();
+};
+
+/** Open an instrument track's notes in the piano roll, adding a clip at the playhead when it has none. */
+const editNotes = (trackId: string) => {
+  const tl = timeline.value;
+  if (!pianoRoll || !tl) return;
+  const clip = clipsOf(trackId).find((c) => c.notes) ?? (props.readonly ? null : tl.addNoteClip(trackId, currentTime(), 2));
+  if (clip) pianoRoll.edit(clip.id);
+};
+
+const INSTRUMENT_NAMES: Record<InstrumentKind, string> = { synth: 'Synth', drums: 'Drums', sampler: 'Sampler' };
+
+/**
+ * Add an instrument track with a clip at the bar the playhead is in, open
+ * it in the piano roll, and ask the parent to save it as a stem.
+ */
+const addInstrument = (kind: InstrumentKind) => {
+  const tl = timeline.value;
+  if (!studio || !tl || props.readonly) return null;
+
+  const s = studio;
+  const title = `${INSTRUMENT_NAMES[kind]} ${state().tracks.filter((t) => t.instrument?.id === kind).length + 1}`;
+  const bar = tl.grid.position(currentTime()).bar;
+  const start = tl.grid.barTime(bar);
+  const track: Track = { id: s.uid('t'), name: title, color: stemColor(undefined, state().tracks.length), instrument: { id: kind } };
+  const clip = {
+    id: s.uid('c'),
+    track: track.id,
+    source: `notes:${s.uid('p')}`,
+    name: title,
+    start,
+    offset: 0,
+    duration: tl.grid.barTime(bar + (kind === 'drums' ? 1 : 2)) - start,
+    gain: 1,
+    fadeIn: 0,
+    fadeOut: 0,
+    notes: kind === 'drums' ? starterBeat(tempo.value) : [],
+  };
+
+  quietly(s.addClips(s.addTrack(state(), track), [clip]));
+  // A stem added on the server isn't something to undo here.
+  tl.history.clear();
+  selectTrack(track.id);
+  pianoRoll?.edit(clip.id);
+
+  const now = state();
+  const meta = trackToMeta({ id: track.id, meta: {} } as unknown as Stem, track, now.clips, channelOf(track.id), now.tracks.length - 1);
+  const instrument = JSON.stringify(saveInstrument(now, track, () => undefined));
+  emit('instrument', { trackId: track.id, title, meta: { ...meta, name: title, instrument } });
+
+  return track.id;
+};
+
+/**
+ * A sample put on an instrument here: one from the sound library already has
+ * a link; one from a file is uploaded to My sounds for one.
+ */
+const onSampleSource = async (source: string, buffer: AudioBuffer) => {
+  if (sampleUrls.has(source) || props.readonly) return;
+  const known = soundUrls.get(source);
+  if (known) {
+    sampleUrls.set(source, known);
+    return;
+  }
+  try {
+    const file = new File([encodeWav(buffer)], 'Sample.wav', { type: 'audio/wav' });
+    const { data } = await uploadSoundRequest(file, { name: 'Instrument sample', duration: buffer.duration }).send();
+    sampleUrls.set(source, data.url);
+    checkDirty();
+  } catch (e) {
+    console.warn('[stem editor] sample upload', e);
+    notify("The sample couldn't be saved, so it won't be kept with the stem.", 'error');
+  }
 };
 
 /** Ask the parent to copy a stem, placed just below it. */
@@ -1102,7 +1254,7 @@ const strips: StripHost = reactive({
   count: () => trackList.value.length,
   selected: () => selectedTrackId.value,
   hasStem: (id: string) => tracks.has(id),
-  hasPattern: (id: string) => !!patternOf(id),
+  hasNotes: (id: string) => !!instrumentOf(id) && !props.readonly,
   select: selectTrack,
   setChannel: (id: string, patch: Partial<ChannelSettings>, commit = false) => {
     if (props.readonly) return;
@@ -1119,10 +1271,8 @@ const strips: StripHost = reactive({
     selectTrack(id);
     colorsOpen.value = true;
   },
-  editPattern: (id: string) => {
-    const stem = tracks.get(id);
-    if (stem) emit('edit-instrument', stem);
-  },
+  editNotes: (id: string) => editNotes(id),
+  openInstrument: (id: string) => instrumentPanel?.open(id),
   duplicate,
   move: moveTrack,
   remove: (id: string) => {
@@ -1257,8 +1407,14 @@ const placeStem = async (stem: Stem): Promise<string | undefined> => {
   added.add(String(stem.id));
 
   const index = state().tracks.length;
-  const track = stemToTrack(stem, index);
-  quietly(studio.addClips(studio.addTrack(state(), track), stemToClips(stem, track.id, lengthOf, openEnded, stemName)));
+  const s = studio;
+  const save = readInstrument(stem);
+  const track = save ? instrumentTrack(stem, save, index) : stemToTrack(stem, index);
+  const clips = save
+    ? instrumentClips(stem, save, track.id, () => s.uid('c'))
+    : stemToClips(stem, track.id, lengthOf, openEnded, stemName);
+  quietly(studio.addClips(studio.addTrack(state(), track), clips));
+  if (save) void loadSamples(save.samples);
   tracks.set(track.id, stem);
   engine.mixer.set(track.id, stemChannel(stem.meta));
 
@@ -1271,8 +1427,9 @@ const placeStem = async (stem: Stem): Promise<string | undefined> => {
   return track.id;
 };
 
-/** Load a placed stem's audio. */
+/** Load a placed stem's audio. Instrument stems have none: their notes are already on the timeline. */
 const fillStem = async (stem: Stem, trackId: string) => {
+  if (readInstrument(stem)) return;
   const key = `stem-${stem.id}`;
   const id = String(stem.id);
   try {
@@ -1414,10 +1571,10 @@ const toolbarActions = (): ToolbarAction[] => {
       ? [
           {
             id: 'record-stem',
-            label: canRecord ? 'Record from your microphone onto a new stem' : "This browser can't record",
+            label: 'Record from your microphone onto a new stem, or the keys onto the selected instrument',
             icon: icon('lucide-circle-dot'),
-            pressed: () => recording.value || countingIn.value,
-            disabled: () => !canRecord || startingRecording.value,
+            pressed: () => recording.value || countingIn.value || recordingNotes.value,
+            disabled: () => (!canRecord && !selectedInstrument.value) || startingRecording.value,
             onClick: () => toggleRecording(),
           },
           {
@@ -1485,6 +1642,7 @@ const toolbarItems = () =>
         'stop',
         'record-stem',
         'count-in',
+        'keys',
         'loop',
         'metronome',
         '|',
@@ -1511,6 +1669,13 @@ const toolbarItems = () =>
         'help',
       ];
 
+/** Links to sounds listed in the browser, by source id, for samples taken from them */
+const soundUrls = new Map<string, string>();
+const rememberSound = (source: string, url: string) => {
+  soundUrls.set(source, url);
+  return url;
+};
+
 /** A tab of sounds from the site's library or the person's own. */
 const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => ({
   id,
@@ -1526,7 +1691,7 @@ const soundsSource = (id: 'library' | 'mine', label: string): LibrarySource => (
         kind: 'audio' as const,
         detail: [sound.category, sound.author].filter(Boolean).join(' · ') || undefined,
         duration: sound.duration,
-        url: sound.url,
+        url: rememberSound(`sound:${sound.id}`, sound.url),
         source: `sound:${sound.id}`,
         data: { soundId: sound.id },
       })),
@@ -1570,7 +1735,7 @@ const onBrowserAdd = ({ item, track, clip }: { item: { name: string; data?: unkn
 
 onMounted(async () => {
   // Start on the audio while the editor itself loads.
-  props.stems.forEach((stem) => void fetchAudio(stem).catch(() => undefined));
+  props.stems.filter((stem) => !readInstrument(stem)).forEach((stem) => void fetchAudio(stem).catch(() => undefined));
 
   studio = await import('@toneflix/studio');
   const s = studio;
@@ -1580,6 +1745,9 @@ onMounted(async () => {
   recorder = new s.Recorder(engine, { channels: 2 });
   waveforms = new s.Waveforms();
   rack = new s.PluginRack(engine, { load: rackLoader(() => pluginsOn.value), mouseOnly: (url) => s.isMouseOnlyWam(url) });
+  // Instrument tracks play the built-in synth, drums and sampler, and WAM instruments when plugins are on.
+  engine.setInstruments(rack.instruments());
+  notes = new s.NoteRecorder(engine);
   engine.mixer.set(null, { volume: props.mixVolume ?? 1 });
 
   const tl = new s.StudioTimeline(host.value!, {
@@ -1619,6 +1787,22 @@ onMounted(async () => {
         onSource: (id, buffer) => void waveforms?.get(`library:${id}`, () => buffer).then((peaks) => timeline.value?.setSource({ id }, peaks)),
         sources: [effectsSource()],
       });
+  // Instruments: keys to play them live, a piano roll and step grid for their notes, and their settings.
+  keys = new s.StudioKeys(stage.value!, { timeline: tl, engine, recorder, notes, hidden: true });
+  instrumentPanel = new s.StudioInstrumentPanel({
+    timeline: tl,
+    engine,
+    instruments: [...s.DEFAULT_INSTRUMENT_OPTIONS, ...(pluginsOn.value ? s.communityWamInstruments() : [])],
+  });
+  pianoRoll = new s.StudioPianoRoll(stage.value!, {
+    timeline: tl,
+    engine,
+    keys,
+    instrumentPanel,
+    hidden: true,
+    onSource: (id, buffer) => void onSampleSource(id, buffer),
+  });
+
   // Sound tabs join once we know which the site offers.
   if (browser) {
     void loadSoundsStatusRequest()
@@ -1633,6 +1817,7 @@ onMounted(async () => {
     engine,
     mixer,
     ...(browser ? { browser } : {}),
+    keys,
     plugins: rack,
     items: toolbarItems(),
     actions: toolbarActions(),
@@ -1643,6 +1828,9 @@ onMounted(async () => {
   unlink.push(
     s.linkPlayback(tl, engine, { space: false }),
     s.linkRecorder(tl, recorder, { waveforms, name: () => `Recording ${takes}`, onTake }),
+    s.linkNoteRecorder(tl, notes, { name: (n) => `Take ${n}` }),
+    notes.on('start', () => (recordingNotes.value = true)),
+    notes.on('stop', () => (recordingNotes.value = false)),
     tl.on('change', onChange),
     tl.on('zoom', ({ pxPerSecond }) => (zoom.value = pxPerSecond)),
     tl.on('select', ({ clips }) => {
@@ -1725,7 +1913,12 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey);
   document.removeEventListener(EFFECT_CHANGE, onEffectChange);
   unlink.forEach((off) => off());
+  if (notes?.isRecording) notes.stop();
   toolbar?.destroy();
+  pianoRoll?.destroy();
+  keys?.destroy();
+  instrumentPanel?.destroy();
+  notes?.destroy();
   browser?.destroy();
   mixer?.destroy();
   rack?.destroy();
@@ -1737,6 +1930,7 @@ onBeforeUnmount(() => {
 
 defineExpose({
   addStem,
+  addInstrument,
   addLocal,
   trackUpload,
   removeStem,
@@ -1855,6 +2049,12 @@ defineExpose({
       > * {
         flex: none;
       }
+    }
+
+    /* The piano roll's and keys' bars wrap so every control stays in reach */
+    &__stage :deep(.tfs-roll-bar) {
+      flex-wrap: wrap;
+      row-gap: 2px;
     }
   }
 

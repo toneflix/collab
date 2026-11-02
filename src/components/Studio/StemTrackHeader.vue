@@ -17,9 +17,14 @@
             <q-item clickable v-close-popup @click="host.openColors(trackId)">
               <q-item-section>Colour</q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="host.editPattern(trackId)" v-if="host.hasPattern(trackId)">
-              <q-item-section>Edit pattern</q-item-section>
-            </q-item>
+            <template v-if="host.hasNotes(trackId)">
+              <q-item clickable v-close-popup @click="host.editNotes(trackId)">
+                <q-item-section>Edit notes</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="host.openInstrument(trackId)">
+                <q-item-section>Instrument settings</q-item-section>
+              </q-item>
+            </template>
             <q-item clickable v-close-popup :disable="!stem" @click="host.duplicate(trackId)">
               <q-item-section>Duplicate</q-item-section>
             </q-item>
@@ -129,13 +134,15 @@ export interface StripHost {
   count: () => number;
   selected: () => string | null;
   hasStem: (trackId: string) => boolean;
-  hasPattern: (trackId: string) => boolean;
+  /** An instrument track this person can edit */
+  hasNotes: (trackId: string) => boolean;
   select: (trackId: string) => void;
   setChannel: (trackId: string, patch: Partial<StripChannel>, commit?: boolean) => void;
   committed: () => void;
   openEffects: (trackId: string) => void;
   openColors: (trackId: string) => void;
-  editPattern: (trackId: string) => void;
+  editNotes: (trackId: string) => void;
+  openInstrument: (trackId: string) => void;
   duplicate: (trackId: string) => void;
   move: (trackId: string, index: number) => void;
   remove: (trackId: string) => void;

@@ -327,22 +327,13 @@
             @tempo="onTempo"
             @recorded="onRecorded"
             @sound="onSound"
-            @edit-instrument="editInstrument"
+            @instrument="onInstrument"
             v-if="loaded && (stems.length || !viewOnly)"
           />
         </div>
         <div id="studio-dock" class="studio-dock" />
       </div>
 
-      <InstrumentDialog
-        :bpm="track.bpm || 120"
-        :time-signature="track.timeSignature || '4/4'"
-        :initial="instrument.pattern"
-        :saving="instrument.saving"
-        v-model="instrument.open"
-        @save="saveInstrument"
-        v-if="!viewOnly"
-      />
     </q-no-ssr>
   </q-page>
 </template>
@@ -353,7 +344,6 @@ import {
   computed,
   onBeforeUnmount,
   onMounted,
-  reactive,
   ref,
   watch,
 } from 'vue';
@@ -377,14 +367,7 @@ import AiPanel from 'src/components/Studio/AiPanel.vue';
 import LyricsPanel from 'src/components/Studio/LyricsPanel.vue';
 import type { Lyrics } from 'src/utils/requests/lyrics';
 import type { AiJob } from 'src/utils/requests/ai';
-import InstrumentDialog from 'src/components/Studio/InstrumentDialog.vue';
-import {
-  parsePattern,
-  stepSeconds,
-  stepsPerBar,
-  type InstrumentPattern,
-} from 'src/utils/studio/instruments';
-import { encodeWav } from 'src/utils/daw';
+import { readInstrument, type InstrumentKind } from 'src/utils/studio/instrument-notes';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notify } from 'src/utils/helpers';
 import { useRealtimeChannel, type RealtimeMeta } from 'src/utils/realtime';
@@ -690,6 +673,16 @@ const replaceAudio = async (stem: Stem, file: File) => {
 const duplicateStem = async (stem: Stem, meta: StemMeta) => {
   uploading.value++;
   try {
+    // An instrument stem is only its notes, so the copy is a new stem with them.
+    if (readInstrument({ ...stem, meta })) {
+      const copy = await sendStem({ title: stem.title, meta } as unknown as UploadData, `copy-${stem.id}`, stem.title || 'Copy');
+      stems.value.push(copy);
+      await editor.value?.addStem(copy);
+      if (meta.order !== undefined) editor.value?.moveStem(copy.id, meta.order);
+      historyPanel.value?.refresh();
+      return;
+    }
+
     const { data } = await duplicateProjectTrackStemRequest(
       stem.id,
       project.value,
@@ -833,105 +826,39 @@ const onSound = async (sound: { trackId: string; soundId: number; start: number;
   }
 };
 
-/** The instrument editor: a new pattern, or the one a stem was made from. */
-const instrument = reactive<{
-  open: boolean;
-  pattern: InstrumentPattern | null;
-  stem: Stem | null;
-  saving: boolean;
-}>({
-  open: false,
-  pattern: null,
-  stem: null,
-  saving: false,
-});
-
+/** Pick an instrument and add a track that plays it. */
 const newInstrument = () => {
-  instrument.pattern = null;
-  instrument.stem = null;
-  instrument.open = true;
+  $q.dialog({
+    dark: true,
+    title: 'Add an instrument',
+    message: 'Play it on the keys or draw its notes in the piano roll.',
+    options: {
+      type: 'radio',
+      model: 'synth',
+      items: [
+        { label: 'Synth', value: 'synth' },
+        { label: 'Drums', value: 'drums' },
+        { label: 'Sampler (plays your own sounds)', value: 'sampler' },
+      ],
+    },
+    cancel: true,
+    ok: { label: 'Add', color: 'toneflix', unelevated: true },
+  }).onOk((kind: InstrumentKind) => editor.value?.addInstrument(kind));
 };
 
-const editInstrument = (stem: Stem) => {
-  const current = findStem(stem.id) ?? stem;
-  instrument.pattern = parsePattern(current.meta?.instrument);
-  instrument.stem = current;
-  instrument.open = !!instrument.pattern;
-};
-
-/** Instrument audio is uploaded lossless; the server does any encoding. */
-const audioFile = (buffer: AudioBuffer, name: string) =>
-  new File([encodeWav(buffer)], `${name}.wav`, { type: 'audio/wav' });
-
-const saveInstrument = async (
-  pattern: InstrumentPattern,
-  buffer: AudioBuffer,
-) => {
-  instrument.saving = true;
-  const json = JSON.stringify(pattern);
+/** Save an instrument track made in the editor as a stem. It has notes, not audio. */
+const onInstrument = async ({ trackId, title, meta }: { trackId: string; title: string; meta: StemMeta }) => {
+  uploading.value++;
   try {
-    if (instrument.stem) {
-      // Same place on the timeline, new audio.
-      const stem = instrument.stem;
-      const meta = editor.value?.snapshot()[String(stem.id)] ?? stem.meta;
-      const start = meta.clips?.[0]?.start ?? meta.start ?? 0;
-      const updated = await sendStem(
-        {
-          id: stem.id,
-          src: audioFile(buffer, stem.title || 'Pattern'),
-          title: stem.title,
-          meta: {
-            ...meta,
-            start,
-            cuein: 0,
-            cueout: 0,
-            duration: buffer.duration,
-            clips: [{ start, offset: 0 }],
-            instrument: json,
-          },
-        } as unknown as UploadData,
-        `pattern-${stem.id}`,
-        stem.title || 'Pattern',
-      );
-      editor.value?.removeStem(stem.id);
-      stems.value = stems.value.map((s) =>
-        String(s.id) === String(updated.id) ? updated : s,
-      );
-      await editor.value?.addStem(updated);
-      notify('Pattern updated.', 'success');
-    } else {
-      // A new stem at the start of the bar the playhead is in.
-      const bar = stepsPerBar(pattern.meter) * stepSeconds(pattern.bpm);
-      const start =
-        Math.floor((editor.value?.currentTime() ?? 0) / bar + 1e-6) * bar;
-      const count =
-        stems.value.filter(
-          (s) => parsePattern(s.meta?.instrument)?.kind === pattern.kind,
-        ).length + 1;
-      const title = `${pattern.kind === 'drums' ? 'Drums' : 'Keys'} ${count}`;
-      const stem = await sendStem(
-        {
-          src: audioFile(buffer, title),
-          title,
-          meta: {
-            gain: 1,
-            start: Math.round(start * 1000) / 1000,
-            duration: buffer.duration,
-            instrument: json,
-          },
-        } as unknown as UploadData,
-        `pattern-${title}`,
-        title,
-      );
-      stems.value.push(stem);
-      await editor.value?.addStem(stem);
-      notify(`"${title}" added.`, 'success');
-    }
-    instrument.open = false;
+    const stem = await sendStem({ title, meta } as unknown as UploadData, trackId, title);
+    stems.value.push(stem);
+    editor.value?.adoptStem(trackId, stem);
+    historyPanel.value?.refresh();
   } catch (e) {
-    notify(errorMessage(e, "The pattern couldn't be saved."), 'error');
+    editor.value?.dropTrack(trackId);
+    notify(errorMessage(e, `"${title}" couldn't be added.`), 'error');
   } finally {
-    instrument.saving = false;
+    uploading.value--;
   }
 };
 
@@ -1137,22 +1064,6 @@ const who = (e: RealtimeMeta) =>
     ? 'You'
     : e.by?.name || 'A collaborator';
 
-const reloadStem = async (id: string | number) => {
-  try {
-    const fresh = (await loadProjectTrackStemRequest(
-      id,
-      project.value,
-      track.value,
-    ).send()) as unknown as Stem;
-    editor.value?.removeStem(id);
-    stems.value = stems.value.map((s) =>
-      String(s.id) === String(id) ? fresh : s,
-    );
-    await editor.value?.addStem(fresh);
-  } catch {
-    // It may have been removed.
-  }
-};
 const findStem = (id: string | number) =>
   stems.value.find((s) => String(s.id) === String(id));
 
@@ -1196,11 +1107,6 @@ const { live: trackLive } = useRealtimeChannel(
     ) => {
       const stem = findStem(e.stem_id);
       if (!stem) return;
-      // A pattern was changed, so its audio is new: load the stem again.
-      if (e.meta?.instrument && e.meta.instrument !== stem.meta?.instrument) {
-        void reloadStem(stem.id);
-        return;
-      }
       if (e.title && e.title !== stem.title) {
         stem.title = e.title;
         editor.value?.renameStem(stem.id, e.title);
