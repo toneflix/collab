@@ -2195,90 +2195,90 @@
   dependencies:
     "@paystack/inline-js" "^2.25.0"
 
-"@toneflix/studio-audio@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-audio/-/studio-audio-0.6.1.tgz#177504e486ad2d8fb682e7148197382a6b113a3f"
-  integrity sha512-GzZNNCwT1Ckz4wBK2v5T0p+GIdMNDiCuk9mjX0IeYuLZpfq+4ABjIeeTWbksieakhSAHl5VjaasjhJoAKr16Uw==
+"@toneflix/studio-audio@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-audio/-/studio-audio-0.6.2.tgz#7ea183d0fbe4770188f7e7631c29e0117673e1c2"
+  integrity sha512-6WrfC2wfW3XaIIILAlZlMLyU38mwX9Yq6z9g7nEIo+j5RipM7IrEJ8h9q/uTz1uCtNc+2O/okdBU+209BvaAAQ==
   dependencies:
-    "@toneflix/studio-core" "^0.6.1"
+    "@toneflix/studio-core" "^0.6.2"
 
-"@toneflix/studio-controls@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-controls/-/studio-controls-0.6.1.tgz#42800633da04482eedbd0f9f4cf78e78d6fc62ed"
-  integrity sha512-1xWc3oO/6JJuw9jwpM4q6oaFDjvvBCcujH35ZEVXWXGxGvesQa5V2J/YvBc23jjLWsiKbdz4vxE/5EoH+21FDw==
+"@toneflix/studio-controls@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-controls/-/studio-controls-0.6.2.tgz#554b9c6eac3da5a1066cbc52011d6359849d9ea1"
+  integrity sha512-gZE3YjHgVT+tgLJEZN9GXKrYZ7Kr+jQmi/Dvg+bNNN7VDQU65GjFY1O6hgCMq+v8Sis7srA8cUd2C6nS2sOhAA==
   dependencies:
-    "@toneflix/studio-audio" "^0.6.1"
-    "@toneflix/studio-core" "^0.6.1"
-    "@toneflix/studio-exchange" "^0.6.1"
-    "@toneflix/studio-plugins" "^0.6.1"
-    "@toneflix/studio-recorder" "^0.6.1"
-    "@toneflix/studio-timeline" "^0.6.1"
+    "@toneflix/studio-audio" "^0.6.2"
+    "@toneflix/studio-core" "^0.6.2"
+    "@toneflix/studio-exchange" "^0.6.2"
+    "@toneflix/studio-plugins" "^0.6.2"
+    "@toneflix/studio-recorder" "^0.6.2"
+    "@toneflix/studio-timeline" "^0.6.2"
 
-"@toneflix/studio-core@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-core/-/studio-core-0.6.1.tgz#77c757ce27d345bf4e93bb5ec9ef36a73485db7c"
-  integrity sha512-vFgrTo5k4TB0VHP0bbFMEi9BsNaeRKbd7/Yg5dqO4SSFxoRY9FosFdyLSy/a7cI6nkv72ZWmUw9M3fVc26v9YA==
+"@toneflix/studio-core@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-core/-/studio-core-0.6.2.tgz#5c369684e8f306ac54d863f04884d73126a975be"
+  integrity sha512-ibYgNTvPB3D+q+Ddqc5b61YmYblt6jIIHh6/TggpYKrkwxx0GFDkDVzdHYucFSOLntv56iL+t6E2mjht898YBw==
 
-"@toneflix/studio-exchange@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-exchange/-/studio-exchange-0.6.1.tgz#1678ff18e4df944eafafafb1c6568966e458bae3"
-  integrity sha512-QlpScH6sVb3ZThv+TBhN6rvbRm+rP5YdD49amBQLXladhB6oXfmoy9fBYKI3J5FS0QeoMnrWQg/e29mUn5CdYQ==
+"@toneflix/studio-exchange@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-exchange/-/studio-exchange-0.6.2.tgz#69ad0eab194d3879e1e6fd513a30938fd951e8f6"
+  integrity sha512-ezyOyV/dhfcuQt+OhFAVye/IJK/JCqD/5UMull69pyXxKSyBykV7aHL5wrnbXrkfYqLoanevZ12M+PEOZeicYw==
   dependencies:
-    "@toneflix/studio-audio" "^0.6.1"
-    "@toneflix/studio-core" "^0.6.1"
-    "@toneflix/studio-plugins" "^0.6.1"
-    "@toneflix/studio-timeline" "^0.6.1"
+    "@toneflix/studio-audio" "^0.6.2"
+    "@toneflix/studio-core" "^0.6.2"
+    "@toneflix/studio-plugins" "^0.6.2"
+    "@toneflix/studio-timeline" "^0.6.2"
 
-"@toneflix/studio-plugins@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-plugins/-/studio-plugins-0.6.1.tgz#9c7f59cf2bee4d0cdd7559153099d12a4ecdae6a"
-  integrity sha512-EFYFPTA1RgE0u+Gn/gMxxZZ93aNustqvwFjMlybmePkEH8+UlPdCj4LsLQ4GQ5FuaLebicjljRehjI5IEhjWrQ==
+"@toneflix/studio-plugins@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-plugins/-/studio-plugins-0.6.2.tgz#d34295c4b4f63c29f734aa414242b8a2d83b4ddc"
+  integrity sha512-3x35CGTC/hKSCt4OoCpcWdNNQLx/5JTb731LPgNahMZAZVa0e+i+DZNj2ml8q/NId/b/AJQI7sQjy5NlRKKKZw==
   dependencies:
-    "@toneflix/studio-audio" "^0.6.1"
-    "@toneflix/studio-core" "^0.6.1"
+    "@toneflix/studio-audio" "^0.6.2"
+    "@toneflix/studio-core" "^0.6.2"
 
-"@toneflix/studio-recorder@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-recorder/-/studio-recorder-0.6.1.tgz#ebe3671a17acacb9520b937c827ef11ff2f86c26"
-  integrity sha512-zF9UsqfmiOw2qwFf1CPm1qSwhN3ed4zfRrIZKigGacvGj+Wk8Xoy0lSX4a+Y2vHLqndRpwTv7ICzPx9FN7WKrg==
+"@toneflix/studio-recorder@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-recorder/-/studio-recorder-0.6.2.tgz#2adf3314a185a49e16fda875d700388c05788679"
+  integrity sha512-jQpJqXtPphATuLmIY5llmphvYyvTaesxZfKmvMk+htk1VaA8pcU0gJ8u4CD5h3XmNm6HNFaBeTH+0ONIvRethQ==
   dependencies:
-    "@toneflix/studio-audio" "^0.6.1"
-    "@toneflix/studio-core" "^0.6.1"
+    "@toneflix/studio-audio" "^0.6.2"
+    "@toneflix/studio-core" "^0.6.2"
 
-"@toneflix/studio-timeline@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-timeline/-/studio-timeline-0.6.1.tgz#1bd18e6aba95b25f2470fd0ce5d163428bf7dbe9"
-  integrity sha512-jEK6GjgI3UiL2WnyjWYMMCgQ8sfKdNzyksmbgylGSEbao+Kf9ATN3Tss5HFm+L47CdDZGxsK444O9A9+vp1c6w==
+"@toneflix/studio-timeline@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-timeline/-/studio-timeline-0.6.2.tgz#3e69f17702b0a3b02d425c42575e0ed4e1f47123"
+  integrity sha512-6O93womtwtWplhVuqodP67Rx4aYMZZy/qnPtk0T8tiIlWKVvhIJoRwfR9mo3LbzqGQs8v7zK53Nf+FmWFsORRg==
   dependencies:
-    "@toneflix/studio-core" "^0.6.1"
-    "@toneflix/studio-waveforms" "^0.6.1"
+    "@toneflix/studio-core" "^0.6.2"
+    "@toneflix/studio-waveforms" "^0.6.2"
 
-"@toneflix/studio-wams@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-wams/-/studio-wams-0.6.1.tgz#3192904a050e1a62f591530fa426da469d216775"
-  integrity sha512-CQDfnox7WZFreaN8NBCro12VK6B9Qjo6RPaTIJlS1e16NlDpIkx4HwGcCelh5LstSpicvRDxQL/Q1W/thRdy8w==
+"@toneflix/studio-wams@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-wams/-/studio-wams-0.6.2.tgz#834dcd353ef769c32820a60e4d12ec4d86d4c284"
+  integrity sha512-AaiNK9UiF6DT8ELJRNk4wUeMxX6aFyr5tYkGPKS0bcyMspuqZr8+ORfLgOd3gbhDtUQNaGETRiSc3OqP6+WnQA==
 
-"@toneflix/studio-waveforms@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio-waveforms/-/studio-waveforms-0.6.1.tgz#736708bccec09ab6b105627da37b7b029ef0b484"
-  integrity sha512-28E4Rq2rDtNTBGa2FB2lNzoLoOsqSA08mHVCZFkT+Ox70CJrEs4KZp69IuDc82ZWc6+Q9zG2BwJ7Xx4ENMTl/g==
+"@toneflix/studio-waveforms@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio-waveforms/-/studio-waveforms-0.6.2.tgz#a2ee4ffcd10ed37d64199658f892fcf56d559b23"
+  integrity sha512-Bayj/ycM4tKhuTWWTmWEm8a4gTBtvoUXtNS3N33LN+fP+6bYANXvJyLsIhqzwVpml/6HjMlFCnIfofvi6rKbZQ==
   dependencies:
-    "@toneflix/studio-core" "^0.6.1"
+    "@toneflix/studio-core" "^0.6.2"
 
-"@toneflix/studio@0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@toneflix/studio/-/studio-0.6.1.tgz#82e0edbfc78e747c4fcce5738c74615b29b96010"
-  integrity sha512-wCrZXEtVoAzNmisMtN7Umx8g605fplnUUw3i02zaM/ea4V1XEbNF37xxpyPC0nsUmnuGSxn5t1Me+A+XMe6uDA==
+"@toneflix/studio@0.6.2":
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/@toneflix/studio/-/studio-0.6.2.tgz#d5f24cf834485bbdae6d5b22e102d2c13577e649"
+  integrity sha512-ZM4ekr6GJvkDfvPW96aDPfb75iYV770arQlQv/+ll2fDCvv2r5PwCmY9xlfc1CAo8KnOypA7q3EMrImpmczO2A==
   dependencies:
-    "@toneflix/studio-audio" "^0.6.1"
-    "@toneflix/studio-controls" "^0.6.1"
-    "@toneflix/studio-core" "^0.6.1"
-    "@toneflix/studio-exchange" "^0.6.1"
-    "@toneflix/studio-plugins" "^0.6.1"
-    "@toneflix/studio-recorder" "^0.6.1"
-    "@toneflix/studio-timeline" "^0.6.1"
-    "@toneflix/studio-wams" "^0.6.1"
-    "@toneflix/studio-waveforms" "^0.6.1"
+    "@toneflix/studio-audio" "^0.6.2"
+    "@toneflix/studio-controls" "^0.6.2"
+    "@toneflix/studio-core" "^0.6.2"
+    "@toneflix/studio-exchange" "^0.6.2"
+    "@toneflix/studio-plugins" "^0.6.2"
+    "@toneflix/studio-recorder" "^0.6.2"
+    "@toneflix/studio-timeline" "^0.6.2"
+    "@toneflix/studio-wams" "^0.6.2"
+    "@toneflix/studio-waveforms" "^0.6.2"
 
 "@tybys/wasm-util@^0.10.2", "@tybys/wasm-util@^0.10.3":
   version "0.10.4"

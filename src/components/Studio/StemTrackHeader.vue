@@ -24,6 +24,9 @@
               <q-item clickable v-close-popup @click="host.openInstrument(trackId)">
                 <q-item-section>Instrument settings</q-item-section>
               </q-item>
+              <q-item clickable v-close-popup @click="host.exportMidi(trackId)">
+                <q-item-section>Export MIDI</q-item-section>
+              </q-item>
             </template>
             <q-item
               v-for="lane in lanes"
@@ -151,6 +154,8 @@ export interface StripHost {
   openEffects: (trackId: string) => void;
   openColors: (trackId: string) => void;
   editNotes: (trackId: string) => void;
+  /** Download the track's notes as a .mid file */
+  exportMidi: (trackId: string) => void;
   openInstrument: (trackId: string) => void;
   /** The automation lane shown under a track, if any */
   automation: (trackId: string) => 'volume' | 'pan' | null;
