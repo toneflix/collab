@@ -37,7 +37,7 @@
     "@lucide/vue": "1.61.0",
     "@shren/faust2wam": "0.0.16",
     "@toneflix/paystack-inline": "^1.11.5",
-    "@toneflix/studio": "0.6.1",
+    "@toneflix/studio": "0.6.2",
     "@videojs/html": "10.2.0",
     "@vue/devtools-api": "^8.2.1",
     "@vueuse/core": "^14.1.0",

@@ -1094,6 +1094,78 @@ const editNotes = (trackId: string) => {
 
 const INSTRUMENT_NAMES: Record<InstrumentKind, string> = { synth: 'Synth', drums: 'Drums', sampler: 'Sampler' };
 
+/** Ask the parent to save a new instrument track as a stem. */
+const saveInstrumentStem = (track: Track) => {
+  const now = state();
+  const meta = trackToMeta({ id: track.id, meta: {} } as unknown as Stem, track, now.clips, channelOf(track.id), orderOf(track.id));
+  const instrument = JSON.stringify(saveInstrument(now, track, () => undefined));
+  emit('instrument', { trackId: track.id, title: track.name, meta: { ...meta, name: track.name, instrument } });
+};
+
+/**
+ * Add each part of a MIDI file as a new instrument track, drums on the drum
+ * kit and the rest on the synth, starting at the bar the playhead is in. Notes
+ * keep their bars and beats on this track's tempo.
+ */
+const importMidiFile = async (file: File) => {
+  const tl = timeline.value;
+  if (!studio || !tl || props.readonly) return;
+
+  const s = studio;
+  let song: ReturnType<typeof s.fromMidi>;
+  try {
+    song = s.fromMidi(await file.arrayBuffer(), { grid: tl.grid });
+  } catch {
+    return notify("That file couldn't be read as MIDI.", 'error');
+  }
+
+  const parts = song.parts.filter((p) => p.notes.length);
+  if (!parts.length) return notify('That MIDI file has no notes.', 'error');
+
+  const start = tl.grid.barTime(tl.grid.position(currentTime()).bar);
+  const base = file.name.replace(/\.midi?$/i, '');
+  const added: Track[] = [];
+  let next = state();
+
+  for (const part of parts) {
+    const name = part.name || (parts.length > 1 ? `${base} ${added.length + 1}` : base);
+    const track: Track = {
+      id: s.uid('t'),
+      name,
+      color: stemColor(undefined, next.tracks.length),
+      instrument: { id: part.drums ? 'drums' : 'synth' },
+    };
+
+    next = s.addClips(s.addTrack(next, track), [s.midiClip(part, track.id, start, tl.grid, song.duration)]);
+    added.push(track);
+  }
+
+  quietly(next);
+  engine?.mixer.sync(state().tracks);
+  tl.history.clear();
+  selectTrack(added[0]!.id);
+  added.forEach(saveInstrumentStem);
+};
+
+/** Download instrument tracks as a .mid file: one track, or all of them. */
+const exportMidiFile = (trackId?: string) => {
+  const tl = timeline.value;
+  if (!studio || !tl) return;
+
+  const tracks = trackId ? [trackId] : undefined;
+  const name = trackId ? `${props.title || 'Toneflix track'} - ${trackOf(trackId)?.name ?? 'part'}` : props.title || 'Toneflix track';
+
+  if (!state().tracks.some((t) => t.instrument && (!trackId || t.id === trackId))) {
+    return notify('There are no instrument tracks to export as MIDI.', 'error');
+  }
+
+  const { blob, fileName } = studio.exportMidi(tl, { tracks, name });
+  const url = URL.createObjectURL(blob);
+
+  Object.assign(document.createElement('a'), { href: url, download: fileName }).click();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+};
+
 /**
  * Add an instrument track with a clip at the bar the playhead is in, open
  * it in the piano roll, and ask the parent to save it as a stem.
@@ -1127,10 +1199,7 @@ const addInstrument = (kind: InstrumentKind) => {
   selectTrack(track.id);
   pianoRoll?.edit(clip.id);
 
-  const now = state();
-  const meta = trackToMeta({ id: track.id, meta: {} } as unknown as Stem, track, now.clips, channelOf(track.id), now.tracks.length - 1);
-  const instrument = JSON.stringify(saveInstrument(now, track, () => undefined));
-  emit('instrument', { trackId: track.id, title, meta: { ...meta, name: title, instrument } });
+  saveInstrumentStem(track);
 
   return track.id;
 };
@@ -1223,6 +1292,7 @@ const strips: StripHost = reactive({
     colorsOpen.value = true;
   },
   editNotes: (id: string) => editNotes(id),
+  exportMidi: (id: string) => exportMidiFile(id),
   openInstrument: (id: string) => instrumentPanel?.open(id),
   automation: (id: string) => automationLanes.get(id) ?? null,
   showAutomation: (id: string, param: 'volume' | 'pan' | null) => timeline.value?.showAutomation(id, param),
@@ -1471,13 +1541,18 @@ const openProjectFiles = () =>
         items: [
           { label: 'Export as a REAPER project (.zip, without plugins)', value: 'reaper' },
           { label: `Export as a ${APP.name} project (.${APP.extension})`, value: 'app' },
+          { label: 'Export instrument tracks as MIDI (.mid)', value: 'midi' },
           ...(props.readonly ? [] : [{ label: 'Import the tracks of a project…', value: 'import' }]),
         ],
       },
       cancel: true,
       dark: true,
     })
-    .onOk((choice: 'app' | 'reaper' | 'import') => (choice === 'import' ? pickProject() : void exportProject(choice)));
+    .onOk((choice: 'app' | 'reaper' | 'midi' | 'import') => {
+      if (choice === 'import') return pickProject();
+      if (choice === 'midi') return exportMidiFile();
+      void exportProject(choice);
+    });
 
 /**
  * Add the tracks of a REAPER or Toneflix Studio project as new stems, with
@@ -1589,11 +1664,13 @@ const openAdd = () => {
         { label: 'Synth', value: 'synth' },
         { label: 'Drums', value: 'drums' },
         { label: 'Sampler (plays your own sounds)', value: 'sampler' },
+        { label: 'MIDI file (.mid)', value: 'midi' },
       ],
     },
     cancel: true,
     ok: { label: 'Add', color: 'toneflix', unelevated: true },
-  }).onOk((choice: 'audio' | InstrumentKind) => {
+  }).onOk((choice: 'audio' | 'midi' | InstrumentKind) => {
+    if (choice === 'midi') return pickMidi();
     if (choice !== 'audio') return void addInstrument(choice);
 
     const input = Object.assign(document.createElement('input'), { type: 'file', multiple: true, accept: acceptFor(audioExts()) });
@@ -1603,6 +1680,17 @@ const openAdd = () => {
     });
     input.click();
   });
+};
+
+/** Pick a MIDI file to add as instrument tracks. */
+const pickMidi = () => {
+  const input = Object.assign(document.createElement('input'), { type: 'file', accept: '.mid,.midi,audio/midi,audio/x-midi' });
+
+  input.addEventListener('change', () => {
+    const file = input.files?.[0];
+    if (file) void importMidiFile(file);
+  });
+  input.click();
 };
 
 const pickProject = () => {
