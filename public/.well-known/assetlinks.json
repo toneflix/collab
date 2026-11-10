@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.toneflix.music.app",
+      "sha256_cert_fingerprints": [
+        "AA:FE:BF:8D:4C:11:3A:9F:29:DD:DC:F1:CC:C9:09:4F:6D:D4:E6:2A:58:A6:6B:D6:44:19:AB:12:3A:C8:FF:1F",
+        "17:94:43:06:23:06:7B:02:A3:16:EB:67:34:BA:97:B3:41:50:9D:41:6B:31:59:E0:0C:2F:D5:F1:19:43:8C:DE",
+        "4B:58:2E:7F:CE:C8:62:0F:0C:F1:25:4C:67:25:CA:EC:47:67:24:CE:BB:48:5A:D3:3A:CF:8E:DE:B4:4D:DF:42"
+      ]
+    }
+  }
+]
