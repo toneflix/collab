@@ -109,19 +109,21 @@
 
       <!-- Still only -->
       <div class="mt-4 mb-1 text-xs font-semibold text-grey-5">Show</div>
-      <q-btn-toggle
-        no-caps
-        rounded
-        unelevated
-        dense
-        toggle-color="toneflix"
-        toggle-text-color="dark"
-        color="transparent"
-        class="show-toggle"
-        :options="showOptions"
-        :model-value="shot.motion ?? 'clip'"
-        @update:model-value="changeMotion($event === 'clip' ? null : $event)"
-      />
+      <div class="show-options" role="radiogroup" aria-label="Show">
+        <button
+          type="button"
+          role="radio"
+          class="show-option"
+          :class="{ 'show-option--on': (shot.motion ?? 'clip') === option.value }"
+          :aria-checked="(shot.motion ?? 'clip') === option.value"
+          :key="option.value"
+          @click="changeMotion(option.value === 'clip' ? null : (option.value as ShotMotion))"
+          v-for="option in showOptions"
+        >
+          <q-icon :name="option.icon" size="16px" />
+          <span>{{ option.label }}</span>
+        </button>
+      </div>
 
       <!-- Takes -->
       <template v-if="choices.length">
@@ -664,9 +666,37 @@ onBeforeUnmount(() => {
   background: var(--tf-surface-1);
 }
 
-.show-toggle {
-  flex-wrap: wrap;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.show-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.show-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid var(--tf-border-strong);
+  background: transparent;
+
+  &--on {
+    color: #111;
+    border-color: var(--tf-primary);
+    background: var(--tf-primary);
+  }
 }
 
 .takes {
