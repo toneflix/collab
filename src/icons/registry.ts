@@ -126,6 +126,7 @@ import {
   MailCheck,
   Maximize2,
   Menu,
+  Merge,
   MessageCircle,
   MessageCircleMore,
   MessageSquare,
@@ -133,6 +134,7 @@ import {
   Mic,
   MicVocal,
   Minus,
+  MoveHorizontal,
   Music,
   Music2,
   Network,
@@ -224,6 +226,8 @@ import {
   Workflow,
   X,
   Zap,
+  ZoomIn,
+  ZoomOut,
 } from '@lucide/vue';
 
 /**
@@ -358,6 +362,7 @@ export const lucideIcons = {
   'mail-check': MailCheck,
   'maximize-2': Maximize2,
   menu: Menu,
+  merge: Merge,
   'message-circle': MessageCircle,
   'message-circle-more': MessageCircleMore,
   'message-square': MessageSquare,
@@ -365,6 +370,7 @@ export const lucideIcons = {
   mic: Mic,
   'mic-vocal': MicVocal,
   minus: Minus,
+  'move-horizontal': MoveHorizontal,
   music: Music,
   'music-2': Music2,
   network: Network,
@@ -457,6 +463,8 @@ export const lucideIcons = {
   workflow: Workflow,
   x: X,
   zap: Zap,
+  'zoom-in': ZoomIn,
+  'zoom-out': ZoomOut,
 };
 
 export type LucideIconName = keyof typeof lucideIcons;
