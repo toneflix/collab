@@ -162,6 +162,7 @@
           ref="editor"
           class="mb-8"
           :video="video"
+          :still-credits="ai?.costs.videoStoryboard ?? 0"
           :stream-url="streamUrl"
           @saved="onSaved"
           @pending="pending = $event"
@@ -271,6 +272,7 @@ const editingShots = ref(false);
 const pending = ref(false);
 const editor = ref<InstanceType<typeof ShotEditor> | null>(null);
 let poll: ReturnType<typeof setInterval> | undefined;
+let drawPoll: ReturnType<typeof setInterval> | undefined;
 
 const statusText: Record<MusicVideoStatus, string> = {
   planning: 'Planning',
@@ -281,6 +283,7 @@ const statusText: Record<MusicVideoStatus, string> = {
 };
 
 const busy = computed(() => !!video.value && videoBusy(video.value));
+const drawing = computed(() => !!video.value?.shots?.some((shot) => shot.drawing));
 const aspect = computed(() => (video.value?.ratio ?? '16:9').replace(':', ' / '));
 const ratioLabel = computed(() => {
   const ratio = VIDEO_RATIOS.find((r) => r.value === video.value?.ratio);
@@ -351,7 +354,10 @@ const loadSong = async (track: number) => {
 };
 
 const onSaved = (saved: MusicVideo) => {
+  const drew = saved.shots?.some((shot) => shot.drawing) && !drawing.value;
+
   video.value = saved;
+  if (drew) void loadAccount();
 };
 
 const render = async () => {
@@ -421,9 +427,15 @@ onMounted(() => {
   poll = setInterval(() => {
     if (busy.value) void load();
   }, 8000);
+  drawPoll = setInterval(() => {
+    if (drawing.value) void load();
+  }, 4000);
 });
 
-onBeforeUnmount(() => clearInterval(poll));
+onBeforeUnmount(() => {
+  clearInterval(poll);
+  clearInterval(drawPoll);
+});
 
 useMeta(() => ({
   title: video.value?.track?.title ? `${video.value.track.title} music video` : 'Music video',

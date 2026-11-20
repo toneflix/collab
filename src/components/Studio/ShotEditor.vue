@@ -52,6 +52,7 @@
               <q-icon :name="shot.kind === 'performance' ? 'lucide-mic-vocal' : shot.motion ? 'lucide-image' : 'lucide-film'" size="11px" />
             </span>
             <span class="strip__todo" v-if="needsClip(shot, takes)">New clip</span>
+            <q-spinner-dots class="strip__drawing" size="18px" color="white" v-if="shot.drawing" />
           </div>
         </div>
         <div
@@ -83,7 +84,7 @@
       <!-- What the shot shows -->
       <template v-if="editingPrompt">
         <q-input dark filled dense autogrow autofocus maxlength="600" v-model="draft" @keydown.esc="editingPrompt = false" />
-        <div class="mt-1 text-[11px] text-grey-6">The still stays; the words guide the new clip.</div>
+        <div class="mt-1 text-[11px] text-grey-6">The still stays; the words guide the new clip. Draw a new still to match them.</div>
         <div class="flex justify-end gap-1 mt-2">
           <q-btn flat dense rounded no-caps size="sm" label="Cancel" class="flex-none! px-3" @click="editingPrompt = false" />
           <q-btn
@@ -106,6 +107,23 @@
         <p class="flex-1 min-w-0 text-sm text-grey-4">{{ shot.prompt }}</p>
         <IconBtn size="sm" icon="lucide-pencil" aria-label="Change what this shot shows" class="flex-none!" :disable="shot.id < 0" @click="editPrompt" />
       </div>
+      <div class="flex items-center gap-2 mt-2" v-if="!editingPrompt">
+        <q-btn
+          outline
+          dense
+          rounded
+          no-caps
+          size="sm"
+          icon="lucide-image-plus"
+          class="flex-none! px-3"
+          :label="shot.drawing ? 'Drawing a new still…' : `New still · ${stillCost} ${stillCost === 1 ? 'credit' : 'credits'}`"
+          :loading="redrawing"
+          :disable="shot.drawing || shot.id < 0"
+          @click="redrawStill"
+        >
+          <q-tooltip v-if="shot.id < 0">Wait for the split to save</q-tooltip>
+        </q-btn>
+      </div>
 
       <!-- Still only -->
       <div class="mt-4 mb-1 text-xs font-semibold text-grey-5">Show</div>
@@ -124,6 +142,20 @@
           <span>{{ option.label }}</span>
         </button>
       </div>
+
+      <!-- Where in its take the shot starts -->
+      <template v-if="slideMax !== null && slideMax > 0">
+        <div class="mt-4 text-xs font-semibold text-grey-5">Start from {{ shot.offset.toFixed(1) }}s into the take</div>
+        <q-slider
+          dense
+          color="toneflix"
+          :min="0"
+          :max="slideMax"
+          :step="0.1"
+          :model-value="Math.min(shot.offset, slideMax)"
+          @update:model-value="slide($event ?? 0)"
+        />
+      </template>
 
       <!-- Takes -->
       <template v-if="choices.length">
@@ -155,15 +187,31 @@ import { notifyError } from 'src/utils/composer';
 import {
   saveMusicVideoShotsRequest,
   SHOT_MOTIONS,
+  redrawMusicVideoStillRequest,
   updateMusicVideoShotRequest,
   type MusicVideo,
   type MusicVideoTake,
   type ShotMotion,
 } from 'src/utils/requests/videos';
-import { merge, move, needsClip, setMotion, split, takeOffset, toRows, trim, useTake, type StripShot } from 'src/utils/video-strip';
+import {
+  maxOffset,
+  merge,
+  move,
+  needsClip,
+  setMotion,
+  setOffset,
+  split,
+  takeOffset,
+  toRows,
+  trim,
+  useTake,
+  type StripShot,
+} from 'src/utils/video-strip';
 
 const props = defineProps<{
   video: MusicVideo;
+  /** Credits a minute of new stills costs */
+  stillCredits?: number;
   /** The song, so the preview plays with sound */
   streamUrl?: string | null;
 }>();
@@ -183,6 +231,7 @@ const pps = ref(24);
 const editingPrompt = ref(false);
 const draft = ref('');
 const savingPrompt = ref(false);
+const redrawing = ref(false);
 
 const clipEl = ref<HTMLVideoElement | null>(null);
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -207,6 +256,14 @@ const choices = computed(() => {
   const own = s.copyOf ?? s.id;
   return takes.value.filter((take) => take.shotId === own || (s.kind === 'broll' && take.syncedFrom === null));
 });
+
+/** A still is priced like the storyboard, for the shot's share of a minute */
+const stillCost = computed(() => {
+  const s = shot.value;
+  return s ? Math.max(1, Math.ceil(((props.stillCredits ?? 0) * (s.end - s.start)) / 60)) : 0;
+});
+
+const slideMax = computed(() => (shot.value ? maxOffset(shot.value, takes.value) : null));
 
 const showOptions = [
   { value: 'clip', label: 'Clip', icon: 'lucide-film' },
@@ -307,6 +364,29 @@ const moveShot = (from: number, to: number) => {
 const changeMotion = (motion: ShotMotion | null) => change(setMotion(strip.value, selected.value, motion));
 
 const pickTake = (take: MusicVideoTake) => change(useTake(strip.value, selected.value, take));
+
+const slide = (offset: number) => {
+  change(setOffset(strip.value, selected.value, offset));
+  seek(shot.value?.start ?? time.value);
+};
+
+const redrawStill = async () => {
+  const s = shot.value;
+  if (!s || s.id < 0) return;
+  redrawing.value = true;
+  try {
+    await flush();
+    const res = await redrawMusicVideoStillRequest(props.video.id, s.id).send();
+    const shots = strip.value.map((other) => (other.id === s.id ? { ...res.data } : other));
+
+    strip.value = shots;
+    emit('saved', { ...props.video, edited: true, shots });
+  } catch (e) {
+    notifyError(e, "A new still couldn't be drawn.");
+  } finally {
+    redrawing.value = false;
+  }
+};
 
 const editPrompt = () => {
   draft.value = shot.value?.prompt ?? '';
@@ -615,6 +695,13 @@ onBeforeUnmount(() => {
     bottom: 6px;
     color: #111;
     background: #fbbf24;
+  }
+
+  &__drawing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   &__edge {

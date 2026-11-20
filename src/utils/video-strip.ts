@@ -120,6 +120,21 @@ export const move = (shots: StripShot[], from: number, to: number): StripShot[] 
 export const useTake = (shots: StripShot[], i: number, take: MusicVideoTake): StripShot[] =>
   shots.map((shot, n) => (n === i ? { ...shot, takeId: take.id, offset: 0, motion: null } : shot));
 
+/**
+ * The furthest into its take a b-roll shot can start and still not need a
+ * new clip; null when the shot has no b-roll take to slide.
+ */
+export const maxOffset = (shot: StripShot, takes: MusicVideoTake[]) => {
+  if (shot.motion || shot.kind !== 'broll') return null;
+  const take = takes.find((t) => t.id === shot.takeId);
+  if (!take || take.syncedFrom !== null) return null;
+  return round(Math.max(0, take.length + HOLD - (shot.end - shot.start)));
+};
+
+/** Start shot `i`'s take `offset` seconds in */
+export const setOffset = (shots: StripShot[], i: number, offset: number): StripShot[] =>
+  shots.map((shot, n) => (n === i ? { ...shot, offset: round(Math.max(0, offset)) } : shot));
+
 /** Show shot `i`'s still with a motion, or go back to its take with null */
 export const setMotion = (shots: StripShot[], i: number, motion: ShotMotion | null): StripShot[] =>
   shots.map((shot, n) => (n === i ? { ...shot, motion } : shot));
