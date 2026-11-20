@@ -94,3 +94,12 @@ test('b-roll slides through its take as far as it still fits', () => {
   assert.equal(needsClip(slid[0]!, takes), false);
   assert.equal(needsClip(setOffset([broll], 0, 3.5)[0]!, takes), true);
 });
+
+test('an uploaded take on a singing shot follows the length rule', () => {
+  const upload = { ...take(7, 5), source: 'upload' as const };
+  const singing = shot(2, 3, 7, 'performance', 7);
+
+  assert.equal(needsClip(singing, [upload]), false);
+  assert.equal(maxOffset(singing, [upload]), 2);
+  assert.equal(needsClip(shot(2, 3, 10, 'performance', 7), [upload]), true);
+});
