@@ -24,7 +24,7 @@
         </div>
 
         <!-- The finished video -->
-        <div class="mb-8" v-if="video.status === 'ready' && video.videoUrl">
+        <div class="mb-8" v-if="video.status === 'ready' && video.videoUrl && !editingShots">
           <video
             controls
             playsinline
@@ -34,7 +34,17 @@
             :poster="video.shots?.[0]?.keyframeUrl ?? undefined"
             :style="{ aspectRatio: aspect }"
           />
-          <div class="flex justify-end mt-3">
+          <div class="flex justify-end gap-2 mt-3">
+            <q-btn
+              outline
+              rounded
+              no-caps
+              icon="lucide-scissors"
+              label="Edit shots"
+              class="flex-none!"
+              @click="editingShots = true"
+              v-if="video.shots?.length"
+            />
             <q-btn
               unelevated
               rounded
@@ -92,37 +102,71 @@
           />
         </div>
 
-        <!-- Render bar -->
-        <div class="render-bar mb-6" v-if="video.status === 'storyboard'">
+        <!-- Save bar -->
+        <div class="render-bar mb-6" v-if="canEdit">
           <div class="min-w-0">
-            <div class="font-semibold">Happy with the storyboard?</div>
+            <div class="font-semibold">{{ video.status === 'storyboard' ? 'Happy with the storyboard?' : 'Save your changes' }}</div>
             <div class="text-xs text-grey-5">
-              Drag shots to reorder them or change what any shot shows, then make the video.
-              <template v-if="paysWithMinutes">
-                Uses {{ video.minutes }} of your {{ minutesLeft }} video {{ minutesLeft === 1 ? 'minute' : 'minutes' }}.
+              <template v-if="cost.seconds === 0">Free. Your shots are cut together again; nothing is redrawn.</template>
+              <template v-else-if="paysWithMinutes">
+                Makes {{ cost.shots }} {{ cost.shots === 1 ? 'shot' : 'shots' }} · uses {{ planTime(cost.seconds) }} of your
+                {{ planTime(secondsLeft) }} video time.
               </template>
               <template v-else>
-                {{ renderCost.toLocaleString() }} credits<template v-if="ai"> · {{ ai.balance.total.toLocaleString() }} left</template>
+                Makes {{ cost.shots }} {{ cost.shots === 1 ? 'shot' : 'shots' }} · {{ cost.credits.toLocaleString() }} credits<template v-if="ai">
+                  · {{ ai.balance.total.toLocaleString() }} left</template>
                 <template v-if="short">
                   · <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
                 </template>
               </template>
             </div>
           </div>
-          <q-btn
-            unelevated
-            rounded
-            no-caps
-            color="toneflix"
-            text-color="dark"
-            icon="lucide-clapperboard"
-            label="Make the video"
-            class="flex-none!"
-            :loading="rendering"
-            :disable="short || editing !== null"
-            @click="render"
-          />
+          <div class="flex gap-2 flex-none!">
+            <q-btn
+              flat
+              rounded
+              no-caps
+              label="Discard changes"
+              class="flex-none!"
+              :loading="discarding"
+              :disable="rendering"
+              @click="discard"
+              v-if="video.status === 'ready' && video.edited"
+            />
+            <q-btn
+              flat
+              rounded
+              no-caps
+              label="Done"
+              class="flex-none!"
+              @click="editingShots = false"
+              v-else-if="video.status === 'ready'"
+            />
+            <q-btn
+              unelevated
+              rounded
+              no-caps
+              color="toneflix"
+              text-color="dark"
+              :icon="video.status === 'storyboard' ? 'lucide-clapperboard' : 'lucide-save'"
+              :label="video.status === 'storyboard' ? 'Make the video' : 'Save video'"
+              class="flex-none!"
+              :loading="rendering"
+              :disable="short || pending || (video.status === 'ready' && !video.edited)"
+              @click="render"
+            />
+          </div>
         </div>
+
+        <ShotEditor
+          ref="editor"
+          class="mb-8"
+          :video="video"
+          :stream-url="streamUrl"
+          @saved="onSaved"
+          @pending="pending = $event"
+          v-if="canEdit && video.shots?.length"
+        />
 
         <!-- Cast -->
         <template v-if="video.characters?.length">
@@ -155,9 +199,9 @@
         </template>
 
         <!-- Storyboard -->
-        <template v-if="video.shots?.length">
+        <template v-if="video.shots?.length && !canEdit">
           <h5 class="mb-3 text-base font-semibold">Storyboard</h5>
-          <div ref="board" class="grid gap-3" :class="[gridClass, { 'storyboard--sortable': sortable }]">
+          <div class="grid gap-3" :class="gridClass">
             <div class="shot" :key="shot.id" v-for="shot in video.shots">
               <div class="shot__still" :style="{ aspectRatio: aspect }">
                 <img :src="shot.keyframeUrl" alt="" loading="lazy" v-if="shot.keyframeUrl" />
@@ -173,48 +217,7 @@
                 </span>
               </div>
               <div class="p-3">
-                <template v-if="editing === shot.id">
-                  <q-input
-                    dark
-                    filled
-                    dense
-                    autogrow
-                    autofocus
-                    maxlength="600"
-                    v-model="draft"
-                    @keydown.enter.ctrl.prevent="saveShot(shot)"
-                    @keydown.esc="editing = null"
-                  />
-                  <div class="mt-1 text-[11px] text-grey-6">The still stays; the words guide how the shot moves.</div>
-                  <div class="flex justify-end gap-1 mt-2">
-                    <q-btn flat dense rounded no-caps size="sm" label="Cancel" class="flex-none! px-3" @click="editing = null" />
-                    <q-btn
-                      unelevated
-                      dense
-                      rounded
-                      no-caps
-                      size="sm"
-                      color="toneflix"
-                      text-color="dark"
-                      label="Save"
-                      class="flex-none! px-3"
-                      :loading="savingShot"
-                      :disable="draft.trim().length < 3"
-                      @click="saveShot(shot)"
-                    />
-                  </div>
-                </template>
-                <div class="flex items-start gap-2 no-wrap" v-else>
-                  <p class="flex-1 min-w-0 text-sm text-grey-4 shot__prompt">{{ shot.prompt }}</p>
-                  <IconBtn
-                    size="sm"
-                    icon="lucide-pencil"
-                    aria-label="Change this shot"
-                    class="flex-none!"
-                    @click="edit(shot)"
-                    v-if="video.status === 'storyboard'"
-                  />
-                </div>
+                <p class="text-sm text-grey-4 shot__prompt">{{ shot.prompt }}</p>
               </div>
             </div>
           </div>
@@ -230,26 +233,27 @@
 
 <script setup lang="ts">
 import { useMeta } from 'quasar';
-import Sortable, { type SortableEvent } from 'sortablejs';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import ShotEditor from 'src/components/Studio/ShotEditor.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notifyError } from 'src/utils/composer';
 import { notify } from 'src/utils/helpers';
 import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
+import { loadTrackRequest } from 'src/utils/requests/requests';
 import {
+  discardMusicVideoEditsRequest,
   loadMusicVideoRequest,
   renderMusicVideoRequest,
   retryStoryboardRequest,
-  reorderMusicVideoShotsRequest,
-  updateMusicVideoShotRequest,
   VIDEO_RATIOS,
   videoBusy,
   type MusicVideo,
   type MusicVideoShot,
   type MusicVideoStatus,
 } from 'src/utils/requests/videos';
+import { saveCost } from 'src/utils/video-strip';
 
 defineOptions({ name: 'MusicVideoPage' });
 
@@ -258,12 +262,14 @@ const boot = useBootstrapStore();
 
 const video = ref<MusicVideo | null>(null);
 const ai = ref<AiAccount | null>(null);
-const minutesLeft = ref(0);
+const secondsLeft = ref(0);
+const streamUrl = ref<string | null>(null);
 const rendering = ref(false);
-const editing = ref<number | null>(null);
-const draft = ref('');
-const savingShot = ref(false);
 const retrying = ref(false);
+const discarding = ref(false);
+const editingShots = ref(false);
+const pending = ref(false);
+const editor = ref<InstanceType<typeof ShotEditor> | null>(null);
 let poll: ReturnType<typeof setInterval> | undefined;
 
 const statusText: Record<MusicVideoStatus, string> = {
@@ -284,15 +290,19 @@ const gridClass = computed(() =>
   video.value?.ratio === '9:16' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
 );
 
-const paysWithMinutes = computed(() => !!video.value && minutesLeft.value >= video.value.minutes);
-/** Clips kept from an earlier render aren't paid for again */
-const renderCost = computed(() => {
-  const full = (ai.value?.costs.video ?? 0) * Math.max(1, video.value?.minutes ?? 1);
-  const shots = video.value?.shots ?? [];
-  const missing = shots.filter((shot) => !shot.rendered).length;
-  return shots.length ? Math.max(1, Math.ceil((full * missing) / shots.length)) : full;
-});
-const short = computed(() => !paysWithMinutes.value && !!ai.value && ai.value.balance.total < renderCost.value);
+/** The storyboard is always open to changes; a finished video opens them with Edit shots */
+const canEdit = computed(
+  () => !!video.value && (video.value.status === 'storyboard' || (video.value.status === 'ready' && editingShots.value)),
+);
+
+/** What saving costs: free when it only cuts the shots together again */
+const cost = computed(() =>
+  video.value ? saveCost(video.value, video.value.shots ?? [], ai.value?.costs.video ?? 0) : { shots: 0, seconds: 0, credits: 0 },
+);
+const paysWithMinutes = computed(() => cost.value.seconds > 0 && secondsLeft.value >= cost.value.seconds);
+const short = computed(
+  () => cost.value.credits > 0 && !paysWithMinutes.value && !!ai.value && ai.value.balance.total < cost.value.credits,
+);
 
 const missingStills = computed(() => video.value?.shots?.filter((shot) => !shot.keyframeUrl).length ?? 0);
 const retryCost = computed(() => {
@@ -312,47 +322,68 @@ const castOf = (shot: MusicVideoShot) =>
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
 
+/** Plan video time, like "1 min 20 s" */
+const planTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return [minutes ? `${minutes} min` : '', rest || !minutes ? `${rest} s` : ''].filter(Boolean).join(' ');
+};
+
 const load = async () => {
   try {
     const res = await loadMusicVideoRequest(String(route.params.video_id)).send();
     video.value = res.data;
-    minutesLeft.value = res.minutesLeft ?? 0;
+    secondsLeft.value = res.secondsLeft ?? (res.minutesLeft ?? 0) * 60;
+    if (res.data.status === 'ready' && res.data.edited) editingShots.value = true;
   } catch (e) {
     notifyError(e, "The music video couldn't be loaded.");
   }
 };
 
-const edit = (shot: MusicVideoShot) => {
-  editing.value = shot.id;
-  draft.value = shot.prompt;
+/** The song, so the editor's preview plays with sound */
+const loadSong = async (track: number) => {
+  try {
+    const res = await loadTrackRequest(String(track), { with: 'streamUrl' }).send();
+    streamUrl.value = res.streamUrl || null;
+  } catch {
+    streamUrl.value = null;
+  }
 };
 
-const saveShot = async (shot: MusicVideoShot) => {
-  if (!video.value || draft.value.trim().length < 3) return;
-  savingShot.value = true;
-  try {
-    const res = await updateMusicVideoShotRequest(video.value.id, shot.id, draft.value.trim()).send();
-    Object.assign(shot, res.data);
-    editing.value = null;
-  } catch (e) {
-    notifyError(e, "The shot couldn't be changed.");
-  } finally {
-    savingShot.value = false;
-  }
+const onSaved = (saved: MusicVideo) => {
+  video.value = saved;
 };
 
 const render = async () => {
   if (!video.value) return;
   rendering.value = true;
   try {
+    await editor.value?.flush();
     const res = await renderMusicVideoRequest(video.value.id).send();
     video.value = res.data;
+    editingShots.value = false;
     notify(res.message, 'success');
     void loadAccount();
   } catch (e) {
     notifyError(e, "The video couldn't be started.");
   } finally {
     rendering.value = false;
+  }
+};
+
+const discard = async () => {
+  if (!video.value) return;
+  discarding.value = true;
+  try {
+    await editor.value?.flush();
+    const res = await discardMusicVideoEditsRequest(video.value.id).send();
+    video.value = res.data;
+    editingShots.value = false;
+    notify(res.message, 'success');
+  } catch (e) {
+    notifyError(e, "The changes couldn't be discarded.");
+  } finally {
+    discarding.value = false;
   }
 };
 
@@ -377,6 +408,13 @@ const loadAccount = () =>
     .then((res) => (ai.value = res))
     .catch(() => (ai.value = null));
 
+watch(
+  () => video.value?.trackId,
+  (track) => {
+    if (track && !streamUrl.value) void loadSong(track);
+  },
+);
+
 onMounted(() => {
   void load();
   void loadAccount();
@@ -385,63 +423,7 @@ onMounted(() => {
   }, 8000);
 });
 
-/** Shots can be dragged into a new order until the video is rendered */
-const board = ref<HTMLElement | null>(null);
-const sortable = computed(() => video.value?.status === 'storyboard' && editing.value === null);
-let sorter: Sortable | null = null;
-
-/** Puts the dragged shot in its new place, in the time slot of that place */
-const reorder = async (from: number, to: number) => {
-  if (!video.value?.shots || from === to) return;
-  const before = video.value.shots;
-  const slots = before.map((shot) => [shot.start, shot.end] as const);
-  const moved = [...before];
-  moved.splice(to, 0, ...moved.splice(from, 1));
-  video.value.shots = moved.map((shot, i) => {
-    const [start, end] = slots[i]!;
-    return { ...shot, position: i + 1, start, end, rendered: shot.rendered && shot.start === start };
-  });
-  try {
-    const res = await reorderMusicVideoShotsRequest(video.value.id, moved.map((shot) => shot.id)).send();
-    video.value = res.data;
-  } catch (e) {
-    if (video.value) video.value.shots = before;
-    notifyError(e, "The shots couldn't be reordered.");
-  }
-};
-
-const onSorted = (e: SortableEvent) => {
-  const { item, from, oldIndex, newIndex } = e;
-  if (oldIndex === undefined || newIndex === undefined) return;
-  // Hand the DOM back to Vue, which redraws the list in its new order.
-  item.remove();
-  from.insertBefore(item, from.children[oldIndex] ?? null);
-  void reorder(oldIndex, newIndex);
-};
-
-watch(
-  board,
-  (el) => {
-    sorter?.destroy();
-    sorter = el
-      ? Sortable.create(el, {
-          animation: 150,
-          delay: 150,
-          delayOnTouchOnly: true,
-          ghostClass: 'shot--ghost',
-          disabled: !sortable.value,
-          onUpdate: onSorted,
-        })
-      : null;
-  },
-  { flush: 'post' },
-);
-watch(sortable, (on) => sorter?.option('disabled', !on));
-
-onBeforeUnmount(() => {
-  clearInterval(poll);
-  sorter?.destroy();
-});
+onBeforeUnmount(() => clearInterval(poll));
 
 useMeta(() => ({
   title: video.value?.track?.title ? `${video.value.track.title} music video` : 'Music video',
@@ -502,14 +484,6 @@ useMeta(() => ({
   border: 1px solid var(--tf-border-strong);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-surface-2);
-}
-
-.storyboard--sortable .shot {
-  cursor: grab;
-}
-
-.shot--ghost {
-  opacity: 0.35;
 }
 
 .cast {

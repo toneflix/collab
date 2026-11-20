@@ -1,5 +1,6 @@
 import { alova, axios } from 'src/boot/alova';
 import type { PageMeta, ResponseBody, Track } from '../models';
+import type { StripRow } from '../video-strip';
 
 export type VideoRatio = '16:9' | '9:16' | '1:1';
 
@@ -12,6 +13,15 @@ export const VIDEO_RATIOS: { value: VideoRatio; label: string; icon: string }[] 
 /** Where a video is: drawing its storyboard, waiting for a render, rendering, done or failed */
 export type MusicVideoStatus = 'planning' | 'storyboard' | 'rendering' | 'ready' | 'failed';
 
+/** How a still-only shot moves over its still */
+export type ShotMotion = 'zoom_in' | 'zoom_out' | 'pan';
+
+export const SHOT_MOTIONS: { value: ShotMotion; label: string; icon: string }[] = [
+  { value: 'zoom_in', label: 'Zoom in', icon: 'lucide-zoom-in' },
+  { value: 'zoom_out', label: 'Zoom out', icon: 'lucide-zoom-out' },
+  { value: 'pan', label: 'Pan', icon: 'lucide-move-horizontal' },
+];
+
 /** One shot of a storyboard: the singer performing a line, or a scene around the song */
 export type MusicVideoShot = {
   id: number;
@@ -22,10 +32,32 @@ export type MusicVideoShot = {
   prompt: string;
   /** The still the shot starts from, while its link lasts */
   keyframeUrl: string | null;
-  /** Whether a clip is kept for it, so a new render skips it */
+  /** Whether its take still fits, so saving doesn't render it again */
   rendered: boolean;
+  /** The take it plays */
+  takeId: number | null;
+  /** The take it plays, while its link lasts */
+  clipUrl: string | null;
+  /** Seconds into the take it starts */
+  offset: number;
+  /** Set when it shows its still with this motion instead of a take */
+  motion: ShotMotion | null;
   /** Keys of the characters seen in the shot */
   characters: string[];
+};
+
+/** A clip made for a shot; any shot of the video can play it */
+export type MusicVideoTake = {
+  id: number;
+  shotId: number | null;
+  source: 'ai' | 'upload';
+  length: number;
+  /** Song seconds a singing take was lip-synced to */
+  syncedFrom: number | null;
+  syncedTo: number | null;
+  prompt: string | null;
+  clipUrl: string;
+  createdAt: string;
 };
 
 /** Someone in the video, with the character sheet their stills are drawn from */
@@ -55,8 +87,11 @@ export type MusicVideo = {
   /** The finished video, while its link lasts */
   videoUrl: string | null;
   error: string | null;
+  /** Whether the shots changed since the video was last saved */
+  edited: boolean;
   characters?: MusicVideoCharacter[];
   shots?: MusicVideoShot[];
+  takes?: MusicVideoTake[];
   createdAt: string;
   finishedAt: string | null;
 };
@@ -65,6 +100,7 @@ export type MusicVideoPage = ResponseBody<MusicVideo[]> & {
   meta: PageMeta;
   /** Plan video minutes left this month */
   minutesLeft: number;
+  secondsLeft: number;
   /** Whether the plan lets people upload a photo of themselves */
   ownPhotos: boolean;
 };
@@ -97,7 +133,7 @@ export const loadMusicVideosRequest = (page = 1) =>
   });
 
 export const loadMusicVideoRequest = (id: number | string) =>
-  alova.Get<ResponseBody<MusicVideo> & { minutesLeft: number }>('creator/videos/' + id, {
+  alova.Get<ResponseBody<MusicVideo> & { minutesLeft: number; secondsLeft: number }>('creator/videos/' + id, {
     cacheFor: 0,
   });
 
@@ -167,5 +203,10 @@ export const loadTrackVideoRequest = (track: number | string) =>
       e.data && 'videoUrl' in e.data && e.data.videoUrl ? (e.data as TrackVideo) : null,
   });
 
-export const reorderMusicVideoShotsRequest = (video: number, shots: number[]) =>
-  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/order`, { shots });
+/** Saves the editor's whole strip of shots */
+export const saveMusicVideoShotsRequest = (video: number, shots: StripRow[]) =>
+  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots`, { shots });
+
+/** Puts the shots back as the finished video has them */
+export const discardMusicVideoEditsRequest = (video: number) =>
+  alova.Delete<ResponseBody<MusicVideo>>(`creator/videos/${video}/edit`);
