@@ -182,7 +182,10 @@ export const addMusicVideoTakeRequest = (video: number, shot: number, file: File
   data.append('file', file);
   data.append('consent', consent ? '1' : '0');
 
-  return alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/${shot}/takes`, data);
+  const request = axios.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/${shot}/takes`, data);
+  request.config.headers['Content-Type'] = 'multipart/form-data';
+
+  return request;
 };
 
 /** Draws a new still for one shot from its prompt */
