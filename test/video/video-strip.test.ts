@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { MusicVideo, MusicVideoShot, MusicVideoTake } from '../../src/utils/requests/videos';
-import { merge, move, needsClip, saveCost, split, takeOffset, toRows, trim, type StripShot } from '../../src/utils/video-strip';
+import { maxOffset, merge, move, needsClip, saveCost, setOffset, split, takeOffset, toRows, trim, type StripShot } from '../../src/utils/video-strip';
 
 const shot = (id: number, start: number, end: number, kind: MusicVideoShot['kind'], takeId: number | null): StripShot => ({
   id,
@@ -17,6 +17,7 @@ const shot = (id: number, start: number, end: number, kind: MusicVideoShot['kind
   clipUrl: null,
   offset: 0,
   motion: null,
+  drawing: false,
 });
 
 const take = (id: number, length: number, synced?: [number, number]): MusicVideoTake => ({
@@ -78,4 +79,18 @@ test('saving is free when nothing needs a clip and priced by seconds otherwise',
   assert.deepEqual(saveCost(video, strip, 190), { shots: 0, seconds: 0, credits: 0 });
   assert.deepEqual(saveCost(video, move(strip, 1, 0), 190), { shots: 1, seconds: 3, credits: 10 });
   assert.deepEqual(saveCost({ minutes: 1, takes: [] } as unknown as MusicVideo, strip, 190), { shots: 3, seconds: 60, credits: 190 });
+});
+
+test('b-roll slides through its take as far as it still fits', () => {
+  const takes = [take(1, 6), take(2, 4, [3, 7])];
+  const broll = shot(1, 0, 4, 'broll', 1);
+
+  assert.equal(maxOffset(broll, takes), 3);
+  assert.equal(maxOffset(shot(2, 3, 7, 'performance', 2), takes), null);
+  assert.equal(maxOffset({ ...broll, motion: 'pan' }, takes), null);
+
+  const slid = setOffset([broll], 0, 3);
+  assert.equal(slid[0]!.offset, 3);
+  assert.equal(needsClip(slid[0]!, takes), false);
+  assert.equal(needsClip(setOffset([broll], 0, 3.5)[0]!, takes), true);
 });

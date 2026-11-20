@@ -44,6 +44,8 @@ export type MusicVideoShot = {
   motion: ShotMotion | null;
   /** Keys of the characters seen in the shot */
   characters: string[];
+  /** Whether a new still is being drawn for it */
+  drawing: boolean;
 };
 
 /** A clip made for a shot; any shot of the video can play it */
@@ -173,6 +175,10 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
 
 export const updateMusicVideoShotRequest = (video: number, shot: number, prompt: string) =>
   alova.Put<ResponseBody<MusicVideoShot>>(`creator/videos/${video}/shots/${shot}`, { prompt });
+
+/** Draws a new still for one shot from its prompt */
+export const redrawMusicVideoStillRequest = (video: number, shot: number) =>
+  alova.Post<ResponseBody<MusicVideoShot>>(`creator/videos/${video}/shots/${shot}/still`);
 
 export const renderMusicVideoRequest = (video: number) =>
   alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/render`);
