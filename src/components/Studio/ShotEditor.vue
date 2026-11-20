@@ -155,6 +155,51 @@
         />
       </template>
 
+      <!-- The creator's own clip or image -->
+      <template v-if="ownPhotos">
+        <div class="mt-4 mb-1 text-xs font-semibold text-grey-5">Your own clip or image</div>
+        <input ref="fileEl" type="file" accept="video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp" hidden @change="pickFile" />
+        <div class="flex items-center gap-2" v-if="!upload">
+          <q-btn
+            outline
+            dense
+            rounded
+            no-caps
+            size="sm"
+            icon="lucide-upload"
+            label="Choose a file"
+            class="flex-none! px-3"
+            :disable="shot.id < 0 || shot.drawing"
+            @click="fileEl?.click()"
+          />
+          <span class="text-[11px] text-grey-6">A clip plays in the shot; an image becomes its still.</span>
+        </div>
+        <div class="upload" v-else>
+          <div class="flex items-center gap-2 no-wrap">
+            <q-icon :name="upload.type.startsWith('image/') ? 'lucide-image' : 'lucide-film'" size="16px" class="flex-none!" />
+            <span class="flex-1 min-w-0 ellipsis text-sm">{{ upload.name }}</span>
+            <IconBtn size="sm" icon="lucide-x" aria-label="Choose another file" :disable="uploading" @click="upload = null" />
+          </div>
+          <q-checkbox dark dense color="toneflix" class="mt-2" label="This is mine, or I have the right to use it" v-model="consent" />
+          <div class="flex justify-end mt-2">
+            <q-btn
+              unelevated
+              dense
+              rounded
+              no-caps
+              size="sm"
+              color="toneflix"
+              text-color="dark"
+              label="Add to the shot"
+              class="flex-none! px-3"
+              :loading="uploading"
+              :disable="!consent"
+              @click="addUpload"
+            />
+          </div>
+        </div>
+      </template>
+
       <!-- Takes -->
       <template v-if="choices.length">
         <div class="mt-4 mb-1 text-xs font-semibold text-grey-5">Takes</div>
@@ -185,6 +230,7 @@ import { notifyError } from 'src/utils/composer';
 import {
   saveMusicVideoShotsRequest,
   SHOT_MOTIONS,
+  addMusicVideoTakeRequest,
   redrawMusicVideoStillRequest,
   updateMusicVideoShotRequest,
   type MusicVideo,
@@ -210,6 +256,8 @@ const props = defineProps<{
   video: MusicVideo;
   /** Credits a minute of new stills costs */
   stillCredits?: number;
+  /** Whether the plan takes the creator's own clips and images */
+  ownPhotos?: boolean;
   /** The song, so the preview plays with sound */
   streamUrl?: string | null;
 }>();
@@ -230,6 +278,10 @@ const editingPrompt = ref(false);
 const draft = ref('');
 const savingPrompt = ref(false);
 const redrawing = ref(false);
+const upload = ref<File | null>(null);
+const consent = ref(false);
+const uploading = ref(false);
+const fileEl = ref<HTMLInputElement | null>(null);
 
 const clipEl = ref<HTMLVideoElement | null>(null);
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -383,6 +435,31 @@ const redrawStill = async () => {
     notifyError(e, "A new still couldn't be drawn.");
   } finally {
     redrawing.value = false;
+  }
+};
+
+const pickFile = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  upload.value = input.files?.[0] ?? null;
+  consent.value = false;
+  input.value = '';
+};
+
+const addUpload = async () => {
+  const s = shot.value;
+  if (!s || !upload.value || s.id < 0) return;
+  uploading.value = true;
+  try {
+    await flush();
+    const res = await addMusicVideoTakeRequest(props.video.id, s.id, upload.value, consent.value).send();
+
+    strip.value = (res.data.shots ?? []).map((other) => ({ ...other }));
+    upload.value = null;
+    emit('saved', res.data);
+  } catch (e) {
+    notifyError(e, "The file couldn't be added.");
+  } finally {
+    uploading.value = false;
   }
 };
 
@@ -754,6 +831,12 @@ onBeforeUnmount(() => {
 .show-toggle {
   flex-wrap: wrap;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.upload {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--tf-border);
 }
 
 .takes {

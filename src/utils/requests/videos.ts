@@ -135,7 +135,7 @@ export const loadMusicVideosRequest = (page = 1) =>
   });
 
 export const loadMusicVideoRequest = (id: number | string) =>
-  alova.Get<ResponseBody<MusicVideo> & { minutesLeft: number; secondsLeft: number }>('creator/videos/' + id, {
+  alova.Get<ResponseBody<MusicVideo> & { minutesLeft: number; secondsLeft: number; ownPhotos?: boolean }>('creator/videos/' + id, {
     cacheFor: 0,
   });
 
@@ -175,6 +175,15 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
 
 export const updateMusicVideoShotRequest = (video: number, shot: number, prompt: string) =>
   alova.Put<ResponseBody<MusicVideoShot>>(`creator/videos/${video}/shots/${shot}`, { prompt });
+
+/** Uses the creator's own clip as a take of a shot, or their image as its still */
+export const addMusicVideoTakeRequest = (video: number, shot: number, file: File, consent: boolean) => {
+  const data = new FormData();
+  data.append('file', file);
+  data.append('consent', consent ? '1' : '0');
+
+  return alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/${shot}/takes`, data);
+};
 
 /** Draws a new still for one shot from its prompt */
 export const redrawMusicVideoStillRequest = (video: number, shot: number) =>

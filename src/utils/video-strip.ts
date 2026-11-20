@@ -30,8 +30,9 @@ let nextId = -1;
 
 /**
  * Whether a shot needs a new clip before the video can be saved, the same
- * rule the API applies: no take, a singing shot outside the lines its take
- * was synced to, or a b-roll take too short for the shot.
+ * rule the API applies: no take, a singing shot outside the lines its
+ * rendered take was synced to, or a b-roll or uploaded take too short for
+ * the shot.
  */
 export const needsClip = (shot: StripShot, takes: MusicVideoTake[]) => {
   if (shot.motion) return false;
@@ -39,7 +40,7 @@ export const needsClip = (shot: StripShot, takes: MusicVideoTake[]) => {
   const take = takes.find((t) => t.id === shot.takeId);
   if (!take) return true;
 
-  if (shot.kind === 'performance') {
+  if (shot.kind === 'performance' && take.source !== 'upload') {
     return take.syncedFrom === null || take.syncedTo === null || shot.start < take.syncedFrom - 0.01 || shot.end > take.syncedTo + 0.01;
   }
 
@@ -121,11 +122,11 @@ export const useTake = (shots: StripShot[], i: number, take: MusicVideoTake): St
   shots.map((shot, n) => (n === i ? { ...shot, takeId: take.id, offset: 0, motion: null } : shot));
 
 /**
- * The furthest into its take a b-roll shot can start and still not need a
- * new clip; null when the shot has no b-roll take to slide.
+ * The furthest into its take a shot can start and still not need a new
+ * clip; null when its take is lip-synced or it shows its still.
  */
 export const maxOffset = (shot: StripShot, takes: MusicVideoTake[]) => {
-  if (shot.motion || shot.kind !== 'broll') return null;
+  if (shot.motion) return null;
   const take = takes.find((t) => t.id === shot.takeId);
   if (!take || take.syncedFrom !== null) return null;
   return round(Math.max(0, take.length + HOLD - (shot.end - shot.start)));

@@ -163,6 +163,7 @@
           class="mb-8"
           :video="video"
           :still-credits="ai?.costs.videoStoryboard ?? 0"
+          :own-photos="ownPhotos"
           :stream-url="streamUrl"
           @saved="onSaved"
           @pending="pending = $event"
@@ -283,6 +284,7 @@ const statusText: Record<MusicVideoStatus, string> = {
 };
 
 const busy = computed(() => !!video.value && videoBusy(video.value));
+const ownPhotos = ref(false);
 const drawing = computed(() => !!video.value?.shots?.some((shot) => shot.drawing));
 const aspect = computed(() => (video.value?.ratio ?? '16:9').replace(':', ' / '));
 const ratioLabel = computed(() => {
@@ -337,6 +339,7 @@ const load = async () => {
     const res = await loadMusicVideoRequest(String(route.params.video_id)).send();
     video.value = res.data;
     secondsLeft.value = res.secondsLeft ?? (res.minutesLeft ?? 0) * 60;
+    ownPhotos.value = !!res.ownPhotos;
     if (res.data.status === 'ready' && res.data.edited) editingShots.value = true;
   } catch (e) {
     notifyError(e, "The music video couldn't be loaded.");
