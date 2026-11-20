@@ -36,6 +36,19 @@
           />
           <div class="flex justify-end gap-2 mt-3">
             <q-btn
+              flat
+              rounded
+              no-caps
+              icon="lucide-refresh-cw"
+              label="Resync"
+              class="flex-none!"
+              :loading="rendering"
+              @click="render"
+              v-if="!video.edited"
+            >
+              <q-tooltip>Cut the shots over the song again, free. Fixes a video that drifts out of sync.</q-tooltip>
+            </q-btn>
+            <q-btn
               outline
               rounded
               no-caps
