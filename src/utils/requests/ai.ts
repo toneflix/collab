@@ -50,6 +50,8 @@ export type AiConfig = {
     artwork?: number;
     /** Music video storyboard and render, per started minute of the song */
     videoStoryboard?: number;
+    /** Storyboard of a video shot in a few locations, per started minute */
+    videoLocationStoryboard?: number;
     video?: number;
     composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
   };

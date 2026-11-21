@@ -76,6 +76,25 @@
             />
           </div>
 
+          <div>
+            <div class="mb-1 text-xs text-grey-5">Style</div>
+            <q-btn-toggle
+              dark
+              spread
+              no-caps
+              rounded
+              unelevated
+              toggle-color="toneflix"
+              toggle-text-color="dark"
+              color="transparent"
+              dense
+              class="ratio-toggle w-full"
+              :options="modeOptions"
+              v-model="form.mode"
+            />
+            <div class="mt-1 text-xs text-grey-6">{{ modeCaption }}</div>
+          </div>
+
           <q-input
             dark
             filled
@@ -246,8 +265,11 @@ import type { AiAccount } from 'src/utils/requests/ai';
 import {
   createMusicVideoRequest,
   loadOwnTracksRequest,
+  storyboardRate,
+  VIDEO_MODES,
   VIDEO_RATIOS,
   type MusicVideo,
+  type VideoMode,
   type VideoRatio,
 } from 'src/utils/requests/videos';
 
@@ -267,6 +289,8 @@ const ratioOptions = VIDEO_RATIOS.map((r) => ({
   icon: r.icon,
 }));
 
+const modeOptions = VIDEO_MODES.map((m) => ({ label: m.label, value: m.value }));
+
 const track = ref<Track | null>(null);
 const tracks = ref<Track[]>([]);
 const searching = ref(false);
@@ -275,6 +299,7 @@ const errors = ref<Record<string, string>>({});
 
 const form = reactive({
   ratio: '16:9' as VideoRatio,
+  mode: 'locations' as VideoMode,
   brief: '',
   photo: null as File | null,
   useSheets: false,
@@ -337,7 +362,8 @@ const sheetError = computed(
 );
 
 const minutes = computed(() => Math.max(1, Math.ceil((track.value?.duration ?? 60) / 60)));
-const storyboardCost = computed(() => (props.ai.costs.videoStoryboard ?? 0) * minutes.value);
+const storyboardCost = computed(() => storyboardRate(props.ai.costs, form.mode) * minutes.value);
+const modeCaption = computed(() => VIDEO_MODES.find((m) => m.value === form.mode)?.caption ?? '');
 const short = computed(() => !!track.value && props.ai.balance.total < storyboardCost.value);
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
@@ -389,6 +415,7 @@ const submit = async () => {
         : undefined;
     const res = await createMusicVideoRequest(String(track.value.slug), {
       ratio: form.ratio,
+      mode: form.mode,
       brief: form.brief.trim(),
       photo: step.value === 2 ? null : form.photo,
       characters,

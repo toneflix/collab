@@ -10,6 +10,21 @@ export const VIDEO_RATIOS: { value: VideoRatio; label: string; icon: string }[] 
   { value: '1:1', label: 'Square', icon: 'lucide-square' },
 ];
 
+/** How a storyboard is planned: a few locations, or a new story scene every few seconds */
+export type VideoMode = 'locations' | 'legacy';
+
+export const VIDEO_MODES: { value: VideoMode; label: string; caption: string }[] = [
+  { value: 'locations', label: 'Locations', caption: 'Shot in 2 or 3 places, like most music videos' },
+  { value: 'legacy', label: 'Legacy story', caption: 'A new story scene every few seconds' },
+];
+
+/** A place a locations storyboard is shot in */
+export type MusicVideoLocation = {
+  key: string;
+  name: string;
+  setting: string;
+};
+
 /** Where a video is: drawing its storyboard, waiting for a render, rendering, done or failed */
 export type MusicVideoStatus = 'planning' | 'storyboard' | 'rendering' | 'ready' | 'failed';
 
@@ -30,6 +45,10 @@ export type MusicVideoShot = {
   end: number;
   kind: 'performance' | 'broll';
   prompt: string;
+  /** Key of the location the shot is in */
+  location?: string | null;
+  /** Shots with the same frame start from one shared still */
+  frame?: string | null;
   /** The still the shot starts from, while its link lasts */
   keyframeUrl: string | null;
   /** Whether its take still fits, so saving doesn't render it again */
@@ -79,6 +98,8 @@ export type MusicVideo = {
   track?: { id: number; slug: string; title: string };
   status: MusicVideoStatus;
   ratio: VideoRatio;
+  mode: VideoMode;
+  locations?: MusicVideoLocation[];
   brief: string | null;
   hasPortrait: boolean;
   /** The song's length in seconds */
@@ -117,6 +138,7 @@ export type CharacterSheetUpload = {
 
 export type NewMusicVideo = {
   ratio: VideoRatio;
+  mode: VideoMode;
   brief?: string;
   photo?: File | null;
   /** The creator's own character sheets; none are drawn when given */
@@ -150,11 +172,12 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   const url = `creator/tracks/${track}/videos`;
 
   if (!form.photo && !form.characters?.length) {
-    return alova.Post<ResponseBody<MusicVideo>>(url, { ratio: form.ratio, brief: form.brief || undefined });
+    return alova.Post<ResponseBody<MusicVideo>>(url, { ratio: form.ratio, mode: form.mode, brief: form.brief || undefined });
   }
 
   const data = new FormData();
   data.append('ratio', form.ratio);
+  data.append('mode', form.mode);
   data.append('consent', form.consent ? '1' : '0');
   if (form.brief) data.append('brief', form.brief);
   if (form.characters?.length) {
@@ -228,3 +251,7 @@ export const saveMusicVideoShotsRequest = (video: number, shots: StripRow[]) =>
 /** Puts the shots back as the finished video has them */
 export const discardMusicVideoEditsRequest = (video: number) =>
   alova.Delete<ResponseBody<MusicVideo>>(`creator/videos/${video}/edit`);
+
+/** Credits a storyboard of this mode costs per started minute of the song */
+export const storyboardRate = (costs: { videoStoryboard?: number; videoLocationStoryboard?: number }, mode: VideoMode) =>
+  (mode === 'locations' ? costs.videoLocationStoryboard : costs.videoStoryboard) ?? 0;
