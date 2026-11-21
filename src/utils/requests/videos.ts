@@ -4,7 +4,11 @@ import type { StripRow } from '../video-strip';
 
 export type VideoRatio = '16:9' | '9:16' | '1:1';
 
-export const VIDEO_RATIOS: { value: VideoRatio; label: string; icon: string }[] = [
+export const VIDEO_RATIOS: {
+  value: VideoRatio;
+  label: string;
+  icon: string;
+}[] = [
   { value: '16:9', label: 'Wide', icon: 'lucide-rectangle-horizontal' },
   { value: '9:16', label: 'Tall', icon: 'lucide-rectangle-vertical' },
   { value: '1:1', label: 'Square', icon: 'lucide-square' },
@@ -13,9 +17,41 @@ export const VIDEO_RATIOS: { value: VideoRatio; label: string; icon: string }[] 
 /** How a storyboard is planned: a few locations, or a new story scene every few seconds */
 export type VideoMode = 'locations' | 'legacy';
 
-export const VIDEO_MODES: { value: VideoMode; label: string; caption: string }[] = [
-  { value: 'locations', label: 'Locations', caption: 'Shot in 2 or 3 places, like most music videos' },
-  { value: 'legacy', label: 'Legacy story', caption: 'A new story scene every few seconds' },
+export const VIDEO_MODES: {
+  value: VideoMode;
+  label: string;
+  caption: string;
+}[] = [
+  {
+    value: 'locations',
+    label: 'Locations',
+    caption: 'Shot in 2 or 3 places, like most music videos',
+  },
+  {
+    value: 'legacy',
+    label: 'Legacy story',
+    caption: 'A new story scene every few seconds',
+  },
+];
+
+/** Which models render the video; advanced is more lifelike and costs more */
+export type VideoQuality = 'standard' | 'advanced';
+
+export const VIDEO_QUALITIES: {
+  value: VideoQuality;
+  label: string;
+  caption: string;
+}[] = [
+  {
+    value: 'standard',
+    label: 'Standard',
+    caption: 'Good singing and motion at the usual price',
+  },
+  {
+    value: 'advanced',
+    label: 'Advanced',
+    caption: 'More lifelike singing and motion',
+  },
 ];
 
 /** A place a locations storyboard is shot in */
@@ -26,12 +62,17 @@ export type MusicVideoLocation = {
 };
 
 /** Where a video is: drawing its storyboard, waiting for a render, rendering, done or failed */
-export type MusicVideoStatus = 'planning' | 'storyboard' | 'rendering' | 'ready' | 'failed';
+export type MusicVideoStatus =
+  'planning' | 'storyboard' | 'rendering' | 'ready' | 'failed';
 
 /** How a still-only shot moves over its still */
 export type ShotMotion = 'zoom_in' | 'zoom_out' | 'pan';
 
-export const SHOT_MOTIONS: { value: ShotMotion; label: string; icon: string }[] = [
+export const SHOT_MOTIONS: {
+  value: ShotMotion;
+  label: string;
+  icon: string;
+}[] = [
   { value: 'zoom_in', label: 'Zoom in', icon: 'lucide-zoom-in' },
   { value: 'zoom_out', label: 'Zoom out', icon: 'lucide-zoom-out' },
   { value: 'pan', label: 'Pan', icon: 'lucide-move-horizontal' },
@@ -99,6 +140,7 @@ export type MusicVideo = {
   status: MusicVideoStatus;
   ratio: VideoRatio;
   mode: VideoMode;
+  quality: VideoQuality;
   locations?: MusicVideoLocation[];
   brief: string | null;
   hasPortrait: boolean;
@@ -126,6 +168,8 @@ export type MusicVideoPage = ResponseBody<MusicVideo[]> & {
   secondsLeft: number;
   /** Whether the plan lets people upload a photo of themselves */
   ownPhotos: boolean;
+  /** Whether the plan includes advanced videos */
+  advanced?: boolean;
 };
 
 /** A character sheet the creator uploads, tagged with who it shows */
@@ -139,6 +183,7 @@ export type CharacterSheetUpload = {
 export type NewMusicVideo = {
   ratio: VideoRatio;
   mode: VideoMode;
+  quality: VideoQuality;
   brief?: string;
   photo?: File | null;
   /** The creator's own character sheets; none are drawn when given */
@@ -157,7 +202,13 @@ export const loadMusicVideosRequest = (page = 1) =>
   });
 
 export const loadMusicVideoRequest = (id: number | string) =>
-  alova.Get<ResponseBody<MusicVideo> & { minutesLeft: number; secondsLeft: number; ownPhotos?: boolean }>('creator/videos/' + id, {
+  alova.Get<
+    ResponseBody<MusicVideo> & {
+      minutesLeft: number;
+      secondsLeft: number;
+      ownPhotos?: boolean;
+    }
+  >('creator/videos/' + id, {
     cacheFor: 0,
   });
 
@@ -172,12 +223,18 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   const url = `creator/tracks/${track}/videos`;
 
   if (!form.photo && !form.characters?.length) {
-    return alova.Post<ResponseBody<MusicVideo>>(url, { ratio: form.ratio, mode: form.mode, brief: form.brief || undefined });
+    return alova.Post<ResponseBody<MusicVideo>>(url, {
+      ratio: form.ratio,
+      mode: form.mode,
+      quality: form.quality,
+      brief: form.brief || undefined,
+    });
   }
 
   const data = new FormData();
   data.append('ratio', form.ratio);
   data.append('mode', form.mode);
+  data.append('quality', form.quality);
   data.append('consent', form.consent ? '1' : '0');
   if (form.brief) data.append('brief', form.brief);
   if (form.characters?.length) {
@@ -185,7 +242,8 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
       data.append(`characters[${i}][name]`, character.name);
       data.append(`characters[${i}][singer]`, character.singer ? '1' : '0');
       data.append(`characters[${i}][sheet]`, character.sheet);
-      if (character.description) data.append(`characters[${i}][description]`, character.description);
+      if (character.description)
+        data.append(`characters[${i}][description]`, character.description);
     });
   } else if (form.photo) {
     data.append('photo', form.photo);
@@ -196,16 +254,31 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   return request;
 };
 
-export const updateMusicVideoShotRequest = (video: number, shot: number, prompt: string) =>
-  alova.Put<ResponseBody<MusicVideoShot>>(`creator/videos/${video}/shots/${shot}`, { prompt });
+export const updateMusicVideoShotRequest = (
+  video: number,
+  shot: number,
+  prompt: string,
+) =>
+  alova.Put<ResponseBody<MusicVideoShot>>(
+    `creator/videos/${video}/shots/${shot}`,
+    { prompt },
+  );
 
 /** Uses the creator's own clip as a take of a shot, or their image as its still */
-export const addMusicVideoTakeRequest = (video: number, shot: number, file: File, consent: boolean) => {
+export const addMusicVideoTakeRequest = (
+  video: number,
+  shot: number,
+  file: File,
+  consent: boolean,
+) => {
   const data = new FormData();
   data.append('file', file);
   data.append('consent', consent ? '1' : '0');
 
-  const request = axios.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots/${shot}/takes`, data);
+  const request = axios.Post<ResponseBody<MusicVideo>>(
+    `creator/videos/${video}/shots/${shot}/takes`,
+    data,
+  );
   request.config.headers['Content-Type'] = 'multipart/form-data';
 
   return request;
@@ -213,7 +286,9 @@ export const addMusicVideoTakeRequest = (video: number, shot: number, file: File
 
 /** Draws a new still for one shot from its prompt */
 export const redrawMusicVideoStillRequest = (video: number, shot: number) =>
-  alova.Post<ResponseBody<MusicVideoShot>>(`creator/videos/${video}/shots/${shot}/still`);
+  alova.Post<ResponseBody<MusicVideoShot>>(
+    `creator/videos/${video}/shots/${shot}/still`,
+  );
 
 export const renderMusicVideoRequest = (video: number) =>
   alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/render`);
@@ -241,17 +316,45 @@ export const loadTrackVideoRequest = (track: number | string) =>
     // Its links last hours, so a track seen again in the queue doesn't ask twice
     cacheFor: 10 * 60 * 1000,
     transform: (e: ResponseBody<TrackVideo | Record<string, never>>) =>
-      e.data && 'videoUrl' in e.data && e.data.videoUrl ? (e.data as TrackVideo) : null,
+      e.data && 'videoUrl' in e.data && e.data.videoUrl
+        ? (e.data as TrackVideo)
+        : null,
   });
 
 /** Saves the editor's whole strip of shots */
 export const saveMusicVideoShotsRequest = (video: number, shots: StripRow[]) =>
-  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots`, { shots });
+  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/shots`, {
+    shots,
+  });
 
 /** Puts the shots back as the finished video has them */
 export const discardMusicVideoEditsRequest = (video: number) =>
   alova.Delete<ResponseBody<MusicVideo>>(`creator/videos/${video}/edit`);
 
 /** Credits a storyboard of this mode costs per started minute of the song */
-export const storyboardRate = (costs: { videoStoryboard?: number; videoLocationStoryboard?: number }, mode: VideoMode) =>
-  (mode === 'locations' ? costs.videoLocationStoryboard : costs.videoStoryboard) ?? 0;
+export const storyboardRate = (
+  costs: { videoStoryboard?: number; videoLocationStoryboard?: number },
+  mode: VideoMode,
+) =>
+  (mode === 'locations'
+    ? costs.videoLocationStoryboard
+    : costs.videoStoryboard) ?? 0;
+
+type RenderCosts = {
+  video?: number;
+  videoAdvanced?: number;
+  videoAdvancedMinutes?: number;
+};
+
+/** Credits rendering at this quality costs per minute of video */
+export const renderRate = (
+  costs: RenderCosts,
+  quality: VideoQuality = 'standard',
+) => (quality === 'advanced' ? costs.videoAdvanced : costs.video) ?? 0;
+
+/** Plan video seconds one second rendered at this quality uses */
+export const minuteRate = (
+  costs: RenderCosts,
+  quality: VideoQuality = 'standard',
+) =>
+  quality === 'advanced' ? Math.max(1, costs.videoAdvancedMinutes ?? 1) : 1;

@@ -1,7 +1,10 @@
 <template>
   <q-page class="p-4">
     <div class="max-w-full mx-auto md:max-w-4xl lg:max-w-5xl">
-      <router-link :to="{ name: 'studio.videos' }" class="inline-flex items-center gap-1 mb-3 text-sm text-grey-5">
+      <router-link
+        :to="{ name: 'studio.videos' }"
+        class="inline-flex items-center gap-1 mb-3 text-sm text-grey-5"
+      >
         <q-icon name="lucide-arrow-left" size="16px" /> Music videos
       </router-link>
 
@@ -9,12 +12,26 @@
 
       <template v-else>
         <div class="flex items-center gap-3 mb-1 no-wrap">
-          <h4 class="text-xl font-semibold md:text-2xl flex-initial! min-w-0 truncate">{{ video.track?.title ?? 'Music video' }}</h4>
-          <span class="status-badge flex-none!" :class="`status-badge--${video.status}`">{{ statusText[video.status] }}</span>
+          <h4
+            class="text-xl font-semibold md:text-2xl flex-initial! min-w-0 truncate"
+          >
+            {{ video.track?.title ?? 'Music video' }}
+          </h4>
+          <span
+            class="status-badge flex-none!"
+            :class="`status-badge--${video.status}`"
+            >{{ statusText[video.status] }}</span
+          >
         </div>
         <p class="mb-6 text-sm text-grey-5">
-          {{ ratioLabel }}<template v-if="video.shots?.length"> · {{ video.shots.length }} shots</template>
-          <template v-if="video.duration"> · {{ clock(video.duration) }}</template>
+          {{ ratioLabel
+          }}<template v-if="video.quality === 'advanced'"> · Advanced</template
+          ><template v-if="video.shots?.length">
+            · {{ video.shots.length }} shots</template
+          >
+          <template v-if="video.duration">
+            · {{ clock(video.duration) }}</template
+          >
           <template v-if="video.brief"> · “{{ video.brief }}”</template>
         </p>
 
@@ -24,7 +41,10 @@
         </div>
 
         <!-- The finished video -->
-        <div class="mb-8" v-if="video.status === 'ready' && video.videoUrl && !editingShots">
+        <div
+          class="mb-8"
+          v-if="video.status === 'ready' && video.videoUrl && !editingShots"
+        >
           <video
             controls
             playsinline
@@ -46,7 +66,10 @@
               @click="render"
               v-if="!video.edited"
             >
-              <q-tooltip>Cut the shots over the song again, free. Fixes a video that drifts out of sync.</q-tooltip>
+              <q-tooltip
+                >Cut the shots over the song again, free. Fixes a video that
+                drifts out of sync.</q-tooltip
+              >
             </q-btn>
             <q-btn
               outline
@@ -78,25 +101,39 @@
         <div class="notice mb-6" v-if="busy">
           <q-spinner-dots size="20px" color="toneflix" class="flex-none!" />
           <span v-if="video.status === 'planning'">
-            Planning the shots on the beat and drawing a still for each one. This takes a few minutes.
+            Planning the shots on the beat and drawing a still for each one.
+            This takes a few minutes.
           </span>
           <span v-else>
-            Making the video. A song of a few minutes takes around half an hour. You can leave this page and come back.
+            Making the video. A song of a few minutes takes around half an hour.
+            You can leave this page and come back.
           </span>
         </div>
 
         <!-- Retry a failed storyboard -->
         <div class="render-bar mb-6" v-if="video.status === 'failed'">
           <div class="min-w-0">
-            <div class="font-semibold">{{ missingStills ? 'Draw the missing scenes' : 'Draw the storyboard again' }}</div>
+            <div class="font-semibold">
+              {{
+                missingStills
+                  ? 'Draw the missing scenes'
+                  : 'Draw the storyboard again'
+              }}
+            </div>
             <div class="text-xs text-grey-5">
               <template v-if="missingStills">
-                Scenes already drawn are kept; only the {{ missingStills }} missing
+                Scenes already drawn are kept; only the
+                {{ missingStills }} missing
                 {{ missingStills === 1 ? 'one is' : 'ones are' }} drawn again.
               </template>
-              {{ retryCost.toLocaleString() }} credits<template v-if="ai"> · {{ ai.balance.total.toLocaleString() }} left</template>
+              {{ retryCost.toLocaleString() }} credits<template v-if="ai">
+                · {{ ai.balance.total.toLocaleString() }} left</template
+              >
               <template v-if="retryShort">
-                · <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
+                ·
+                <router-link :to="{ name: 'studio.credits' }"
+                  >Get credits</router-link
+                >
               </template>
             </div>
           </div>
@@ -118,18 +155,35 @@
         <!-- Save bar -->
         <div class="render-bar mb-6" v-if="canEdit">
           <div class="min-w-0">
-            <div class="font-semibold">{{ video.status === 'storyboard' ? 'Happy with the storyboard?' : 'Save your changes' }}</div>
+            <div class="font-semibold">
+              {{
+                video.status === 'storyboard'
+                  ? 'Happy with the storyboard?'
+                  : 'Save your changes'
+              }}
+            </div>
             <div class="text-xs text-grey-5">
-              <template v-if="cost.seconds === 0">Free. Your shots are cut together again; nothing is redrawn.</template>
+              <template v-if="cost.seconds === 0"
+                >Free. Your shots are cut together again; nothing is
+                redrawn.</template
+              >
               <template v-else-if="paysWithMinutes">
-                Makes {{ cost.shots }} {{ cost.shots === 1 ? 'shot' : 'shots' }} · uses {{ planTime(cost.seconds) }} of your
+                Makes {{ cost.shots }}
+                {{ cost.shots === 1 ? 'shot' : 'shots' }} · uses
+                {{ planTime(planSeconds) }} of your
                 {{ planTime(secondsLeft) }} video time.
               </template>
               <template v-else>
-                Makes {{ cost.shots }} {{ cost.shots === 1 ? 'shot' : 'shots' }} · {{ cost.credits.toLocaleString() }} credits<template v-if="ai">
-                  · {{ ai.balance.total.toLocaleString() }} left</template>
+                Makes {{ cost.shots }}
+                {{ cost.shots === 1 ? 'shot' : 'shots' }} ·
+                {{ cost.credits.toLocaleString() }} credits<template v-if="ai">
+                  · {{ ai.balance.total.toLocaleString() }} left</template
+                >
                 <template v-if="short">
-                  · <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
+                  ·
+                  <router-link :to="{ name: 'studio.credits' }"
+                    >Get credits</router-link
+                  >
                 </template>
               </template>
             </div>
@@ -161,11 +215,19 @@
               no-caps
               color="toneflix"
               text-color="dark"
-              :icon="video.status === 'storyboard' ? 'lucide-clapperboard' : 'lucide-save'"
-              :label="video.status === 'storyboard' ? 'Make the video' : 'Save video'"
+              :icon="
+                video.status === 'storyboard'
+                  ? 'lucide-clapperboard'
+                  : 'lucide-save'
+              "
+              :label="
+                video.status === 'storyboard' ? 'Make the video' : 'Save video'
+              "
               class="flex-none!"
               :loading="rendering"
-              :disable="short || pending || (video.status === 'ready' && !video.edited)"
+              :disable="
+                short || pending || (video.status === 'ready' && !video.edited)
+              "
               @click="render"
             />
           </div>
@@ -186,9 +248,16 @@
         <!-- Cast -->
         <template v-if="video.characters?.length">
           <h5 class="mb-1 text-base font-semibold">Cast</h5>
-          <p class="mb-3 text-xs text-grey-5">Every still of a character is drawn from their sheet, so they look the same in each shot.</p>
+          <p class="mb-3 text-xs text-grey-5">
+            Every still of a character is drawn from their sheet, so they look
+            the same in each shot.
+          </p>
           <div class="grid gap-3 mb-8 grid-cols-2 lg:grid-cols-3">
-            <div class="cast" :key="character.id" v-for="character in video.characters">
+            <div
+              class="cast"
+              :key="character.id"
+              v-for="character in video.characters"
+            >
               <a
                 class="cast__sheet"
                 target="_blank"
@@ -196,18 +265,38 @@
                 :href="character.sheetUrl"
                 v-if="character.sheetUrl"
               >
-                <img :src="character.sheetUrl" :alt="`${character.name} character sheet`" loading="lazy" />
+                <img
+                  :src="character.sheetUrl"
+                  :alt="`${character.name} character sheet`"
+                  loading="lazy"
+                />
               </a>
               <div class="cast__sheet" v-else>
                 <q-spinner-dots size="20px" color="toneflix" v-if="busy" />
-                <q-icon name="lucide-image-off" size="24px" class="text-grey-7" v-else />
+                <q-icon
+                  name="lucide-image-off"
+                  size="24px"
+                  class="text-grey-7"
+                  v-else
+                />
               </div>
               <div class="p-3">
-                <div class="flex items-center gap-2 text-sm font-semibold no-wrap">
-                  <q-icon name="lucide-mic-vocal" size="14px" class="flex-none! text-toneflix" v-if="character.singer" />
+                <div
+                  class="flex items-center gap-2 text-sm font-semibold no-wrap"
+                >
+                  <q-icon
+                    name="lucide-mic-vocal"
+                    size="14px"
+                    class="flex-none! text-toneflix"
+                    v-if="character.singer"
+                  />
                   <span class="truncate">{{ character.name }}</span>
                 </div>
-                <div class="mt-1 text-xs text-grey-5 line-clamp-2 sm:line-clamp-3">{{ character.description }}</div>
+                <div
+                  class="mt-1 text-xs text-grey-5 line-clamp-2 sm:line-clamp-3"
+                >
+                  {{ character.description }}
+                </div>
               </div>
             </div>
           </div>
@@ -219,31 +308,66 @@
           <div class="grid gap-3" :class="gridClass">
             <div class="shot" :key="shot.id" v-for="shot in video.shots">
               <div class="shot__still" :style="{ aspectRatio: aspect }">
-                <img :src="shot.keyframeUrl" alt="" loading="lazy" v-if="shot.keyframeUrl" />
-                <q-icon name="lucide-image-off" size="24px" class="text-grey-7" v-else />
+                <img
+                  :src="shot.keyframeUrl"
+                  alt=""
+                  loading="lazy"
+                  v-if="shot.keyframeUrl"
+                />
+                <q-icon
+                  name="lucide-image-off"
+                  size="24px"
+                  class="text-grey-7"
+                  v-else
+                />
                 <span class="shot__kind">
-                  <q-icon :name="shot.kind === 'performance' ? 'lucide-mic-vocal' : 'lucide-film'" size="12px" />
+                  <q-icon
+                    :name="
+                      shot.kind === 'performance'
+                        ? 'lucide-mic-vocal'
+                        : 'lucide-film'
+                    "
+                    size="12px"
+                  />
                   {{ shot.kind === 'performance' ? 'Singing' : 'Scene' }}
                 </span>
-                <span class="shot__time">{{ clock(shot.start) }}–{{ clock(shot.end) }}</span>
+                <span class="shot__time"
+                  >{{ clock(shot.start) }}–{{ clock(shot.end) }}</span
+                >
                 <span class="shot__cast" v-if="castOf(shot)">
                   <q-icon name="lucide-users" size="12px" />
                   {{ castOf(shot) }}
                 </span>
               </div>
               <div class="p-3">
-                <div class="mb-1 flex items-center gap-1 text-xs text-grey-6" v-if="placeOf(shot)">
+                <div
+                  class="mb-1 flex items-center gap-1 text-xs text-grey-6"
+                  v-if="placeOf(shot)"
+                >
                   <q-icon name="lucide-map-pin" size="12px" />
                   {{ placeOf(shot) }}
                 </div>
-                <p class="text-sm text-grey-4 shot__prompt">{{ shot.prompt }}</p>
+                <p class="text-sm text-grey-4 shot__prompt">
+                  {{ shot.prompt }}
+                </p>
               </div>
             </div>
           </div>
         </template>
 
-        <div class="grid gap-3" :class="gridClass" v-else-if="video.status === 'planning'">
-          <q-skeleton dark square class="rounded-lg" :style="{ aspectRatio: aspect }" :key="n" v-for="n in 6" />
+        <div
+          class="grid gap-3"
+          :class="gridClass"
+          v-else-if="video.status === 'planning'"
+        >
+          <q-skeleton
+            dark
+            square
+            class="rounded-lg"
+            :style="{ aspectRatio: aspect }"
+            :key="n"
+            v-for="n in 6"
+          />
         </div>
       </template>
     </div>
@@ -264,7 +388,9 @@ import { loadTrackRequest } from 'src/utils/requests/requests';
 import {
   discardMusicVideoEditsRequest,
   loadMusicVideoRequest,
+  minuteRate,
   renderMusicVideoRequest,
+  renderRate,
   retryStoryboardRequest,
   storyboardRate,
   VIDEO_RATIOS,
@@ -303,28 +429,55 @@ const statusText: Record<MusicVideoStatus, string> = {
 
 const busy = computed(() => !!video.value && videoBusy(video.value));
 const ownPhotos = ref(false);
-const drawing = computed(() => !!video.value?.shots?.some((shot) => shot.drawing));
-const aspect = computed(() => (video.value?.ratio ?? '16:9').replace(':', ' / '));
+const drawing = computed(
+  () => !!video.value?.shots?.some((shot) => shot.drawing),
+);
+const aspect = computed(() =>
+  (video.value?.ratio ?? '16:9').replace(':', ' / '),
+);
 const ratioLabel = computed(() => {
   const ratio = VIDEO_RATIOS.find((r) => r.value === video.value?.ratio);
   return ratio ? `${ratio.label} ${ratio.value}` : video.value?.ratio;
 });
 const gridClass = computed(() =>
-  video.value?.ratio === '9:16' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  video.value?.ratio === '9:16'
+    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
 );
 
 /** The storyboard is always open to changes; a finished video opens them with Edit shots */
 const canEdit = computed(
-  () => !!video.value && (video.value.status === 'storyboard' || (video.value.status === 'ready' && editingShots.value)),
+  () =>
+    !!video.value &&
+    (video.value.status === 'storyboard' ||
+      (video.value.status === 'ready' && editingShots.value)),
 );
 
 /** What saving costs: free when it only cuts the shots together again */
 const cost = computed(() =>
-  video.value ? saveCost(video.value, video.value.shots ?? [], ai.value?.costs.video ?? 0) : { shots: 0, seconds: 0, credits: 0 },
+  video.value && ai.value
+    ? saveCost(
+        video.value,
+        video.value.shots ?? [],
+        renderRate(ai.value.costs, video.value.quality),
+      )
+    : { shots: 0, seconds: 0, credits: 0 },
 );
-const paysWithMinutes = computed(() => cost.value.seconds > 0 && secondsLeft.value >= cost.value.seconds);
+/** Plan video time the save uses, at the video's quality */
+const planSeconds = computed(() =>
+  ai.value && video.value
+    ? cost.value.seconds * minuteRate(ai.value.costs, video.value.quality)
+    : cost.value.seconds,
+);
+const paysWithMinutes = computed(
+  () => cost.value.seconds > 0 && secondsLeft.value >= planSeconds.value,
+);
 const short = computed(
-  () => cost.value.credits > 0 && !paysWithMinutes.value && !!ai.value && ai.value.balance.total < cost.value.credits,
+  () =>
+    cost.value.credits > 0 &&
+    !paysWithMinutes.value &&
+    !!ai.value &&
+    ai.value.balance.total < cost.value.credits,
 );
 
 /** Each still to draw, with whether it is drawn; shots of one frame share a still */
@@ -336,22 +489,36 @@ const stills = computed(() => {
   });
   return [...drawn.values()];
 });
-const missingStills = computed(() => stills.value.filter((drawn) => !drawn).length);
+const missingStills = computed(
+  () => stills.value.filter((drawn) => !drawn).length,
+);
 const retryCost = computed(() => {
-  const rate = video.value && ai.value ? storyboardRate(ai.value.costs, video.value.mode) : 0;
+  const rate =
+    video.value && ai.value
+      ? storyboardRate(ai.value.costs, video.value.mode)
+      : 0;
   const full = rate * Math.max(1, video.value?.minutes ?? 1);
   const total = stills.value.length;
-  return total ? Math.max(1, Math.ceil((full * missingStills.value) / total)) : full;
+  return total
+    ? Math.max(1, Math.ceil((full * missingStills.value) / total))
+    : full;
 });
-const retryShort = computed(() => !!ai.value && ai.value.balance.total < retryCost.value);
+const retryShort = computed(
+  () => !!ai.value && ai.value.balance.total < retryCost.value,
+);
 
 /** Name of the location a shot is in */
-const placeOf = (shot: MusicVideoShot) => video.value?.locations?.find((l) => l.key === shot.location)?.name ?? '';
+const placeOf = (shot: MusicVideoShot) =>
+  video.value?.locations?.find((l) => l.key === shot.location)?.name ?? '';
 
 /** Names of the characters seen in a shot */
 const castOf = (shot: MusicVideoShot) =>
   (shot.characters ?? [])
-    .map((key) => video.value?.characters?.find((character) => character.key === key)?.name)
+    .map(
+      (key) =>
+        video.value?.characters?.find((character) => character.key === key)
+          ?.name,
+    )
     .filter(Boolean)
     .join(', ');
 
@@ -362,16 +529,21 @@ const clock = (seconds: number) =>
 const planTime = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
-  return [minutes ? `${minutes} min` : '', rest || !minutes ? `${rest} s` : ''].filter(Boolean).join(' ');
+  return [minutes ? `${minutes} min` : '', rest || !minutes ? `${rest} s` : '']
+    .filter(Boolean)
+    .join(' ');
 };
 
 const load = async () => {
   try {
-    const res = await loadMusicVideoRequest(String(route.params.video_id)).send();
+    const res = await loadMusicVideoRequest(
+      String(route.params.video_id),
+    ).send();
     video.value = res.data;
     secondsLeft.value = res.secondsLeft ?? (res.minutesLeft ?? 0) * 60;
     ownPhotos.value = !!res.ownPhotos;
-    if (res.data.status === 'ready' && res.data.edited) editingShots.value = true;
+    if (res.data.status === 'ready' && res.data.edited)
+      editingShots.value = true;
   } catch (e) {
     notifyError(e, "The music video couldn't be loaded.");
   }
@@ -380,7 +552,9 @@ const load = async () => {
 /** The song, so the editor's preview plays with sound */
 const loadSong = async (track: number) => {
   try {
-    const res = await loadTrackRequest(String(track), { with: 'streamUrl' }).send();
+    const res = await loadTrackRequest(String(track), {
+      with: 'streamUrl',
+    }).send();
     streamUrl.value = res.streamUrl || null;
   } catch {
     streamUrl.value = null;
@@ -472,7 +646,9 @@ onBeforeUnmount(() => {
 });
 
 useMeta(() => ({
-  title: video.value?.track?.title ? `${video.value.track.title} music video` : 'Music video',
+  title: video.value?.track?.title
+    ? `${video.value.track.title} music video`
+    : 'Music video',
   titleTemplate: (title) => `${title} - ${boot.configuration.app_name}`,
 }));
 </script>

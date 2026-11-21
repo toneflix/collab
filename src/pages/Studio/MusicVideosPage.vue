@@ -2,7 +2,9 @@
   <q-page class="p-4">
     <div class="max-w-full mx-auto md:max-w-3xl lg:max-w-4xl">
       <div class="flex items-center gap-3 mb-1 no-wrap">
-        <h4 class="text-xl font-semibold md:text-2xl flex-none!">Music videos</h4>
+        <h4 class="text-xl font-semibold md:text-2xl flex-none!">
+          Music videos
+        </h4>
         <q-btn
           unelevated
           rounded
@@ -18,9 +20,11 @@
         />
       </div>
       <p class="mb-8 text-sm text-grey-5">
-        Pick a song and AI plans a video on its beat: you singing the lines, and scenes that fit between them.
+        Pick a song and AI plans a video on its beat: you singing the lines, and
+        scenes that fit between them.
         <template v-if="minutesLeft > 0">
-          Your plan has {{ minutesLeft }} video {{ minutesLeft === 1 ? 'minute' : 'minutes' }} left this month.
+          Your plan has {{ minutesLeft }} video
+          {{ minutesLeft === 1 ? 'minute' : 'minutes' }} left this month.
         </template>
       </p>
 
@@ -45,7 +49,10 @@
           class="video-card"
           :key="video.id"
           :to="{ name: 'studio.videos.show', params: { video_id: video.id } }"
-          v-intersection="(e: IntersectionObserverEntry) => onIntersect(e, i === videos.length - 1)"
+          v-intersection="
+            (e: IntersectionObserverEntry) =>
+              onIntersect(e, i === videos.length - 1)
+          "
           v-for="(video, i) in videos"
         >
           <span class="video-card__icon flex-none!">
@@ -53,10 +60,14 @@
             <q-icon :name="statusIcon[video.status]" size="20px" v-else />
           </span>
           <div class="min-w-0 flex-1">
-            <div class="font-semibold truncate">{{ video.track?.title ?? 'Untitled song' }}</div>
+            <div class="font-semibold truncate">
+              {{ video.track?.title ?? 'Untitled song' }}
+            </div>
             <div class="text-xs text-grey-5">
               {{ statusText[video.status] }} · {{ video.ratio }}
-              <template v-if="video.duration"> · {{ clock(video.duration) }}</template>
+              <template v-if="video.duration">
+                · {{ clock(video.duration) }}</template
+              >
             </div>
           </div>
           <IconBtn
@@ -70,10 +81,21 @@
         </router-link>
       </div>
 
-      <ListSkeleton avatar="square" :rows="4" v-if="loading && !videos.length" />
+      <ListSkeleton
+        avatar="square"
+        :rows="4"
+        v-if="loading && !videos.length"
+      />
     </div>
 
-    <NewMusicVideoDialog :ai="ai" :own-photos="ownPhotos" v-model="creating" @created="opened" v-if="ai" />
+    <NewMusicVideoDialog
+      :ai="ai"
+      :own-photos="ownPhotos"
+      :advanced="advanced"
+      v-model="creating"
+      @created="opened"
+      v-if="ai"
+    />
   </q-page>
 </template>
 
@@ -105,6 +127,7 @@ const videos = ref<MusicVideo[]>([]);
 const ai = ref<AiAccount | null>(null);
 const minutesLeft = ref(0);
 const ownPhotos = ref(false);
+const advanced = ref(false);
 const page = ref(1);
 const lastPage = ref(1);
 const loading = ref(false);
@@ -139,6 +162,7 @@ const load = async (reset = false) => {
     lastPage.value = res.meta?.lastPage ?? 1;
     minutesLeft.value = res.minutesLeft ?? 0;
     ownPhotos.value = !!res.ownPhotos;
+    advanced.value = !!res.advanced;
   } catch (e) {
     notifyError(e, "Your music videos couldn't be loaded.");
   } finally {
@@ -159,14 +183,22 @@ const refresh = async () => {
 };
 
 const onIntersect = (evt: IntersectionObserverEntry, isLast: boolean) => {
-  if (isLast && evt.isIntersecting && !loading.value && page.value < lastPage.value) {
+  if (
+    isLast &&
+    evt.isIntersecting &&
+    !loading.value &&
+    page.value < lastPage.value
+  ) {
     page.value++;
     void load();
   }
 };
 
 const opened = (video: MusicVideo) => {
-  void router.push({ name: 'studio.videos.show', params: { video_id: video.id } });
+  void router.push({
+    name: 'studio.videos.show',
+    params: { video_id: video.id },
+  });
 };
 
 const remove = (video: MusicVideo, i: number) => {
@@ -174,7 +206,13 @@ const remove = (video: MusicVideo, i: number) => {
     dark: true,
     title: 'Delete this music video?',
     message: `The video for "${video.track?.title ?? 'this song'}" and its storyboard will be deleted.`,
-    ok: { label: 'Delete', color: 'negative', noCaps: true, unelevated: true, rounded: true },
+    ok: {
+      label: 'Delete',
+      color: 'negative',
+      noCaps: true,
+      unelevated: true,
+      rounded: true,
+    },
     cancel: { label: 'Keep it', flat: true, noCaps: true, rounded: true },
   }).onOk(async () => {
     try {

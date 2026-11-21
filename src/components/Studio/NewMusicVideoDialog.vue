@@ -1,15 +1,24 @@
 <template>
   <q-dialog v-model="open" @show="reset">
-    <q-card dark class="video-dialog flex-none!" style="width: 520px; max-width: 100vw">
+    <q-card
+      dark
+      class="video-dialog flex-none!"
+      style="width: 520px; max-width: 100vw"
+    >
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">New music video</div>
           <div class="text-xs text-grey-5">
-            AI plans the shots on the beat and draws a still for each one. You check the storyboard before the video is
-            made.
+            AI plans the shots on the beat and draws a still for each one. You
+            check the storyboard before the video is made.
           </div>
         </div>
-        <IconBtn icon="lucide-x" class="flex-none! ml-auto" aria-label="Close" v-close-popup />
+        <IconBtn
+          icon="lucide-x"
+          class="flex-none! ml-auto"
+          aria-label="Close"
+          v-close-popup
+        />
       </header>
 
       <div class="px-4 pb-4 text-sm text-grey-5" v-if="!ai.access">
@@ -17,7 +26,11 @@
         <router-link :to="{ name: 'premium' }">See plans</router-link>
       </div>
 
-      <q-form class="flex flex-col gap-3 px-4 pb-2" @submit.prevent="next" v-else>
+      <q-form
+        class="flex flex-col gap-3 px-4 pb-2"
+        @submit.prevent="next"
+        v-else
+      >
         <template v-if="step === 1">
           <q-select
             dark
@@ -46,14 +59,18 @@
                   <q-item-label>{{ scope.opt.title }}</q-item-label>
                   <q-item-label caption>
                     {{ scope.opt.release?.title }}
-                    <template v-if="scope.opt.duration"> · {{ clock(scope.opt.duration) }}</template>
+                    <template v-if="scope.opt.duration">
+                      · {{ clock(scope.opt.duration) }}</template
+                    >
                   </q-item-label>
                 </q-item-section>
               </q-item>
             </template>
             <template #no-option>
               <q-item>
-                <q-item-section class="text-grey-6">None of your songs match that.</q-item-section>
+                <q-item-section class="text-grey-6"
+                  >None of your songs match that.</q-item-section
+                >
               </q-item>
             </template>
           </q-select>
@@ -93,6 +110,25 @@
               v-model="form.mode"
             />
             <div class="mt-1 text-xs text-grey-6">{{ modeCaption }}</div>
+          </div>
+
+          <div v-if="advanced">
+            <div class="mb-1 text-xs text-grey-5">Quality</div>
+            <q-btn-toggle
+              dark
+              spread
+              no-caps
+              rounded
+              unelevated
+              toggle-color="toneflix"
+              toggle-text-color="dark"
+              color="transparent"
+              dense
+              class="ratio-toggle w-full"
+              :options="qualityOptions"
+              v-model="form.quality"
+            />
+            <div class="mt-1 text-xs text-grey-6">{{ qualityCaption }}</div>
           </div>
 
           <q-input
@@ -162,14 +198,19 @@
         <!-- Step 2: the creator's own character sheets -->
         <template v-else>
           <div class="text-xs text-grey-5">
-            Add a sheet for each person who appears, up to {{ MAX_SHEETS }}, and mark the singer. AI casts only these
-            characters.
+            Add a sheet for each person who appears, up to {{ MAX_SHEETS }}, and
+            mark the singer. AI casts only these characters.
           </div>
           <div class="sheet-row" :key="sheet.id" v-for="(sheet, i) in sheets">
             <div class="flex items-start gap-3 no-wrap">
               <label class="sheet-pick flex-none!">
                 <img :src="sheet.preview" alt="" v-if="sheet.preview" />
-                <q-icon name="lucide-image-plus" size="22px" class="text-grey-6" v-else />
+                <q-icon
+                  name="lucide-image-plus"
+                  size="22px"
+                  class="text-grey-6"
+                  v-else
+                />
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -178,7 +219,14 @@
                 />
               </label>
               <div class="flex flex-col flex-1 min-w-0 gap-2">
-                <q-input dark filled dense maxlength="80" label="Name" v-model="sheet.name" />
+                <q-input
+                  dark
+                  filled
+                  dense
+                  maxlength="80"
+                  label="Name"
+                  v-model="sheet.name"
+                />
                 <q-input
                   dark
                   filled
@@ -190,7 +238,14 @@
                   v-model="sheet.description"
                 />
                 <div class="flex items-center justify-between no-wrap">
-                  <q-radio dark dense color="toneflix" label="Singer" :val="sheet.id" v-model="singer" />
+                  <q-radio
+                    dark
+                    dense
+                    color="toneflix"
+                    label="Singer"
+                    :val="sheet.id"
+                    v-model="singer"
+                  />
                   <q-btn
                     flat
                     dense
@@ -229,13 +284,24 @@
         </template>
 
         <div class="flex items-center justify-between gap-3 py-2 no-wrap">
-          <q-btn flat rounded no-caps label="Back" class="flex-none!" @click="step = 1" v-if="step === 2" />
+          <q-btn
+            flat
+            rounded
+            no-caps
+            label="Back"
+            class="flex-none!"
+            @click="step = 1"
+            v-if="step === 2"
+          />
           <div class="text-xs text-grey-6" v-else>
-            <template v-if="track">Storyboard: {{ storyboardCost }} credits · </template
+            <template v-if="track"
+              >Storyboard: {{ storyboardCost }} credits · </template
             >{{ ai.balance.total.toLocaleString() }} left
             <template v-if="short">
               ·
-              <router-link :to="{ name: 'studio.credits' }">Get credits</router-link>
+              <router-link :to="{ name: 'studio.credits' }"
+                >Get credits</router-link
+              >
             </template>
           </div>
           <q-btn
@@ -265,11 +331,15 @@ import type { AiAccount } from 'src/utils/requests/ai';
 import {
   createMusicVideoRequest,
   loadOwnTracksRequest,
+  minuteRate,
+  renderRate,
   storyboardRate,
   VIDEO_MODES,
+  VIDEO_QUALITIES,
   VIDEO_RATIOS,
   type MusicVideo,
   type VideoMode,
+  type VideoQuality,
   type VideoRatio,
 } from 'src/utils/requests/videos';
 
@@ -277,6 +347,8 @@ const props = defineProps<{
   ai: AiAccount;
   /** Whether the plan lets people upload their own photo */
   ownPhotos: boolean;
+  /** Whether the plan includes advanced videos */
+  advanced?: boolean;
 }>();
 
 const emit = defineEmits<{ created: [video: MusicVideo] }>();
@@ -289,7 +361,14 @@ const ratioOptions = VIDEO_RATIOS.map((r) => ({
   icon: r.icon,
 }));
 
-const modeOptions = VIDEO_MODES.map((m) => ({ label: m.label, value: m.value }));
+const modeOptions = VIDEO_MODES.map((m) => ({
+  label: m.label,
+  value: m.value,
+}));
+const qualityOptions = VIDEO_QUALITIES.map((q) => ({
+  label: q.label,
+  value: q.value,
+}));
 
 const track = ref<Track | null>(null);
 const tracks = ref<Track[]>([]);
@@ -300,6 +379,7 @@ const errors = ref<Record<string, string>>({});
 const form = reactive({
   ratio: '16:9' as VideoRatio,
   mode: 'locations' as VideoMode,
+  quality: 'standard' as VideoQuality,
   brief: '',
   photo: null as File | null,
   useSheets: false,
@@ -340,11 +420,14 @@ const pick = (sheet: SheetRow, event: Event) => {
   if (sheet.preview) URL.revokeObjectURL(sheet.preview);
   sheet.file = file;
   sheet.preview = URL.createObjectURL(file);
-  if (!sheet.name.trim()) sheet.name = sheet.id === singer.value ? 'The singer' : '';
+  if (!sheet.name.trim())
+    sheet.name = sheet.id === singer.value ? 'The singer' : '';
 };
 
 /** Step one goes on to the sheets when the creator brings their own */
-const needsSheets = computed(() => step.value === 1 && props.ownPhotos && form.useSheets);
+const needsSheets = computed(
+  () => step.value === 1 && props.ownPhotos && form.useSheets,
+);
 const sheetsReady = computed(
   () =>
     sheets.value.length > 0 &&
@@ -358,15 +441,36 @@ const ready = computed(() => {
   return needsSheets.value || !form.photo || form.consent;
 });
 const sheetError = computed(
-  () => Object.entries(errors.value).find(([key]) => key.startsWith('characters') || key === 'consent')?.[1] ?? '',
+  () =>
+    Object.entries(errors.value).find(
+      ([key]) => key.startsWith('characters') || key === 'consent',
+    )?.[1] ?? '',
 );
 
-const minutes = computed(() => Math.max(1, Math.ceil((track.value?.duration ?? 60) / 60)));
-const storyboardCost = computed(() => storyboardRate(props.ai.costs, form.mode) * minutes.value);
-const modeCaption = computed(() => VIDEO_MODES.find((m) => m.value === form.mode)?.caption ?? '');
-const short = computed(() => !!track.value && props.ai.balance.total < storyboardCost.value);
+const minutes = computed(() =>
+  Math.max(1, Math.ceil((track.value?.duration ?? 60) / 60)),
+);
+const storyboardCost = computed(
+  () => storyboardRate(props.ai.costs, form.mode) * minutes.value,
+);
+const modeCaption = computed(
+  () => VIDEO_MODES.find((m) => m.value === form.mode)?.caption ?? '',
+);
+/** The quality's caption with what rendering costs a minute */
+const qualityCaption = computed(() => {
+  const caption =
+    VIDEO_QUALITIES.find((q) => q.value === form.quality)?.caption ?? '';
+  const credits = renderRate(props.ai.costs, form.quality);
+  const rate = minuteRate(props.ai.costs, form.quality);
+  const minutes = rate > 1 ? ` or ${rate} video minutes` : '';
+  return `${caption}. The video costs ${credits.toLocaleString()} credits${minutes} a minute.`;
+});
+const short = computed(
+  () => !!track.value && props.ai.balance.total < storyboardCost.value,
+);
 
-const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
+const clock = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
 
 /** Loads the creator's songs, filtered by what they type */
 const findTracks = (search: string, done: (fn: () => void) => void) => {
@@ -383,11 +487,14 @@ const findTracks = (search: string, done: (fn: () => void) => void) => {
 
 const reset = () => {
   errors.value = {};
+  if (!props.advanced) form.quality = 'standard';
   form.photo = null;
   form.useSheets = false;
   form.consent = false;
   step.value = 1;
-  sheets.value.forEach((sheet) => sheet.preview && URL.revokeObjectURL(sheet.preview));
+  sheets.value.forEach(
+    (sheet) => sheet.preview && URL.revokeObjectURL(sheet.preview),
+  );
   sheets.value = [];
   singer.value = null;
 };
@@ -416,6 +523,7 @@ const submit = async () => {
     const res = await createMusicVideoRequest(String(track.value.slug), {
       ratio: form.ratio,
       mode: form.mode,
+      quality: props.advanced ? form.quality : 'standard',
       brief: form.brief.trim(),
       photo: step.value === 2 ? null : form.photo,
       characters,
@@ -426,9 +534,13 @@ const submit = async () => {
   } catch (e) {
     const err = e as { errors?: Record<string, string | string[]> };
     errors.value = Object.fromEntries(
-      Object.entries(err.errors ?? {}).map(([key, value]) => [key, Array.isArray(value) ? (value[0] ?? '') : value]),
+      Object.entries(err.errors ?? {}).map(([key, value]) => [
+        key,
+        Array.isArray(value) ? (value[0] ?? '') : value,
+      ]),
     );
-    if (!Object.keys(errors.value).length) notifyError(e, "The video couldn't be started.");
+    if (!Object.keys(errors.value).length)
+      notifyError(e, "The video couldn't be started.");
   } finally {
     saving.value = false;
   }
