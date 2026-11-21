@@ -493,6 +493,15 @@
               outlined
               type="number"
               min="1"
+              :label="fields.ai_video_location_storyboard_credits?.title"
+              :hint="fields.ai_video_location_storyboard_credits?.hint"
+              v-model.number="form.ai_video_location_storyboard_credits"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
               :label="fields.ai_video_credits?.title"
               :hint="fields.ai_video_credits?.hint"
               v-model.number="form.ai_video_credits"
@@ -805,6 +814,7 @@ const form = reactive({
   ai_artwork_credits: 3 as number | string,
   ai_artwork_images: 4 as number | string,
   ai_video_storyboard_credits: 20 as number | string,
+  ai_video_location_storyboard_credits: 6 as number | string,
   ai_video_credits: 190 as number | string,
   ai_video_broll_model: 'p-video',
   ai_video_max_seconds: 360 as number | string,
@@ -919,6 +929,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     caption: 'Storyboard and render prices, the b-roll model and the longest song.',
     fields: [
       'ai_video_storyboard_credits',
+      'ai_video_location_storyboard_credits',
       'ai_video_credits',
       'ai_video_broll_model',
       'ai_video_max_seconds',
@@ -1046,6 +1057,7 @@ const fill = (data: AiAdminSettings) => {
   form.ai_artwork_credits = Number(f.ai_artwork_credits?.value ?? 3);
   form.ai_artwork_images = Number(f.ai_artwork_images?.value ?? 4);
   form.ai_video_storyboard_credits = Number(f.ai_video_storyboard_credits?.value ?? 20);
+  form.ai_video_location_storyboard_credits = Number(f.ai_video_location_storyboard_credits?.value ?? 6);
   form.ai_video_credits = Number(f.ai_video_credits?.value ?? 190);
   form.ai_video_broll_model = f.ai_video_broll_model?.value ?? 'p-video';
   form.ai_video_max_seconds = Number(f.ai_video_max_seconds?.value ?? 360);

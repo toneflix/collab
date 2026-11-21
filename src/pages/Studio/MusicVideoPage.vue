@@ -232,6 +232,10 @@
                 </span>
               </div>
               <div class="p-3">
+                <div class="mb-1 flex items-center gap-1 text-xs text-grey-6" v-if="placeOf(shot)">
+                  <q-icon name="lucide-map-pin" size="12px" />
+                  {{ placeOf(shot) }}
+                </div>
                 <p class="text-sm text-grey-4 shot__prompt">{{ shot.prompt }}</p>
               </div>
             </div>
@@ -262,6 +266,7 @@ import {
   loadMusicVideoRequest,
   renderMusicVideoRequest,
   retryStoryboardRequest,
+  storyboardRate,
   VIDEO_RATIOS,
   videoBusy,
   type MusicVideo,
@@ -322,13 +327,26 @@ const short = computed(
   () => cost.value.credits > 0 && !paysWithMinutes.value && !!ai.value && ai.value.balance.total < cost.value.credits,
 );
 
-const missingStills = computed(() => video.value?.shots?.filter((shot) => !shot.keyframeUrl).length ?? 0);
+/** Each still to draw, with whether it is drawn; shots of one frame share a still */
+const stills = computed(() => {
+  const drawn = new Map<string, boolean>();
+  (video.value?.shots ?? []).forEach((shot) => {
+    const key = shot.frame || `shot-${shot.id}`;
+    drawn.set(key, (drawn.get(key) ?? false) || !!shot.keyframeUrl);
+  });
+  return [...drawn.values()];
+});
+const missingStills = computed(() => stills.value.filter((drawn) => !drawn).length);
 const retryCost = computed(() => {
-  const full = (ai.value?.costs.videoStoryboard ?? 0) * Math.max(1, video.value?.minutes ?? 1);
-  const total = video.value?.shots?.length ?? 0;
+  const rate = video.value && ai.value ? storyboardRate(ai.value.costs, video.value.mode) : 0;
+  const full = rate * Math.max(1, video.value?.minutes ?? 1);
+  const total = stills.value.length;
   return total ? Math.max(1, Math.ceil((full * missingStills.value) / total)) : full;
 });
 const retryShort = computed(() => !!ai.value && ai.value.balance.total < retryCost.value);
+
+/** Name of the location a shot is in */
+const placeOf = (shot: MusicVideoShot) => video.value?.locations?.find((l) => l.key === shot.location)?.name ?? '';
 
 /** Names of the characters seen in a shot */
 const castOf = (shot: MusicVideoShot) =>
