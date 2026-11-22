@@ -34,6 +34,7 @@
       <TrackMenuItem icon="lucide-disc-3" label="Go to album" :to="albumLink" v-if="track.album" />
       <TrackMenuItem icon="lucide-user" label="Go to artist" :to="artistLink" v-if="artistLink" />
       <TrackMenuItem icon="lucide-users-round" label="View song credits" @click="openTrackDialog('credits', track)" />
+      <TrackMenuItem icon="lucide-film" label="Canvas" @click="openTrackDialog('canvas', track)" v-if="track.owned" />
       <TrackMenuItem
         icon="lucide-chart-column"
         label="Stream stats"

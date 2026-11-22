@@ -566,6 +566,18 @@
               :hint="fields.ai_video_max_seconds?.hint"
               v-model.number="form.ai_video_max_seconds"
             />
+            <div class="text-sm font-semibold text-grey-4 col-span-full">
+              Canvas loops
+            </div>
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_canvas_credits?.title"
+              :hint="fields.ai_canvas_credits?.hint"
+              v-model.number="form.ai_canvas_credits"
+            />
           </div>
         </template>
 
@@ -860,6 +872,7 @@ const form = reactive({
   ai_video_advanced_singer_model: 'omni-human-1.5',
   ai_video_advanced_broll_model: 'kling-v3',
   ai_video_max_seconds: 360 as number | string,
+  ai_canvas_credits: 30 as number | string,
   ai_tags_auto: true,
   ai_styles_auto: true,
   ai_styles_model: '' as string | null,
@@ -981,6 +994,7 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
       'ai_video_advanced_singer_model',
       'ai_video_advanced_broll_model',
       'ai_video_max_seconds',
+      'ai_canvas_credits',
     ],
   },
   {
@@ -1124,6 +1138,7 @@ const fill = (data: AiAdminSettings) => {
   form.ai_video_credits = Number(f.ai_video_credits?.value ?? 190);
   form.ai_video_broll_model = f.ai_video_broll_model?.value ?? 'p-video';
   form.ai_video_max_seconds = Number(f.ai_video_max_seconds?.value ?? 360);
+  form.ai_canvas_credits = Number(f.ai_canvas_credits?.value ?? 30);
   form.ai_tags_auto = f.ai_tags_auto?.value === '1';
   form.ai_styles_auto = f.ai_styles_auto?.value === '1';
   form.ai_styles_model = f.ai_styles_model?.value ?? '';

@@ -6,7 +6,11 @@
   -->
   <q-dialog seamless maximized no-refocus transition-show="slide-up" transition-hide="slide-down" v-model="open">
     <div class="full-player">
-      <div class="full-player__backdrop" :style="{ backgroundImage: track.imageUrl ? `url(${track.imageUrl})` : undefined }" />
+      <div class="full-player__backdrop" :style="{ backgroundImage: track.imageUrl ? `url(${track.imageUrl})` : undefined }" v-if="!showCanvas" />
+      <!-- The track's canvas fills the screen behind the controls -->
+      <div class="full-player__canvas" v-else-if="canvas">
+        <CanvasLoop class="full-player__canvas-loop" :canvas="canvas" :playing="player.playing" />
+      </div>
 
       <header class="full-player__head">
         <IconBtn icon="lucide-chevron-down" aria-label="Close the player" class="flex-none!" @click="open = false" />
@@ -32,7 +36,7 @@
       </header>
 
       <div class="full-player__art">
-        <q-img no-spinner :ratio="1" class="rounded-2xl shadow-2xl bg-gray-800" :src="track.imageUrl" />
+        <q-img no-spinner :ratio="1" class="rounded-2xl shadow-2xl bg-gray-800" :src="track.imageUrl" v-if="!showCanvas" />
       </div>
 
       <!-- The line being sung, one at a time, when the lyrics are synced -->
@@ -169,6 +173,8 @@ import SeekBar from './SeekBar.vue';
 import SyncedLyrics from './SyncedLyrics.vue';
 import AlbumLink from 'src/components/Tracks/AlbumLink.vue';
 import FeaturedArtists from 'src/components/Tracks/FeaturedArtists.vue';
+import CanvasLoop from 'src/components/Tracks/CanvasLoop.vue';
+import { useTrackCanvas } from 'src/composables/useTrackCanvas';
 
 const open = defineModel<boolean>({ default: false });
 
@@ -181,6 +187,9 @@ watch(
 
 const player = usePlayerStore();
 const track = computed<Track>(() => player.current || ({} as Track));
+const canvas = useTrackCanvas(computed(() => (open.value ? track.value.id : null)));
+/** The canvas shows in place of the artwork while videos are on */
+const showCanvas = computed(() => !!canvas.value && player.videos);
 
 /** The song's lyrics, for the line under the artwork. Loaded while the player is open. */
 const lyrics = ref<Lyrics | null>(null);
@@ -292,6 +301,23 @@ const releaseLink = computed(() => ({
       inset: 0;
       background: linear-gradient(to bottom, rgba(10, 12, 16, 0.2), var(--tf-bg) 85%);
     }
+  }
+
+  &__canvas {
+    position: absolute !important;
+    inset: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(10, 12, 16, 0.45), transparent 25%, transparent 45%, rgba(10, 12, 16, 0.85) 75%, var(--tf-bg));
+    }
+  }
+
+  &__canvas-loop {
+    position: absolute;
+    inset: 0;
   }
 
   &__head {

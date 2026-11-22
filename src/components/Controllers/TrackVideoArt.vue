@@ -11,6 +11,9 @@
       />
     </div>
   </div>
+  <div class="track-art" :style="canvasStyle" v-else-if="canvas && show">
+    <CanvasLoop class="track-art__visual" :canvas="canvas" :playing="playing" />
+  </div>
   <q-img
     no-spinner
     class="rounded-lg shadow-2xl bg-gray-800"
@@ -21,13 +24,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue';
 import { loadTrackVideoRequest, type TrackVideo } from 'src/utils/requests/videos';
+import type { TrackCanvas } from 'src/utils/requests/canvas';
+import { useTrackCanvas } from 'src/composables/useTrackCanvas';
+import CanvasLoop from 'src/components/Tracks/CanvasLoop.vue';
 
 /**
- * A track's artwork, or its music video when it has one. The video is muted,
- * has no controls of its own and follows the song: it plays, pauses and seeks
- * with the audio player.
+ * A track's artwork, or its music video when it has one, else its canvas. The
+ * video is muted, has no controls of its own and follows the song: it plays,
+ * pauses and seeks with the audio player. The canvas loops while the song plays.
  */
 const props = withDefaults(defineProps<{
   trackId?: number | string | null;
@@ -39,12 +45,16 @@ const props = withDefaults(defineProps<{
   show?: boolean;
 }>(), { show: true });
 
-const emit = defineEmits<{ video: [video: TrackVideo | null] }>();
+const emit = defineEmits<{
+  video: [video: TrackVideo | null];
+  canvas: [canvas: TrackCanvas | null];
+}>();
 
 /** How far the video may drift from the song before it's moved back, in seconds */
 const DRIFT = 0.35;
 
 const video = ref<TrackVideo | null>(null);
+const canvas = useTrackCanvas(toRef(props, 'trackId'));
 const element = ref<(HTMLElement & { target?: HTMLVideoElement | null }) | null>(null);
 let media: HTMLVideoElement | null = null;
 let ticket = 0;
@@ -54,6 +64,8 @@ const frameStyle = computed(() => {
   const ratio = (w || 1) / (h || 1);
   return { aspectRatio: `${w} / ${h}`, width: `min(100%, calc(62vh * ${ratio}))` };
 });
+
+const canvasStyle = { aspectRatio: '9 / 16', width: 'min(100%, calc(62vh * 9 / 16))' };
 
 /** Moves the video to the song's position and matches play or pause */
 const sync = () => {
@@ -95,6 +107,7 @@ const load = async (id?: number | string | null) => {
 
 watch(() => props.trackId, (id) => void load(id));
 watch(() => props.show, () => void attach());
+watch(canvas, (found) => emit('canvas', found));
 watch(() => [props.position, props.playing], sync);
 
 onMounted(() => void load(props.trackId));
