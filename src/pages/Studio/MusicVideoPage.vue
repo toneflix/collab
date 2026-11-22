@@ -291,6 +291,29 @@
                     v-if="character.singer"
                   />
                   <span class="truncate">{{ character.name }}</span>
+                  <IconBtn
+                    size="sm"
+                    class="flex-none! ml-auto"
+                    :icon="
+                      character.savedId
+                        ? 'lucide-bookmark-check'
+                        : 'lucide-bookmark-plus'
+                    "
+                    :color="character.savedId ? 'toneflix' : undefined"
+                    :tooltip="
+                      character.savedId
+                        ? 'In My characters'
+                        : 'Save to My characters'
+                    "
+                    :aria-label="
+                      character.savedId
+                        ? 'In My characters'
+                        : 'Save to My characters'
+                    "
+                    :loading="keeping === character.id"
+                    @click="keep(character)"
+                    v-if="character.sheetUrl"
+                  />
                 </div>
                 <div
                   class="mt-1 text-xs text-grey-5 line-clamp-2 sm:line-clamp-3"
@@ -377,7 +400,7 @@
 <script setup lang="ts">
 import { useMeta } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ShotEditor from 'src/components/Studio/ShotEditor.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -387,6 +410,7 @@ import { loadAiAccountRequest, type AiAccount } from 'src/utils/requests/ai';
 import { loadTrackRequest } from 'src/utils/requests/requests';
 import {
   discardMusicVideoEditsRequest,
+  keepVideoCharacterRequest,
   loadMusicVideoRequest,
   minuteRate,
   renderMusicVideoRequest,
@@ -396,6 +420,7 @@ import {
   VIDEO_RATIOS,
   videoBusy,
   type MusicVideo,
+  type MusicVideoCharacter,
   type MusicVideoShot,
   type MusicVideoStatus,
 } from 'src/utils/requests/videos';
@@ -404,6 +429,7 @@ import { saveCost } from 'src/utils/video-strip';
 defineOptions({ name: 'MusicVideoPage' });
 
 const route = useRoute();
+const router = useRouter();
 const boot = useBootstrapStore();
 
 const video = ref<MusicVideo | null>(null);
@@ -510,6 +536,29 @@ const retryShort = computed(
 /** Name of the location a shot is in */
 const placeOf = (shot: MusicVideoShot) =>
   video.value?.locations?.find((l) => l.key === shot.location)?.name ?? '';
+
+const keeping = ref<number | null>(null);
+
+/** Saves a cast member to the creator's characters, or opens them when saved */
+const keep = async (character: MusicVideoCharacter) => {
+  if (character.savedId) {
+    void router.push({ name: 'studio.videos.characters' });
+    return;
+  }
+  keeping.value = character.id;
+  try {
+    const res = await keepVideoCharacterRequest(
+      video.value!.id,
+      character.id,
+    ).send();
+    character.savedId = res.data.id;
+    notify(res.message, 'success');
+  } catch (e) {
+    notifyError(e, "The character couldn't be saved.");
+  } finally {
+    keeping.value = null;
+  }
+};
 
 /** Names of the characters seen in a shot */
 const castOf = (shot: MusicVideoShot) =>

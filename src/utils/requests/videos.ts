@@ -129,9 +129,28 @@ export type MusicVideoCharacter = {
   name: string;
   description: string;
   singer: boolean;
+  /** Whether the creator gave the sheet rather than AI drawing it */
+  provided?: boolean;
+  /** The saved character this one was cast from or saved as */
+  savedId?: number | null;
   /** The character sheet, while its link lasts */
   sheetUrl: string | null;
 };
+
+/** A character the creator keeps to cast in any of their videos */
+export type SavedCharacter = {
+  id: number;
+  name: string;
+  description: string;
+  /** Whether the sheet is the creator's own image */
+  uploaded: boolean;
+  /** The character sheet, while its link lasts */
+  sheetUrl: string;
+  createdAt: string;
+};
+
+/** A saved character picked for a new video */
+export type SavedCharacterPick = { id: number; singer: boolean };
 
 export type MusicVideo = {
   id: number;
@@ -188,6 +207,8 @@ export type NewMusicVideo = {
   photo?: File | null;
   /** The creator's own character sheets; none are drawn when given */
   characters?: CharacterSheetUpload[];
+  /** Saved characters to cast; AI draws the singer when none of them sings */
+  saved?: SavedCharacterPick[];
   consent?: boolean;
 };
 
@@ -228,6 +249,7 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
       mode: form.mode,
       quality: form.quality,
       brief: form.brief || undefined,
+      saved: form.saved?.length ? form.saved : undefined,
     });
   }
 
@@ -248,6 +270,10 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   } else if (form.photo) {
     data.append('photo', form.photo);
   }
+  form.saved?.forEach((pick, i) => {
+    data.append(`saved[${i}][id]`, String(pick.id));
+    data.append(`saved[${i}][singer]`, pick.singer ? '1' : '0');
+  });
 
   const request = axios.Post<ResponseBody<MusicVideo>>(url, data);
   request.config.headers['Content-Type'] = 'multipart/form-data';
@@ -358,3 +384,56 @@ export const minuteRate = (
   quality: VideoQuality = 'standard',
 ) =>
   quality === 'advanced' ? Math.max(1, costs.videoAdvancedMinutes ?? 1) : 1;
+
+export type SavedCharacterPage = ResponseBody<SavedCharacter[]> & {
+  meta: PageMeta;
+  /** Whether the plan takes the creator's own sheets */
+  ownPhotos: boolean;
+};
+
+/** The creator's saved characters, newest first */
+export const loadSavedCharactersRequest = (page = 1) =>
+  alova.Get<SavedCharacterPage>('creator/video-characters', {
+    params: { page, limit: 40 },
+    cacheFor: 0,
+  });
+
+/** Saves a character of a video to the creator's characters */
+export const keepVideoCharacterRequest = (video: number, character: number) =>
+  alova.Post<ResponseBody<SavedCharacter>>(
+    `creator/videos/${video}/characters/${character}/keep`,
+  );
+
+/** Saves the creator's own character sheet */
+export const uploadSavedCharacterRequest = (form: {
+  name: string;
+  description?: string;
+  sheet: File;
+  consent: boolean;
+}) => {
+  const data = new FormData();
+  data.append('name', form.name);
+  data.append('sheet', form.sheet);
+  data.append('consent', form.consent ? '1' : '0');
+  if (form.description) data.append('description', form.description);
+
+  const request = axios.Post<ResponseBody<SavedCharacter>>(
+    'creator/video-characters',
+    data,
+  );
+  request.config.headers['Content-Type'] = 'multipart/form-data';
+
+  return request;
+};
+
+export const updateSavedCharacterRequest = (
+  id: number,
+  form: { name: string; description?: string },
+) =>
+  alova.Put<ResponseBody<SavedCharacter>>(
+    `creator/video-characters/${id}`,
+    form,
+  );
+
+export const deleteSavedCharacterRequest = (id: number) =>
+  alova.Delete<ResponseBody<SavedCharacter>>(`creator/video-characters/${id}`);
