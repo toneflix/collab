@@ -45,8 +45,8 @@
                 />
               </div>
               <p class="mb-2 text-xs text-grey-5">
-                Music models, Demucs stems, Whisper lyrics and the AI
-                moderator. Create a token at replicate.com/account/api-tokens.
+                Music models, Demucs stems, Whisper lyrics and the AI moderator.
+                Create a token at replicate.com/account/api-tokens.
               </p>
               <EnvKeys :keys="settings.keys.replicate" />
             </div>
@@ -62,16 +62,14 @@
               </div>
               <p class="mb-2 text-xs text-grey-5">
                 Songs and stems through sunoapi.org, a reseller, not Suno
-                itself. Its terms don't say who owns what it makes. Get a key
-                at sunoapi.org/api-key.
+                itself. Its terms don't say who owns what it makes. Get a key at
+                sunoapi.org/api-key.
               </p>
               <EnvKeys :keys="settings.keys.suno" />
             </div>
             <div class="engine">
               <div class="flex items-center gap-2 mb-1">
-                <span class="font-bold flex-none!"
-                  >Cloudflare Workers AI</span
-                >
+                <span class="font-bold flex-none!">Cloudflare Workers AI</span>
                 <q-badge
                   rounded
                   class="flex-none!"
@@ -85,9 +83,8 @@
               </div>
               <p class="mb-2 text-xs text-grey-5">
                 ElevenLabs and MiniMax music, Whisper lyrics, Composer and the
-                AI moderator. No stem splitting. Create a token with the
-                Workers AI permission at
-                dash.cloudflare.com/profile/api-tokens.
+                AI moderator. No stem splitting. Create a token with the Workers
+                AI permission at dash.cloudflare.com/profile/api-tokens.
               </p>
               <EnvKeys :keys="settings.keys.cloudflare" />
             </div>
@@ -97,8 +94,8 @@
         <template #music>
           <p class="mb-4 text-sm text-grey-5">
             The studio generates music with this model. Each model has its own
-            price in credits. Jobs already started keep the model and price
-            they started with.
+            price in credits. Jobs already started keep the model and price they
+            started with.
           </p>
           <div class="models">
             <label
@@ -282,9 +279,9 @@
         <template #credits>
           <p class="mb-4 text-sm text-grey-5">
             A Demucs split costs us about $0.03, a 30 second ElevenLabs track
-            about $0.08, a MiniMax 2.6 song on Workers AI $0.15 and a Suno
-            song about $0.06. The defaults sell a credit for about four times
-            what it costs us.
+            about $0.08, a MiniMax 2.6 song on Workers AI $0.15 and a Suno song
+            about $0.06. The defaults sell a credit for about four times what it
+            costs us.
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <q-input
@@ -357,11 +354,10 @@
 
         <template #lyrics>
           <p class="mb-4 text-sm text-grey-5">
-            Whisper writes out lyrics for about $0.001 a track, on Replicate
-            or Cloudflare Workers AI. Released tracks show synced lyrics in
-            the player and can be found by their words. Explicit words mark a
-            track explicit, and words to review send it to the moderation
-            queue.
+            Whisper writes out lyrics for about $0.001 a track, on Replicate or
+            Cloudflare Workers AI. Released tracks show synced lyrics in the
+            player and can be found by their words. Explicit words mark a track
+            explicit, and words to review send it to the moderation queue.
           </p>
           <div class="toggle-card mb-4">
             <q-toggle color="toneflix" v-model="form.ai_lyrics_auto" />
@@ -422,10 +418,10 @@
 
         <template #artwork>
           <p class="mb-4 text-sm text-grey-5">
-            Project, release, track and artist forms can draw their artwork
-            from a prompt. FLUX.1 [schnell] draws each image for about
-            $0.003, on Replicate or Cloudflare Workers AI, and people pick
-            the one they like.
+            Project, release, track and artist forms can draw their artwork from
+            a prompt. FLUX.1 [schnell] draws each image for about $0.003, on
+            Replicate or Cloudflare Workers AI, and people pick the one they
+            like.
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <q-select
@@ -477,6 +473,8 @@
             ($0.04/s) and the rest animated by the b-roll model below, then
             FFmpeg cuts them together over the song. Plans can include video
             minutes and photo uploads; renders past the minutes use credits.
+            Plans with advanced videos can pick the advanced lip sync and b-roll
+            models below, at their own price and minute rate.
           </p>
           <div class="grid gap-3 sm:grid-cols-2">
             <q-input
@@ -516,6 +514,48 @@
               :options="videoBrollModels"
               v-model="form.ai_video_broll_model"
             />
+            <div class="text-sm font-semibold text-grey-4 col-span-full">
+              Advanced videos
+            </div>
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              :label="fields.ai_video_advanced_credits?.title"
+              :hint="fields.ai_video_advanced_credits?.hint"
+              v-model.number="form.ai_video_advanced_credits"
+            />
+            <q-input
+              dark
+              outlined
+              type="number"
+              min="1"
+              max="20"
+              :label="fields.ai_video_advanced_minutes?.title"
+              :hint="fields.ai_video_advanced_minutes?.hint"
+              v-model.number="form.ai_video_advanced_minutes"
+            />
+            <q-select
+              dark
+              outlined
+              emit-value
+              map-options
+              :label="fields.ai_video_advanced_singer_model?.title"
+              :hint="fields.ai_video_advanced_singer_model?.hint"
+              :options="videoAdvancedSingerModels"
+              v-model="form.ai_video_advanced_singer_model"
+            />
+            <q-select
+              dark
+              outlined
+              emit-value
+              map-options
+              :label="fields.ai_video_advanced_broll_model?.title"
+              :hint="fields.ai_video_advanced_broll_model?.hint"
+              :options="videoAdvancedBrollModels"
+              v-model="form.ai_video_advanced_broll_model"
+            />
             <q-input
               dark
               outlined
@@ -531,9 +571,9 @@
 
         <template #tags>
           <p class="mb-4 text-sm text-grey-5">
-            New tracks and studio mixes are tagged with their BPM and key,
-            which show in a song's credits and in the studio, and can be
-            searched. Creators can correct them. Run
+            New tracks and studio mixes are tagged with their BPM and key, which
+            show in a song's credits and in the studio, and can be searched.
+            Creators can correct them. Run
             <code>php artisan tags:detect</code> once to tag older tracks.
           </p>
           <div class="toggle-card">
@@ -547,11 +587,11 @@
           </div>
 
           <p class="mt-6 mb-4 text-sm text-grey-5">
-            Moods show with the tempo and key in a song's credits and can be searched; the genre
-            the audio sounds like is offered to creators, never set for them.
-            Push the model with the "Push style tagger" GitHub workflow, set
-            its name below, then run <code>php artisan tags:styles</code> once
-            to tag older tracks.
+            Moods show with the tempo and key in a song's credits and can be
+            searched; the genre the audio sounds like is offered to creators,
+            never set for them. Push the model with the "Push style tagger"
+            GitHub workflow, set its name below, then run
+            <code>php artisan tags:styles</code> once to tag older tracks.
           </p>
           <div class="flex flex-col gap-3">
             <div class="toggle-card">
@@ -575,7 +615,9 @@
             <div class="toggle-card">
               <q-toggle color="toneflix" v-model="form.ai_styles_lyrics" />
               <div class="min-w-0">
-                <div class="font-bold">{{ fields.ai_styles_lyrics?.title }}</div>
+                <div class="font-bold">
+                  {{ fields.ai_styles_lyrics?.title }}
+                </div>
                 <div class="text-sm text-grey-5">
                   {{ fields.ai_styles_lyrics?.hint }}
                 </div>
@@ -586,8 +628,8 @@
 
         <template #composer>
           <p class="mb-4 text-sm text-grey-5">
-            Composer is the lyrics notepad in the studio. Its suggestions run
-            on the engine picked here and need a plan with AI tools.
+            Composer is the lyrics notepad in the studio. Its suggestions run on
+            the engine picked here and need a plan with AI tools.
           </p>
           <div class="flex flex-col gap-3">
             <div class="grid gap-3 sm:grid-cols-2">
@@ -676,11 +718,7 @@
             flagged for a person. It runs on the engine picked here.
           </p>
           <div class="flex flex-col gap-3">
-            <div
-              class="toggle-card"
-              :key="key"
-              v-for="key in moderatorToggles"
-            >
+            <div class="toggle-card" :key="key" v-for="key in moderatorToggles">
               <q-toggle color="toneflix" v-model="form[key]" />
               <div class="min-w-0">
                 <div class="font-bold">{{ fields[key]?.title }}</div>
@@ -817,6 +855,10 @@ const form = reactive({
   ai_video_location_storyboard_credits: 6 as number | string,
   ai_video_credits: 190 as number | string,
   ai_video_broll_model: 'p-video',
+  ai_video_advanced_credits: 800 as number | string,
+  ai_video_advanced_minutes: 4 as number | string,
+  ai_video_advanced_singer_model: 'omni-human-1.5',
+  ai_video_advanced_broll_model: 'kling-v3',
   ai_video_max_seconds: 360 as number | string,
   ai_tags_auto: true,
   ai_styles_auto: true,
@@ -893,7 +935,8 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     key: 'credits',
     icon: 'lucide-coins',
     title: 'Credits',
-    caption: 'Credit price, packs, the longest song, section edits and sung vocals.',
+    caption:
+      'Credit price, packs, the longest song, section edits and sung vocals.',
     fields: [
       'ai_credit_price',
       'ai_credit_packs',
@@ -926,12 +969,17 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     key: 'videos',
     icon: 'lucide-clapperboard',
     title: 'Music videos',
-    caption: 'Storyboard and render prices, the b-roll model and the longest song.',
+    caption:
+      'Storyboard and render prices, the standard and advanced models and the longest song.',
     fields: [
       'ai_video_storyboard_credits',
       'ai_video_location_storyboard_credits',
       'ai_video_credits',
       'ai_video_broll_model',
+      'ai_video_advanced_credits',
+      'ai_video_advanced_minutes',
+      'ai_video_advanced_singer_model',
+      'ai_video_advanced_broll_model',
       'ai_video_max_seconds',
     ],
   },
@@ -940,7 +988,12 @@ const sections: (SettingsSection & { fields: FormKey[] })[] = [
     icon: 'lucide-gauge',
     title: 'Tags',
     caption: 'Tempo, key, genre and mood on new tracks.',
-    fields: ['ai_tags_auto', 'ai_styles_auto', 'ai_styles_model', 'ai_styles_lyrics'],
+    fields: [
+      'ai_tags_auto',
+      'ai_styles_auto',
+      'ai_styles_model',
+      'ai_styles_lyrics',
+    ],
   },
   {
     key: 'composer',
@@ -1007,6 +1060,12 @@ const composerMusicModels = computed(() =>
 const videoBrollModels = computed(() =>
   toOptions(settings.value?.options.videoBrollModels),
 );
+const videoAdvancedSingerModels = computed(() =>
+  toOptions(settings.value?.options.videoAdvancedSingerModels),
+);
+const videoAdvancedBrollModels = computed(() =>
+  toOptions(settings.value?.options.videoAdvancedBrollModels),
+);
 const sunoStemTypes = computed(() =>
   toOptions(settings.value?.options.sunoStemTypes),
 );
@@ -1056,8 +1115,12 @@ const fill = (data: AiAdminSettings) => {
     'replicate') as AiEngine;
   form.ai_artwork_credits = Number(f.ai_artwork_credits?.value ?? 3);
   form.ai_artwork_images = Number(f.ai_artwork_images?.value ?? 4);
-  form.ai_video_storyboard_credits = Number(f.ai_video_storyboard_credits?.value ?? 20);
-  form.ai_video_location_storyboard_credits = Number(f.ai_video_location_storyboard_credits?.value ?? 6);
+  form.ai_video_storyboard_credits = Number(
+    f.ai_video_storyboard_credits?.value ?? 20,
+  );
+  form.ai_video_location_storyboard_credits = Number(
+    f.ai_video_location_storyboard_credits?.value ?? 6,
+  );
   form.ai_video_credits = Number(f.ai_video_credits?.value ?? 190);
   form.ai_video_broll_model = f.ai_video_broll_model?.value ?? 'p-video';
   form.ai_video_max_seconds = Number(f.ai_video_max_seconds?.value ?? 360);
@@ -1081,7 +1144,11 @@ const fill = (data: AiAdminSettings) => {
     f.ai_composer_cloudflare_model?.value ?? '';
   form.ai_composer_music_model = f.ai_composer_music_model?.value ?? '';
   for (const key of composerCosts) {
-    form[key] = Number(f[key]?.value ?? data.client.costs.composer?.[key.split('_')[2] as 'line'] ?? 1);
+    form[key] = Number(
+      f[key]?.value ??
+        data.client.costs.composer?.[key.split('_')[2] as 'line'] ??
+        1,
+    );
   }
   saved.value = JSON.parse(JSON.stringify(form));
 };

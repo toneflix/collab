@@ -53,6 +53,10 @@ export type AiConfig = {
     /** Storyboard of a video shot in a few locations, per started minute */
     videoLocationStoryboard?: number;
     video?: number;
+    /** Advanced music video render, per started minute */
+    videoAdvanced?: number;
+    /** Plan video minutes one advanced minute uses */
+    videoAdvancedMinutes?: number;
     composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
   };
   /** The model music is generated with */
@@ -154,12 +158,7 @@ export type AiJob = {
 
 /** What a piece of AI artwork is for, which sets its shape */
 export type ArtworkKind =
-  | 'project'
-  | 'release'
-  | 'track'
-  | 'song'
-  | 'artist'
-  | 'artist_cover';
+  'project' | 'release' | 'track' | 'song' | 'artist' | 'artist_cover';
 
 /** An image an artwork job drew, with a link that shows it for a day */
 export type ArtworkImage = {
@@ -206,6 +205,8 @@ export type AiAdminSettings = {
     sunoStemTypes: Record<string, string>;
     /** Models that can animate music video b-roll, id to model */
     videoBrollModels?: Record<string, string>;
+    videoAdvancedSingerModels?: Record<string, string>;
+    videoAdvancedBrollModels?: Record<string, string>;
     engines: Record<AiEngine, string>;
     /** The engines each switchable tool can run on, by its setting */
     toolEngines?: Record<string, AiEngine[]>;
@@ -241,10 +242,13 @@ export const loadAiAccountRequest = () =>
   });
 
 export const loadCreditHistoryRequest = (page = 1) =>
-  alova.Get<ResponseBody<CreditEntry[]> & { meta: PageMeta }>('account/ai/history', {
-    params: { page, limit: 20 },
-    cacheFor: 0,
-  });
+  alova.Get<ResponseBody<CreditEntry[]> & { meta: PageMeta }>(
+    'account/ai/history',
+    {
+      params: { page, limit: 20 },
+      cacheFor: 0,
+    },
+  );
 
 export const generateMusicRequest = (
   projectId: string | number,
@@ -252,17 +256,32 @@ export const generateMusicRequest = (
   form: MusicForm,
 ) => {
   if (!form.reference) {
-    return alova.Post<ResponseBody<AiJob>>(`${track(projectId, trackId)}/ai/music`, { ...form, reference: undefined });
+    return alova.Post<ResponseBody<AiJob>>(
+      `${track(projectId, trackId)}/ai/music`,
+      { ...form, reference: undefined },
+    );
   }
 
   // A reference file goes up as multipart, where true and false must be 1 and 0.
   const data = new FormData();
   Object.entries(form).forEach(([key, value]) => {
     if (value === null || value === undefined || value === '') return;
-    data.append(key, typeof value === 'boolean' ? (value ? '1' : '0') : value instanceof File ? value : String(value));
+    data.append(
+      key,
+      typeof value === 'boolean'
+        ? value
+          ? '1'
+          : '0'
+        : value instanceof File
+          ? value
+          : String(value),
+    );
   });
 
-  const request = axios.Post<ResponseBody<AiJob>>(`${track(projectId, trackId)}/ai/music`, data);
+  const request = axios.Post<ResponseBody<AiJob>>(
+    `${track(projectId, trackId)}/ai/music`,
+    data,
+  );
   request.config.headers['Content-Type'] = 'multipart/form-data';
   return request;
 };
