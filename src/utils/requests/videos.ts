@@ -14,8 +14,8 @@ export const VIDEO_RATIOS: {
   { value: '1:1', label: 'Square', icon: 'lucide-square' },
 ];
 
-/** How a storyboard is planned: a few locations, or a new story scene every few seconds */
-export type VideoMode = 'locations' | 'legacy';
+/** How a video is made: a few locations, a new story scene every few seconds, or lyrics over the artwork */
+export type VideoMode = 'locations' | 'legacy' | 'lyrics';
 
 export const VIDEO_MODES: {
   value: VideoMode;
@@ -32,6 +32,22 @@ export const VIDEO_MODES: {
     label: 'Legacy story',
     caption: 'A new story scene every few seconds',
   },
+  {
+    value: 'lyrics',
+    label: 'Lyric video',
+    caption: 'Your synced lyrics over the song artwork. Free.',
+  },
+];
+
+/** How the song's synced lyrics show on a video */
+export type LyricStyle = 'captions' | 'centered';
+
+export const LYRIC_STYLES: {
+  value: LyricStyle;
+  label: string;
+}[] = [
+  { value: 'captions', label: 'Bottom' },
+  { value: 'centered', label: 'Centre' },
 ];
 
 /** Which models render the video; advanced is more lifelike and costs more */
@@ -162,6 +178,8 @@ export type MusicVideo = {
   quality: VideoQuality;
   locations?: MusicVideoLocation[];
   brief: string | null;
+  /** How the synced lyrics show on the video, or null for none */
+  lyrics: LyricStyle | null;
   hasPortrait: boolean;
   /** The song's length in seconds */
   duration: number | null;
@@ -204,6 +222,7 @@ export type NewMusicVideo = {
   mode: VideoMode;
   quality: VideoQuality;
   brief?: string;
+  lyrics?: LyricStyle | null;
   photo?: File | null;
   /** The creator's own character sheets; none are drawn when given */
   characters?: CharacterSheetUpload[];
@@ -250,6 +269,7 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
       quality: form.quality,
       brief: form.brief || undefined,
       saved: form.saved?.length ? form.saved : undefined,
+      lyrics: form.lyrics || undefined,
     });
   }
 
@@ -259,6 +279,7 @@ export const createMusicVideoRequest = (track: string, form: NewMusicVideo) => {
   data.append('quality', form.quality);
   data.append('consent', form.consent ? '1' : '0');
   if (form.brief) data.append('brief', form.brief);
+  if (form.lyrics) data.append('lyrics', form.lyrics);
   if (form.characters?.length) {
     form.characters.forEach((character, i) => {
       data.append(`characters[${i}][name]`, character.name);
@@ -315,6 +336,15 @@ export const redrawMusicVideoStillRequest = (video: number, shot: number) =>
   alova.Post<ResponseBody<MusicVideoShot>>(
     `creator/videos/${video}/shots/${shot}/still`,
   );
+
+/** Shows the song's synced lyrics on the video in a style, or takes them off */
+export const setMusicVideoLyricsRequest = (
+  video: number,
+  lyrics: LyricStyle | null,
+) =>
+  alova.Put<ResponseBody<MusicVideo>>(`creator/videos/${video}/lyrics`, {
+    lyrics,
+  });
 
 export const renderMusicVideoRequest = (video: number) =>
   alova.Post<ResponseBody<MusicVideo>>(`creator/videos/${video}/render`);

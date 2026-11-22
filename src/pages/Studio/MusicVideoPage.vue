@@ -24,9 +24,9 @@
           >
         </div>
         <p class="mb-6 text-sm text-grey-5">
-          {{ ratioLabel
+          <template v-if="lyricVideo">Lyric video · </template>{{ ratioLabel
           }}<template v-if="video.quality === 'advanced'"> · Advanced</template
-          ><template v-if="video.shots?.length">
+          ><template v-if="video.shots?.length && !lyricVideo">
             · {{ video.shots.length }} shots</template
           >
           <template v-if="video.duration">
@@ -54,7 +54,12 @@
             :poster="video.shots?.[0]?.keyframeUrl ?? undefined"
             :style="{ aspectRatio: aspect }"
           />
-          <div class="flex justify-end gap-2 mt-3">
+          <div class="flex flex-wrap justify-end gap-2 mt-3">
+            <VideoLyricsMenu
+              :video="video"
+              :disable="rendering"
+              @saved="onLyrics"
+            />
             <q-btn
               flat
               rounded
@@ -106,7 +111,10 @@
         <!-- Working on it -->
         <div class="notice mb-6" v-if="busy">
           <q-spinner-dots size="20px" color="toneflix" class="flex-none!" />
-          <span v-if="video.status === 'planning'">
+          <span v-if="lyricVideo">
+            Making the lyric video. This takes a minute or two.
+          </span>
+          <span v-else-if="video.status === 'planning'">
             Planning the shots on the beat and drawing a still for each one.
             This takes a few minutes.
           </span>
@@ -195,6 +203,12 @@
             </div>
           </div>
           <div class="flex gap-2 flex-none!">
+            <VideoLyricsMenu
+              :video="video"
+              :disable="rendering || pending"
+              @saved="onLyrics"
+              v-if="video.status === 'storyboard'"
+            />
             <q-btn
               flat
               rounded
@@ -332,7 +346,7 @@
         </template>
 
         <!-- Storyboard -->
-        <template v-if="video.shots?.length && !canEdit">
+        <template v-if="video.shots?.length && !canEdit && !lyricVideo">
           <h5 class="mb-3 text-base font-semibold">Storyboard</h5>
           <div class="grid gap-3" :class="gridClass">
             <div class="shot" :key="shot.id" v-for="shot in video.shots">
@@ -408,6 +422,7 @@ import { useMeta } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ShotEditor from 'src/components/Studio/ShotEditor.vue';
+import VideoLyricsMenu from 'src/components/Studio/VideoLyricsMenu.vue';
 import VideoShorts from 'src/components/Studio/VideoShorts.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
@@ -461,6 +476,7 @@ const statusText: Record<MusicVideoStatus, string> = {
 };
 
 const busy = computed(() => !!video.value && videoBusy(video.value));
+const lyricVideo = computed(() => video.value?.mode === 'lyrics');
 const ownPhotos = ref(false);
 const drawing = computed(
   () => !!video.value?.shots?.some((shot) => shot.drawing),
@@ -624,6 +640,11 @@ const onSaved = (saved: MusicVideo) => {
   if (drew) void loadAccount();
 };
 
+const onLyrics = (saved: MusicVideo) => {
+  video.value = saved;
+  if (saved.status === 'ready' && saved.edited) editingShots.value = true;
+};
+
 const render = async () => {
   if (!video.value) return;
   rendering.value = true;
@@ -703,7 +724,7 @@ onBeforeUnmount(() => {
 
 useMeta(() => ({
   title: video.value?.track?.title
-    ? `${video.value.track.title} music video`
+    ? `${video.value.track.title} ${lyricVideo.value ? 'lyric' : 'music'} video`
     : 'Music video',
   titleTemplate: (title) => `${title} - ${boot.configuration.app_name}`,
 }));
