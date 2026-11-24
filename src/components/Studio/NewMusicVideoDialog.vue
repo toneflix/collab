@@ -8,10 +8,7 @@
       <header class="flex items-start gap-2 p-4 pb-2 no-wrap">
         <div class="min-w-0">
           <div class="text-lg font-bold">New music video</div>
-          <div class="text-xs text-grey-5">
-            AI plans the shots on the beat and draws a still for each one. You
-            check the storyboard before the video is made.
-          </div>
+          <div class="text-xs text-grey-5">{{ intro }}</div>
         </div>
         <IconBtn
           icon="lucide-x"
@@ -112,7 +109,28 @@
             <div class="mt-1 text-xs text-grey-6">{{ modeCaption }}</div>
           </div>
 
-          <div v-if="advanced">
+          <div>
+            <div class="mb-1 text-xs text-grey-5">Lyrics</div>
+            <q-btn-toggle
+              dark
+              spread
+              no-caps
+              rounded
+              unelevated
+              toggle-color="toneflix"
+              toggle-text-color="dark"
+              color="transparent"
+              dense
+              class="ratio-toggle w-full"
+              :options="lyricOptions"
+              v-model="form.lyrics"
+            />
+            <div class="mt-1 text-xs text-negative" v-if="errors.lyrics">
+              {{ errors.lyrics }}
+            </div>
+          </div>
+
+          <div v-if="advanced && !lyricVideo">
             <div class="mb-1 text-xs text-grey-5">Quality</div>
             <q-btn-toggle
               dark
@@ -143,9 +161,13 @@
             :error="!!errors.brief"
             :error-message="errors.brief"
             v-model="form.brief"
+            v-if="!lyricVideo"
           />
 
-          <div class="photo-box" v-if="castOptions.length > 1 || ownPhotos">
+          <div
+            class="photo-box"
+            v-if="(castOptions.length > 1 || ownPhotos) && !lyricVideo"
+          >
             <div class="mb-1 text-xs text-grey-5">Cast</div>
             <q-btn-toggle
               dark
@@ -353,9 +375,12 @@
             v-if="step === 2"
           />
           <div class="text-xs text-grey-6" v-else>
-            <template v-if="track"
-              >Storyboard: {{ storyboardCost }} credits · </template
-            >{{ ai.balance.total.toLocaleString() }} left
+            <template v-if="lyricVideo">Free</template>
+            <template v-else>
+              <template v-if="track"
+                >Storyboard: {{ storyboardCost }} credits · </template
+              >{{ ai.balance.total.toLocaleString() }} left
+            </template>
             <template v-if="short">
               ·
               <router-link :to="{ name: 'studio.credits' }"
@@ -370,9 +395,9 @@
             type="submit"
             color="toneflix"
             text-color="dark"
-            :icon="needsSheets ? 'lucide-arrow-right' : 'lucide-clapperboard'"
+            :icon="submitIcon"
             class="flex-none!"
-            :label="needsSheets ? 'Add character sheets' : 'Plan the video'"
+            :label="submitLabel"
             :loading="saving"
             :disable="!ready"
           />
@@ -383,7 +408,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { notifyError } from 'src/utils/composer';
 import type { Track } from 'src/utils/models';
 import type { AiAccount } from 'src/utils/requests/ai';
@@ -391,12 +416,14 @@ import {
   createMusicVideoRequest,
   loadOwnTracksRequest,
   loadSavedCharactersRequest,
+  LYRIC_STYLES,
   minuteRate,
   renderRate,
   storyboardRate,
   VIDEO_MODES,
   VIDEO_QUALITIES,
   VIDEO_RATIOS,
+  type LyricStyle,
   type MusicVideo,
   type SavedCharacter,
   type VideoMode,
@@ -442,6 +469,7 @@ const form = reactive({
   mode: 'locations' as VideoMode,
   quality: 'standard' as VideoQuality,
   brief: '',
+  lyrics: 'off' as LyricStyle | 'off',
   photo: null as File | null,
   cast: 'ai' as CastSource,
   consent: false,
@@ -544,10 +572,37 @@ const pick = (sheet: SheetRow, event: Event) => {
     sheet.name = sheet.id === singer.value ? 'The singer' : '';
 };
 
+/** A lyric video shows the synced lyrics over the artwork, with no storyboard */
+const lyricVideo = computed(() => form.mode === 'lyrics');
+
+/** A lyric video always shows its lyrics; any other video may */
+const lyricOptions = computed(() => [
+  ...(lyricVideo.value ? [] : [{ label: 'Off', value: 'off' }]),
+  ...LYRIC_STYLES.map((style) => ({ label: style.label, value: style.value })),
+]);
+
+const intro = computed(() =>
+  lyricVideo.value
+    ? 'Your synced lyrics, line by line, over the song artwork.'
+    : 'AI plans the shots on the beat and draws a still for each one. You check the storyboard before the video is made.',
+);
+
 /** Step one goes on to the sheets when the creator brings their own */
 const needsSheets = computed(
-  () => step.value === 1 && props.ownPhotos && form.cast === 'sheets',
+  () =>
+    step.value === 1 &&
+    props.ownPhotos &&
+    form.cast === 'sheets' &&
+    !lyricVideo.value,
 );
+const submitLabel = computed(() => {
+  if (needsSheets.value) return 'Add character sheets';
+  return lyricVideo.value ? 'Make the lyric video' : 'Plan the video';
+});
+const submitIcon = computed(() => {
+  if (needsSheets.value) return 'lucide-arrow-right';
+  return lyricVideo.value ? 'lucide-captions' : 'lucide-clapperboard';
+});
 const sheetsReady = computed(
   () =>
     sheets.value.length > 0 &&
@@ -558,6 +613,7 @@ const sheetsReady = computed(
 const ready = computed(() => {
   if (!track.value || short.value) return false;
   if (step.value === 2) return sheetsReady.value;
+  if (lyricVideo.value) return true;
   if (form.cast === 'saved' && (!picks.value.length || tooManyPicks.value))
     return false;
   return needsSheets.value || !showPhoto.value || !form.photo || form.consent;
@@ -572,8 +628,10 @@ const sheetError = computed(
 const minutes = computed(() =>
   Math.max(1, Math.ceil((track.value?.duration ?? 60) / 60)),
 );
-const storyboardCost = computed(
-  () => storyboardRate(props.ai.costs, form.mode) * minutes.value,
+const storyboardCost = computed(() =>
+  lyricVideo.value
+    ? 0
+    : storyboardRate(props.ai.costs, form.mode) * minutes.value,
 );
 const modeCaption = computed(
   () => VIDEO_MODES.find((m) => m.value === form.mode)?.caption ?? '',
@@ -609,6 +667,7 @@ const findTracks = (search: string, done: (fn: () => void) => void) => {
 
 const reset = () => {
   errors.value = {};
+  form.lyrics = form.mode === 'lyrics' ? 'captions' : 'off';
   if (!props.advanced) form.quality = 'standard';
   form.photo = null;
   form.cast = 'ai';
@@ -623,6 +682,13 @@ const reset = () => {
   sheets.value = [];
   singer.value = null;
 };
+
+watch(
+  () => form.mode,
+  (mode) => {
+    if (mode === 'lyrics' && form.lyrics === 'off') form.lyrics = 'captions';
+  },
+);
 
 const next = () => {
   if (!needsSheets.value) return void submit();
@@ -645,15 +711,17 @@ const submit = async () => {
             sheet: sheet.file as File,
           }))
         : undefined;
+    const lyric = lyricVideo.value;
     const res = await createMusicVideoRequest(String(track.value.slug), {
       ratio: form.ratio,
       mode: form.mode,
-      quality: props.advanced ? form.quality : 'standard',
-      brief: form.brief.trim(),
-      photo: step.value === 2 || !showPhoto.value ? null : form.photo,
+      quality: props.advanced && !lyric ? form.quality : 'standard',
+      brief: lyric ? '' : form.brief.trim(),
+      lyrics: form.lyrics === 'off' ? null : form.lyrics,
+      photo: step.value === 2 || lyric || !showPhoto.value ? null : form.photo,
       characters,
       saved:
-        step.value === 1 && form.cast === 'saved'
+        step.value === 1 && form.cast === 'saved' && !lyric
           ? picks.value.map((id) => ({ id, singer: id === singerPick.value }))
           : undefined,
       consent: form.consent,

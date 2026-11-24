@@ -30,7 +30,7 @@
       </div>
       <p class="mb-8 text-sm text-grey-5">
         Pick a song and AI plans a video on its beat: you singing the lines, and
-        scenes that fit between them.
+        scenes that fit between them. Or make a free lyric video.
         <template v-if="minutesLeft > 0">
           Your plan has {{ minutesLeft }} video
           {{ minutesLeft === 1 ? 'minute' : 'minutes' }} left this month.
@@ -73,7 +73,9 @@
               {{ video.track?.title ?? 'Untitled song' }}
             </div>
             <div class="text-xs text-grey-5">
-              {{ statusText[video.status] }} · {{ video.ratio }}
+              {{ statusText[video.status] }}
+              <template v-if="video.mode === 'lyrics'"> · Lyric video</template>
+              · {{ video.ratio }}
               <template v-if="video.duration">
                 · {{ clock(video.duration) }}</template
               >
