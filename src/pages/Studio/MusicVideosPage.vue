@@ -6,13 +6,22 @@
           Music videos
         </h4>
         <q-btn
+          flat
+          rounded
+          no-caps
+          label="My characters"
+          icon="lucide-users"
+          class="flex-none! ml-auto"
+          :to="{ name: 'studio.videos.characters' }"
+        />
+        <q-btn
           unelevated
           rounded
           no-caps
           color="toneflix"
           text-color="dark"
           label="New video"
-          class="flex-none! ml-auto"
+          class="flex-none!"
           icon="lucide-plus"
           :disable="!ai"
           @click="creating = true"

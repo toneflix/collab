@@ -145,23 +145,79 @@
             v-model="form.brief"
           />
 
-          <div class="photo-box" v-if="ownPhotos">
-            <q-toggle
+          <div class="photo-box" v-if="castOptions.length > 1 || ownPhotos">
+            <div class="mb-1 text-xs text-grey-5">Cast</div>
+            <q-btn-toggle
               dark
+              spread
+              no-caps
+              rounded
+              unelevated
+              toggle-color="toneflix"
+              toggle-text-color="dark"
+              color="transparent"
               dense
-              color="toneflix"
-              class="mb-1"
-              label="I have character sheets"
-              v-model="form.useSheets"
+              class="ratio-toggle w-full"
+              :options="castOptions"
+              v-model="form.cast"
+              v-if="castOptions.length > 1"
             />
-            <div class="mb-3 text-xs text-grey-6">
-              {{
-                form.useSheets
-                  ? 'Add your sheets in the next step. AI uses them as they are and draws none of its own.'
-                  : 'Without sheets, AI draws one for each character in the video.'
-              }}
+            <div class="mt-1 mb-3 text-xs text-grey-6">{{ castCaption }}</div>
+
+            <div
+              class="grid grid-cols-3 gap-2 mb-3"
+              v-if="form.cast === 'saved'"
+            >
+              <div
+                class="pick"
+                :class="{
+                  'pick--on': picked(character),
+                  'pick--off': !castable(character),
+                }"
+                :key="character.id"
+                v-for="character in library"
+              >
+                <button
+                  type="button"
+                  class="pick__sheet"
+                  :aria-pressed="picked(character)"
+                  :disabled="!castable(character)"
+                  @click="togglePick(character)"
+                >
+                  <img :src="character.sheetUrl" alt="" loading="lazy" />
+                  <q-icon
+                    name="lucide-circle-check"
+                    size="18px"
+                    class="pick__check"
+                    v-if="picked(character)"
+                  />
+                </button>
+                <div class="flex items-center gap-1 px-2 py-1 min-h-9 no-wrap">
+                  <span class="text-xs truncate flex-1">{{
+                    character.name
+                  }}</span>
+                  <IconBtn
+                    size="sm"
+                    icon="lucide-mic-vocal"
+                    class="flex-none!"
+                    :color="
+                      singerPick === character.id ? 'toneflix' : undefined
+                    "
+                    :active="singerPick === character.id"
+                    :aria-label="`${character.name} is the singer`"
+                    tooltip="The singer"
+                    @click="toggleSinger(character)"
+                    v-if="picked(character)"
+                  />
+                </div>
+              </div>
             </div>
-            <template v-if="!form.useSheets">
+            <div class="mb-3 text-xs text-negative" v-if="tooManyPicks">
+              Mark the singer, or pick at most {{ MAX_SHEETS - 1 }} so AI can
+              add one.
+            </div>
+
+            <template v-if="showPhoto">
               <q-file
                 dark
                 filled
@@ -192,6 +248,9 @@
                 {{ errors.consent }}
               </div>
             </template>
+            <div class="text-xs text-negative" v-if="errors.saved">
+              {{ errors.saved }}
+            </div>
           </div>
         </template>
 
@@ -331,6 +390,7 @@ import type { AiAccount } from 'src/utils/requests/ai';
 import {
   createMusicVideoRequest,
   loadOwnTracksRequest,
+  loadSavedCharactersRequest,
   minuteRate,
   renderRate,
   storyboardRate,
@@ -338,6 +398,7 @@ import {
   VIDEO_QUALITIES,
   VIDEO_RATIOS,
   type MusicVideo,
+  type SavedCharacter,
   type VideoMode,
   type VideoQuality,
   type VideoRatio,
@@ -382,9 +443,68 @@ const form = reactive({
   quality: 'standard' as VideoQuality,
   brief: '',
   photo: null as File | null,
-  useSheets: false,
+  cast: 'ai' as CastSource,
   consent: false,
 });
+
+/** Where the video's characters come from */
+type CastSource = 'ai' | 'saved' | 'sheets';
+
+const library = ref<SavedCharacter[]>([]);
+const picks = ref<number[]>([]);
+const singerPick = ref<number | null>(null);
+
+const castOptions = computed(() => [
+  { label: 'AI draws', value: 'ai' },
+  ...(library.value.length ? [{ label: 'My characters', value: 'saved' }] : []),
+  ...(props.ownPhotos ? [{ label: 'My sheets', value: 'sheets' }] : []),
+]);
+const castCaption = computed(
+  () =>
+    ({
+      ai: 'AI draws a character sheet for each person in the video.',
+      saved: `Pick up to ${MAX_SHEETS} and mark the singer, or AI draws one.`,
+      sheets:
+        'Add your sheets in the next step. AI uses them as they are and draws none of its own.',
+    })[form.cast],
+);
+/** The photo is for a singer AI draws */
+const showPhoto = computed(
+  () =>
+    props.ownPhotos &&
+    (form.cast === 'ai' || (form.cast === 'saved' && !singerPick.value)),
+);
+const tooManyPicks = computed(
+  () =>
+    form.cast === 'saved' &&
+    !singerPick.value &&
+    picks.value.length >= MAX_SHEETS,
+);
+
+/** Own uploads only go in videos on plans that take them */
+const castable = (character: SavedCharacter) =>
+  !character.uploaded || props.ownPhotos;
+const picked = (character: SavedCharacter) =>
+  picks.value.includes(character.id);
+
+const togglePick = (character: SavedCharacter) => {
+  if (picked(character)) {
+    picks.value = picks.value.filter((id) => id !== character.id);
+    if (singerPick.value === character.id) singerPick.value = null;
+  } else if (picks.value.length < MAX_SHEETS) {
+    picks.value.push(character.id);
+  }
+};
+
+const toggleSinger = (character: SavedCharacter) => {
+  singerPick.value = singerPick.value === character.id ? null : character.id;
+};
+
+const loadLibrary = () =>
+  loadSavedCharactersRequest()
+    .send()
+    .then((res) => (library.value = res.data))
+    .catch(() => (library.value = []));
 
 /** Character sheets a creator may bring */
 const MAX_SHEETS = 4;
@@ -426,7 +546,7 @@ const pick = (sheet: SheetRow, event: Event) => {
 
 /** Step one goes on to the sheets when the creator brings their own */
 const needsSheets = computed(
-  () => step.value === 1 && props.ownPhotos && form.useSheets,
+  () => step.value === 1 && props.ownPhotos && form.cast === 'sheets',
 );
 const sheetsReady = computed(
   () =>
@@ -438,7 +558,9 @@ const sheetsReady = computed(
 const ready = computed(() => {
   if (!track.value || short.value) return false;
   if (step.value === 2) return sheetsReady.value;
-  return needsSheets.value || !form.photo || form.consent;
+  if (form.cast === 'saved' && (!picks.value.length || tooManyPicks.value))
+    return false;
+  return needsSheets.value || !showPhoto.value || !form.photo || form.consent;
 });
 const sheetError = computed(
   () =>
@@ -489,8 +611,11 @@ const reset = () => {
   errors.value = {};
   if (!props.advanced) form.quality = 'standard';
   form.photo = null;
-  form.useSheets = false;
+  form.cast = 'ai';
   form.consent = false;
+  picks.value = [];
+  singerPick.value = null;
+  void loadLibrary();
   step.value = 1;
   sheets.value.forEach(
     (sheet) => sheet.preview && URL.revokeObjectURL(sheet.preview),
@@ -525,8 +650,12 @@ const submit = async () => {
       mode: form.mode,
       quality: props.advanced ? form.quality : 'standard',
       brief: form.brief.trim(),
-      photo: step.value === 2 ? null : form.photo,
+      photo: step.value === 2 || !showPhoto.value ? null : form.photo,
       characters,
+      saved:
+        step.value === 1 && form.cast === 'saved'
+          ? picks.value.map((id) => ({ id, singer: id === singerPick.value }))
+          : undefined,
       consent: form.consent,
     }).send();
     open.value = false;
@@ -586,6 +715,48 @@ const submit = async () => {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+
+.pick {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+
+  &--on {
+    border-color: var(--tf-primary);
+  }
+
+  &--off {
+    opacity: 0.45;
+  }
+
+  &__sheet {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.04);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    color: var(--tf-primary);
   }
 }
 
