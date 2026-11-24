@@ -57,6 +57,8 @@ export type AiConfig = {
     videoAdvanced?: number;
     /** Plan video minutes one advanced minute uses */
     videoAdvancedMinutes?: number;
+    /** One AI canvas loop for a track */
+    canvas?: number;
     composer?: Record<'line' | 'block' | 'verse' | 'rewrite', number>;
   };
   /** The model music is generated with */

@@ -34,7 +34,7 @@ export const trackMenu = shallowReactive({
   dialog: null as { kind: TrackDialog; track: Track } | null,
 });
 
-export type TrackDialog = 'credits' | 'report' | 'playlist';
+export type TrackDialog = 'credits' | 'report' | 'playlist' | 'canvas';
 
 /**
  * Show one of the track menu's dialogs for a track.

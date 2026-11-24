@@ -12,7 +12,7 @@
       <div class="now-playing__body">
         <!-- Big artwork, or the music video, and what's playing -->
         <div class="now-playing__art" :class="{ 'now-playing__art--video': hasVideo && player.videos }">
-          <div class="flex justify-center mb-4" v-if="hasVideo">
+          <div class="flex justify-center mb-4" v-if="hasVideo || hasCanvas">
             <q-btn-toggle
               dense
               no-caps
@@ -34,6 +34,7 @@
             :position="player.position"
             :playing="player.playing"
             @video="(v) => (hasVideo = !!v)"
+            @canvas="(c) => (hasCanvas = !!c)"
           />
           <div class="mt-8 text-center">
             <div class="text-2xl font-bold truncate">{{ track.title || 'Nothing playing' }}</div>
@@ -124,10 +125,14 @@ const artistLink = computed(() => ({
 }));
 /** Whether the playing track's music video shows in place of its artwork */
 const hasVideo = ref(false);
-const artOptions = [
+/** Whether it has a canvas, which shows when it has no music video */
+const hasCanvas = ref(false);
+const artOptions = computed(() => [
   { label: 'Song', value: false, icon: 'lucide-image' },
-  { label: 'Video', value: true, icon: 'lucide-clapperboard' },
-];
+  hasVideo.value
+    ? { label: 'Video', value: true, icon: 'lucide-clapperboard' }
+    : { label: 'Canvas', value: true, icon: 'lucide-film' },
+]);
 const queueList = ref<InstanceType<typeof QueueList> | null>(null);
 
 // Esc and clicks outside the panel close it. The player bar and popups keep it open.
