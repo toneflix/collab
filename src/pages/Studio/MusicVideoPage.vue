@@ -97,6 +97,12 @@
           </div>
         </div>
 
+        <VideoShorts
+          class="mb-8"
+          :video="video"
+          v-if="video.status === 'ready' && video.videoUrl && !editingShots"
+        />
+
         <!-- Working on it -->
         <div class="notice mb-6" v-if="busy">
           <q-spinner-dots size="20px" color="toneflix" class="flex-none!" />
@@ -379,6 +385,7 @@ import { useMeta } from 'quasar';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import ShotEditor from 'src/components/Studio/ShotEditor.vue';
+import VideoShorts from 'src/components/Studio/VideoShorts.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
 import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { notifyError } from 'src/utils/composer';
