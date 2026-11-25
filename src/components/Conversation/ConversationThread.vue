@@ -575,7 +575,7 @@ const jumpTo = (id: string | number) => {
   setTimeout(() => (flashId.value = null), 1600);
 };
 
-useRealtimeChannel(() => `conversation.${props.type}.${props.id}`, {
+useRealtimeChannel(() => (readonly.value ? null : `conversation.${props.type}.${props.id}`), {
   'comment.posted': ({ comment }: { comment: ChatMessage }) => {
     if (!comment.body) comment.body = (comment as unknown as { comment: string }).comment;
     add(comment);
@@ -588,6 +588,7 @@ useRealtimeChannel(() => `conversation.${props.type}.${props.id}`, {
 watch(
   () => [props.active, key.value] as const,
   ([active, current], old) => {
+    if (readonly.value) return;
     if (old && old[1] !== current) store.setVisible(old[1], false);
     store.setVisible(current, !!active);
   },
@@ -624,7 +625,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect();
-  store.setVisible(key.value, false);
+  if (!readonly.value) store.setVisible(key.value, false);
 });
 
 defineExpose({ focus: () => input.value?.focus() });

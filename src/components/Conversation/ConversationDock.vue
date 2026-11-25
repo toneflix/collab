@@ -40,6 +40,7 @@
               icon="lucide-maximize-2"
               aria-label="Open full page"
               :to="{ name: 'messages', params: { type: conversation.type, id: conversation.id } }"
+              v-if="boot.user?.id"
             >
               <q-tooltip>Open full page</q-tooltip>
             </IconBtn>
@@ -73,6 +74,7 @@ import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import ConversationThread from './ConversationThread.vue';
 import { conversationKey, useConversationStore } from 'src/stores/conversation-store';
+import { useBootstrapStore } from 'src/stores/bootstrap-store';
 import { imageFallback } from 'src/utils/imageFallback';
 import { loadConversationRequest, type Conversation } from 'src/utils/requests/conversations';
 
@@ -84,6 +86,7 @@ import { loadConversationRequest, type Conversation } from 'src/utils/requests/c
 const $q = useQuasar();
 const route = useRoute();
 const store = useConversationStore();
+const boot = useBootstrapStore();
 
 const thread = ref<InstanceType<typeof ConversationThread>>();
 const subject = ref<Conversation | null>(null);

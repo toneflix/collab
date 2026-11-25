@@ -86,13 +86,6 @@
                   type="Track"
                   :id="track.id"
                   :params="{ limit: 30, baseUrl: 'tracks' }"
-                  @commented="
-                    (e, t) => {
-                      t == 'comment' &&
-                        typeof track.commentsCount !== 'undefined' &&
-                        track.commentsCount++;
-                    }
-                  "
                   v-slot="{ toggle }"
                 >
                   <IconBtn

@@ -78,13 +78,6 @@
                   type="Album"
                   :id="album.id"
                   :params="{ limit: 30, baseUrl: 'releases' }"
-                  @commented="
-                    (e, t) => {
-                      t == 'comment' &&
-                        typeof album.commentsCount !== 'undefined' &&
-                        album.commentsCount++;
-                    }
-                  "
                   v-slot="{ toggle }"
                 >
                   <IconBtn
