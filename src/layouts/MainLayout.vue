@@ -301,7 +301,7 @@
       <router-view v-slot="{ Component, route: view }">
         <component :is="Component" :key="pageKey(view)" />
       </router-view>
-      <ConversationDock v-if="boot.user?.id" />
+      <ConversationDock />
     </q-page-container>
 
     <q-footer class="text-white bg-glass">
