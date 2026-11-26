@@ -254,6 +254,41 @@
             v-model.number="form.stems_price"
           />
         </div>
+        <div class="col-span-2" v-if="type === 'track'">
+          <q-checkbox
+            :true-value="1"
+            :false-value="0"
+            :disable="!canOpenDownload && !form.open_download"
+            v-model="form.open_download"
+          >
+            Anyone can download
+            <q-badge
+              rounded
+              outline
+              color="toneflix"
+              class="ml-1"
+              label="Premium"
+              v-if="!canOpenDownload"
+            />
+          </q-checkbox>
+          <p class="pl-10 text-xs text-grey-6">
+            <template v-if="canOpenDownload">
+              Free for everyone, signed in or not.
+            </template>
+            <template v-else>
+              <router-link class="text-toneflix" :to="{ name: 'premium' }">
+                Upgrade
+              </router-link>
+              to let anyone download this track.
+            </template>
+          </p>
+          <p
+            class="text-sm text-negative"
+            v-if="errors[`tracks.${index}.open_download`]"
+          >
+            {{ errors[`tracks.${index}.open_download`] }}
+          </p>
+        </div>
         <div class="col-span-2" v-if="showVersion">
           <label class="block mb-2 text-xl text-gray-400"> Version </label>
           <q-input
@@ -346,6 +381,7 @@ const props = defineProps({
 });
 
 const user = computed(() => useBootstrapStore().user || {});
+const canOpenDownload = computed(() => !!user.value.canOpenDownloads);
 
 const mapOptions: Record<string, string> = {
   release: 'Release',

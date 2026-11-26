@@ -20,6 +20,8 @@ export type AdminUser = {
   suspendedUntil?: string | null;
   suspensionReason?: string | null;
   plan?: { id?: number | null; name: string; isDefault: boolean } | null;
+  /** Plan features admins gave the account on top of its plan */
+  featureGrants?: FeatureGrant[];
   projectsCount: number;
   releasesCount?: number;
   about?: string | null;
@@ -30,7 +32,20 @@ export type AdminUser = {
   createdAt: string;
 };
 
-export type UserAbility = 'view' | 'update' | 'suspend' | 'verify' | 'credits' | 'plan' | 'funds' | 'roles';
+/** A plan feature an admin gave one account. No expiry means until removed. */
+export type FeatureGrant = {
+  id: number;
+  feature: string;
+  title: string;
+  reason?: string | null;
+  expiresAt?: string | null;
+  grantedBy?: string | null;
+  createdAt: string;
+};
+
+export type GrantableFeature = { key: string; title: string };
+
+export type UserAbility = 'view' | 'update' | 'suspend' | 'verify' | 'credits' | 'plan' | 'features' | 'funds' | 'roles';
 
 export type AdminUserStats = {
   currency: string;
@@ -59,6 +74,7 @@ export type AdminUserDetail = {
   user: AdminUser;
   can: Record<UserAbility, boolean>;
   roles: string[];
+  grantableFeatures: GrantableFeature[];
   stats?: AdminUserStats;
 };
 
@@ -81,9 +97,9 @@ type UserBody = ResponseBody<AdminUser> & Omit<AdminUserDetail, 'user'>;
 
 type Detail = ResponseBody<AdminUserDetail>;
 
-const toDetail = ({ data, can, roles, stats, ...body }: UserBody): Detail => ({
+const toDetail = ({ data, can, roles, grantableFeatures, stats, ...body }: UserBody): Detail => ({
   ...body,
-  data: { user: data, can, roles, ...(stats ? { stats } : {}) },
+  data: { user: data, can, roles, grantableFeatures: grantableFeatures || [], ...(stats ? { stats } : {}) },
 });
 
 export const loadAdminUserRequest = (id: number | string) =>
@@ -127,6 +143,13 @@ export const adjustUserFundsRequest = (id: number, amount: number, reason: strin
 export const adjustUserCreditsRequest = (id: number, credits: number, reason: string) =>
   alova.Post(`admin/users/${id}/credits`, { credits, reason }, { transform: toDetail });
 
+/** Give a plan feature without changing the plan, until a date or until removed. */
+export const grantUserFeatureRequest = (id: number, feature: string, until?: string | null, reason?: string) =>
+  alova.Post(`admin/users/${id}/features`, { feature, until: until || null, reason }, { transform: toDetail });
+
+export const revokeUserFeatureRequest = (id: number, feature: string) =>
+  alova.Delete(`admin/users/${id}/features/${feature}`, {}, { transform: toDetail });
+
 /** Who made an audit entry. */
 export const actionActor = (entry: AdminAction) => {
   if (entry.admin) return entry.details.via === 'assistant' ? `@${entry.admin.username} via Assistant` : `@${entry.admin.username}`;
@@ -158,6 +181,8 @@ export const describeAction = (entry: AdminAction, price: (n: number) => string)
     'funds.removed': `Took ${price(Math.abs(Number(d.amount)))} from the balance`,
     'credits.added': `Granted ${Number(d.credits)} AI credits`,
     'credits.removed': `Took back ${Number(d.credits)} AI credits`,
+    'feature.granted': `Granted ${String(d.feature)}${d.until ? ` until ${new Date(String(d.until)).toLocaleDateString()}` : ''}`,
+    'feature.revoked': `Removed ${String(d.feature)}`,
     'agent.assigned': 'Made it an AI Studio account',
     'agent.removed': 'Turned off AI Studio',
     'two_factor.reset': 'Reset two-factor sign-in',

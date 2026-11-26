@@ -73,6 +73,37 @@
           </div>
         </template>
 
+        <template v-else-if="mode === 'feature'">
+          <q-select
+            dark
+            filled
+            dense
+            emit-value
+            map-options
+            label="Feature"
+            hide-bottom-space
+            option-value="key"
+            option-label="title"
+            :options="grantable"
+            :error="!!errors.feature"
+            :error-message="errors.feature"
+            v-model="feature"
+          />
+          <q-input
+            dark
+            filled
+            dense
+            type="date"
+            stack-label
+            label="Until (optional)"
+            hide-bottom-space
+            :error="!!errors.until"
+            :error-message="errors.until"
+            v-model="until"
+          />
+          <div class="text-sm text-grey-5">Their plan stays the same.</div>
+        </template>
+
         <template v-else-if="mode === 'funds' || mode === 'credits'">
           <q-option-group
             dark
@@ -129,7 +160,7 @@
           :color="mode === 'suspend' ? 'red-8' : 'toneflix'"
           :label="confirmLabel"
           :loading="saving"
-          :disable="needsReason && !reason"
+          :disable="(needsReason && !reason) || (mode === 'feature' && !feature)"
           @click="submit"
         />
       </q-card-actions>
@@ -147,19 +178,22 @@ import {
   adjustUserCreditsRequest,
   adjustUserFundsRequest,
   assignUserPlanRequest,
+  grantUserFeatureRequest,
   saveUserRolesRequest,
   suspendUserRequest,
   updateAdminUserRequest,
   type AdminUser,
   type AdminUserDetail,
+  type GrantableFeature,
 } from 'src/utils/requests/adminUsers';
 
-export type ManageMode = 'edit' | 'suspend' | 'roles' | 'plan' | 'funds' | 'credits';
+export type ManageMode = 'edit' | 'suspend' | 'roles' | 'plan' | 'feature' | 'funds' | 'credits';
 
 const props = defineProps<{
   user: AdminUser;
   allRoles: string[];
   currency: string;
+  grantable?: GrantableFeature[];
 }>();
 
 const mode = defineModel<ManageMode | null>('mode', { default: null });
@@ -171,6 +205,7 @@ const titles: Record<ManageMode, string> = {
   suspend: 'Suspend account',
   roles: 'Roles',
   plan: 'Give a plan',
+  feature: 'Grant a feature',
   funds: 'Adjust balance',
   credits: 'Adjust AI credits',
 };
@@ -191,12 +226,18 @@ const planId = ref<number>();
 const cycles = ref(1);
 const direction = ref(1);
 const amount = ref<number>();
+const feature = ref<string>();
+const until = ref('');
 const profile = ref<Partial<AdminUser>>({});
 
 const title = computed(() => (mode.value ? titles[mode.value] : ''));
 const needsReason = computed(() => ['suspend', 'funds', 'credits'].includes(mode.value || ''));
 const confirmLabel = computed(() =>
-  mode.value === 'suspend' ? (days.value ? 'Suspend' : 'Ban') : mode.value === 'plan' ? 'Give plan' : 'Save',
+  mode.value === 'suspend'
+    ? days.value
+      ? 'Suspend'
+      : 'Ban'
+    : ({ plan: 'Give plan', feature: 'Grant' } as Partial<Record<ManageMode, string>>)[mode.value || 'edit'] || 'Save',
 );
 const roleOptions = computed(() => props.allRoles.map((role) => ({ value: role, label: role })));
 
@@ -219,6 +260,8 @@ const reset = () => {
   direction.value = 1;
   amount.value = undefined;
   cycles.value = 1;
+  feature.value = undefined;
+  until.value = '';
   roles.value = [...(u.roles || [])];
   planId.value = u.plan && !u.plan.isDefault ? u.plan.id || undefined : undefined;
   profile.value = {
@@ -247,6 +290,7 @@ const submit = async () => {
     suspend: () => suspendUserRequest(id, reason.value, days.value || null).send(),
     roles: () => saveUserRolesRequest(id, roles.value).send(),
     plan: () => assignUserPlanRequest(id, planId.value || 0, cycles.value || 1, reason.value || undefined).send(),
+    feature: () => grantUserFeatureRequest(id, feature.value || '', until.value || null, reason.value || undefined).send(),
     funds: () => adjustUserFundsRequest(id, value, reason.value).send(),
     credits: () => adjustUserCreditsRequest(id, Math.round(value), reason.value).send(),
   };

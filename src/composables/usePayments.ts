@@ -67,13 +67,17 @@ export const usePayments = () => {
   const isPremium = computed(() => !!boot.user.isPremium);
 
   /**
-   * Whether the signed in user can download a track now: owners and buyers
-   * always can, Premium listeners when its creator allowed downloads.
+   * Whether the viewer can download a track now: anyone when its creator
+   * opened downloads, owners and buyers always, and listeners with downloads
+   * in their plan when its creator allowed downloads.
    */
   const canDownload = (track: Track) =>
     !!track.downloadable &&
     !track.locked &&
-    (isPremium.value || !!track.owned || Number(track.price) > 0);
+    (!!track.freeDownload ||
+      !!(boot.user.canDownload ?? isPremium.value) ||
+      !!track.owned ||
+      Number(track.price) > 0);
 
   /**
    * How long a payment on a plan lasts, e.g. "month", "3 months", or "6 months"

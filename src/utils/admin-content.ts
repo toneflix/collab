@@ -83,6 +83,7 @@ export const contentSections: ContentSection[] = [
       { key: 'audio', from: 'hasAudio', label: 'Audio', kind: 'audio', requiredOnCreate: true },
       { key: 'privacy', from: 'privacy', label: 'Privacy', kind: 'select', options: privacy },
       { key: 'stems_price', from: 'stemsPrice', label: 'Stems price', kind: 'number' },
+      { key: 'open_download', from: 'openDownload', label: 'Anyone can download', kind: 'toggle', hint: "Needs the owner's plan or a grant" },
       {
         key: 'origin',
         from: 'origin',
