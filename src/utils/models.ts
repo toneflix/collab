@@ -84,6 +84,7 @@ export type UploadData = {
   release_id?: string | number;
   description?: string;
   stems_price?: number;
+  open_download?: 0 | 1 | boolean;
   /** Fields the release and track forms send, in the API's request names */
   genre_id?: string | number;
   artist_id?: string | number;
@@ -519,6 +520,10 @@ export interface Artist {
   contentAgent?: boolean;
   /** The user can run the content agent: an agent account, or a plan with it */
   agentAccess?: boolean;
+  /** The signed in user's plan or a grant includes downloads */
+  canDownload?: boolean;
+  /** The signed in user may let anyone download their releases */
+  canOpenDownloads?: boolean;
   badge?: boolean;
   acceptsTips?: boolean;
   coverUrl?: string | null;
@@ -654,6 +659,10 @@ export interface Track {
   stemsUnlocked?: boolean;
   /** Whether the signed in user could download it: owned, bought, or offered to plans with downloads */
   downloadable?: boolean;
+  /** The creator opened this track's download to everyone */
+  openDownload?: boolean;
+  /** Anyone can download it now, signed in or not, whatever their plan */
+  freeDownload?: boolean;
   takenDown?: boolean;
   /** Tempo and key */
   tags?: AudioTags;
