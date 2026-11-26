@@ -23,7 +23,7 @@
         <div>
           <div class="text-lg font-bold">Tip {{ creator.name }}</div>
           <div class="text-xs text-grey-5">
-            Show some love. {{ share }}% goes straight to them.
+            Show some love.
           </div>
         </div>
       </q-card-section>
@@ -109,7 +109,6 @@ const { price, symbol } = usePayments();
 const show = ref(false);
 const message = ref('');
 const minimum = computed(() => Number(boot.configuration.min_tip_amount || 100));
-const share = computed(() => Number(boot.configuration.creator_share || 85));
 const presets = computed(() => [1, 5, 10, 20].map((x) => x * minimum.value * 5));
 const amount = ref(0);
 
