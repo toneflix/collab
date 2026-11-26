@@ -49,6 +49,7 @@
           />
           <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-shield-user" label="Roles" @click="mode = 'roles'" v-if="can.roles" />
           <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-layers" label="Give plan" @click="mode = 'plan'" v-if="can.plan" />
+          <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-gift" label="Grant feature" @click="mode = 'feature'" v-if="can.features" />
           <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-wallet" label="Funds" @click="mode = 'funds'" v-if="can.funds" />
           <q-btn outline rounded no-caps padding="4px 14px" class="flex-none!" icon="lucide-wand-sparkles" label="AI credits" @click="mode = 'credits'" v-if="can.credits" />
           <template v-if="can.suspend">
@@ -112,6 +113,31 @@
             </div>
             <q-separator dark class="my-4" />
             <div class="row-item"><span>Storage</span><span>{{ storage }}</span></div>
+            <template v-if="user.featureGrants?.length">
+              <q-separator dark class="my-4" />
+              <div class="text-sm font-bold mb-1">Granted features</div>
+              <div class="grant" :key="grant.id" v-for="grant in user.featureGrants">
+                <div class="min-w-0">
+                  <div class="text-sm">{{ grant.title }}</div>
+                  <div class="text-xs text-grey-5">
+                    {{ grant.expiresAt ? `Until ${date.formatDate(grant.expiresAt, 'MMM D, YYYY')}` : 'No end date' }}
+                  </div>
+                </div>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  size="sm"
+                  color="red-4"
+                  icon="lucide-x"
+                  :loading="busy === `feature.${grant.feature}`"
+                  @click="revokeFeature(grant)"
+                  v-if="can.features"
+                >
+                  <q-tooltip>Remove</q-tooltip>
+                </q-btn>
+              </div>
+            </template>
           </div>
 
           <div class="section">
@@ -178,6 +204,7 @@
       :user="user"
       :all-roles="detail.roles"
       :currency="stats?.currency || ''"
+      :grantable="detail.grantableFeatures"
       @done="applied"
       v-model:mode="mode"
       v-if="detail"
@@ -204,10 +231,12 @@ import {
   loadAdminUserRequest,
   loadUserActivityRequest,
   loadUserTransactionsRequest,
+  revokeUserFeatureRequest,
   unsuspendUserRequest,
   verifyUserRequest,
   type AdminAction,
   type AdminUserDetail,
+  type FeatureGrant,
 } from 'src/utils/requests/adminUsers';
 import BlockSkeleton from 'src/components/Skeletons/BlockSkeleton.vue';
 import ListSkeleton from 'src/components/Skeletons/ListSkeleton.vue';
@@ -363,6 +392,16 @@ const endPlan = () => {
   }).onOk((reason: string) => void run('plan', () => endUserPlanRequest(user.value.id, reason || undefined).send()));
 };
 
+const revokeFeature = (grant: FeatureGrant) => {
+  $q.dialog({
+    dark: true,
+    title: `Remove ${grant.title}?`,
+    message: 'They keep whatever their plan gives.',
+    cancel: { flat: true, noCaps: true, label: 'Keep it' },
+    ok: { unelevated: true, rounded: true, noCaps: true, color: 'red-8', label: 'Remove' },
+  }).onOk(() => void run(`feature.${grant.feature}`, () => revokeUserFeatureRequest(user.value.id, grant.feature).send()));
+};
+
 useMeta(() => ({
   title: detail.value ? `${user.value.fullname || user.value.username} - Users` : 'Users',
   titleTemplate: (title) => `${title} - Toneflix Music`,
@@ -414,6 +453,19 @@ useMeta(() => ({
   margin-bottom: 12px;
 
   > * {
+    flex: none;
+  }
+}
+
+.grant {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+
+  > :last-child {
     flex: none;
   }
 }
